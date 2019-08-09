@@ -2,6 +2,10 @@ package main
 
 func main() {
 
+	var gen Generation
+		gen.
+			Cycle()
+
 	var numberGenerator NumberGenerator
 		numberGenerator.
 			GenerateRandomInt()
@@ -17,19 +21,21 @@ func main() {
 	var evolutionProcess *EvolutionProcess
 	evolutionProcess = EvolutionEngine.
 		Options(EvolutionParams{}).
-		SetStartIndividual(Tree{}, Spec{}).
-		FitnessEval(func() float32 { return 0} ).
-		ProgramEval( func() float32 { return 0} ).
-		ProtagonistCount(100).
-		AntagonistCount(100).
-		AvailableStrategies([]Strategdfy{}).
-		Generations(300).
+		SetStartIndividual(Tree{}, Spec{}). // Todo Implement EvolutionProcess SetStartIndividual
+		ZeroSumFitness(func() float32 { return 0}).
+
+		FitnessEval(func() float32 { return 0} ). // Todo Implement EvolutionProcess FitnessEval
+		ProgramEval( func() float32 { return 0} ). // Todo Implement EvolutionProcess ProgramEval
+		Protagonist(100, func() float32 { return 0}, []Strategy{}). // Todo Implement EvolutionProcess Protagonist
+		Antagonist(100, func() float32 { return 0}, []Strategy{}). // Todo Implement EvolutionProcess Antagonist
+		AvailableStrategies([]Strategy{}).
+		Generations(300). // Todo Implement EvolutionProcess Generations
 		ParentSelection(EvolutionaryStrategy.Tournament).
 		SurvivorSelection(EvolutionaryStrategy.Rank).
 		OptimizationStrategy(EvolutionaryStrategy.Minimization).
-		Parallelize(true).
-		GenerateStatistics("./stats.json").
-		Start()
+		Parallelize(true). // Todo Implement EvolutionProcess Parallelize()
+		GenerateStatistics("./stats.json"). // Todo Implement EvolutionProcess GenerateStatistics
+		Start() // Todo Implement EvolutionProcess Start
 
 	//evolutionResult.
 	//	TopAntagonist()
