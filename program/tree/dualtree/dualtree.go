@@ -165,6 +165,10 @@ func arityRemainder(root *DualTreeNode) int {
 	return 0
 }
 
+func (bst *DualTree) Random(terminalSet []NodeType, maxDepth int) error {
+	return nil
+}
+
 // Insert inserts the string t in the tree. Node must already contain the key and value
 func (bst *DualTree) Insert(node *DualTreeNode) {
 	bst.lock.Lock()
