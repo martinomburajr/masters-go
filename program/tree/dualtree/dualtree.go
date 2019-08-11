@@ -362,9 +362,9 @@ func stringify(n *DualTreeNode, level int) {
 		}
 		format += "---[ "
 		level++
-		stringify(n.left, level)
-		fmt.Printf(format+"%s\n", n.value)
 		stringify(n.right, level)
+		fmt.Printf(format+"%s\n", n.value)
+		stringify(n.left, level)
 	}
 }
 
