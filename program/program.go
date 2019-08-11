@@ -1,20 +1,16 @@
 package program
 
-import "github.com/martinomburajr/masters-go/program/tree"
-
-type Terminal tree.DualTreeNode
-type NonTerminal tree.DualTreeNode
+import (
+	"github.com/martinomburajr/masters-go/program/tree/dualtree"
+)
 
 // TODO generate AST tree from polynomial expression
 type Program struct {
 	ID                   string
-	T                    *tree.DualTree
+	T                    *dualtree.DualTree
 	Strategies           []Strategable
 	hasAppliedStrategies bool
 	generation           *Generation
-	Evaluable
-	Fitnessable
-	ApplyStrategeable
 }
 
 func (p *Program) ApplyStrategy() {
@@ -29,11 +25,11 @@ func (p *Program) Eval() float32 {
 
 }
 
-func (p *Program) Terminals() []*Terminal {
+func (p *Program) Terminals() []*dualtree.Terminal {
 	return nil
 }
 
-func (p *Program) NonTerminals() []*NonTerminal {
+func (p *Program) NonTerminals() []*dualtree.NodeType {
 	return nil
 }
 
@@ -54,11 +50,15 @@ type Test *Program
 
 type InitialProgram struct {
 	ID   string
-	T    *tree.DualTree
+	T    *dualtree.DualTree
 	spec Spec
 }
 
 func (p *InitialProgram) Spec(spec Spec) *InitialProgram {
 	p.spec = spec
 	return p
+}
+
+func (p *InitialProgram) Validate() error {
+
 }

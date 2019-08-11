@@ -1,4 +1,4 @@
-package main
+package evolution
 
 var (
 	EvolutionaryStrategy = evolutionaryStrategy{}

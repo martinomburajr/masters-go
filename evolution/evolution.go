@@ -1,4 +1,4 @@
-package main
+package evolution
 
 import (
 	"fmt"
@@ -12,11 +12,10 @@ type EvolutionParams struct {
 
 type EvolutionEngine struct {
 	startIndividual     *program.InitialProgram
-	spec                Spec
+	spec                program.Spec
 	generations         int
 	parallelize         bool
-	availableStrategies []*Strategable
-	Fitnessable
+	availableStrategies []*program.Strategable
 	programEval      func() float32
 	statisticsOutput string
 }
@@ -67,7 +66,7 @@ func (e *EvolutionEngine) ProgramEval(programFunc func() float32) *EvolutionEngi
 // fitness. If you are using sharedFitness,
 // set fitnessFunc to nil. The protagonist is also initialized with a set of strategies it can use.
 // If nil it will pull from a list of available strategies
-func (e *EvolutionEngine) Protagonist(count int, fitnessFunc func() float32, strategies []Strategable) *EvolutionEngine {
+func (e *EvolutionEngine) Protagonist(count int, fitnessFunc func() float32, strategies []program.Strategable) *EvolutionEngine {
 	return nil
 }
 
@@ -75,12 +74,12 @@ func (e *EvolutionEngine) Protagonist(count int, fitnessFunc func() float32, str
 // If you are using sharedFitness, set fitnessFunc to nil.
 // The antagonist is also initialized with a set of strategies it can use.
 // If nil it will pull from a list of available strategies
-func (e *EvolutionEngine) Antagonist(count int, fitnessFunc func() float32, strategies []Strategable) *EvolutionEngine {
+func (e *EvolutionEngine) Antagonist(count int, fitnessFunc func() float32, strategies []program.Strategable) *EvolutionEngine {
 	return nil
 }
 
 // AvailableStrategies represents a list of strategies available to the population
-func (e *EvolutionEngine) AvailableStrategies(strategies []Strategable) *EvolutionEngine {
+func (e *EvolutionEngine) AvailableStrategies(strategies []program.Strategable) *EvolutionEngine {
 	return nil
 }
 

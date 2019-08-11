@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/martinomburajr/masters-go/evolution"
 	"github.com/martinomburajr/masters-go/program"
 )
 
@@ -25,25 +26,25 @@ func main() {
 	var initialProgram program.InitialProgram
 		initialProgram.Spec(Spec{})
 
-	var evolutionEngine = EvolutionEngine{} //Create the Evolution Engine
+	var evolutionEngine = evolution.EvolutionEngine{} //Create the Evolution Engine
 
-	var evolutionProcess *EvolutionProcess
+	var evolutionProcess *evolution.EvolutionProcess
 	evolutionProcess = evolutionEngine.
 		SetStartIndividual(initialProgram). // Todo Implement EvolutionProcess SetStartIndividual
 		ZeroSumFitness(func() float32 { return 0}).
 
 		FitnessEval(func() float32 { return 0} ). // Todo Implement EvolutionProcess FitnessEval
 		ProgramEval( func() float32 { return 0} ). // Todo Implement EvolutionProcess ProgramEval
-		Protagonist(100, func() float32 { return 0}, []Strategable{}). // Todo Implement EvolutionProcess Protagonist
-		Antagonist(100, func() float32 { return 0}, []Strategable{}). // Todo Implement EvolutionProcess Antagonist
-		AvailableStrategies([]Strategable{}).
+		Protagonist(100, func() float32 { return 0}, []program.Strategable{}). // Todo Implement EvolutionProcess Protagonist
+		Antagonist(100, func() float32 { return 0}, []program.Strategable{}). // Todo Implement EvolutionProcess Antagonist
+		AvailableStrategies([]program.Strategable{}).
 		Generations(300). // Todo Implement EvolutionProcess Generations
-		ParentSelection(EvolutionaryStrategy.Tournament).
-		SurvivorSelection(EvolutionaryStrategy.Rank).
-		OptimizationStrategy(EvolutionaryStrategy.Minimization).
+		ParentSelection(evolution.EvolutionaryStrategy.Tournament).
+		SurvivorSelection(evolution.EvolutionaryStrategy.Rank).
+		OptimizationStrategy(evolution.EvolutionaryStrategy.Minimization).
 		Parallelize(true). // Todo Implement EvolutionProcess Parallelize()
 		GenerateStatistics("./stats.json"). // Todo Implement EvolutionProcess GenerateStatistics
-		Options(EvolutionParams{}).
+		Options(evolution.EvolutionParams{}).
 		Start() // Todo Implement EvolutionProcess Start
 
 
@@ -75,8 +76,8 @@ func FitnessEval(i func() float32) {
 
 
 
-type MutateStrategy Strategable
-type AddSubTreeStrategy Strategable
+type MutateStrategy program.Strategable
+type AddSubTreeStrategy program.Strategable
 
 
 type Evolution struct {
@@ -96,7 +97,7 @@ func (e *Evolution) Evolve() {
 type Mutable interface { Mutate() *program.DualTree }
 type Evaluable interface { Eval() float32 }
 type Fitnessable interface { Fitness() float32 }
-type ApplyStrategeable interface { ApplyStrategy([]Strategable) }
+type ApplyStrategeable interface { ApplyStrategy([]program.Strategable) }
 
 type TreeGenerator interface { Generate() *program.DualTree }
 type ProgramGenerator interface { Generate() *program.Program }
