@@ -23,4 +23,3 @@ func (g *NumberGenerator) GenerateRandomFloat() float32 {
 	}
 	return rand.Float32()
 }
-

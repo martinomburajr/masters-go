@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/martinomburajr/masters-go/program"
 )
 
 type EvolutionParams struct {
@@ -10,11 +11,11 @@ type EvolutionParams struct {
 }
 
 type EvolutionEngine struct {
-	startIndividual     *Program
+	startIndividual     *program.InitialProgram
 	spec                Spec
 	generations         int
 	parallelize         bool
-	availableStrategies []*Strategy
+	availableStrategies []*Strategable
 	Fitnessable
 	programEval      func() float32
 	statisticsOutput string
@@ -47,7 +48,7 @@ func (e *EvolutionEngine) Options(params EvolutionParams) *EvolutionEngine {
 }
 
 // SetStartIndividual sets the starting individual along with the spec. Both must be provided
-func (e *EvolutionEngine) SetStartIndividual(individual Tree, spec Spec) *EvolutionEngine {
+func (e *EvolutionEngine) SetStartIndividual(program program.InitialProgram) *EvolutionEngine {
 	e.spec = &spec
 	return nil
 }
@@ -66,7 +67,7 @@ func (e *EvolutionEngine) ProgramEval(programFunc func() float32) *EvolutionEngi
 // fitness. If you are using sharedFitness,
 // set fitnessFunc to nil. The protagonist is also initialized with a set of strategies it can use.
 // If nil it will pull from a list of available strategies
-func (e *EvolutionEngine) Protagonist(count int, fitnessFunc func() float32, strategies []Strategy) *EvolutionEngine {
+func (e *EvolutionEngine) Protagonist(count int, fitnessFunc func() float32, strategies []Strategable) *EvolutionEngine {
 	return nil
 }
 
@@ -74,12 +75,12 @@ func (e *EvolutionEngine) Protagonist(count int, fitnessFunc func() float32, str
 // If you are using sharedFitness, set fitnessFunc to nil.
 // The antagonist is also initialized with a set of strategies it can use.
 // If nil it will pull from a list of available strategies
-func (e *EvolutionEngine) Antagonist(count int, fitnessFunc func() float32, strategies []Strategy) *EvolutionEngine {
+func (e *EvolutionEngine) Antagonist(count int, fitnessFunc func() float32, strategies []Strategable) *EvolutionEngine {
 	return nil
 }
 
 // AvailableStrategies represents a list of strategies available to the population
-func (e *EvolutionEngine) AvailableStrategies(strategies []Strategy) *EvolutionEngine {
+func (e *EvolutionEngine) AvailableStrategies(strategies []Strategable) *EvolutionEngine {
 	return nil
 }
 
@@ -140,8 +141,10 @@ type Generation struct {
 	GenerationID       int
 	PreviousGeneration *Generation
 	NextGeneration     *Generation
-	Protagonists       []*Program       //Protagonists in a given generation
-	Antagonists        []*Program       //Antagonists in a given generation
+	Protagonists       []*program.Program //Protagonists in a given generation
+	Antagonists        []*program.Program //Antagonists in a given generation
+	FittestProtagonist *program.Program
+	FittestAntagonist  *program.Program
 	engine             *EvolutionEngine // Reference to Engine
 }
 
@@ -173,8 +176,6 @@ func (g *Generation) StartHOG(gen Generation) *Generation {
 	return g.PreviousGeneration
 }
 
-
-
 // Epoch is defined as a coevolutionary step where protagonist and antagonist compete.
 // For example an epoch could represent a distinct interaction between two parties.
 // For instance a bug mutated program (antagonist) can be challenged a variety of times (
@@ -182,10 +183,10 @@ func (g *Generation) StartHOG(gen Generation) *Generation {
 // The test will use up the strategies it contains and attempt to chew away at the antagonists fitness,
 // to maximize its own
 type Epoch struct {
-	Protagonist *Program
-	Antagonist  *Program
+	Protagonist *program.Program
+	Antagonist  *program.Program
 	engine      *EvolutionEngine
-	iterations int
+	iterations  int
 	isComplete  bool
 	generation  *Generation
 }

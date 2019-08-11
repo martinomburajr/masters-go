@@ -1,11 +1,13 @@
 package main
 
-type EvolutionResult struct {}
+import "github.com/martinomburajr/masters-go/program"
 
-func (e *EvolutionResult) TopProtagonist() *Program {
+type EvolutionResult struct{}
+
+func (e *EvolutionResult) TopProtagonist() *program.Program {
 	return nil
 }
 
-func (e *EvolutionResult) TopAntagonist() *Program {
+func (e *EvolutionResult) TopAntagonist() *program.Program {
 	return nil
 }
