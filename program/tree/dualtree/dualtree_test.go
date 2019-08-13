@@ -5,7 +5,6 @@ import (
 	"testing"
 )
 
-
 func TestDualTree_FromString(t *testing.T) {
 	type args struct {
 		str string
@@ -82,7 +81,7 @@ func TestDualTree_FromTerminalSet(t *testing.T) {
 		{"T-NT(1)", &DualTree{}, []NodeType{x1, sin}, false},
 		{"T-NT(2)", &DualTree{}, []NodeType{x1, sub}, true},
 		{"T-NT(2)-T", &DualTree{}, []NodeType{x1, add, const1}, false},
-		{"T-NT(2)-T-NT(2)-T", &DualTree{}, []NodeType{x1, add, const2, mult, const1} ,false},
+		{"T-NT(2)-T-NT(2)-T", &DualTree{}, []NodeType{x1, add, const2, mult, const1}, false},
 		{"T-NT(2)-T-NT(1)-T", &DualTree{}, []NodeType{x1, add, const1, sin, const1}, true},
 		{"T-NT(2)-T-NT(1)", &DualTree{}, []NodeType{x1, mult, const1, sub, const2, sin}, false},
 		{"T-NT(1)-NT(1)-NT(1)-NT(1)", &DualTree{}, []NodeType{x1, sin, sin, sin, sin}, false},
@@ -103,8 +102,8 @@ func TestDualTree_FromTerminalSet(t *testing.T) {
 				}
 
 				got := make([]string, 0)
-				tt.fields.InOrderTraverse(func(s string) {
-					got = append(got, s)
+				tt.fields.InOrderTraverse(func(node *DualTreeNode) {
+					got = append(got, node.value)
 				})
 
 				if !reflect.DeepEqual(expected, got) {
@@ -154,6 +153,13 @@ var mult = NodeType{kind: 1, value: "*", arity: 2}
 var sin = NodeType{kind: 1, value: "sin", arity: 1}
 
 // SAMPLE TREES
+
+// treeNil = x
+var treeNil = func() *DualTree {
+	t := DualTree{}
+	return &t
+}
+
 // tree0 = x
 var tree0 = func() *DualTree {
 	t := DualTree{}
@@ -219,4 +225,36 @@ var tree7 = func() *DualTree {
 	t := DualTree{}
 	t.root = add.ToDualTreeNode(0)
 	return &t
+}
+
+/**
+	THIS DOES NOT TEST OR CORRECT FOR TRIG OPERATORS YET
+ */
+func TestDualTree_ToMathematicalString(t *testing.T) {
+	tests := []struct {
+		name    string
+		fields  *DualTree
+		want    string
+		wantErr bool
+	}{
+		{"nil", treeNil(), "", true},
+		{"T", tree0(), "x", false},
+		{"T-NT-T", tree1(), x1.value + mult.value + const1.value , false},
+		{"T-NT-T-NT-T", tree2(), x1.value + sub.value + x1.value + mult.value + const1.value , false},
+		{"NT(1)", tree5(), "" , true},
+		{"T - NT(2)", tree6(), "" , true},
+		{"T - NT(2)", tree7(), "" , true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := tt.fields.ToMathematicalString()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("DualTree.ToMathematicalString() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("DualTree.ToMathematicalString() = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }

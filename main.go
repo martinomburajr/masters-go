@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/martinomburajr/masters-go/evolution"
 	"github.com/martinomburajr/masters-go/program"
+	"log"
 )
 
 func main() {
@@ -24,7 +25,7 @@ func main() {
 	//	addSubTreeStrategy.
 
 	var initialProgram program.InitialProgram
-		initialProgram.Spec(Spec{})
+		initialProgram.Spec(nil)
 
 	var evolutionEngine = evolution.EvolutionEngine{} //Create the Evolution Engine
 
@@ -47,7 +48,7 @@ func main() {
 		Options(evolution.EvolutionParams{}).
 		Start() // Todo Implement EvolutionProcess Start
 
-
+	log.Print(evolutionProcess)
 
 	//evolutionResult.
 	//	TopAntagonist()
@@ -94,14 +95,14 @@ func (e *Evolution) Evolve() {
 // TODO Create SoftDeleteSubTree strategy
 // TODO Create SwapSubTree strategy
 
-type Mutable interface { Mutate() *program.DualTree }
-type Evaluable interface { Eval() float32 }
-type Fitnessable interface { Fitness() float32 }
-type ApplyStrategeable interface { ApplyStrategy([]program.Strategable) }
-
-type TreeGenerator interface { Generate() *program.DualTree }
-type ProgramGenerator interface { Generate() *program.Program }
-type EvolutionGenerator interface {}
-type Starter interface { Start()}
+//type Mutable interface { Mutate() *program.DualTree }
+//type Evaluable interface { Eval() float32 }
+//type Fitnessable interface { Fitness() float32 }
+//type ApplyStrategeable interface { ApplyStrategy([]program.Strategable) }
+//
+//type TreeGenerator interface { Generate() *program.DualTree }
+//type ProgramGenerator interface { Generate() *program.Program }
+//type EvolutionGenerator interface {}
+//type Starter interface { Start()}
 
 // TODO Create Error Function

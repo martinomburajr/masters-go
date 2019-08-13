@@ -32,62 +32,6 @@ func (bst *DualTree) FromString(equationStrings string) error {
 /**
 FromNodeTypes Creates a Tree from a list of NodeTypes
 */
-func (bst *DualTree) FromNodeTypes(E []NodeType) error {
-	if E == nil {
-		return fmt.Errorf("nodeType passed in is nil")
-	}
-	if len(E) < 1 {
-		return fmt.Errorf("nodeType passed in cannot be empty")
-	}
-	if len(E) == 1 {
-		if E[0].kind <= 0 {
-			bst.root = E[0].ToDualTreeNode(0)
-			return nil
-		} else {
-			return fmt.Errorf("invalid, tree cannot contain non-terminal only: size 1")
-		}
-	}
-	terminalArr := make([]NodeType, 0)
-
-	for i := range E {
-		if E[i].kind <= 0 { //Terminal
-			if bst.root == nil {
-				terminalArr = append(terminalArr, E[i])
-			} else {
-				dtn := E[i].ToDualTreeNode(i)
-				bst.root.right = dtn
-			}
-			continue
-		}
-
-		if E[i].kind > 0 { //NonTerminal
-			dtn := E[i].ToDualTreeNode(i)
-
-			if bst.root == nil {
-				bst.root = dtn
-			} else {
-				oldRoot := bst.root
-				dtn.left = oldRoot
-				bst.root = dtn
-			}
-
-			if len(terminalArr) > 0 {
-				bst.root.left = terminalArr[0].ToDualTreeNode(i)
-				if len(terminalArr) == 1 {
-					terminalArr = make([]NodeType, 0) //pop
-				} else {
-					_, terminalArr = terminalArr[0], terminalArr[1:] //pop
-				}
-			}
-		}
-	}
-
-	return nil
-}
-
-/**
-FromNodeTypes Creates a Tree from a list of NodeTypes
-*/
 func (bst *DualTree) FromTerminalSet(terminalSet []NodeType) error {
 	//EdgeCases
 	if terminalSet == nil {
@@ -201,82 +145,18 @@ func insertNode(node, newNode *DualTreeNode) {
 }
 
 // InOrderTraverse visits all nodes with in-order traversing
-func (bst *DualTree) InOrderTraverse(f func(string)) {
+func (bst *DualTree) InOrderTraverse(f func(node *DualTreeNode)) {
 	bst.lock.RLock()
 	defer bst.lock.RUnlock()
 	inOrderTraverse(bst.root, f)
 }
 
 // internal recursive function to traverse in order
-func inOrderTraverse(n *DualTreeNode, f func(string)) {
+func inOrderTraverse(n *DualTreeNode, f func(node *DualTreeNode)) {
 	if n != nil {
 		inOrderTraverse(n.left, f)
-		f(n.value)
+		f(n)
 		inOrderTraverse(n.right, f)
-	}
-}
-
-// PreOrderTraverse visits all nodes with pre-order traversing
-func (bst *DualTree) PreOrderTraverse(f func(string)) {
-	bst.lock.Lock()
-	defer bst.lock.Unlock()
-	preOrderTraverse(bst.root, f)
-}
-
-// internal recursive function to traverse pre order
-func preOrderTraverse(n *DualTreeNode, f func(string)) {
-	if n != nil {
-		f(n.value)
-		preOrderTraverse(n.left, f)
-		preOrderTraverse(n.right, f)
-	}
-}
-
-// PostOrderTraverse visits all nodes with post-order traversing
-func (bst *DualTree) PostOrderTraverse(f func(string)) {
-	bst.lock.Lock()
-	defer bst.lock.Unlock()
-	postOrderTraverse(bst.root, f)
-}
-
-// internal recursive function to traverse post order
-func postOrderTraverse(n *DualTreeNode, f func(string)) {
-	if n != nil {
-		postOrderTraverse(n.left, f)
-		postOrderTraverse(n.right, f)
-		f(n.value)
-	}
-}
-
-// Min returns the string with min value stored in the tree
-func (bst *DualTree) Min() *string {
-	bst.lock.RLock()
-	defer bst.lock.RUnlock()
-	n := bst.root
-	if n == nil {
-		return nil
-	}
-	for {
-		if n.left == nil {
-			return &n.value
-		}
-		n = n.left
-	}
-}
-
-// Max returns the string with max value stored in the tree
-func (bst *DualTree) Max() *string {
-	bst.lock.RLock()
-	defer bst.lock.RUnlock()
-	n := bst.root
-	if n == nil {
-		return nil
-	}
-	for {
-		if n.right == nil {
-			return &n.value
-		}
-		n = n.right
 	}
 }
 
@@ -370,6 +250,35 @@ func stringify(n *DualTreeNode, level int) {
 		fmt.Printf(format+"%s\n", n.value)
 		stringify(n.left, level)
 	}
+}
+
+// ToMathematicalString returns a mathematical representation of the tree after reading it using Inorder DFS
+func (d *DualTree) ToMathematicalString() (string, error) {
+	if d.root == nil {
+		return "", fmt.Errorf("tree root is nil cannot compute mathematical expression")
+	}
+
+	var err error = nil
+
+	sb := strings.Builder{}
+	d.InOrderTraverse(func(node *DualTreeNode) {
+		if node.arity == 1 && node.left == nil {
+			err = fmt.Errorf("invalid tree structure, " +
+				"unable to convert to mathematical expression: see node: %d", node.key)
+			return
+		}
+
+		if node.arity > 1 && (node.left == nil || node.right == nil) {
+			err = fmt.Errorf("invalid tree structure to convert to mathematical expression: see node: %d", node.key)
+			return
+		}
+		sb.WriteString(node.value)
+	})
+
+	if err != nil {
+		return "", err
+	}
+	return sb.String(), err
 }
 
 // DualTreeNode a single node that composes the tree

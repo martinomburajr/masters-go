@@ -22,8 +22,9 @@ func (p *Program) Fitness() float32 {
 }
 
 func (p *Program) Eval() float32 {
-
+	return 0
 }
+
 
 func (p *Program) Terminals() []*dualtree.Terminal {
 	return nil
