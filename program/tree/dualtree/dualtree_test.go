@@ -74,18 +74,18 @@ func TestDualTree_FromTerminalSet(t *testing.T) {
 	}{
 		{"nil terminalSet", &DualTree{}, nil, true},
 		{"empty terminalSet", &DualTree{}, make([]NodeType, 0), true},
-		{"T", &DualTree{}, []NodeType{x1}, false},
-		{"NT", &DualTree{}, []NodeType{mult}, true},
-		{"T-T", &DualTree{}, []NodeType{x1, const1}, true},
-		{"NT-NT", &DualTree{}, []NodeType{mult, sub}, true},
-		{"T-NT(1)", &DualTree{}, []NodeType{x1, sin}, false},
-		{"T-NT(2)", &DualTree{}, []NodeType{x1, sub}, true},
-		{"T-NT(2)-T", &DualTree{}, []NodeType{x1, add, const1}, false},
-		{"T-NT(2)-T-NT(2)-T", &DualTree{}, []NodeType{x1, add, const2, mult, const1}, false},
-		{"T-NT(2)-T-NT(1)-T", &DualTree{}, []NodeType{x1, add, const1, sin, const1}, true},
-		{"T-NT(2)-T-NT(1)", &DualTree{}, []NodeType{x1, mult, const1, sub, const2, sin}, false},
-		{"T-NT(1)-NT(1)-NT(1)-NT(1)", &DualTree{}, []NodeType{x1, sin, sin, sin, sin}, false},
-		{"T-NT(1)-NT(2)-T-NT(1)", &DualTree{}, []NodeType{x1, sin, add, const2, sin}, false},
+		{"T", &DualTree{}, []NodeType{X1}, false},
+		{"NT", &DualTree{}, []NodeType{Mult}, true},
+		{"T-T", &DualTree{}, []NodeType{X1, Const1}, true},
+		{"NT-NT", &DualTree{}, []NodeType{Mult, Sub}, true},
+		{"T-NT(1)", &DualTree{}, []NodeType{X1, Sin}, false},
+		{"T-NT(2)", &DualTree{}, []NodeType{X1, Sub}, true},
+		{"T-NT(2)-T", &DualTree{}, []NodeType{X1, Add, Const1}, false},
+		{"T-NT(2)-T-NT(2)-T", &DualTree{}, []NodeType{X1, Add, Const2, Mult, Const1}, false},
+		{"T-NT(2)-T-NT(1)-T", &DualTree{}, []NodeType{X1, Add, Const1, Sin, Const1}, true},
+		{"T-NT(2)-T-NT(1)", &DualTree{}, []NodeType{X1, Mult, Const1, Sub, Const2, Sin}, false},
+		{"T-NT(1)-NT(1)-NT(1)-NT(1)", &DualTree{}, []NodeType{X1, Sin, Sin, Sin, Sin}, false},
+		{"T-NT(1)-NT(2)-T-NT(1)", &DualTree{}, []NodeType{X1, Sin, Add, Const2, Sin}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -124,13 +124,13 @@ func Test_arityRemainder(t *testing.T) {
 		tree *DualTree
 		want int
 	}{
-		{"full - NT(2)", tree1(), 0},
-		{"full - NT(2)", tree2(), 0},
-		{"full - NT(1)", tree3(), 0},
-		{"full - NT(1)", tree4(), 0},
-		{"full - NT(1)", tree5(), 1},
-		{"half - NT(1)", tree6(), 1},
-		{"empty - NT(2)", tree7(), 2},
+		{"full - NT(2)", Tree1(), 0},
+		{"full - NT(2)", Tree2(), 0},
+		{"full - NT(1)", Tree3(), 0},
+		{"full - NT(1)", Tree4(), 0},
+		{"full - NT(1)", Tree5(), 1},
+		{"half - NT(1)", Tree6(), 1},
+		{"empty - NT(2)", Tree7(), 2},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -141,95 +141,9 @@ func Test_arityRemainder(t *testing.T) {
 	}
 }
 
-//TERMINALS
-var x1 = NodeType{kind: 0, value: "x", arity: 0}
-var const1 = NodeType{kind: 0, value: "4", arity: 0}
-var const2 = NodeType{kind: 0, value: "8", arity: 0}
-
-// NON-TERMINALS
-var sub = NodeType{kind: 1, value: "-", arity: 2}
-var add = NodeType{kind: 1, value: "+", arity: 2}
-var mult = NodeType{kind: 1, value: "*", arity: 2}
-var sin = NodeType{kind: 1, value: "sin", arity: 1}
-
-// SAMPLE TREES
-
-// treeNil = x
-var treeNil = func() *DualTree {
-	t := DualTree{}
-	return &t
-}
-
-// tree0 = x
-var tree0 = func() *DualTree {
-	t := DualTree{}
-	t.root = x1.ToDualTreeNode(0)
-	return &t
-}
-
-// tree1 = x * 4
-var tree1 = func() *DualTree {
-	t := DualTree{}
-	t.root = mult.ToDualTreeNode(0)
-	t.root.left = x1.ToDualTreeNode(1)
-	t.root.right = const1.ToDualTreeNode(2)
-	return &t
-}
-
-// tree2 = x - x * 4
-var tree2 = func() *DualTree {
-	t := DualTree{}
-	t.root = mult.ToDualTreeNode(0)
-	t.root.right = const1.ToDualTreeNode(4)
-	t.root.left = sub.ToDualTreeNode(1)
-	t.root.left.left = x1.ToDualTreeNode(2)
-	t.root.left.right = x1.ToDualTreeNode(3)
-	return &t
-}
-
-// tree3 = sin(4 - x)
-var tree3 = func() *DualTree {
-	t := DualTree{}
-	t.root = sin.ToDualTreeNode(0)
-	t.root.left = sub.ToDualTreeNode(1)
-	t.root.left.left = x1.ToDualTreeNode(2)
-	t.root.left.right = const1.ToDualTreeNode(3)
-	return &t
-}
-
-// tree4 = sin(x)
-var tree4 = func() *DualTree {
-	t := DualTree{}
-	t.root = sin.ToDualTreeNode(0)
-	t.root.left = x1.ToDualTreeNode(1)
-	return &t
-}
-
-// tree5 = sin
-var tree5 = func() *DualTree {
-	t := DualTree{}
-	t.root = sin.ToDualTreeNode(0)
-	return &t
-}
-
-// tree6 = x +
-var tree6 = func() *DualTree {
-	t := DualTree{}
-	t.root = add.ToDualTreeNode(0)
-	t.root.left = x1.ToDualTreeNode(1)
-	return &t
-}
-
-// tree7 =  +
-var tree7 = func() *DualTree {
-	t := DualTree{}
-	t.root = add.ToDualTreeNode(0)
-	return &t
-}
-
 /**
-	THIS DOES NOT TEST OR CORRECT FOR TRIG OPERATORS YET
- */
+THIS DOES NOT TEST OR CORRECT FOR TRIG OPERATORS YET
+*/
 func TestDualTree_ToMathematicalString(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -237,13 +151,13 @@ func TestDualTree_ToMathematicalString(t *testing.T) {
 		want    string
 		wantErr bool
 	}{
-		{"nil", treeNil(), "", true},
-		{"T", tree0(), "x", false},
-		{"T-NT-T", tree1(), x1.value + mult.value + const1.value , false},
-		{"T-NT-T-NT-T", tree2(), x1.value + sub.value + x1.value + mult.value + const1.value , false},
-		{"NT(1)", tree5(), "" , true},
-		{"T - NT(2)", tree6(), "" , true},
-		{"T - NT(2)", tree7(), "" , true},
+		{"nil", TreeNil(), "", true},
+		{"T", Tree0(), "x", false},
+		{"T-NT-T", Tree1(), X1.value + Mult.value + Const1.value, false},
+		{"T-NT-T-NT-T", Tree2(), X1.value + Sub.value + X1.value + Mult.value + Const1.value, false},
+		{"NT(1)", Tree5(), "", true},
+		{"T - NT(2)", Tree6(), "", true},
+		{"T - NT(2)", Tree7(), "", true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -254,6 +168,31 @@ func TestDualTree_ToMathematicalString(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("DualTree.ToMathematicalString() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestDualTree_Validate(t *testing.T) {
+	tests := []struct {
+		name    string
+		tree    *DualTree
+		wantErr bool
+	}{
+		{"nil", TreeNil(), true},
+		{"T", Tree0(), false},
+		{"T-NT-T", Tree1(), false},
+		{"T-NT-T-NT-T", Tree2(), false},
+		{"T-NT-T-NT(1)", Tree3(), false},
+		{"T-NT(1)", Tree4(), false},
+		{"NT(1)", Tree5(), true},
+		{"T-NT(2)", Tree6(), true},
+		{"NT", Tree7(), true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := tt.tree.Validate(); (err != nil) != tt.wantErr {
+				t.Errorf("DualTree.Validate() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

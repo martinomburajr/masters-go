@@ -1,4 +1,4 @@
-package program
+package evolution
 
 import (
 	"github.com/martinomburajr/masters-go/program/tree/dualtree"

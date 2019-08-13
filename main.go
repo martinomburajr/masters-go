@@ -24,7 +24,7 @@ func main() {
 	//var addSubTreeStrateg  y AddSubTreeStrategy
 	//	addSubTreeStrategy.
 
-	var initialProgram program.InitialProgram
+	var initialProgram evolution.InitialProgram
 		initialProgram.Spec(nil)
 
 	var evolutionEngine = evolution.EvolutionEngine{} //Create the Evolution Engine
@@ -36,9 +36,9 @@ func main() {
 
 		FitnessEval(func() float32 { return 0} ). // Todo Implement EvolutionProcess FitnessEval
 		ProgramEval( func() float32 { return 0} ). // Todo Implement EvolutionProcess ProgramEval
-		Protagonist(100, func() float32 { return 0}, []program.Strategable{}). // Todo Implement EvolutionProcess Protagonist
-		Antagonist(100, func() float32 { return 0}, []program.Strategable{}). // Todo Implement EvolutionProcess Antagonist
-		AvailableStrategies([]program.Strategable{}).
+		Protagonist(100, func() float32 { return 0}, []evolution.Strategable{}). // Todo Implement EvolutionProcess Protagonist
+		Antagonist(100, func() float32 { return 0}, []evolution.Strategable{}). // Todo Implement EvolutionProcess Antagonist
+		AvailableStrategies([]evolution.Strategable{}).
 		Generations(300). // Todo Implement EvolutionProcess Generations
 		ParentSelection(evolution.EvolutionaryStrategy.Tournament).
 		SurvivorSelection(evolution.EvolutionaryStrategy.Rank).
@@ -77,8 +77,8 @@ func FitnessEval(i func() float32) {
 
 
 
-type MutateStrategy program.Strategable
-type AddSubTreeStrategy program.Strategable
+type MutateStrategy evolution.Strategable
+type AddSubTreeStrategy evolution.Strategable
 
 
 type Evolution struct {

@@ -281,6 +281,29 @@ func (d *DualTree) ToMathematicalString() (string, error) {
 	return sb.String(), err
 }
 
+func (d *DualTree) Validate() error {
+	if d.root == nil {
+		return fmt.Errorf("error: tree root is nil")
+	}
+
+	var err error = nil
+
+	d.InOrderTraverse(func(node *DualTreeNode) {
+		if node.arity == 1 && node.left == nil {
+			err = fmt.Errorf("invalid tree structure, " +
+				"unable to convert to mathematical expression: see node: %d", node.key)
+			return
+		}
+
+		if node.arity > 1 && (node.left == nil || node.right == nil) {
+			err = fmt.Errorf("invalid tree structure to convert to mathematical expression: see node: %d", node.key)
+			return
+		}
+	})
+
+	return err
+}
+
 // DualTreeNode a single node that composes the tree
 type DualTreeNode struct {
 	key   int
