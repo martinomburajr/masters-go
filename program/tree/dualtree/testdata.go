@@ -2,8 +2,8 @@ package dualtree
 
 //TERMINALS
 var X1 = NodeType{kind: 0, value: "x", arity: 0}
-var Const1 = NodeType{kind: 0, value: "1", arity: 0}
-var Const2 = NodeType{kind: 0, value: "2", arity: 0}
+var Const4 = NodeType{kind: 0, value: "4", arity: 0}
+var Const8 = NodeType{kind: 0, value: "8", arity: 0}
 
 // NON-TERMINALS
 var Sub = NodeType{kind: 1, value: "-", arity: 2}
@@ -31,7 +31,7 @@ var Tree1 = func() *DualTree {
 	t := DualTree{}
 	t.root = Mult.ToDualTreeNode(0)
 	t.root.left = X1.ToDualTreeNode(1)
-	t.root.right = Const1.ToDualTreeNode(2)
+	t.root.right = Const4.ToDualTreeNode(2)
 	return &t
 }
 
@@ -39,7 +39,7 @@ var Tree1 = func() *DualTree {
 var Tree2 = func() *DualTree {
 	t := DualTree{}
 	t.root = Mult.ToDualTreeNode(0)
-	t.root.right = Const1.ToDualTreeNode(4)
+	t.root.right = Const4.ToDualTreeNode(4)
 	t.root.left = Sub.ToDualTreeNode(1)
 	t.root.left.left = X1.ToDualTreeNode(2)
 	t.root.left.right = X1.ToDualTreeNode(3)
@@ -52,7 +52,7 @@ var Tree3 = func() *DualTree {
 	t.root = Sin.ToDualTreeNode(0)
 	t.root.left = Sub.ToDualTreeNode(1)
 	t.root.left.left = X1.ToDualTreeNode(2)
-	t.root.left.right = Const1.ToDualTreeNode(3)
+	t.root.left.right = Const4.ToDualTreeNode(3)
 	return &t
 }
 
@@ -83,5 +83,14 @@ var Tree6 = func() *DualTree {
 var Tree7 = func() *DualTree {
 	t := DualTree{}
 	t.root = Add.ToDualTreeNode(0)
+	return &t
+}
+
+// Tree8 =  x * x
+var Tree8 = func() *DualTree {
+	t := DualTree{}
+	t.root = Mult.ToDualTreeNode(0)
+	t.root.left = X1.ToDualTreeNode(1)
+	t.root.right = X1.ToDualTreeNode(2)
 	return &t
 }

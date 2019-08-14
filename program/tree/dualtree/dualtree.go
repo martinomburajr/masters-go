@@ -272,13 +272,13 @@ func (d *DualTree) ToMathematicalString() (string, error) {
 			err = fmt.Errorf("invalid tree structure to convert to mathematical expression: see node: %d", node.key)
 			return
 		}
-		sb.WriteString(node.value)
+		sb.WriteString(node.value + " ")
 	})
 
 	if err != nil {
 		return "", err
 	}
-	return sb.String(), err
+	return strings.Trim(sb.String(),  " "), err
 }
 
 func (d *DualTree) Validate() error {

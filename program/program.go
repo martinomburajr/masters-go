@@ -26,6 +26,10 @@ func (p *Program) Fitness() float32 {
 // Eval is a simple helper function that takes in an independent variable,
 // uses the programs tree to compute the resultant value
 func (p *Program) Eval(independentVar float32) (float32, error) {
+	if p.T == nil {
+		return -1, fmt.Errorf("program: %v -> tree is nil", p.ID)
+	}
+
 	err := p.T.Validate()
 	if err != nil {
 		return -1, err

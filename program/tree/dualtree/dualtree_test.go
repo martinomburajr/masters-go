@@ -76,16 +76,16 @@ func TestDualTree_FromTerminalSet(t *testing.T) {
 		{"empty terminalSet", &DualTree{}, make([]NodeType, 0), true},
 		{"T", &DualTree{}, []NodeType{X1}, false},
 		{"NT", &DualTree{}, []NodeType{Mult}, true},
-		{"T-T", &DualTree{}, []NodeType{X1, Const1}, true},
+		{"T-T", &DualTree{}, []NodeType{X1, Const4}, true},
 		{"NT-NT", &DualTree{}, []NodeType{Mult, Sub}, true},
 		{"T-NT(1)", &DualTree{}, []NodeType{X1, Sin}, false},
 		{"T-NT(2)", &DualTree{}, []NodeType{X1, Sub}, true},
-		{"T-NT(2)-T", &DualTree{}, []NodeType{X1, Add, Const1}, false},
-		{"T-NT(2)-T-NT(2)-T", &DualTree{}, []NodeType{X1, Add, Const2, Mult, Const1}, false},
-		{"T-NT(2)-T-NT(1)-T", &DualTree{}, []NodeType{X1, Add, Const1, Sin, Const1}, true},
-		{"T-NT(2)-T-NT(1)", &DualTree{}, []NodeType{X1, Mult, Const1, Sub, Const2, Sin}, false},
+		{"T-NT(2)-T", &DualTree{}, []NodeType{X1, Add, Const4}, false},
+		{"T-NT(2)-T-NT(2)-T", &DualTree{}, []NodeType{X1, Add, Const8, Mult, Const4}, false},
+		{"T-NT(2)-T-NT(1)-T", &DualTree{}, []NodeType{X1, Add, Const4, Sin, Const4}, true},
+		{"T-NT(2)-T-NT(1)", &DualTree{}, []NodeType{X1, Mult, Const4, Sub, Const8, Sin}, false},
 		{"T-NT(1)-NT(1)-NT(1)-NT(1)", &DualTree{}, []NodeType{X1, Sin, Sin, Sin, Sin}, false},
-		{"T-NT(1)-NT(2)-T-NT(1)", &DualTree{}, []NodeType{X1, Sin, Add, Const2, Sin}, false},
+		{"T-NT(1)-NT(2)-T-NT(1)", &DualTree{}, []NodeType{X1, Sin, Add, Const8, Sin}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -153,8 +153,8 @@ func TestDualTree_ToMathematicalString(t *testing.T) {
 	}{
 		{"nil", TreeNil(), "", true},
 		{"T", Tree0(), "x", false},
-		{"T-NT-T", Tree1(), X1.value + Mult.value + Const1.value, false},
-		{"T-NT-T-NT-T", Tree2(), X1.value + Sub.value + X1.value + Mult.value + Const1.value, false},
+		{"T-NT-T", Tree1(), X1.value + " " + Mult.value+ " " + Const4.value, false},
+		{"T-NT-T-NT-T", Tree2(), X1.value + " " + Sub.value+ " " + X1.value+ " " + Mult.value+ " " + Const4.value, false},
 		{"NT(1)", Tree5(), "", true},
 		{"T - NT(2)", Tree6(), "", true},
 		{"T - NT(2)", Tree7(), "", true},
