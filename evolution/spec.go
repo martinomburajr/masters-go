@@ -9,3 +9,17 @@ type EquationPairing struct {
 }
 
 type Spec []*EquationPairing
+
+
+func (p *InitialProgram) Spec(spec Spec) *InitialProgram {
+	p.spec = spec
+	return p
+}
+
+func (p *InitialProgram) GetSpec() Spec {
+	return p.spec
+}
+
+func (p *InitialProgram) Validate() error {
+
+}

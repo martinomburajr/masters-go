@@ -37,7 +37,7 @@ func main() {
 		FitnessEval(func() float32 { return 0} ). // Todo Implement EvolutionProcess FitnessEval
 		ProgramEval( func() float32 { return 0} ). // Todo Implement EvolutionProcess ProgramEval
 		Protagonist(100, func() float32 { return 0}, []evolution.Strategable{}). // Todo Implement EvolutionProcess Protagonist
-		Antagonist(100, func() float32 { return 0}, []evolution.Strategable{}). // Todo Implement EvolutionProcess Antagonist
+		Antagonist(100, func() float32 { return 0}, []evolution.Strategable{}). // Todo Implement EvolutionProcess antagonist
 		AvailableStrategies([]evolution.Strategable{}).
 		Generations(300). // Todo Implement EvolutionProcess Generations
 		ParentSelection(evolution.EvolutionaryStrategy.Tournament).
@@ -55,7 +55,7 @@ func main() {
 
 	//var epochSimulator *EpochSimulator
 	//epochSimulator.
-	//	Antagonist().
+	//	antagonist().
 	//	Protagonist()
 	//
 	//var epochResult *EpochResult

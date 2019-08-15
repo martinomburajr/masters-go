@@ -19,8 +19,8 @@ func (p *Program) ApplyStrategy() {
 	return
 }
 
-func (p *Program) Fitness() float32 {
-	return 0
+func (p *Program) Fitness() (float32, error) {
+	return -1, fmt.Errorf("")
 }
 
 // Eval is a simple helper function that takes in an independent variable,
