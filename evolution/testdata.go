@@ -1,15 +1,15 @@
-package dualtree
+package evolution
 
 //TERMINALS
-var X1 = NodeType{kind: 0, value: "x", arity: 0}
-var Const4 = NodeType{kind: 0, value: "4", arity: 0}
-var Const8 = NodeType{kind: 0, value: "8", arity: 0}
+var X1 = SymbolicExpression{kind: 0, value: "x", arity: 0}
+var Const4 = SymbolicExpression{kind: 0, value: "4", arity: 0}
+var Const8 = SymbolicExpression{kind: 0, value: "8", arity: 0}
 
 // NON-TERMINALS
-var Sub = NodeType{kind: 1, value: "-", arity: 2}
-var Add = NodeType{kind: 1, value: "+", arity: 2}
-var Mult = NodeType{kind: 1, value: "*", arity: 2}
-var Sin = NodeType{kind: 1, value: "Sin", arity: 1}
+var Sub = SymbolicExpression{kind: 1, value: "-", arity: 2}
+var Add = SymbolicExpression{kind: 1, value: "+", arity: 2}
+var Mult = SymbolicExpression{kind: 1, value: "*", arity: 2}
+var Sin = SymbolicExpression{kind: 1, value: "Sin", arity: 1}
 
 // SAMPLE TREES
 

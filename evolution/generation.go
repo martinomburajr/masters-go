@@ -1,15 +1,13 @@
 package evolution
 
-import "github.com/martinomburajr/masters-go/program"
-
 type Generation struct {
 	GenerationID       int
 	PreviousGeneration *Generation
 	NextGeneration     *Generation
-	Protagonists       []*program.Program //Protagonists in a given generation
-	Antagonists        []*program.Program //Antagonists in a given generation
-	FittestProtagonist *program.Program
-	FittestAntagonist  *program.Program
+	Protagonists       []*Program //Protagonists in a given generation
+	Antagonists        []*Program //Antagonists in a given generation
+	FittestProtagonist *Program
+	FittestAntagonist  *Program
 	engine             *EvolutionEngine // Reference to Engine
 }
 
@@ -45,4 +43,3 @@ func (g *Generation) Restart() *Generation {
 func (g *Generation) StartHOG(gen Generation) *Generation {
 	return g.PreviousGeneration
 }
-

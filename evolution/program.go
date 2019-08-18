@@ -1,22 +1,36 @@
-package program
+package evolution
 
 import (
 	"fmt"
 	"github.com/Knetic/govaluate"
-	"github.com/martinomburajr/masters-go/program/tree/dualtree"
 	"github.com/martinomburajr/masters-go/utils"
 	"strings"
 )
 
 // TODO generate AST tree from polynomial expression
 type Program struct {
-	ID                   string
-	T                    *dualtree.DualTree
-	hasAppliedStrategies bool
+	ID       string
+	T        *DualTree
+	MaxDepth int
 }
 
-func (p *Program) ApplyStrategy() {
-	return
+
+// ApplyStrategy takes a given strategy and applies a transformation to the given program.
+// maxDepth defines the maximum depth the tree can evolve to given the transformation
+func (p *Program) ApplyStrategy(strategy Strategy, terminals []SymbolicExpression,
+	nonTerminals []SymbolicExpression) (error) {
+
+	switch strategy.Kind {
+	case AddSubTree:
+		// generate random subTree
+		_, err := GenerateRandomTree(2, terminals, nonTerminals)
+		if err != nil {
+			return err
+		}
+
+
+	}
+	return nil
 }
 
 func (p *Program) Fitness() (float32, error) {
@@ -61,13 +75,11 @@ func (p *Program) Eval(independentVar float32) (float32, error) {
 	return ans, nil
 }
 
-
-
 //func (p *Program) Terminals() []*dualtree.Terminal {
 //	return nil
 //}
 //
-//func (p *Program) NonTerminals() []*dualtree.NodeType {
+//func (p *Program) NonTerminals() []*dualtree.SymbolicExpression {
 //	return nil
 //}
 
@@ -85,4 +97,3 @@ func (p *Program) Validate() error {
 
 type Bug *Program
 type Test *Program
-

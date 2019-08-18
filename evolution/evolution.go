@@ -2,8 +2,6 @@ package evolution
 
 import (
 	"fmt"
-	//"github.com/martinomburajr/masters-go/program"
-	"github.com/martinomburajr/masters-go/program/tree/dualtree"
 )
 
 type EvolutionParams struct {
@@ -125,21 +123,18 @@ func (e *EvolutionEngine) GenerateStatistics(s string) *EvolutionEngine {
 // Start begines the evolutionary engine, and starts the evolutionary process returning an EvolutionaryProcess
 func (e *EvolutionEngine) Start() *EvolutionProcess {
 	e.validate()
-	return e
+	return nil
 }
 
 // ZeroSumFitness is a measure where both protagonist and antagonist compete from a shared fitness pool.
 // The more one side gets the less the other gets. If this strategy is chosen,
 // you cannot set different fitness strategies for the protagonist and antagonists
 func (e *EvolutionEngine) ZeroSumFitness(i func() float32) *EvolutionEngine {
-
+	return nil
 }
-
-
 
 type InitialProgram struct {
 	ID   string
-	T    *dualtree.DualTree
+	T    *DualTree
 	spec Spec
 }
-

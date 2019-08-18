@@ -1,6 +1,8 @@
 package evolution
 
-import "github.com/martinomburajr/masters-go/program"
+import (
+	"fmt"
+)
 
 // Epoch is defined as a coevolutionary step where protagonist and antagonist compete.
 // For example an epoch could represent a distinct interaction between two parties.
@@ -9,16 +11,21 @@ import "github.com/martinomburajr/masters-go/program"
 // The test will use up the strategies it contains and attempt to chew away at the antagonists fitness,
 // to maximize its own
 type Epoch struct {
-	protagonist *program.Program
-	antagonist  *program.Program
+	protagonist       *Individual
+	antagonist        *Individual
+	program           *Program
 	protagonistBegins bool
-	iterations  int
-	isComplete  bool
-	generation  *Generation
+	isComplete        bool
 }
 
 func (e *Epoch) GetProtagonistBegins() bool {
 	return e.protagonistBegins
+}
+
+// Program sets the program for the epoch
+func (e *Epoch) Program(program *Program) *Epoch {
+	e.program = program
+	return e
 }
 
 // ProtagonistBegins states whether the protagonist should start the epoch
@@ -28,35 +35,39 @@ func (e *Epoch) ProtagonistBegins(protagonistBegins bool) *Epoch {
 }
 
 // Protagonist sets the protagonist for the epoch
-func (e *Epoch) Protagonist(protagonist *program.Program) *Epoch {
+func (e *Epoch) Protagonist(protagonist *Individual) *Epoch {
 	e.protagonist = protagonist
 	return e
 }
 
 // Antagonist sets the antagonist for the epoch
-func (e *Epoch) Antagonist(antagonist *program.Program) *Epoch {
+func (e *Epoch) Antagonist(antagonist *Individual) *Epoch {
 	e.antagonist = antagonist
-	return e
-}
-
-func (e *Epoch) Iterations(iterations int) *Epoch {
-	e.iterations = iterations
 	return e
 }
 
 // EpochSimulator is responsible for simulating actions in a given Epoch
 type EpochSimulator struct {
-	epoch *Epoch
-	hasAntagonistApplied bool
+	epoch                 *Epoch
+	hasAntagonistApplied  bool
 	hasProtagonistApplied bool
 }
 
 // Start begins the epoch simulation by allowing the competing individuals to do their thing
-func (e *Epoch) Start() *EpochResult {
-	return nil
+func (e *EpochSimulator) Start() (*EpochResult, error) {
+	if e.epoch.program == nil {
+		return nil, fmt.Errorf("epoch cannot have nil program")
+	}
+	if e.epoch.protagonist == nil {
+		return nil, fmt.Errorf("epoch cannot have nil protagonist")
+	}
+	if e.epoch.antagonist == nil {
+		return nil, fmt.Errorf("epoch cannot have nil antagonist")
+	}
+
+	return nil, nil
 }
 
 type EpochResult struct {
 	engine *EvolutionEngine //Reference to underlying engine
 }
-
