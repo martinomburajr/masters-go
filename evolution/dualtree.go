@@ -91,8 +91,31 @@ func branch(node *DualTreeNode, nodes *[]*DualTreeNode) {
 	return
 }
 
+// AddSubTree adds a given subtree to a tree.
+func (bst *DualTree) AddSubTree(subTree *DualTree) error {
+	if subTree == nil {
+		return fmt.Errorf("cannot add a nil subTree")
+	}
+	if subTree.root == nil {
+		return fmt.Errorf("cannot add a subTree with a nil root")
+	}
+	if subTree.root.left == nil && subTree.root.right == nil  {
+		return fmt.Errorf("subTree cannot be composed of a single terminal - no operation to add it to the tree.")
+	}
 
-func (bst *DualTree) AddSubTree(subTree DualTree) error {
+	if bst.root == nil {
+		return fmt.Errorf("tree you are adding to has nil root")
+	}
+	if bst.root.left == nil && bst.root.right == nil {
+		return fmt.Errorf("tree you are adding to is a lone terminal")
+	}
+
+	node, err := bst.RandomLeaf()
+	if err != nil {
+		return err
+	}
+
+	node.left = subTree.root
 	return nil
 }
 
@@ -128,7 +151,67 @@ func (bst *DualTree) Count() (int) {
 	return count
 }
 
+func (bst *DualTree) Contains(subTree *DualTree) (bool, error) {
+	if subTree == nil {
+		return false, fmt.Errorf("cannot add a nil subTree")
+	}
+	if subTree.root == nil {
+		return false, fmt.Errorf("cannot add a subTree with a nil root")
+	}
+	if bst.root == nil {
+		return false, fmt.Errorf("tree you are adding to has nil root")
+	}
 
+
+	subTreeSlice := make([]*DualTreeNode, 0)
+	subTree.InOrderTraverse(func(node *DualTreeNode) {
+		subTreeSlice = append(subTreeSlice, node)
+	})
+
+	tree := make([]*DualTreeNode, 0)
+	bst.InOrderTraverse(func(node *DualTreeNode) {
+		tree = append(tree, node)
+	})
+
+	if len(subTreeSlice) > len(tree) {
+		return false, nil
+	}
+
+	for i := range tree {
+		if tree[i].IsValEqual(subTreeSlice[0]) {
+			count := 0
+			for j := 0; j < len(subTreeSlice); j++ {
+				if !tree[i+j].IsValEqual(subTreeSlice[j]) {
+					break
+				}
+				count++
+				if count == len(subTreeSlice) {
+					return true, nil
+				}
+			}
+		}
+	}
+
+	return false, nil
+}
+
+// leftMostLeaf finds the leftMostLeaf
+func (bst *DualTree) leftMostLeaf() (*DualTreeNode, error) {
+	if bst.root == nil {
+		return nil, fmt.Errorf("root cannot be nil")
+	}
+	node := bst.root
+	if node.left == nil && node.right == nil {
+		return node, nil
+	}
+
+	for {
+		node = node.left
+		if node.left == nil {
+			return node, nil
+		}
+	}
+}
 
 /**
 FromNodeTypes Creates a Tree from a list of NodeTypes

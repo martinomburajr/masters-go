@@ -10,8 +10,8 @@ func Test_arityRemainder(t *testing.T) {
 		tree *DualTree
 		want int
 	}{
-		{"full - NT(2)", Tree1(), 0},
-		{"full - NT(2)", Tree2(), 0},
+		{"full - NT(2)", TreeT_NT_T_0(), 0},
+		{"full - NT(2)", TreeT_NT_T_NT_T_0(), 0},
 		{"full - NT(1)", Tree3(), 0},
 		{"full - NT(1)", Tree4(), 0},
 		{"full - NT(1)", Tree5(), 1},
@@ -34,11 +34,11 @@ func TestDualTreeNode_IsLeaf(t *testing.T) {
 		want bool
 	}{
 		{"nil", &DualTreeNode{0, "", nil, nil, 0}, true},
-		{"root", Tree1().root, false},
-		{"x in x * 4", Tree1().root.left, true},
-		{"4 in x * 4", Tree1().root.right, true},
-		{"4 in x - x * 4", Tree2().root.right, true},
-		{"x in x - x * 4", Tree2().root.left.left, true},
+		{"root", TreeT_NT_T_0().root, false},
+		{"x in x * 4", TreeT_NT_T_0().root.left, true},
+		{"4 in x * 4", TreeT_NT_T_0().root.right, true},
+		{"4 in x - x * 4", TreeT_NT_T_NT_T_0().root.right, true},
+		{"x in x - x * 4", TreeT_NT_T_NT_T_0().root.left.left, true},
 		{"sin in sin", Tree5().root, false},
 	}
 	for _, tt := range tests {
@@ -75,7 +75,7 @@ func TestDualTreeNode_IsValEqual(t *testing.T) {
 //	tests := []struct {
 //		name   string
 //		tree *DualTreeNode
-//		args   *DualTreeNode
+//		subTree   *DualTreeNode
 //		want   bool
 //	}{
 //		//{"", &DualTreeNode{}, &DualTreeNode{}, true},
@@ -91,7 +91,7 @@ func TestDualTreeNode_IsValEqual(t *testing.T) {
 //	}
 //	for _, tt := range tests {
 //		t.Run(tt.name, func(t *testing.T) {
-//			if got := tt.tree.IsEqual(tt.args); got != tt.want {
+//			if got := tt.tree.IsEqual(tt.subTree); got != tt.want {
 //				t.Errorf("DualTreeNode.IsEqual() = %v, want %v", got, tt.want)
 //			}
 //		})

@@ -3,6 +3,7 @@ package evolution
 //TERMINALS
 var X1 = SymbolicExpression{kind: 0, value: "x", arity: 0}
 var Const4 = SymbolicExpression{kind: 0, value: "4", arity: 0}
+var Const0 = SymbolicExpression{kind: 0, value: "0", arity: 0}
 var Const8 = SymbolicExpression{kind: 0, value: "8", arity: 0}
 
 // NON-TERMINALS
@@ -19,15 +20,22 @@ var TreeNil = func() *DualTree {
 	return &t
 }
 
-// Tree0 = x
-var Tree0 = func() *DualTree {
+// TreeT_0 = x
+var TreeT_0 = func() *DualTree {
 	t := DualTree{}
 	t.root = X1.ToDualTreeNode(0)
 	return &t
 }
 
-// Tree1 = x * 4
-var Tree1 = func() *DualTree {
+// TreeT_1 = 0
+var TreeT_1 = func() *DualTree {
+	t := DualTree{}
+	t.root = Const0.ToDualTreeNode(0)
+	return &t
+}
+
+// TreeT_NT_T_0 = x * 4
+var TreeT_NT_T_0 = func() *DualTree {
 	t := DualTree{}
 	t.root = Mult.ToDualTreeNode(0)
 	t.root.left = X1.ToDualTreeNode(1)
@@ -35,14 +43,86 @@ var Tree1 = func() *DualTree {
 	return &t
 }
 
-// Tree2 = x - x * 4
-var Tree2 = func() *DualTree {
+// TreeT_NT_T_1 = x + 8
+var TreeT_NT_T_1 = func() *DualTree {
+	t := DualTree{}
+	t.root = Add.ToDualTreeNode(0)
+	t.root.left = X1.ToDualTreeNode(1)
+	t.root.right = Const8.ToDualTreeNode(2)
+	return &t
+}
+
+// TreeT_NT_T_2 = 4 - 8
+var TreeT_NT_T_2 = func() *DualTree {
+	t := DualTree{}
+	t.root = Sub.ToDualTreeNode(0)
+	t.root.left = Const4.ToDualTreeNode(1)
+	t.root.right = Const8.ToDualTreeNode(2)
+	return &t
+}
+
+// TreeT_NT_T_3 = 8 * 8
+var TreeT_NT_T_3 = func() *DualTree {
+	t := DualTree{}
+	t.root = Mult.ToDualTreeNode(0)
+	t.root.left = Const8.ToDualTreeNode(1)
+	t.root.right = Const8.ToDualTreeNode(2)
+	return &t
+}
+
+// TreeT_NT_T_NT_T_0 = x - x * 4
+var TreeT_NT_T_NT_T_0 = func() *DualTree {
 	t := DualTree{}
 	t.root = Mult.ToDualTreeNode(0)
 	t.root.right = Const4.ToDualTreeNode(4)
 	t.root.left = Sub.ToDualTreeNode(1)
 	t.root.left.left = X1.ToDualTreeNode(2)
 	t.root.left.right = X1.ToDualTreeNode(3)
+	return &t
+}
+
+
+// TreeT_NT_T_NT_T_1 = x + 8 * 4
+var TreeT_NT_T_NT_T_1 = func() *DualTree {
+	t := DualTree{}
+	t.root = Mult.ToDualTreeNode(0)
+	t.root.right = Const4.ToDualTreeNode(4)
+	t.root.left = Add.ToDualTreeNode(1)
+	t.root.left.left = X1.ToDualTreeNode(2)
+	t.root.left.right = Const8.ToDualTreeNode(3)
+	return &t
+}
+
+// TreeT_NT_T_NT_T_2 = x - 0 * 4
+var TreeT_NT_T_NT_T_2 = func() *DualTree {
+	t := DualTree{}
+	t.root = Mult.ToDualTreeNode(0)
+	t.root.right = Const4.ToDualTreeNode(4)
+	t.root.left = Sub.ToDualTreeNode(1)
+	t.root.left.left = X1.ToDualTreeNode(2)
+	t.root.left.right = Const0.ToDualTreeNode(3)
+	return &t
+}
+
+// TreeT_NT_T_NT_T_3 = x - 0 * 0
+var TreeT_NT_T_NT_T_3 = func() *DualTree {
+	t := DualTree{}
+	t.root = Mult.ToDualTreeNode(0)
+	t.root.right = Const0.ToDualTreeNode(4)
+	t.root.left = Sub.ToDualTreeNode(1)
+	t.root.left.left = X1.ToDualTreeNode(2)
+	t.root.left.right = Const0.ToDualTreeNode(3)
+	return &t
+}
+
+// TreeT_NT_T_NT_T_4 = 4 - 0 + 0
+var TreeT_NT_T_NT_T_4 = func() *DualTree {
+	t := DualTree{}
+	t.root = Add.ToDualTreeNode(0)
+	t.root.right = Const0.ToDualTreeNode(4)
+	t.root.left = Sub.ToDualTreeNode(1)
+	t.root.left.left = Const4.ToDualTreeNode(2)
+	t.root.left.right = Const0.ToDualTreeNode(3)
 	return &t
 }
 
