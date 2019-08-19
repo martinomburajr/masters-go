@@ -34,6 +34,25 @@ func (bst *DualTree) RandomLeaf() (*DualTreeNode, error) {
 	return nodes[randIndex], nil
 }
 
+// RandomBranch locates a random branch within a tree and returns the ref to the node.
+func (bst *DualTree) RandomBranch() (*DualTreeNode, error) {
+	if bst.root == nil {
+		return nil, fmt.Errorf("root cannot be nil")
+	}
+	node := bst.root
+	if node.left == nil && node.right == nil {
+		return nil, fmt.Errorf("invalid tree, cannot only contain non-terminal")
+	}
+
+	nodes, err := bst.Branches()
+	if err != nil {
+		return nil, err
+	}
+
+	randIndex := rand.Intn(len(nodes))
+	return nodes[randIndex], nil
+}
+
 // Leafs returns all the leaves in a given tree
 func (d *DualTree) Leafs() ([]*DualTreeNode, error) {
 	nodes := make([]*DualTreeNode, 0)
@@ -110,12 +129,19 @@ func (bst *DualTree) AddSubTree(subTree *DualTree) error {
 		return fmt.Errorf("tree you are adding to is a lone terminal")
 	}
 
-	node, err := bst.RandomLeaf()
+	node, err := bst.RandomBranch()
 	if err != nil {
 		return err
 	}
 
-	node.left = subTree.root
+	// Can check for arity
+	intn := rand.Intn(2)
+	if intn == 0 {
+		node.right = subTree.root
+	}else {
+		node.left = subTree.root
+	}
+
 	return nil
 }
 
@@ -151,6 +177,7 @@ func (bst *DualTree) Count() (int) {
 	return count
 }
 
+// Contains checks to see if a tree contains part of a subTree
 func (bst *DualTree) Contains(subTree *DualTree) (bool, error) {
 	if subTree == nil {
 		return false, fmt.Errorf("cannot add a nil subTree")
@@ -193,6 +220,26 @@ func (bst *DualTree) Contains(subTree *DualTree) (bool, error) {
 	}
 
 	return false, nil
+}
+
+// ContainsNode checks to see if a tree contains a given node
+func (bst *DualTree) ContainsNode(treeNode *DualTreeNode) (bool, error) {
+	if bst.root == nil {
+		return false, fmt.Errorf("tree has nil root")
+	}
+	if treeNode == nil {
+		return false, fmt.Errorf("cannot search for a nil treeNode")
+	}
+
+	found := false
+	bst.InOrderTraverse(func(node *DualTreeNode) {
+		if treeNode.IsValEqual(node) {
+			found = true
+		}
+		return
+	})
+
+	return found, nil
 }
 
 // leftMostLeaf finds the leftMostLeaf
