@@ -81,7 +81,6 @@ var TreeT_NT_T_NT_T_0 = func() *DualTree {
 	return &t
 }
 
-
 // TreeT_NT_T_NT_T_1 = x + 8 * 4
 var TreeT_NT_T_NT_T_1 = func() *DualTree {
 	t := DualTree{}
@@ -123,6 +122,82 @@ var TreeT_NT_T_NT_T_4 = func() *DualTree {
 	t.root.left = Sub.ToDualTreeNode(1)
 	t.root.left.left = Const4.ToDualTreeNode(2)
 	t.root.left.right = Const0.ToDualTreeNode(3)
+	return &t
+}
+
+// TreeT_NT_T_NT_T_NT_T_0 = 4 - 0 + 4 + 8
+var TreeT_NT_T_NT_T_NT_T_0 = func() *DualTree {
+	t := DualTree{}
+	t.root = Add.ToDualTreeNode(0)
+	t.root.right = Add.ToDualTreeNode(5)
+	t.root.right.left = Const4.ToDualTreeNode(4)
+	t.root.right.right = Const8.ToDualTreeNode(7)
+
+	t.root.left = Sub.ToDualTreeNode(1)
+	t.root.left.left = Const4.ToDualTreeNode(2)
+	t.root.left.right = Const0.ToDualTreeNode(3)
+	return &t
+}
+
+// TreeT_NT_T_NT_T_NT_T_1 = x * x + 4 + 8
+var TreeT_NT_T_NT_T_NT_T_1 = func() *DualTree {
+	t := DualTree{}
+	t.root = Add.ToDualTreeNode(0)
+	t.root.right = Add.ToDualTreeNode(5)
+	t.root.right.left = Const4.ToDualTreeNode(4)
+	t.root.right.right = Const8.ToDualTreeNode(7)
+
+	t.root.left = Mult.ToDualTreeNode(1)
+	t.root.left.left = X1.ToDualTreeNode(2)
+	t.root.left.right = X1.ToDualTreeNode(3)
+	return &t
+}
+
+// TreeT_NT_T_NT_T_NT_T_2 = x * x * x * x
+var TreeT_NT_T_NT_T_NT_T_2 = func() *DualTree {
+	t := DualTree{}
+	t.root = Mult.ToDualTreeNode(0)
+	t.root.right = Mult.ToDualTreeNode(5)
+	t.root.right.left = X1.ToDualTreeNode(4)
+	t.root.right.right = X1.ToDualTreeNode(7)
+
+	t.root.left = Mult.ToDualTreeNode(1)
+	t.root.left.left = X1.ToDualTreeNode(2)
+	t.root.left.right = X1.ToDualTreeNode(3)
+	return &t
+}
+
+// TreeT_NT_T_NT_T_NT_T_0 = x * x * x * x * x
+var TreeT_NT_T_NT_T_NT_T_NT_T_0 = func() *DualTree {
+	t := DualTree{}
+	t.root = Mult.ToDualTreeNode(0)
+	t.root.right = Mult.ToDualTreeNode(5)
+	t.root.right.left = X1.ToDualTreeNode(4)
+	t.root.right.right = X1.ToDualTreeNode(7)
+
+	t.root.left = Mult.ToDualTreeNode(1)
+	t.root.left.right = X1.ToDualTreeNode(3)
+
+	t.root.left.left = Mult.ToDualTreeNode(2)
+	t.root.left.left.left = X1.ToDualTreeNode(2)
+	t.root.left.left.right = X1.ToDualTreeNode(2)
+	return &t
+}
+
+// TreeT_NT_T_NT_T_NT_T_NT_T_1 = x * x * x * x + 4
+var TreeT_NT_T_NT_T_NT_T_NT_T_1 = func() *DualTree {
+	t := DualTree{}
+	t.root = Mult.ToDualTreeNode(0)
+	t.root.right = Add.ToDualTreeNode(5)
+	t.root.right.left = X1.ToDualTreeNode(4)
+	t.root.right.right = X1.ToDualTreeNode(7)
+
+	t.root.left = Mult.ToDualTreeNode(1)
+	t.root.left.right = X1.ToDualTreeNode(3)
+
+	t.root.left.left = Mult.ToDualTreeNode(2)
+	t.root.left.left.left = X1.ToDualTreeNode(2)
+	t.root.left.left.right = X1.ToDualTreeNode(2)
 	return &t
 }
 

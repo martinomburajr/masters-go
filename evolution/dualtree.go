@@ -7,7 +7,10 @@ import (
 	"math/rand"
 	"strings"
 	"sync"
+	"time"
 )
+
+// TODO enable concurrent safe access for DualTree Methods
 
 // DualTree the binary search tree of Items
 type DualTree struct {
@@ -49,6 +52,7 @@ func (bst *DualTree) RandomBranch() (*DualTreeNode, error) {
 		return nil, err
 	}
 
+	rand.Seed(time.Now().UnixNano())
 	randIndex := rand.Intn(len(nodes))
 	return nodes[randIndex], nil
 }
@@ -118,7 +122,7 @@ func (bst *DualTree) AddSubTree(subTree *DualTree) error {
 	if subTree.root == nil {
 		return fmt.Errorf("cannot add a subTree with a nil root")
 	}
-	if subTree.root.left == nil && subTree.root.right == nil  {
+	if subTree.root.left == nil && subTree.root.right == nil {
 		return fmt.Errorf("subTree cannot be composed of a single terminal - no operation to add it to the tree.")
 	}
 
@@ -138,26 +142,139 @@ func (bst *DualTree) AddSubTree(subTree *DualTree) error {
 	intn := rand.Intn(2)
 	if intn == 0 {
 		node.right = subTree.root
-	}else {
+	} else {
 		node.left = subTree.root
 	}
 
 	return nil
 }
 
+// DeleteSubTree locates a random non-terminal and sets its value to 0,
+// deleting its associated child nodes by setting them to nil
 func (bst *DualTree) DeleteSubTree() error {
+	if bst.root == nil {
+		return fmt.Errorf("tree you are deleting to has nil root")
+	}
+	if bst.root.left == nil && bst.root.right == nil {
+		return fmt.Errorf("tree you are deleting to is a lone terminal")
+	}
+
+	node, err := bst.RandomBranch()
+	if err != nil {
+		return err
+	}
+
+	remove2(node)
+	node.arity = 1
+	node.value = "0"
 	return nil
+}
+
+func remove2(node *DualTreeNode) {
+	if node.left != nil {
+		remove2(node.left)
+		node.left = nil
+	}
+	if node.right != nil {
+		remove2(node.right)
+		node.right = nil
+	}
+	if node.left == nil && node.right == nil {
+		node = nil
+		return
+	}
 }
 
 func (bst *DualTree) SoftDeleteSubTree() error {
 	return nil
 }
 
+// SwapSubTrees swaps a set of subtrees in a given tree. It is a bit expensive as the parent needs to be obtained
+// TODO Create Efficient Way of Locating Parent of NonTerminal Node
 func (bst *DualTree) SwapSubTrees() error {
+	if bst.root == nil {
+		return fmt.Errorf("tree you are swapping to has nil root")
+	}
+	if bst.root.left == nil && bst.root.right == nil {
+		return fmt.Errorf("tree you are swapping to is a lone terminal")
+	}
+
+	nodes, err := bst.Branches()
+	if err != nil {
+		return err
+	}
+
+	nonTerminalIndex0 := 0
+	nonTerminalIndex1 := 0
+
+	for nonTerminalIndex0 == nonTerminalIndex1 {
+		rand.Seed(time.Now().UnixNano())
+		nonTerminalIndex0 = rand.Intn(len(nodes))
+		rand.Seed(time.Now().UnixNano())
+		nonTerminalIndex1 = rand.Intn(len(nodes))
+	}
+	// once they are different
+
+	//nodes[nonTerminalIndex0]
 	return nil
 }
 
-func (bst *DualTree) Mutate() error {
+// MutateTerminal will mutate a terminal to another valid terminal
+func (bst *DualTree) MutateTerminal(terminalSet []SymbolicExpression) error {
+	if bst.root == nil {
+		return fmt.Errorf("tree you are swapping to has nil root")
+	}
+	if bst.root.left == nil && bst.root.right == nil {
+		return fmt.Errorf("tree you are swapping to is a lone terminal")
+	}
+	if terminalSet == nil {
+		return fmt.Errorf("terminal set cannot be nil")
+	}
+	if len(terminalSet) < 1 {
+		return fmt.Errorf("terminal set cannot be empty")
+	}
+
+	nodes, err := bst.Branches()
+	if err != nil {
+		return err
+	}
+	rand.Seed(time.Now().UnixNano())
+	terminalIndex := rand.Intn(len(nodes))
+
+	rand.Seed(time.Now().UnixNano())
+	itemFromTSet := terminalSet[rand.Intn(len(terminalSet))]
+	nodes[terminalIndex].value = itemFromTSet.value
+
+	return nil
+}
+
+// MutateNonTerminal will mutate a terminal to another valid nonTerminal. Ensure set is nonTerminal set only,
+// otherwise arities will break
+func (bst *DualTree) MutateNonTerminal(nonTerminalSet []SymbolicExpression) error {
+	if bst.root == nil {
+		return fmt.Errorf("tree you are swapping to has nil root")
+	}
+	if bst.root.left == nil && bst.root.right == nil {
+		return fmt.Errorf("tree you are swapping to is a lone terminal")
+	}
+	if nonTerminalSet == nil {
+		return fmt.Errorf("nonTerminalSet set cannot be nil")
+	}
+	if len(nonTerminalSet) < 1 {
+		return fmt.Errorf("nonTerminalSet set cannot be empty")
+	}
+
+	nodes, err := bst.Branches()
+	if err != nil {
+		return err
+	}
+	rand.Seed(time.Now().UnixNano())
+	nonTerminalIndex0 := rand.Intn(len(nodes))
+
+	rand.Seed(time.Now().UnixNano())
+	itemFromNTSet := nonTerminalSet[rand.Intn(len(nonTerminalSet))]
+	nodes[nonTerminalIndex0].value = itemFromNTSet.value
+
 	return nil
 }
 
@@ -165,11 +282,22 @@ func (bst *DualTree) MutateDelete() error {
 	return nil
 }
 
-func (bst *DualTree) GetRandomSubTree(depth int) error {
-	return nil
+func (bst *DualTree) GetRandomSubTree() (*DualTree, error) {
+	if bst.root == nil {
+		return nil, fmt.Errorf("tree you are adding to has nil root")
+	}
+	if bst.root.left == nil && bst.root.right == nil {
+		return nil, fmt.Errorf("tree you are adding to is a lone terminal")
+	}
+	//node, err := bst.RandomBranch()
+	//if err != nil {
+	//	return nil, err
+	//}
+
+	return nil, nil
 }
 
-func (bst *DualTree) Count() (int) {
+func (bst *DualTree) Size() int {
 	count := 0
 	bst.InOrderTraverse(func(node *DualTreeNode) {
 		count++
@@ -188,7 +316,6 @@ func (bst *DualTree) Contains(subTree *DualTree) (bool, error) {
 	if bst.root == nil {
 		return false, fmt.Errorf("tree you are adding to has nil root")
 	}
-
 
 	subTreeSlice := make([]*DualTreeNode, 0)
 	subTree.InOrderTraverse(func(node *DualTreeNode) {
@@ -319,7 +446,6 @@ func (bst *DualTree) FromSymbolicExpressionSet(terminalSet []SymbolicExpression)
 
 }
 
-
 func (bst *DualTree) Random(terminalSet []SymbolicExpression, maxDepth int) error {
 	return nil
 }
@@ -392,50 +518,43 @@ func search(n *DualTreeNode, key int) bool {
 	return true
 }
 
-// Remove removes the string with key `key` from the tree
-func (bst *DualTree) Remove(key int) {
-	bst.lock.Lock()
-	defer bst.lock.Unlock()
-	remove(bst.root, key)
-}
-
 // internal recursive function to remove an item
-func remove(node *DualTreeNode, key int) *DualTreeNode {
-	if node == nil {
-		return nil
-	}
-	if key < node.key {
-		node.left = remove(node.left, key)
-		return node
-	}
-	if key > node.key {
-		node.right = remove(node.right, key)
-		return node
-	}
-	// key == node.key
-	if node.left == nil && node.right == nil {
-		node = nil
-		return nil
-	}
-	if node.left == nil {
-		node = node.right
-		return node
-	}
-	if node.right == nil {
-		node = node.left
-		return node
-	}
-	leftmostrightside := node.right
-	for {
-		//find smallest value on the right side
-		if leftmostrightside != nil && leftmostrightside.left != nil {
-			leftmostrightside = leftmostrightside.left
-		} else {
-			break
-		}
-	}
-	node.key, node.value = leftmostrightside.key, leftmostrightside.value
-	node.right = remove(node.right, node.key)
+func remove(node *DualTreeNode) *DualTreeNode {
+	//if node == nil {
+	//	return nil
+	//}
+	//if key < node.key {
+	//	node.left = remove(node.left)
+	//	return node
+	//}
+	//if key > node.key {
+	//	node.right = remove(node.right)
+	//	return node
+	//}
+	//// key == node.key
+	//if node.left == nil && node.right == nil {
+	//	node = nil
+	//	return nil
+	//}
+	//if node.left == nil {
+	//	node = node.right
+	//	return node
+	//}
+	//if node.right == nil {
+	//	node = node.left
+	//	return node
+	//}
+	//leftmostrightside := node.right
+	//for {
+	//	//find smallest value on the right side
+	//	if leftmostrightside != nil && leftmostrightside.left != nil {
+	//		leftmostrightside = leftmostrightside.left
+	//	} else {
+	//		break
+	//	}
+	//}
+	//node.key, node.value = leftmostrightside.key, leftmostrightside.value
+	//node.right = remove(node.right, node.key)
 	return node
 }
 
@@ -562,15 +681,6 @@ func GenerateRandomTree(maxDepth int, terminals []SymbolicExpression,
 		return nil, fmt.Errorf("error creating random tree | %s", err.Error())
 	}
 	return &tree, nil
-}
-
-// DualTreeNode a single node that composes the tree
-type DualTreeNode struct {
-	key   int
-	value string
-	left  *DualTreeNode //left
-	right *DualTreeNode //right
-	arity int
 }
 
 // SymbolicExpressionSet represents a mathematical expression broken into symbolic expressions.

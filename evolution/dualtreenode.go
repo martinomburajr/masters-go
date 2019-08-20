@@ -3,21 +3,13 @@ package evolution
 // DualTreeNode represents a a tree with a maximum of two children.
 // It is not technically a binary tree as it DOES not place any ordering on left and right children as binary trees
 // prototypically do.
-//type DualTreeNode struct {
-//	left   *DualTreeNode
-//	right  *DualTreeNode
-//	parent *DualTreeNode
-//	item   string
-//}
-//
-
-//
-//// ParentDualTreeNode represents a DualTree, but with no parent
-//type ParentDualTreeNode struct {
-//	left  *DualTreeNode
-//	right *DualTreeNode
-//	item  string
-//}
+type DualTreeNode struct {
+	key   int
+	value string
+	left  *DualTreeNode //left
+	right *DualTreeNode //right
+	arity int
+}
 
 // IsEqual checks to see if all aspects of a DualTreeNode are equivalent. This includes value as well as pointers
 //func (b *DualTreeNode) IsEqual(t *DualTreeNode) bool {

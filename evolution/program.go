@@ -14,11 +14,10 @@ type Program struct {
 	MaxDepth int
 }
 
-
 // ApplyStrategy takes a given strategy and applies a transformation to the given program.
 // maxDepth defines the maximum depth the tree can evolve to given the transformation
 func (p *Program) ApplyStrategy(strategy Strategy, terminals []SymbolicExpression,
-	nonTerminals []SymbolicExpression) (error) {
+	nonTerminals []SymbolicExpression) error {
 
 	switch strategy.Kind {
 	case AddSubTree:
@@ -27,7 +26,6 @@ func (p *Program) ApplyStrategy(strategy Strategy, terminals []SymbolicExpressio
 		if err != nil {
 			return err
 		}
-
 
 	}
 	return nil

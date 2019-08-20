@@ -82,13 +82,13 @@ func (e *Evolution) Evolve() {
 
 }
 
-// TODO Create Mutate strategy
+// TODO Create MutateTerminal strategy
 // TODO Create AddSubTree strategy
 // TODO Create DeleteSubTree strategy
 // TODO Create SoftDeleteSubTree strategy
 // TODO Create SwapSubTree strategy
 
-//type Mutable interface { Mutate() *program.DualTree }
+//type Mutable interface { MutateTerminal() *program.DualTree }
 //type Evaluable interface { Eval() float32 }
 //type Fitnessable interface { Fitness() float32 }
 //type ApplyStrategeable interface { ApplyStrategy([]program.Strategable) }

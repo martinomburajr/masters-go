@@ -2,6 +2,7 @@ package evolution
 
 import (
 	"reflect"
+	"sync"
 	"testing"
 )
 
@@ -250,8 +251,8 @@ func TestDualTree_Count(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.tree.Count(); got != tt.want {
-				t.Errorf("DualTree.Count() = %v, want %v", got, tt.want)
+			if got := tt.tree.Size(); got != tt.want {
+				t.Errorf("DualTree.Size() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -389,6 +390,7 @@ func TestDualTree_Contains(t *testing.T) {
 		})
 	}
 }
+
 // ############### REVIEW! IT COULD BE INCONSISTENT
 func TestDualTree_RandomBranch(t *testing.T) {
 	tests := []struct {
@@ -425,11 +427,11 @@ func TestDualTree_RandomBranch(t *testing.T) {
 
 func TestDualTree_ContainsNode(t *testing.T) {
 	tests := []struct {
-		name    string
-		tree    *DualTree
-		treeNode   *DualTreeNode
-		want    bool
-		wantErr bool
+		name     string
+		tree     *DualTree
+		treeNode *DualTreeNode
+		want     bool
+		wantErr  bool
 	}{
 		{"nil", TreeNil(), nil, false, true},
 		{"nil node", TreeT_0(), nil, false, true},
@@ -452,6 +454,102 @@ func TestDualTree_ContainsNode(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("DualTree.ContainsNode() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestDualTree_DeleteSubTree(t *testing.T) {
+	tests := []struct {
+		name         string
+		tree         *DualTree
+		startingSize int
+		wantErr      bool
+	}{
+		{"nil", TreeNil(), 0, true},
+		{"T", TreeT_0(), 0, true},
+		{"T-NT-T", TreeT_NT_T_0(), TreeT_NT_T_0().Size(), false},
+		{"T-NT-T-NT-T", TreeT_NT_T_NT_T_3(), TreeT_NT_T_NT_T_3().Size(), false},
+		{"TreeT_NT_T_NT_T_NT_T_0", TreeT_NT_T_NT_T_NT_T_0(), TreeT_NT_T_NT_T_NT_T_0().Size(), false},
+		{"TreeT_NT_T_NT_T_NT_T_NT_T_0", TreeT_NT_T_NT_T_NT_T_NT_T_0(), TreeT_NT_T_NT_T_NT_T_NT_T_0().Size(), false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var err error
+			tt.tree.String()
+			if err = tt.tree.DeleteSubTree(); (err != nil) != tt.wantErr {
+				t.Errorf("DualTree.DeleteSubTree() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if err == nil {
+				size := tt.tree.Size()
+				if tt.startingSize <= size {
+					t.Errorf("DualTree.DeleteSubTree() cannot be same size after delete = %d, wantErr %d", tt.startingSize,
+						size)
+				}
+			}
+			tt.tree.String()
+		})
+	}
+}
+
+func TestDualTree_SoftDeleteSubTree(t *testing.T) {
+	type fields struct {
+		root *DualTreeNode
+		lock sync.RWMutex
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		wantErr bool
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			bst := &DualTree{
+				root: tt.fields.root,
+				lock: tt.fields.lock,
+			}
+			if err := bst.SoftDeleteSubTree(); (err != nil) != tt.wantErr {
+				t.Errorf("DualTree.SoftDeleteSubTree() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+// NEEDS MORE TESTS
+func TestDualTree_MutateTerminal(t *testing.T) {
+	tests := []struct {
+		name    string
+		tree    *DualTree
+		args    []SymbolicExpression
+		wantErr bool
+	}{
+		{"nil", TreeNil(), nil, true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := tt.tree.MutateTerminal(tt.args); (err != nil) != tt.wantErr {
+				t.Errorf("DualTree.MutateTerminal() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+// NEEDS MORE TESTS
+func TestDualTree_MutateNonTerminal(t *testing.T) {
+	tests := []struct {
+		name    string
+		tree    *DualTree
+		args    []SymbolicExpression
+		wantErr bool
+	}{
+		{"nil", TreeNil(), nil, true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := tt.tree.MutateNonTerminal(tt.args); (err != nil) != tt.wantErr {
+				t.Errorf("DualTree.MutateNonTerminal() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
