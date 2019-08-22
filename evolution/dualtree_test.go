@@ -522,34 +522,158 @@ func TestDualTree_MutateTerminal(t *testing.T) {
 	tests := []struct {
 		name    string
 		tree    *DualTree
+		oldTree *DualTree
 		args    []SymbolicExpression
 		wantErr bool
 	}{
-		{"nil", TreeNil(), nil, true},
+		{"nil", TreeNil(), TreeNil(), nil, true},
+		{"err-nil-symbExpressSet", TreeT_0(), TreeT_0(), nil, true},
+		{"err-empty-symbExpressSet", TreeT_0(), TreeT_0(), make([]SymbolicExpression, 0), true},
+		{"T", TreeT_0(), TreeT_0(), []SymbolicExpression{Const4}, false},
+		{"T-Same", TreeT_0(), TreeT_0(), []SymbolicExpression{X1}, false},
+		{"T", TreeT_1(), TreeT_1(), []SymbolicExpression{Const4}, false},
+		{"T-NT-T", TreeT_NT_T_0(), TreeT_NT_T_0(), []SymbolicExpression{Const8, Const4, X1}, false},
+		{"T-NT-T", TreeT_NT_T_1(), TreeT_NT_T_1(), []SymbolicExpression{Const8, Const4, X1}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := tt.tree.MutateTerminal(tt.args); (err != nil) != tt.wantErr {
+			var err error
+			if err = tt.tree.MutateTerminal(tt.args); (err != nil) != tt.wantErr {
 				t.Errorf("DualTree.MutateTerminal() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if err == nil {
+				oldTreeLeafs, err := tt.oldTree.Leafs()
+				if err != nil {
+					t.Error(err)
+				}
+				newTreeLeafs, err := tt.tree.Leafs()
+				if err != nil {
+					t.Error(err)
+				}
+				if len(oldTreeLeafs) != len(newTreeLeafs) {
+					t.Errorf("len of oldTree is not equal to new tree %d | got: %d", len(oldTreeLeafs), len(newTreeLeafs))
+				}
+
+				diffCount := 0
+				for i := 0; i < len(oldTreeLeafs); i++ {
+					if !oldTreeLeafs[i].IsValEqual(newTreeLeafs[i]) {
+						diffCount++
+					}
+					if diffCount > 1 {
+						t.Errorf("old and new tree should by different by only a single node. "+
+							"got: %#v |  original: %#v", newTreeLeafs, oldTreeLeafs)
+					}
+				}
+
+				TestSectionDivider("MUTATE TERMINAL: BEFORE", t)
+				tt.oldTree.String()
+				TestSectionDivider("MUTATE TERMINAL: AFTER", t)
+				tt.tree.String()
 			}
 		})
 	}
 }
 
-// NEEDS MORE TESTS
 func TestDualTree_MutateNonTerminal(t *testing.T) {
 	tests := []struct {
 		name    string
 		tree    *DualTree
+		oldTree *DualTree
 		args    []SymbolicExpression
 		wantErr bool
 	}{
-		{"nil", TreeNil(), nil, true},
+		{"nil", TreeNil(), TreeNil(), nil, true},
+		{"err-nil-symbExpressSet", TreeT_0(), TreeT_0(), nil, true},
+		{"err-empty-symbExpressSet", TreeT_0(), TreeT_0(), make([]SymbolicExpression, 0), true},
+		{"T", TreeT_0(), TreeT_0(), []SymbolicExpression{Const4}, true},
+		{"T-Same", TreeT_0(), TreeT_0(), []SymbolicExpression{X1}, true},
+		{"T", TreeT_1(), TreeT_1(), []SymbolicExpression{Const4}, true},
+		{"T-NT-T NT-Same", TreeT_NT_T_0(), TreeT_NT_T_0(), []SymbolicExpression{Mult}, false},
+		{"T-NT-T", TreeT_NT_T_1(), TreeT_NT_T_1(), []SymbolicExpression{Sub}, false},
+		{"T-NT-T-NT-T-NT-T", TreeT_NT_T_NT_T_NT_T_0(), TreeT_NT_T_NT_T_NT_T_0(), []SymbolicExpression{Sub}, false},
+		{"T-NT-T-NT-T-NT-T-NT-T-SAME", TreeT_NT_T_NT_T_NT_T_NT_T_0(), TreeT_NT_T_NT_T_NT_T_NT_T_0(),
+			[]SymbolicExpression{Mult},
+			false},
+		{"T-NT-T-NT-T-NT-T-NT-T", TreeT_NT_T_NT_T_NT_T_NT_T_0(), TreeT_NT_T_NT_T_NT_T_NT_T_0(),
+			[]SymbolicExpression{Add},
+			false},
+			{"T-NT-T-NT-T-NT-T-NT-T-SAME", TreeT_NT_T_NT_T_NT_T_NT_T_0(), TreeT_NT_T_NT_T_NT_T_NT_T_0(),
+			[]SymbolicExpression{Mult},
+			false},
+		{"T-NT-T-NT-T-NT-T-NT-T-SAME", TreeT_NT_T_NT_T_NT_T_NT_T_0(), TreeT_NT_T_NT_T_NT_T_NT_T_0(),
+			[]SymbolicExpression{Mult, Add, Sub},
+			false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := tt.tree.MutateNonTerminal(tt.args); (err != nil) != tt.wantErr {
+			var err error
+			if err = tt.tree.MutateNonTerminal(tt.args); (err != nil) != tt.wantErr {
 				t.Errorf("DualTree.MutateNonTerminal() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if err == nil {
+				oldTreeNonTerminals, err := tt.oldTree.Branches()
+				if err != nil {
+					t.Error(err)
+				}
+				newTreeNonTerminals, err := tt.tree.Branches()
+				if err != nil {
+					t.Error(err)
+				}
+				if len(oldTreeNonTerminals) != len(newTreeNonTerminals) {
+					t.Errorf("len of oldTree is not equal to new tree %d | got: %d", len(oldTreeNonTerminals), len(newTreeNonTerminals))
+				}
+
+				diffCount := 0
+				for i := 0; i < len(oldTreeNonTerminals); i++ {
+					if !oldTreeNonTerminals[i].IsValEqual(newTreeNonTerminals[i]) {
+						diffCount++
+					}
+					if diffCount > 1 {
+						t.Errorf("old and new tree should by different by only a single node. "+
+							"got: %#v |  original: %#v", newTreeNonTerminals, oldTreeNonTerminals)
+					}
+				}
+
+				TestSectionDivider("MUTATE NON-TERMINAL: BEFORE", t)
+				tt.oldTree.String()
+				TestSectionDivider("MUTATE NON-TERMINAL: AFTER", t)
+				tt.tree.String()
+			}
+		})
+	}
+}
+
+func TestDualTree_HasDiverseNonTerminalSet(t *testing.T) {
+	tests := []struct {
+		name    string
+		tree    *DualTree
+		want    bool
+		wantErr bool
+	}{
+		{"nil", TreeNil(), false, true},
+		{"TreeT_0", TreeT_0(), false, true},
+		{"TreeT_1", TreeT_1(), false, true},
+		{"TreeT_NT_T_2", TreeT_NT_T_2(), false, false},
+		{"TreeT_NT_T_3", TreeT_NT_T_3(), false, false},
+		{"TreeT_NT_T_0", TreeT_NT_T_0(), false, false},
+		{"TreeT_NT_T_NT_T_1", TreeT_NT_T_NT_T_1(), true, false},
+		{"TreeT_NT_T_NT_T_2", TreeT_NT_T_NT_T_2(), true, false},
+		{"TreeT_NT_T_NT_T_3", TreeT_NT_T_NT_T_3(), true, false},
+		{"TreeT_NT_T_NT_T_NT_T_0", TreeT_NT_T_NT_T_NT_T_0(), true, false},
+		{"TreeT_NT_T_NT_T_NT_T_1", TreeT_NT_T_NT_T_NT_T_1(), true, false},
+		{"TreeT_NT_T_NT_T_NT_T_2", TreeT_NT_T_NT_T_NT_T_2(), false, false},
+		{"TreeT_NT_T_NT_T_NT_T_NT_T_0", TreeT_NT_T_NT_T_NT_T_NT_T_0(), false, false},
+		{"TreeT_NT_T_NT_T_NT_T_NT_T_1", TreeT_NT_T_NT_T_NT_T_NT_T_1(), true, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := tt.tree.HasDiverseNonTerminalSet()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("DualTree.HasDiverseNonTerminalSet() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("DualTree.HasDiverseNonTerminalSet() = %v, want %v", got, tt.want)
 			}
 		})
 	}

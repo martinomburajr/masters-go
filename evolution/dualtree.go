@@ -2,7 +2,6 @@ package evolution
 
 import (
 	"fmt"
-	"github.com/martinomburajr/masters-go/utils"
 	"math"
 	"math/rand"
 	"strings"
@@ -219,13 +218,12 @@ func (bst *DualTree) SwapSubTrees() error {
 	return nil
 }
 
-// MutateTerminal will mutate a terminal to another valid terminal
+// MutateTerminal will mutate a terminal to another valid terminal. If the terminalSet only contains a single item,
+// that is already in the tree and that tree element is of size 1 (root only).
+// If both these elements are identical no change will occur
 func (bst *DualTree) MutateTerminal(terminalSet []SymbolicExpression) error {
 	if bst.root == nil {
 		return fmt.Errorf("tree you are swapping to has nil root")
-	}
-	if bst.root.left == nil && bst.root.right == nil {
-		return fmt.Errorf("tree you are swapping to is a lone terminal")
 	}
 	if terminalSet == nil {
 		return fmt.Errorf("terminal set cannot be nil")
@@ -234,22 +232,54 @@ func (bst *DualTree) MutateTerminal(terminalSet []SymbolicExpression) error {
 		return fmt.Errorf("terminal set cannot be empty")
 	}
 
-	nodes, err := bst.Branches()
+	nodes, err := bst.Leafs()
 	if err != nil {
 		return err
 	}
-	rand.Seed(time.Now().UnixNano())
-	terminalIndex := rand.Intn(len(nodes))
 
-	rand.Seed(time.Now().UnixNano())
-	itemFromTSet := terminalSet[rand.Intn(len(terminalSet))]
-	nodes[terminalIndex].value = itemFromTSet.value
+	nodeValue := ""
+	itemFromSet := ""
+
+	for nodeValue == itemFromSet {
+		rand.Seed(time.Now().UnixNano())
+		nonTerminalIndex0 := rand.Intn(len(nodes))
+
+		rand.Seed(time.Now().UnixNano())
+		itemFromTSet := terminalSet[rand.Intn(len(terminalSet))]
+		nodeValue = nodes[nonTerminalIndex0].value
+		itemFromSet = itemFromTSet.value
+
+		if nodeValue == itemFromSet {
+			if len(terminalSet) < 2 {
+				return nil
+			}
+			continue
+		} else {
+			nodes[nonTerminalIndex0].value = itemFromSet
+		}
+	}
 
 	return nil
 }
 
+func (bst *DualTree) HasDiverseNonTerminalSet() (bool, error) {
+	branches, err := bst.Branches()
+	if err != nil {
+		return false, err
+	}
+
+	holder := branches[0]
+	for i := range branches {
+		if !branches[i].IsValEqual(holder) {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
 // MutateNonTerminal will mutate a terminal to another valid nonTerminal. Ensure set is nonTerminal set only,
 // otherwise arities will break
+// NOTE ensure nonTerminalSet contains no duplicates
 func (bst *DualTree) MutateNonTerminal(nonTerminalSet []SymbolicExpression) error {
 	if bst.root == nil {
 		return fmt.Errorf("tree you are swapping to has nil root")
@@ -268,12 +298,48 @@ func (bst *DualTree) MutateNonTerminal(nonTerminalSet []SymbolicExpression) erro
 	if err != nil {
 		return err
 	}
-	rand.Seed(time.Now().UnixNano())
-	nonTerminalIndex0 := rand.Intn(len(nodes))
 
-	rand.Seed(time.Now().UnixNano())
-	itemFromNTSet := nonTerminalSet[rand.Intn(len(nonTerminalSet))]
-	nodes[nonTerminalIndex0].value = itemFromNTSet.value
+	nodeValue := ""
+	fromSetValue := ""
+
+	counter := 0
+	for nodeValue == fromSetValue && len(nonTerminalSet) >= 1 && counter < 20 { //pray for no duplicates.
+	// Counter is a failsafe to prevent infinite looping
+		rand.Seed(time.Now().UnixNano())
+		nonTerminalIndex := rand.Intn(len(nodes))
+
+		rand.Seed(time.Now().UnixNano())
+		nonTerminalSetIndex := rand.Intn(len(nonTerminalSet))
+
+		nodeValue = nodes[nonTerminalIndex].value
+		fromSetValue = nonTerminalSet[nonTerminalSetIndex].value
+
+		if nodeValue == fromSetValue {
+			if len(nonTerminalSet) == 1 {
+				hasDiverseNonTerminalSet, err := bst.HasDiverseNonTerminalSet()
+				if err != nil {
+					return err
+				}
+				if !hasDiverseNonTerminalSet {
+					// If the terminal set only has an item (
+					// which will always get chosen since its just one item) and the tree has no set of diverse terminals
+					// i.e. all the nonterminals have the same value, just return as no useful work can be done here.
+					return nil
+				} else {
+					// if the tree has a diverse set of non terminals,
+					// then the set should at least be able to replace one of those differing Non Terminals
+					continue
+				}
+			}
+			if len(nonTerminalSet) > 1 {
+				continue
+			}
+		} else {
+			nodes[nonTerminalIndex].value = fromSetValue
+			return nil
+		}
+		counter++
+	}
 
 	return nil
 }
@@ -369,23 +435,6 @@ func (bst *DualTree) ContainsNode(treeNode *DualTreeNode) (bool, error) {
 	return found, nil
 }
 
-// leftMostLeaf finds the leftMostLeaf
-func (bst *DualTree) leftMostLeaf() (*DualTreeNode, error) {
-	if bst.root == nil {
-		return nil, fmt.Errorf("root cannot be nil")
-	}
-	node := bst.root
-	if node.left == nil && node.right == nil {
-		return node, nil
-	}
-
-	for {
-		node = node.left
-		if node.left == nil {
-			return node, nil
-		}
-	}
-}
 
 /**
 FromNodeTypes Creates a Tree from a list of NodeTypes
@@ -450,36 +499,7 @@ func (bst *DualTree) Random(terminalSet []SymbolicExpression, maxDepth int) erro
 	return nil
 }
 
-// Insert inserts the string t in the tree. Node must already contain the key and value
-func (bst *DualTree) Insert(node *DualTreeNode) {
-	bst.lock.Lock()
-	defer bst.lock.Unlock()
 
-	if bst.root == nil {
-		if utils.TypeOf(node) == "SymbolicExpression" {
-			bst.root = node
-		}
-	} else {
-		insertNode(bst.root, node)
-	}
-}
-
-// internal function to find the correct place for a node in a tree
-func insertNode(node, newNode *DualTreeNode) {
-	if newNode.key < node.key {
-		if node.left == nil {
-			node.left = newNode
-		} else {
-			insertNode(node.left, newNode)
-		}
-	} else {
-		if node.right == nil {
-			node.right = newNode
-		} else {
-			insertNode(node.right, newNode)
-		}
-	}
-}
 
 // InOrderTraverse visits all nodes with in-order traversing
 func (bst *DualTree) InOrderTraverse(f func(node *DualTreeNode)) {
@@ -497,66 +517,6 @@ func inOrderTraverse(n *DualTreeNode, f func(node *DualTreeNode)) {
 	}
 }
 
-// Search returns true if the string t exists in the tree
-func (bst *DualTree) Search(key int) bool {
-	bst.lock.RLock()
-	defer bst.lock.RUnlock()
-	return search(bst.root, key)
-}
-
-// internal recursive function to search an item in the tree
-func search(n *DualTreeNode, key int) bool {
-	if n == nil {
-		return false
-	}
-	if key < n.key {
-		return search(n.left, key)
-	}
-	if key > n.key {
-		return search(n.right, key)
-	}
-	return true
-}
-
-// internal recursive function to remove an item
-func remove(node *DualTreeNode) *DualTreeNode {
-	//if node == nil {
-	//	return nil
-	//}
-	//if key < node.key {
-	//	node.left = remove(node.left)
-	//	return node
-	//}
-	//if key > node.key {
-	//	node.right = remove(node.right)
-	//	return node
-	//}
-	//// key == node.key
-	//if node.left == nil && node.right == nil {
-	//	node = nil
-	//	return nil
-	//}
-	//if node.left == nil {
-	//	node = node.right
-	//	return node
-	//}
-	//if node.right == nil {
-	//	node = node.left
-	//	return node
-	//}
-	//leftmostrightside := node.right
-	//for {
-	//	//find smallest value on the right side
-	//	if leftmostrightside != nil && leftmostrightside.left != nil {
-	//		leftmostrightside = leftmostrightside.left
-	//	} else {
-	//		break
-	//	}
-	//}
-	//node.key, node.value = leftmostrightside.key, leftmostrightside.value
-	//node.right = remove(node.right, node.key)
-	return node
-}
 
 // String prints a visual representation of the tree
 func (bst *DualTree) String() {
