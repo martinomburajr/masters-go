@@ -15,7 +15,7 @@ type Program struct {
 }
 
 // ApplyStrategy takes a given strategy and applies a transformation to the given program.
-// maxDepth defines the maximum depth the tree can evolve to given the transformation
+// depth defines the maximum depth the tree can evolve to given the transformation
 func (p *Program) ApplyStrategy(strategy Strategy, terminals []SymbolicExpression,
 	nonTerminals []SymbolicExpression) error {
 

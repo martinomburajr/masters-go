@@ -51,50 +51,10 @@ func TestDualTree_FromSymbolicExpressionSet(t *testing.T) {
 					t.Errorf("expected: %#v ||| got: %#v", expected, got)
 				}
 
-				tt.fields.String()
+				tt.fields.Print()
 			}
 
 		})
-	}
-}
-
-func BenchmarkDualTree_FromSymbolicExpressionSet_1(b *testing.B) {
-	expressionSet1 := GenerateRandomSymbolicExpressionSet(1)
-	tree1 := DualTree{}
-	for i := 0; i < b.N; i++ {
-		tree1.FromSymbolicExpressionSet(expressionSet1)
-	}
-}
-
-func BenchmarkDualTree_FromSymbolicExpressionSet_10(b *testing.B) {
-	expressionSet1 := GenerateRandomSymbolicExpressionSet(10)
-	tree1 := DualTree{}
-	for i := 0; i < b.N; i++ {
-		tree1.FromSymbolicExpressionSet(expressionSet1)
-	}
-}
-
-func BenchmarkDualTree_FromSymbolicExpressionSet_1000(b *testing.B) {
-	expressionSet1 := GenerateRandomSymbolicExpressionSet(1000)
-	tree1 := DualTree{}
-	for i := 0; i < b.N; i++ {
-		tree1.FromSymbolicExpressionSet(expressionSet1)
-	}
-}
-
-func BenchmarkDualTree_FromSymbolicExpressionSet_100000(b *testing.B) {
-	expressionSet1 := GenerateRandomSymbolicExpressionSet(100000)
-	tree100000 := DualTree{}
-	for i := 0; i < b.N; i++ {
-		tree100000.FromSymbolicExpressionSet(expressionSet1)
-	}
-}
-
-func BenchmarkDualTree_FromSymbolicExpressionSet_1000000(b *testing.B) {
-	expressionSet1 := GenerateRandomSymbolicExpressionSet(1000000)
-	tree1 := DualTree{}
-	for i := 0; i < b.N; i++ {
-		tree1.FromSymbolicExpressionSet(expressionSet1)
 	}
 }
 
@@ -157,7 +117,7 @@ func TestDualTree_Validate(t *testing.T) {
 
 func TestGenerateRandomTree(t *testing.T) {
 	type args struct {
-		maxDepth     int
+		depth        int
 		terminals    []SymbolicExpression
 		nonTerminals []SymbolicExpression
 	}
@@ -168,18 +128,48 @@ func TestGenerateRandomTree(t *testing.T) {
 		wantErr bool
 	}{
 		{"err-lowMaxDepth", args{-1, nil, nil}, nil, true},
-		{"err-lowMaxDepth", args{-1, nil, nil}, nil, true},
-		{"err-lowMaxDepth", args{-1, nil, nil}, nil, true},
+		{"err-nil-terminals", args{2, nil, nil}, nil, true},
+		{"err-nil-non-terminals", args{2, []SymbolicExpression{X1}, nil},  nil, true},
+		{"err-nil-empty-terminals", args{2, []SymbolicExpression{}, []SymbolicExpression{}},  nil, true},
+		{"err-nil-empty-nonterminals", args{2, []SymbolicExpression{X1}, []SymbolicExpression{}},  nil, true},
+		{"err-nil-empty-nonterminals", args{2, []SymbolicExpression{X1}, []SymbolicExpression{}},  nil, true},
+		{"T", args{0, []SymbolicExpression{X1}, []SymbolicExpression{}},  TreeT_1(), false},
+		{"T", args{0, []SymbolicExpression{X1, Const0, Const1, Const2, Const3, Const4, Const5, Const6,
+			Const7, Const8, Const9}, []SymbolicExpression{}},  TreeT_1(), false},
+		{"err-depth-1-no-NT", args{1, []SymbolicExpression{X1}, []SymbolicExpression{}},  TreeT_1(), true},
+		{"depth-1", args{1, []SymbolicExpression{X1}, []SymbolicExpression{Add}}, TreeT_NT_T_0(), false},
+		{"depth-2", args{2, []SymbolicExpression{X1}, []SymbolicExpression{Add}}, TreeT_NT_T_NT_T_NT_T_0(), false},
+		{"depth-3-diverse", args{2, []SymbolicExpression{X1, Const0, Const1, Const2, Const3, Const4, Const5, Const6,
+			Const7, Const8, Const9},
+			[]SymbolicExpression{Add,
+			Mult,
+			Sub}},
+			TreeT_NT_T_NT_T_NT_T_0(),
+			false},
+		{"depth-2-diverse", args{3, []SymbolicExpression{X1, Const0, Const1, Const2, Const3, Const4, Const5, Const6,
+			Const7, Const8, Const9},
+			[]SymbolicExpression{Add,
+				Mult,
+				Sub}},
+			TreeT_NT_T_NT_T_NT_T_NT_T_NT_T_NT_T_NT_T_0(),
+			false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := GenerateRandomTree(tt.args.maxDepth, tt.args.terminals, tt.args.nonTerminals)
+			var err error
+			got, err := GenerateRandomTree(tt.args.depth, tt.args.terminals, tt.args.nonTerminals)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GenerateRandomTree() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("GenerateRandomTree() = %v, want %v", got, tt.want)
+			if err == nil {
+				wantExpressionSet := tt.want.ToSymbolicExpressionSet()
+				gotExpressionSet := got.ToSymbolicExpressionSet()
+
+				if len(wantExpressionSet) != len(gotExpressionSet) {
+					t.Errorf("They are not the same length error = %v, wantErr %v", gotExpressionSet, wantExpressionSet)
+				}
+				got.Print()
 			}
 		})
 	}
@@ -342,14 +332,14 @@ func TestDualTree_AddSubTree(t *testing.T) {
 				t.Errorf("DualTree.AddSubTree() error = %v, wantErr %v", err1, tt.wantErr)
 			} else {
 				if err1 == nil {
-					contains, err := tt.tree.Contains(tt.subTree)
+					contains, err := tt.tree.ContainsSubTree(tt.subTree)
 					if err != nil {
 						t.Error(err)
 					}
 					if !contains {
 						t.Errorf("The main tree does not contain elements of the subTree")
 					}
-					tt.tree.String()
+					tt.tree.Print()
 				}
 			}
 
@@ -379,13 +369,13 @@ func TestDualTree_Contains(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := tt.tree.Contains(tt.subTree)
+			got, err := tt.tree.ContainsSubTree(tt.subTree)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("DualTree.Contains() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("DualTree.ContainsSubTree() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got != tt.want {
-				t.Errorf("DualTree.Contains() = %v, want %v", got, tt.want)
+				t.Errorf("DualTree.ContainsSubTree() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -476,7 +466,7 @@ func TestDualTree_DeleteSubTree(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var err error
-			tt.tree.String()
+			tt.tree.Print()
 			if err = tt.tree.DeleteSubTree(); (err != nil) != tt.wantErr {
 				t.Errorf("DualTree.DeleteSubTree() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -487,7 +477,7 @@ func TestDualTree_DeleteSubTree(t *testing.T) {
 						size)
 				}
 			}
-			tt.tree.String()
+			tt.tree.Print()
 		})
 	}
 }
@@ -566,9 +556,9 @@ func TestDualTree_MutateTerminal(t *testing.T) {
 				}
 
 				TestSectionDivider("MUTATE TERMINAL: BEFORE", t)
-				tt.oldTree.String()
+				tt.oldTree.Print()
 				TestSectionDivider("MUTATE TERMINAL: AFTER", t)
-				tt.tree.String()
+				tt.tree.Print()
 			}
 		})
 	}
@@ -635,9 +625,9 @@ func TestDualTree_MutateNonTerminal(t *testing.T) {
 				}
 
 				TestSectionDivider("MUTATE NON-TERMINAL: BEFORE", t)
-				tt.oldTree.String()
+				tt.oldTree.Print()
 				TestSectionDivider("MUTATE NON-TERMINAL: AFTER", t)
-				tt.tree.String()
+				tt.tree.Print()
 			}
 		})
 	}
@@ -667,13 +657,13 @@ func TestDualTree_HasDiverseNonTerminalSet(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := tt.tree.HasDiverseNonTerminalSet()
+			got, err := tt.tree.hasDiverseNonTerminalSet()
 			if (err != nil) != tt.wantErr {
-				t.Errorf("DualTree.HasDiverseNonTerminalSet() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("DualTree.hasDiverseNonTerminalSet() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got != tt.want {
-				t.Errorf("DualTree.HasDiverseNonTerminalSet() = %v, want %v", got, tt.want)
+				t.Errorf("DualTree.hasDiverseNonTerminalSet() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -733,18 +723,18 @@ func TestDualTree_FromSymbolicExpressionSet2(t *testing.T) {
 		terminalSet []SymbolicExpression
 		wantErr     bool
 	}{
-		//{"nil-terminalset", &DualTree{}, nil, true},
-		//{"err-terminalset<1", &DualTree{}, []SymbolicExpression{}, true},
-		//{"err-terminalset-only-NT", &DualTree{}, []SymbolicExpression{Add}, true},
-		//{"T", TreeT_0(), []SymbolicExpression{X1}, false},
-		//{"T-NT-T", TreeT_NT_T_0(), []SymbolicExpression{X1, Mult, Const4}, false},
-		//{"T-NT-T-NT-T", TreeT_NT_T_NT_T_0(), []SymbolicExpression{X1, Sub, X1, Mult, Const4}, false},
-		//{"T-NT-T-NT-T-NT-T", TreeT_NT_T_NT_T_NT_T_0(), []SymbolicExpression{Const4, Sub, Const0, Add, Const4, Add,
-		//	Const8}, false},
-		//{"T-NT-TreeT_NT_T_NT_T_NT_T_NT_T_0-NT-T-NT-T", TreeT_NT_T_NT_T_NT_T_NT_T_0(), []SymbolicExpression{X1, Mult,
-		//	X1, Mult, X1, Mult, X1, Mult, X1},false},
-		//{"TreeT_NT_T_NT_T_NT_T_NT_T_1", TreeT_NT_T_NT_T_NT_T_NT_T_1(), []SymbolicExpression{X1, Mult,
-		//	X1, Mult, X1, Mult, X1, Add, Const4},false},
+		{"nil-terminalset", &DualTree{}, nil, true},
+		{"err-terminalset<1", &DualTree{}, []SymbolicExpression{}, true},
+		{"err-terminalset-only-NT", &DualTree{}, []SymbolicExpression{Add}, true},
+		{"T", TreeT_0(), []SymbolicExpression{X1}, false},
+		{"T-NT-T", TreeT_NT_T_0(), []SymbolicExpression{X1, Mult, Const4}, false},
+		{"T-NT-T-NT-T", TreeT_NT_T_NT_T_0(), []SymbolicExpression{X1, Sub, X1, Mult, Const4}, false},
+		{"T-NT-T-NT-T-NT-T", TreeT_NT_T_NT_T_NT_T_0(), []SymbolicExpression{Const4, Sub, Const0, Add, Const4, Add,
+			Const8}, false},
+		{"T-NT-TreeT_NT_T_NT_T_NT_T_NT_T_0-NT-T-NT-T", TreeT_NT_T_NT_T_NT_T_NT_T_0(), []SymbolicExpression{X1, Mult,
+			X1, Mult, X1, Mult, X1, Mult, X1},false},
+		{"TreeT_NT_T_NT_T_NT_T_NT_T_1", TreeT_NT_T_NT_T_NT_T_NT_T_1(), []SymbolicExpression{X1, Mult,
+			X1, Mult, X1, Mult, X1, Add, Const4},false},
 		{"TreeT_NT_T_NT_T_NT_T_NT_T_NT_T_NT_T_0()", TreeT_NT_T_NT_T_NT_T_NT_T_NT_T_NT_T_0(), []SymbolicExpression{X1, Mult,
 			X1, Mult, X1, Mult, X1, Add, Const4}, false},
 	}
@@ -770,7 +760,7 @@ func TestDualTree_FromSymbolicExpressionSet2(t *testing.T) {
 			}
 
 		})
-		tt.tree.String()
+		tt.tree.Print()
 	}
 }
 
@@ -785,14 +775,14 @@ func TestDualTree_ToSymbolicExpressionSet(t *testing.T) {
 		{"T-NT-T", TreeT_NT_T_0(), []SymbolicExpression{X1, Mult, Const4}},
 		{"T-NT-T-NT-T", TreeT_NT_T_NT_T_0(), []SymbolicExpression{X1, Sub, X1, Mult, Const4}},
 		{"T-NT-T-NT-T-NT-T", TreeT_NT_T_NT_T_NT_T_1(), []SymbolicExpression{X1, Mult, X1, Add, Const4, Add, Const8}},
-		{"T_NT_T_NT_T_NT_T_NT_T", TreeT_NT_T_NT_T_NT_T_NT_T_0(), []SymbolicExpression{X1, Mult, X1, Mult, X1, Mult,X1,
+		{"T_NT_T_NT_T_NT_T_NT_T", TreeT_NT_T_NT_T_NT_T_NT_T_0(), []SymbolicExpression{X1, Mult, X1, Mult, X1, Mult, X1,
 			Mult, X1}},
 		{"T_NT_T_NT_T_NT_T_NT_T_NT_T", TreeT_NT_T_NT_T_NT_T_NT_T_NT_T_0(), []SymbolicExpression{Const0, Add, Const1, Add,
-			Const2, Add,Const3, Add,Const4, Add, Const5}},
+			Const2, Add, Const3, Add, Const4, Add, Const5}},
 		{"T_NT_T_NT_T_NT_T_NT_T_NT_T_NT_T", TreeT_NT_T_NT_T_NT_T_NT_T_NT_T_NT_T_0(), []SymbolicExpression{Const0, Add, Const1, Add,
-			Const2, Add,Const3, Add,Const4, Add, Const5, Add, Const6}},
+			Const2, Add, Const3, Add, Const4, Add, Const5, Add, Const6}},
 		{"T_NT_T_NT_T_NT_T_NT_T_NT_T_NT_T_NT_T", TreeT_NT_T_NT_T_NT_T_NT_T_NT_T_NT_T_NT_T_0(), []SymbolicExpression{Const0, Add, Const1, Add,
-			Const2, Add,Const3, Add,Const4, Add, Const5, Add, Const6, Add, Const7}},
+			Const2, Add, Const3, Add, Const4, Add, Const5, Add, Const6, Add, Const7}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -802,6 +792,36 @@ func TestDualTree_ToSymbolicExpressionSet(t *testing.T) {
 			}
 			if got := bst.ToSymbolicExpressionSet(); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("DualTree.ToSymbolicExpressionSet() = %v, \n want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_weaver(t *testing.T) {
+	type args struct {
+		terminals    []SymbolicExpression
+		nonTerminals []SymbolicExpression
+	}
+	tests := []struct {
+		name string
+		args args
+		want []SymbolicExpression
+	}{
+		{"empty", args{[]SymbolicExpression{},[]SymbolicExpression{}}, []SymbolicExpression{}},
+		{"T-1 | NT-0", args{[]SymbolicExpression{X1},[]SymbolicExpression{}}, []SymbolicExpression{X1}},
+		{"T-1 | NT-1", args{[]SymbolicExpression{X1},[]SymbolicExpression{Add}}, []SymbolicExpression{X1, Add}},
+		{"T-2 | NT-1", args{[]SymbolicExpression{X1, Const0},[]SymbolicExpression{Add}}, []SymbolicExpression{X1,
+			Add, Const0}},
+		{"T-2 | NT-2", args{[]SymbolicExpression{X1, Const0},[]SymbolicExpression{Add,Sub}}, []SymbolicExpression{X1,
+			Add, Const0,Sub}},
+		{"T-3 | NT-2", args{[]SymbolicExpression{X1, Const0, Const1},[]SymbolicExpression{Add,Sub}},
+			[]SymbolicExpression{X1,
+			Add, Const0,Sub, Const1}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := weaver(tt.args.terminals, tt.args.nonTerminals); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("weaver() = %v, want %v", got, tt.want)
 			}
 		})
 	}

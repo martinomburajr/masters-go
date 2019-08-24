@@ -33,7 +33,7 @@ func (g *Generation) Start() *Generation {
 }
 
 // Restart is similar to StartHOG but it restarts the evolutionary process from the selected Generation.
-// All future generations are deleted to make way for this evolutionary process
+// All future generations are deleted to makefile way for this evolutionary process
 func (g *Generation) Restart() *Generation {
 	return g.PreviousGeneration
 }

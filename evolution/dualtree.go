@@ -262,7 +262,7 @@ func (bst *DualTree) MutateTerminal(terminalSet []SymbolicExpression) error {
 	return nil
 }
 
-func (bst *DualTree) HasDiverseNonTerminalSet() (bool, error) {
+func (bst *DualTree) hasDiverseNonTerminalSet() (bool, error) {
 	branches, err := bst.Branches()
 	if err != nil {
 		return false, err
@@ -316,7 +316,7 @@ func (bst *DualTree) MutateNonTerminal(nonTerminalSet []SymbolicExpression) erro
 
 		if nodeValue == fromSetValue {
 			if len(nonTerminalSet) == 1 {
-				hasDiverseNonTerminalSet, err := bst.HasDiverseNonTerminalSet()
+				hasDiverseNonTerminalSet, err := bst.hasDiverseNonTerminalSet()
 				if err != nil {
 					return err
 				}
@@ -371,8 +371,8 @@ func (bst *DualTree) Size() int {
 	return count
 }
 
-// Contains checks to see if a tree contains part of a subTree
-func (bst *DualTree) Contains(subTree *DualTree) (bool, error) {
+// ContainsSubTree checks to see if a tree contains part of a subTree
+func (bst *DualTree) ContainsSubTree(subTree *DualTree) (bool, error) {
 	if subTree == nil {
 		return false, fmt.Errorf("cannot add a nil subTree")
 	}
@@ -665,8 +665,8 @@ func inOrderTraverse(n *DualTreeNode, f func(node *DualTreeNode)) {
 }
 
 
-// String prints a visual representation of the tree
-func (bst *DualTree) String() {
+// Print prints a visual representation of the tree
+func (bst *DualTree) Print() {
 	bst.lock.Lock()
 	defer bst.lock.Unlock()
 	fmt.Println("------------------------------------------------")
@@ -744,11 +744,11 @@ func (d *DualTree) Validate() error {
 // GenerateRandomTree generates a given tree of a depth between 0 (i.e) root and (inclusive of) the depth specified.
 // Assuming a binary structured tree. The number of terminals (T) is equal to 2^D where D is the depth.
 // The number of NonTerminals (NT) is equal to 2^D - 1
-func GenerateRandomTree(maxDepth int, terminals []SymbolicExpression,
+func GenerateRandomTree(depth int, terminals []SymbolicExpression,
 	nonTerminals []SymbolicExpression) (*DualTree, error) {
 
-	if maxDepth < 0 {
-		return nil, fmt.Errorf("maxDepth cannot be less than 0")
+	if depth < 0 {
+		return nil, fmt.Errorf("depth cannot be less than 0")
 	}
 	if terminals == nil {
 		return nil, fmt.Errorf("terminal expression set cannot be nil")
@@ -759,35 +759,77 @@ func GenerateRandomTree(maxDepth int, terminals []SymbolicExpression,
 	if len(terminals) < 1 {
 		return nil, fmt.Errorf("terminal expression set cannot be empty")
 	}
+	if depth > 0 && len(nonTerminals) < 1 {
+		return nil, fmt.Errorf("non terminal expression set cannot be empty if depth > 0")
+	}
 	if len(nonTerminals) < 1 {
-		return nil, fmt.Errorf("nonterminal expression set cannot be empty")
+		rand.Seed(time.Now().UnixNano())
+		tree := &DualTree{}
+		tree.root = terminals[rand.Intn(len(terminals))].ToDualTreeNode(0)
+		return tree, nil
 	}
 
 	tree := DualTree{}
+	terminalCount := 2
+	if depth > 1 {
+		terminalCount = int(math.Pow(2, float64(depth)))
+	}
+	nonTerminalCount := 1
+	if depth > 1 {
+		nonTerminalCount = int(math.Pow(2, float64(depth)) - 1)
+	}
 
-	depth := rand.Intn(maxDepth-0) + 0
 
-	terminalCount := math.Pow(2, float64(depth))
-	nonTerminalCount := math.Pow(2, float64(depth)) - 1
-
-	randTerminals := make([]SymbolicExpression, int(terminalCount))
-	for i := 0; i < int(terminalCount); i++ {
+	randTerminals := make([]SymbolicExpression, terminalCount)
+	for i := 0; i < terminalCount; i++ {
+		rand.Seed(time.Now().UnixNano())
 		randTerminalIndex := rand.Intn(len(terminals))
 		randTerminals[i] = terminals[randTerminalIndex]
 	}
 
-	randNonTerminals := make([]SymbolicExpression, int(terminalCount))
-	for i := 0; i < int(nonTerminalCount); i++ {
+	randNonTerminals := make([]SymbolicExpression, nonTerminalCount)
+	for i := 0; i < nonTerminalCount; i++ {
+		rand.Seed(time.Now().UnixNano())
 		index := rand.Intn(len(nonTerminals))
 		randNonTerminals[i] = nonTerminals[index]
 	}
 
-	combinedArr := append(randTerminals, randTerminals...)
-	err := tree.FromSymbolicExpressionSet(combinedArr)
+	if (len(randTerminals) + len(randNonTerminals)) % 2 != 1 {
+		return nil, fmt.Errorf("bad pairing of terminals and non-terminals")
+	}
+
+	combinedArr := weaver(randTerminals, randNonTerminals)
+
+	err := tree.FromSymbolicExpressionSet2(combinedArr)
 	if err != nil {
 		return nil, fmt.Errorf("error creating random tree | %s", err.Error())
 	}
 	return &tree, nil
+}
+
+func weaver(terminals, nonTerminals []SymbolicExpression) []SymbolicExpression {
+	if len(terminals) < 1 {
+		return []SymbolicExpression{}
+	}
+	if len(terminals) > 0 {
+		if len(nonTerminals) < 1 {
+			return []SymbolicExpression{terminals[0]}
+		}
+	}
+
+	combined := make([]SymbolicExpression, len(terminals) + len(nonTerminals))
+
+	count := 0
+	for i := 0 ; i < len(combined); i+=2 {
+		combined[i] = terminals[count]
+		count++
+	}
+	count = 0
+	for i := 0 ; i < len(combined)-1; i+=2 {
+		combined[(i+1)] = nonTerminals[count]
+		count++
+	}
+	return combined
 }
 
 // SymbolicExpressionSet represents a mathematical expression broken into symbolic expressions.
