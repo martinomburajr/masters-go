@@ -75,3 +75,12 @@ func (d *DualTreeNode) ArityRemainder() int {
 	}
 	return 0
 }
+
+// IsLeaf checks to see if a given node is a leaf
+func (d *DualTreeNode) ToSymbolicExpression() SymbolicExpression {
+	return SymbolicExpression{
+		arity: d.arity,
+		value: d.value,
+		kind: d.arity,
+	}
+}

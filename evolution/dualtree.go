@@ -304,7 +304,7 @@ func (bst *DualTree) MutateNonTerminal(nonTerminalSet []SymbolicExpression) erro
 
 	counter := 0
 	for nodeValue == fromSetValue && len(nonTerminalSet) >= 1 && counter < 20 { //pray for no duplicates.
-	// Counter is a failsafe to prevent infinite looping
+		// Counter is a failsafe to prevent infinite looping
 		rand.Seed(time.Now().UnixNano())
 		nonTerminalIndex := rand.Intn(len(nodes))
 
@@ -435,7 +435,6 @@ func (bst *DualTree) ContainsNode(treeNode *DualTreeNode) (bool, error) {
 	return found, nil
 }
 
-
 /**
 FromNodeTypes Creates a Tree from a list of NodeTypes
 */
@@ -495,17 +494,165 @@ func (bst *DualTree) FromSymbolicExpressionSet(terminalSet []SymbolicExpression)
 
 }
 
-func (bst *DualTree) Random(terminalSet []SymbolicExpression, maxDepth int) error {
+/**
+FromNodeTypes Creates a Tree from a list of NodeTypes
+*/
+func (bst *DualTree) FromSymbolicExpressionSet2(terminalSet []SymbolicExpression) error {
+	//EdgeCases
+	if terminalSet == nil {
+		return fmt.Errorf("terminalSet cannot be nil")
+	}
+	if len(terminalSet) < 1 {
+		return fmt.Errorf("terminalSet cannot be empty i.e size 0")
+	}
+	if terminalSet[0].kind >= 1 {
+		return fmt.Errorf("terminalSet cannot start with type nonterminal i.e SymbolicExpression.kind > 1")
+	}
+	if len(terminalSet) == 1 && terminalSet[0].kind < 1 {
+		bst.root = terminalSet[0].ToDualTreeNode(0)
+		return nil
+	}
+
+	nodes, err := Splitter(terminalSet)
+	if err != nil {
+		return err
+	}
+
+	if len(nodes) == 1 {
+		bst.root = nodes[0]
+		return nil
+	}
+
+	bst.root = combinatorArr(nodes[0:len(nodes)/2+1], nodes[len(nodes)/2+1:], &DualTreeNode{}, &DualTreeNode{})
+
 	return nil
 }
 
+func combinatorArr(left, right []*DualTreeNode, x, y *DualTreeNode) *DualTreeNode {
+	if len(left) > 2 {
+		x = combinatorArr(left[0:len(left)/2], left[len(left)/2:], x, y)
+	}
+	if len(right) > 2 {
+		y = combinatorArr(right[0:len(right)/2], right[len(right)/2:], x, y)
+	}
+	if len(left) <= 2 {
+		if len(left) == 2 {
+			x = combinator(left[0], left[1])
+		} else if len(left) == 1 {
+			x = combinator(left[0], nil)
+		}
+	}
+	if len(right) <= 2 {
+		if len(right) == 2 {
+			y = combinator(right[0], right[1])
+		} else if len(right) == 1 {
+			y = combinator(right[0], nil)
+		}
+	}
+	return combinator(x, y)
+}
 
+/**
+	Splitter takes a set of symbolic expressions and breaks them out to a set of other symbolic expressions with the
+remainder being passed back as the symbolicExpression.
+This will not check for empty expressionSets or expressionSets of len less than 3.
+*/
+func Splitter(expressionSet []SymbolicExpression) ([]*DualTreeNode, error) {
+	if len(expressionSet)%2 == 0 {
+		return nil, fmt.Errorf("expression set must have odd numbered values")
+	}
+
+	nodeSet := make([]*DualTreeNode, len(expressionSet))
+	for e := range expressionSet {
+		nodeSet[e] = expressionSet[e].ToDualTreeNode(e)
+	}
+
+	initialTrees := make([]*DualTreeNode, 0)
+	for i := 0; i < len(nodeSet)-1; i += 2 {
+		nodeSet[i+1].left = nodeSet[i]
+		initialTrees = append(initialTrees, nodeSet[i+1])
+	}
+	initialTrees[len(initialTrees)-1].right = expressionSet[len(expressionSet)-1].ToDualTreeNode(len(expressionSet) - 1)
+	return initialTrees, nil
+}
+
+func combinator(node0, node1 *DualTreeNode) *DualTreeNode {
+	if node0 == nil {
+		return node0
+	}
+	if node1 == nil {
+		return node0
+	}
+
+	if node0.right == nil {
+		if node1.right == nil {
+			node0.right = node1.left
+			node1.left =  node0
+			return node1
+		}else {
+			if node1.right.ArityRemainder() == 0 {
+				node0.right = node1
+				combinator(node0, nil)
+			} else {
+
+			}
+		}
+	}
+	return node0
+}
+
+// Depth calculates the height of the tree. A tree with a nil root returns -1.
+func (d *DualTree) Depth() {
+	//if d.root == nil {
+	//	return -1
+	//}
+	//
+	//
+	//if d.root.left == nil && d.root.right == nil {
+	//	return 0
+	//}
+	//
+	//leftCounter := 0
+	//rightCounter := 0
+	//leftNode := d.root.left
+	//rightNode := d.root.right
+	//isRightDead := false
+	//isLeftDead := false
+	//for {
+	//	if leftNode != nil {
+	//		leftCounter++
+	//		leftNode = leftNode.left
+	//	}else {
+	//		isLeftDead = true
+	//	}
+	//	if rightNode != nil {
+	//		rightCounter++
+	//		rightNode = rightNode.right
+	//	}else {
+	//		isLeftDead
+	//	}
+	//}
+	//return 0
+}
+
+func (bst *DualTree) Random(terminalSet []SymbolicExpression, maxDepth int) error {
+	return nil
+}
 
 // InOrderTraverse visits all nodes with in-order traversing
 func (bst *DualTree) InOrderTraverse(f func(node *DualTreeNode)) {
 	bst.lock.RLock()
 	defer bst.lock.RUnlock()
 	inOrderTraverse(bst.root, f)
+}
+
+// InOrderTraverse visits all nodes with in-order traversing
+func (bst *DualTree) ToSymbolicExpressionSet() []SymbolicExpression {
+	symbSet := make([]SymbolicExpression, 0)
+	bst.InOrderTraverse(func(node *DualTreeNode) {
+		symbSet = append(symbSet, node.ToSymbolicExpression())
+	})
+	return symbSet
 }
 
 // internal recursive function to traverse in order

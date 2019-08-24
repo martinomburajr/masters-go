@@ -22,7 +22,7 @@ func (p *Program) ApplyStrategy(strategy Strategy, terminals []SymbolicExpressio
 	switch strategy.Kind {
 	case AddSubTree:
 		// generate random subTree
-		_, err := GenerateRandomTree(2, terminals, nonTerminals)
+		_, err := GenerateRandomTree(p.MaxDepth, terminals, nonTerminals)
 		if err != nil {
 			return err
 		}

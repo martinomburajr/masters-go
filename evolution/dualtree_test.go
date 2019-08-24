@@ -597,7 +597,7 @@ func TestDualTree_MutateNonTerminal(t *testing.T) {
 		{"T-NT-T-NT-T-NT-T-NT-T", TreeT_NT_T_NT_T_NT_T_NT_T_0(), TreeT_NT_T_NT_T_NT_T_NT_T_0(),
 			[]SymbolicExpression{Add},
 			false},
-			{"T-NT-T-NT-T-NT-T-NT-T-SAME", TreeT_NT_T_NT_T_NT_T_NT_T_0(), TreeT_NT_T_NT_T_NT_T_NT_T_0(),
+		{"T-NT-T-NT-T-NT-T-NT-T-SAME", TreeT_NT_T_NT_T_NT_T_NT_T_0(), TreeT_NT_T_NT_T_NT_T_NT_T_0(),
 			[]SymbolicExpression{Mult},
 			false},
 		{"T-NT-T-NT-T-NT-T-NT-T-SAME", TreeT_NT_T_NT_T_NT_T_NT_T_0(), TreeT_NT_T_NT_T_NT_T_NT_T_0(),
@@ -676,5 +676,98 @@ func TestDualTree_HasDiverseNonTerminalSet(t *testing.T) {
 				t.Errorf("DualTree.HasDiverseNonTerminalSet() = %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+func BenchmarkSplitter(b *testing.B) {
+
+}
+
+func TestSplitter(t *testing.T) {
+
+	symEx0 := []SymbolicExpression{X1, Add, Const4}
+	node0 := symEx0[1].ToDualTreeNode(1)
+	node0.left = symEx0[0].ToDualTreeNode(0)
+	node0.right = symEx0[2].ToDualTreeNode(2)
+	node0Arr := []*DualTreeNode{node0}
+
+	symEx1 := []SymbolicExpression{X1, Add, Const4, Mult, Const8}
+	node1 := symEx1[1].ToDualTreeNode(1)
+	node1.left = symEx1[0].ToDualTreeNode(0)
+	node2 := symEx1[3].ToDualTreeNode(1)
+	node2.left = symEx1[2].ToDualTreeNode(1)
+	node3 := symEx1[4].ToDualTreeNode(1)
+	node1Arr := []*DualTreeNode{node1, node2, node3}
+
+	tests := []struct {
+		name          string
+		expressionSet []SymbolicExpression
+		want          []*DualTreeNode
+		wantErr       bool
+	}{
+		{"err-T-NT", []SymbolicExpression{X1, Add}, nil,
+			true},
+		{"err-T-NT-T-NT", []SymbolicExpression{X1, Add, Const4, Sub}, nil, true},
+
+		{"T-NT-T", symEx0, node0Arr, false},
+		{"T-NT-T-NT-T", symEx1, node1Arr, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := Splitter(tt.expressionSet)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Splitter() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			for e := range got {
+				got[e].IsValEqual(tt.want[e])
+			}
+		})
+	}
+}
+
+func TestDualTree_FromSymbolicExpressionSet2(t *testing.T) {
+	tests := []struct {
+		name        string
+		fields      *DualTree
+		terminalSet []SymbolicExpression
+		wantErr     bool
+	}{
+		{"nil-terminalset", &DualTree{}, nil, true},
+		{"err-terminalset<1", &DualTree{}, []SymbolicExpression{}, true},
+		{"err-terminalset-only-NT", &DualTree{}, []SymbolicExpression{Add}, true},
+		{"T", TreeT_0(), []SymbolicExpression{X1}, false},
+		{"T-NT-T", TreeT_NT_T_0(), []SymbolicExpression{X1, Mult, Const4}, false},
+		{"T-NT-T-NT-T", TreeT_NT_T_NT_T_0(), []SymbolicExpression{X1, Sub, X1, Mult, Const4}, false},
+		{"T-NT-T-NT-T-NT-T", TreeT_NT_T_NT_T_NT_T_0(), []SymbolicExpression{Const4, Sub, Const0, Add, Const4, Add,
+			Const8}, false},
+		{"T-NT-TreeT_NT_T_NT_T_NT_T_NT_T_0-NT-T-NT-T", TreeT_NT_T_NT_T_NT_T_NT_T_0(), []SymbolicExpression{X1, Mult,
+			X1, Mult, X1, Mult, X1, Mult, X1},false},
+		{"TreeT_NT_T_NT_T_NT_T_NT_T_1", TreeT_NT_T_NT_T_NT_T_NT_T_1(), []SymbolicExpression{X1, Mult,
+			X1, Mult, X1, Mult, X1, Add, Const4},false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var err error
+			if err = tt.fields.FromSymbolicExpressionSet2(tt.terminalSet); (err != nil) != tt.wantErr {
+				t.Errorf("DualTree.FromSymbolicExpressionSet2() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if err == nil {
+				expressionSet := tt.fields.ToSymbolicExpressionSet()
+				if len(expressionSet) != len(tt.terminalSet) {
+					t.Errorf("Generated Tree not the same LENGTH as input symbolic set error = %q, wantErr %q",
+						expressionSet,
+						tt.terminalSet)
+				}
+				for e := range tt.terminalSet {
+					if tt.terminalSet[e].value != expressionSet[e].value {
+						t.Errorf("Generated Tree not the same as input symbolic set error = %q, wantErr %q", expressionSet,
+							tt.terminalSet)
+					}
+				}
+			}
+
+		})
+		tt.fields.String()
 	}
 }
