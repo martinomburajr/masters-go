@@ -4,31 +4,44 @@ import (
 	"fmt"
 	"github.com/Knetic/govaluate"
 	"github.com/martinomburajr/masters-go/utils"
+	"math/rand"
 	"strings"
 )
 
 // TODO generate AST tree from polynomial expression
 type Program struct {
-	ID       string
-	T        *DualTree
-	MaxDepth int
+	ID    string
+	T     *DualTree
+	Depth int
 }
 
 // ApplyStrategy takes a given strategy and applies a transformation to the given program.
-// depth defines the maximum depth the tree can evolve to given the transformation
+// depth defines the exact depth the tree can evolve to given the transformation.
+// Depth of a tree increases exponentially. So keep depths small e.g. 1,2,3
 func (p *Program) ApplyStrategy(strategy Strategy, terminals []SymbolicExpression,
-	nonTerminals []SymbolicExpression) error {
+	nonTerminals []SymbolicExpression, mutationProbability float32, nonTerminalMutationProbability float32) (err error) {
 
 	switch strategy.Kind {
 	case AddSubTree:
-		// generate random subTree
-		_, err := GenerateRandomTree(p.MaxDepth, terminals, nonTerminals)
+		var tree *DualTree
+		tree, err = GenerateRandomTree(p.Depth, terminals, nonTerminals)
+		err = p.T.AddSubTree(tree)
+	case DeleteSubTree:
+		err := p.T.DeleteSubTree()
 		if err != nil {
 			return err
 		}
-
+	case MutateNode:
+		chanceOfMutation := rand.Float32()
+		if mutationProbability > chanceOfMutation {
+			if nonTerminalMutationProbability > chanceOfMutation {
+				err = p.T.MutateNonTerminal(nonTerminals)
+			}
+			err = p.T.MutateTerminal(terminals)
+		}
+	default:
 	}
-	return nil
+	return err
 }
 
 func (p *Program) Fitness() (float32, error) {
@@ -71,26 +84,6 @@ func (p *Program) Eval(independentVar float32) (float32, error) {
 	}
 
 	return ans, nil
-}
-
-//func (p *Program) Terminals() []*dualtree.Terminal {
-//	return nil
-//}
-//
-//func (p *Program) NonTerminals() []*dualtree.SymbolicExpression {
-//	return nil
-//}
-
-func (p *Program) Mutate() {
-
-}
-
-func (p *Program) Recombine() {
-
-}
-
-func (p *Program) Validate() error {
-	return nil
 }
 
 type Bug *Program

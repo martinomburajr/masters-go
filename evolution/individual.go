@@ -2,7 +2,7 @@ package evolution
 
 type Individual struct {
 	id                 string
-	strategy           []*Strategy
+	strategy           []Strategy
 	fitness            []float32
 	hasAppliedStrategy bool
 	kind               string

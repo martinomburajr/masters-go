@@ -344,10 +344,6 @@ func (bst *DualTree) MutateNonTerminal(nonTerminalSet []SymbolicExpression) erro
 	return nil
 }
 
-func (bst *DualTree) MutateDelete() error {
-	return nil
-}
-
 func (bst *DualTree) GetRandomSubTree() (*DualTree, error) {
 	if bst.root == nil {
 		return nil, fmt.Errorf("tree you are adding to has nil root")
@@ -587,9 +583,9 @@ func combinator(node0, node1 *DualTreeNode) *DualTreeNode {
 	if node0.right == nil {
 		if node1.right == nil {
 			node0.right = node1.left
-			node1.left =  node0
+			node1.left = node0
 			return node1
-		}else {
+		} else {
 			if node1.right.ArityRemainder() == 0 {
 				node0.right = node1
 				combinator(node0, nil)
@@ -663,7 +659,6 @@ func inOrderTraverse(n *DualTreeNode, f func(node *DualTreeNode)) {
 		inOrderTraverse(n.right, f)
 	}
 }
-
 
 // Print prints a visual representation of the tree
 func (bst *DualTree) Print() {
@@ -779,7 +774,6 @@ func GenerateRandomTree(depth int, terminals []SymbolicExpression,
 		nonTerminalCount = int(math.Pow(2, float64(depth)) - 1)
 	}
 
-
 	randTerminals := make([]SymbolicExpression, terminalCount)
 	for i := 0; i < terminalCount; i++ {
 		rand.Seed(time.Now().UnixNano())
@@ -794,7 +788,7 @@ func GenerateRandomTree(depth int, terminals []SymbolicExpression,
 		randNonTerminals[i] = nonTerminals[index]
 	}
 
-	if (len(randTerminals) + len(randNonTerminals)) % 2 != 1 {
+	if (len(randTerminals)+len(randNonTerminals))%2 != 1 {
 		return nil, fmt.Errorf("bad pairing of terminals and non-terminals")
 	}
 
@@ -817,16 +811,16 @@ func weaver(terminals, nonTerminals []SymbolicExpression) []SymbolicExpression {
 		}
 	}
 
-	combined := make([]SymbolicExpression, len(terminals) + len(nonTerminals))
+	combined := make([]SymbolicExpression, len(terminals)+len(nonTerminals))
 
 	count := 0
-	for i := 0 ; i < len(combined); i+=2 {
+	for i := 0; i < len(combined); i += 2 {
 		combined[i] = terminals[count]
 		count++
 	}
 	count = 0
-	for i := 0 ; i < len(combined)-1; i+=2 {
-		combined[(i+1)] = nonTerminals[count]
+	for i := 0; i < len(combined)-1; i += 2 {
+		combined[(i + 1)] = nonTerminals[count]
 		count++
 	}
 	return combined

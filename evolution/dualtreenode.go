@@ -85,6 +85,6 @@ func (d *DualTreeNode) ToSymbolicExpression() SymbolicExpression {
 	return SymbolicExpression{
 		arity: d.arity,
 		value: d.value,
-		kind: kind,
+		kind:  kind,
 	}
 }

@@ -66,8 +66,6 @@ func BenchmarkDualTree_FromSymbolicExpressionSet2_100000(b *testing.B) {
 	}
 }
 
-
-
 func BenchmarkDualTree_FromSymbolicExpressionSet_1000000(b *testing.B) {
 	expressionSet1 := GenerateRandomSymbolicExpressionSet(1000000)
 	tree1 := DualTree{}
@@ -75,7 +73,6 @@ func BenchmarkDualTree_FromSymbolicExpressionSet_1000000(b *testing.B) {
 		tree1.FromSymbolicExpressionSet(expressionSet1)
 	}
 }
-
 
 func BenchmarkDualTree_FromSymbolicExpressionSet2_1000000(b *testing.B) {
 	expressionSet1 := GenerateRandomSymbolicExpressionSet(1000000)
@@ -85,30 +82,30 @@ func BenchmarkDualTree_FromSymbolicExpressionSet2_1000000(b *testing.B) {
 	}
 }
 
-func BenchmarkGenerateRandomTree_1 (b *testing.B) {
+func BenchmarkGenerateRandomTree_1(b *testing.B) {
 	depth := 1
-	terminals :=[]SymbolicExpression{X1, Const0, Const1, Const2, Const3, Const4, Const5, Const6,
+	terminals := []SymbolicExpression{X1, Const0, Const1, Const2, Const3, Const4, Const5, Const6,
 		Const7, Const8, Const9}
 	nonTerminals := []SymbolicExpression{Add, Mult, Sub}
-	for i:=0; i < b.N; i++ {
+	for i := 0; i < b.N; i++ {
 		GenerateRandomTree(depth, terminals, nonTerminals)
 	}
 }
-func BenchmarkGenerateRandomTree_10 (b *testing.B) {
+func BenchmarkGenerateRandomTree_10(b *testing.B) {
 	depth := 10
-	terminals :=[]SymbolicExpression{X1, Const0, Const1, Const2, Const3, Const4, Const5, Const6,
+	terminals := []SymbolicExpression{X1, Const0, Const1, Const2, Const3, Const4, Const5, Const6,
 		Const7, Const8, Const9}
 	nonTerminals := []SymbolicExpression{Add, Mult, Sub}
-	for i:=0; i < b.N; i++ {
+	for i := 0; i < b.N; i++ {
 		GenerateRandomTree(depth, terminals, nonTerminals)
 	}
 }
-func BenchmarkGenerateRandomTree_20 (b *testing.B) {
+func BenchmarkGenerateRandomTree_20(b *testing.B) {
 	depth := 20
-	terminals :=[]SymbolicExpression{X1, Const0, Const1, Const2, Const3, Const4, Const5, Const6,
+	terminals := []SymbolicExpression{X1, Const0, Const1, Const2, Const3, Const4, Const5, Const6,
 		Const7, Const8, Const9}
 	nonTerminals := []SymbolicExpression{Add, Mult, Sub}
-	for i:=0; i < b.N; i++ {
+	for i := 0; i < b.N; i++ {
 		GenerateRandomTree(depth, terminals, nonTerminals)
 	}
 }

@@ -33,3 +33,38 @@ func TestProgram_Eval(t *testing.T) {
 		})
 	}
 }
+
+func TestProgram_ApplyStrategy(t *testing.T) {
+	type fields struct {
+		ID    string
+		T     *DualTree
+		Depth int
+	}
+	type args struct {
+		strategy                       Strategy
+		terminals                      []SymbolicExpression
+		nonTerminals                   []SymbolicExpression
+		mutationProbability            float32
+		nonTerminalMutationProbability float32
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		wantErr bool
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			p := &Program{
+				ID:    tt.fields.ID,
+				T:     tt.fields.T,
+				Depth: tt.fields.Depth,
+			}
+			if err := p.ApplyStrategy(tt.args.strategy, tt.args.terminals, tt.args.nonTerminals, tt.args.mutationProbability, tt.args.nonTerminalMutationProbability); (err != nil) != tt.wantErr {
+				t.Errorf("Program.ApplyStrategy() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

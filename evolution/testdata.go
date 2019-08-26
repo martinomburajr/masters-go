@@ -217,7 +217,6 @@ var TreeT_NT_T_NT_T_NT_T_NT_T_1 = func() *DualTree {
 	return &t
 }
 
-
 // TreeT_NT_T_NT_T_NT_T_NT_T_NT_T_0 = 0 + 1 + 2 + 3 + 4 + 5
 var TreeT_NT_T_NT_T_NT_T_NT_T_NT_T_0 = func() *DualTree {
 	t := DualTree{}

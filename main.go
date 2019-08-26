@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/martinomburajr/masters-go/evolution"
-	"log"
 )
 
 func main() {
@@ -23,30 +22,30 @@ func main() {
 	//var addSubTreeStrateg  y AddSubTreeStrategy
 	//	addSubTreeStrategy.
 
-	var initialProgram evolution.InitialProgram
-	initialProgram.Spec(nil)
-
-	var evolutionEngine = evolution.EvolutionEngine{} //Create the Evolution Engine
-
-	var evolutionProcess *evolution.EvolutionProcess
-	evolutionProcess = evolutionEngine.
-		SetStartIndividual(initialProgram). // Todo Implement EvolutionProcess SetStartIndividual
-		ZeroSumFitness(func() float32 { return 0 }).
-		FitnessEval(func() float32 { return 0 }).                                 // Todo Implement EvolutionProcess FitnessEval
-		ProgramEval(func() float32 { return 0 }).                                 // Todo Implement EvolutionProcess ProgramEval
-		Protagonist(100, func() float32 { return 0 }, []evolution.Strategable{}). // Todo Implement EvolutionProcess Protagonist
-		Antagonist(100, func() float32 { return 0 }, []evolution.Strategable{}).  // Todo Implement EvolutionProcess antagonist
-		AvailableStrategies([]evolution.Strategable{}).
-		Generations(300). // Todo Implement EvolutionProcess Generations
-		ParentSelection(evolution.EvolutionaryStrategy.Tournament).
-		SurvivorSelection(evolution.EvolutionaryStrategy.Rank).
-		OptimizationStrategy(evolution.EvolutionaryStrategy.Minimization).
-		Parallelize(true).                  // Todo Implement EvolutionProcess Parallelize()
-		GenerateStatistics("./stats.json"). // Todo Implement EvolutionProcess GenerateStatistics
-		Options(evolution.EvolutionParams{}).
-		Start() // Todo Implement EvolutionProcess Start
-
-	log.Print(evolutionProcess)
+	//var initialProgram evolution.InitialProgram
+	//initialProgram.Spec(nil)
+	//
+	//var evolutionEngine = evolution.EvolutionEngine{} //Create the Evolution Engine
+	//
+	//var evolutionProcess *evolution.EvolutionProcess
+	//evolutionProcess = evolutionEngine.
+	//	SetStartIndividual(initialProgram). // Todo Implement EvolutionProcess SetStartIndividual
+	//	ZeroSumFitness(func() float32 { return 0 }).
+	//	FitnessEval(func() float32 { return 0 }).                                 // Todo Implement EvolutionProcess FitnessEval
+	//	ProgramEval(func() float32 { return 0 }).                                 // Todo Implement EvolutionProcess ProgramEval
+	//	Protagonist(100, func() float32 { return 0 }, []evolution.Strategable{}). // Todo Implement EvolutionProcess Protagonist
+	//	Antagonist(100, func() float32 { return 0 }, []evolution.Strategable{}).  // Todo Implement EvolutionProcess antagonist
+	//	AvailableStrategies([]evolution.Strategable{}).
+	//	Generations(300). // Todo Implement EvolutionProcess Generations
+	//	ParentSelection(evolution.EvolutionaryStrategy.Tournament).
+	//	SurvivorSelection(evolution.EvolutionaryStrategy.Rank).
+	//	OptimizationStrategy(evolution.EvolutionaryStrategy.Minimization).
+	//	Parallelize(true).                  // Todo Implement EvolutionProcess Parallelize()
+	//	GenerateStatistics("./stats.json"). // Todo Implement EvolutionProcess GenerateStatistics
+	//	Options(evolution.EvolutionParams{}).
+	//	Start() // Todo Implement EvolutionProcess Start
+	//
+	//log.Print(evolutionProcess)
 
 	//evolutionResult.
 	//	TopAntagonist()
