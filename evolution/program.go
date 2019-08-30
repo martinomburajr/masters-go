@@ -12,19 +12,18 @@ import (
 type Program struct {
 	ID    string
 	T     *DualTree
-	Depth int
 }
 
 // ApplyStrategy takes a given strategy and applies a transformation to the given program.
 // depth defines the exact depth the tree can evolve to given the transformation.
 // Depth of a tree increases exponentially. So keep depths small e.g. 1,2,3
 func (p *Program) ApplyStrategy(strategy Strategy, terminals []SymbolicExpression,
-	nonTerminals []SymbolicExpression, mutationProbability float32, nonTerminalMutationProbability float32) (err error) {
+	nonTerminals []SymbolicExpression, mutationProbability float32, nonTerminalMutationProbability float32, depth int) (err error) {
 
 	switch strategy.Kind {
 	case AddSubTree:
 		var tree *DualTree
-		tree, err = GenerateRandomTree(p.Depth, terminals, nonTerminals)
+		tree, err = GenerateRandomTree(depth, terminals, nonTerminals)
 		err = p.T.AddSubTree(tree)
 	case DeleteSubTree:
 		err := p.T.DeleteSubTree()

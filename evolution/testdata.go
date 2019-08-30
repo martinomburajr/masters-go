@@ -50,6 +50,15 @@ var TreeT_1 = func() *DualTree {
 	return &t
 }
 
+// TreeT_NT_T_4 = x * x
+var TreeT_NT_T_4 = func() *DualTree {
+	t := DualTree{}
+	t.root = Mult.ToDualTreeNode(0)
+	t.root.left = X1.ToDualTreeNode(1)
+	t.root.right = X1.ToDualTreeNode(2)
+	return &t
+}
+
 // TreeT_NT_T_0 = x * 4
 var TreeT_NT_T_0 = func() *DualTree {
 	t := DualTree{}
@@ -206,7 +215,7 @@ var TreeT_NT_T_NT_T_NT_T_NT_T_1 = func() *DualTree {
 	t.root = Mult.ToDualTreeNode(0)
 	t.root.right = Add.ToDualTreeNode(5)
 	t.root.right.left = X1.ToDualTreeNode(4)
-	t.root.right.right = X1.ToDualTreeNode(7)
+	t.root.right.right = Const4.ToDualTreeNode(7)
 
 	t.root.left = Mult.ToDualTreeNode(1)
 	t.root.left.right = X1.ToDualTreeNode(3)

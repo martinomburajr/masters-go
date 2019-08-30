@@ -10,15 +10,23 @@ type EvolutionParams struct {
 }
 
 type EvolutionEngine struct {
-	startIndividual     Program
-	spec                Spec
-	generations         int
-	parallelize         bool
-	probabilityOfMutation float32
+	startIndividual                  Program
+	spec                             Spec
+	generationResults                []*GenerationResult
+	generations                      int
+	eachPopulation                   int
+	parallelize                      bool
+	probabilityOfRecombination       float32
+	probabilityOfMutation            float32
 	probabilityOfNonTerminalMutation float32
-	availableStrategies []Strategable
-	programEval         func() float32
-	statisticsOutput    string
+	availableStrategies              []Strategy
+	survivorSelection                int
+	parentSelection                  int
+	elitismPercentage                int
+	programEval                      func() float32
+	statisticsOutput                 string
+	maxDepth int
+	depthPenalty int
 }
 
 func (engine *EvolutionEngine) StatisticsOutput() string {
@@ -80,11 +88,11 @@ func (engine *EvolutionEngine) SetStartIndividual(startIndividual Program) {
 	engine.startIndividual = startIndividual
 }
 
-func (engine *EvolutionEngine) AvailableStrategies() []*Strategable {
+func (engine *EvolutionEngine) AvailableStrategies() []Strategy {
 	return engine.availableStrategies
 }
 
-func (engine *EvolutionEngine) SetAvailableStrategies(availableStrategies []*Strategable) {
+func (engine *EvolutionEngine) SetAvailableStrategies(availableStrategies []Strategy) {
 	engine.availableStrategies = availableStrategies
 }
 
@@ -96,28 +104,56 @@ func (engine *EvolutionEngine) SetParallelize(parallelize bool) {
 	engine.parallelize = parallelize
 }
 
+func (e *EvolutionEngine) Start() (*EvolutionResult, error) {
+	// Init Population
+	//err := e.validate()
+	//if err != nil {
+	//	return nil, err
+	//}
+	//// Set First Generation - TODO Parallelize Individual Creation
+	//antagonists, err := GenerateRandomIndividuals(e.eachPopulation, "ANT", "BUG", 3, 4, e.availableStrategies)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//protagonists, err := GenerateRandomIndividuals(e.eachPopulation, "PRO", "TEST", 3, 4, e.availableStrategies)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//
+	//// create the 1st gen0, and begin
+	//gen0 := Generation{}
+	//generationResult, err := gen0.Start()
+
+	// cycle through generations
+	//for i := 0; i < e.generations; i++ {
+	//	generationId := fmt.Sprintf("GEN#-%d", i)
+	//	Generation{}.Start()
+	//}
+	return nil, nil
+}
 
 // Todo Implement EvolutionProcess validate
 func (e *EvolutionEngine) validate() error {
-	if e.generations == 0 {
+	if e.generations < 1 {
 		return fmt.Errorf("set number of generations by calling e.Generations(x)")
 	}
-	if e.startIndividual == nil {
-		return fmt.Errorf("set a start generation")
-	}
-	err := e.startIndividual.Validate()
-	if err != nil {
-		return err
-	}
-	if e.spec == nil {
-		return fmt.Errorf("set a valid spec")
-	}
-	if len(e.spec) < 3 {
-		return fmt.Errorf("a small spec will hamper evolutionary accuracy")
-	}
+	//if e.startIndividual == Program{} {
+	//	return fmt.Errorf("set a start individuals")
+	//}
+	//err := e.startIndividual.Validate()
+	//if err != nil {
+	//	return err
+	//}
+	//if e.spec == nil {
+	//	return fmt.Errorf("set a valid spec")
+	//}
+	//if len(e.spec) < 3 {
+	//	return fmt.Errorf("a small spec will hamper evolutionary accuracy")
+	//}
 
 	return nil
 }
+
 //
 //// InitialIndividual returns the input individual
 //func (e *EvolutionEngine) GetInitialIndividual() *InitialProgram {

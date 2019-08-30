@@ -21,7 +21,7 @@ func Test_arityRemainder(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.tree.root.ArityRemainder(); got != tt.want {
-				t.Errorf("ArityRemainder() = %v, want %v", got, tt.want)
+				t.Errorf("ArityRemainder() = %v, wantAntagonist %v", got, tt.want)
 			}
 		})
 	}
@@ -44,7 +44,7 @@ func TestDualTreeNode_IsLeaf(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.node.IsLeaf(); got != tt.want {
-				t.Errorf("IsLeaf() = %v, want %v", got, tt.want)
+				t.Errorf("IsLeaf() = %v, wantAntagonist %v", got, tt.want)
 			}
 		})
 	}
@@ -65,7 +65,7 @@ func TestDualTreeNode_IsValEqual(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.fields.IsValEqual(tt.args); got != tt.want {
-				t.Errorf("DualTreeNode.IsValEqual() = %v, want %v", got, tt.want)
+				t.Errorf("DualTreeNode.IsValEqual() = %v, wantAntagonist %v", got, tt.want)
 			}
 		})
 	}
@@ -76,7 +76,7 @@ func TestDualTreeNode_IsValEqual(t *testing.T) {
 //		name   string
 //		tree *DualTreeNode
 //		subTree   *DualTreeNode
-//		want   bool
+//		wantAntagonist   bool
 //	}{
 //		//{"", &DualTreeNode{}, &DualTreeNode{}, true},
 //		//{"value", &DualTreeNode{value: "x"}, &DualTreeNode{value: "x"}, true},
@@ -91,8 +91,8 @@ func TestDualTreeNode_IsValEqual(t *testing.T) {
 //	}
 //	for _, tt := range tests {
 //		t.Run(tt.name, func(t *testing.T) {
-//			if got := tt.tree.IsEqual(tt.subTree); got != tt.want {
-//				t.Errorf("DualTreeNode.IsEqual() = %v, want %v", got, tt.want)
+//			if got := tt.tree.IsEqual(tt.subTree); got != tt.wantAntagonist {
+//				t.Errorf("DualTreeNode.IsEqual() = %v, wantAntagonist %v", got, tt.wantAntagonist)
 //			}
 //		})
 //	}

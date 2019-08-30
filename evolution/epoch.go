@@ -11,15 +11,23 @@ import (
 // The test will use up the strategies it contains and attempt to chew away at the antagonists fitness,
 // to maximize its own
 type Epoch struct {
-	protagonist       *Individual
-	antagonist        *Individual
-	program           Program
-	protagonistBegins bool
-	isComplete        bool
-	probabilityOfMutation float32
+	id                               string
+	protagonist                      *Individual
+	antagonist                       *Individual
+	generation  *Generation
+	program                          Program
+	protagonistBegins                bool
+	isComplete                       bool
+	probabilityOfMutation            float32
 	probabilityOfNonTerminalMutation float32
-	terminalSet []SymbolicExpression
-	nonTerminalSet []SymbolicExpression
+	terminalSet                      []SymbolicExpression
+	nonTerminalSet                   []SymbolicExpression
+}
+
+// NewEpoch creates a new epoch. The id string can simply be the index from an iteration that creates multiple epochs
+func NewEpoch(id string, protagonist *Individual, antagonist *Individual, program Program, probabilityOfMutation float32, probabilityOfNonTerminalMutation float32, terminalSet []SymbolicExpression, nonTerminalSet []SymbolicExpression) *Epoch {
+	id = fmt.Sprintf("Epoch-%s-%s|%s", id, antagonist.id, protagonist.id)
+	return &Epoch{id: id, protagonist: protagonist, antagonist: antagonist, program: program, probabilityOfMutation: probabilityOfMutation, probabilityOfNonTerminalMutation: probabilityOfNonTerminalMutation, terminalSet: terminalSet, nonTerminalSet: nonTerminalSet}
 }
 
 func (e *Epoch) GetProtagonistBegins() bool {
@@ -52,7 +60,7 @@ func (e *Epoch) SetAntagonist(antagonist *Individual) *Epoch {
 
 // SetProbabilityOfMutation sets the probability that the program will use a mutation strategy.
 // Otherwise it will be skipped
-func (e *Epoch) SetProbabilityOfMutation(probability float32) *Epoch {
+func (e Epoch) SetProbabilityOfMutation(probability float32) Epoch {
 	e.probabilityOfMutation = probability
 	e.probabilityOfNonTerminalMutation = probability
 	return e
@@ -65,10 +73,10 @@ func (e *Epoch) SetProbabilityOfNonTerminalMutation(probability float32) *Epoch 
 	return e
 }
 
-// InitSimulator creates the Epoch Simulator. You must call Start to begin this process
-func (e *Epoch) InitSimulator() *EpochSimulator {
-	return &EpochSimulator {
-		e, false, false,
+// Start creates the Epoch Simulator. You must call Start to begin this process
+func (e *Epoch) Start() *EpochSimulator {
+	return &EpochSimulator{
+		e, false, false, e.generation,
 	}
 }
 
@@ -77,6 +85,7 @@ type EpochSimulator struct {
 	epoch                 *Epoch
 	hasAntagonistApplied  bool
 	hasProtagonistApplied bool
+	generation *Generation
 }
 
 // applyAntagonistStrategy applies the Antagonist strategies to program.
@@ -86,7 +95,8 @@ func (e *EpochSimulator) applyAntagonistStrategy() (*EpochSimulator, error) {
 			e.epoch.terminalSet,
 			e.epoch.nonTerminalSet,
 			e.epoch.probabilityOfMutation,
-			e.epoch.probabilityOfNonTerminalMutation)
+			e.epoch.probabilityOfNonTerminalMutation,
+			e.epoch.generation.engine.maxDepth)
 		if err != nil {
 			return nil, err
 		}
@@ -102,7 +112,8 @@ func (e *EpochSimulator) applyProtagonistStrategy() (*EpochSimulator, error) {
 			e.epoch.terminalSet,
 			e.epoch.nonTerminalSet,
 			e.epoch.probabilityOfMutation,
-			e.epoch.probabilityOfNonTerminalMutation)
+			e.epoch.probabilityOfNonTerminalMutation,
+			e.epoch.generation.engine.maxDepth)
 		if err != nil {
 			return nil, err
 		}

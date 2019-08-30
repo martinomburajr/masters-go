@@ -84,7 +84,7 @@ func TestDualTree_ToMathematicalString(t *testing.T) {
 				return
 			}
 			if got != tt.want {
-				t.Errorf("DualTree.ToMathematicalString() = %v, want %v", got, tt.want)
+				t.Errorf("DualTree.ToMathematicalString() = %v, wantAntagonist %v", got, tt.want)
 			}
 		})
 	}
@@ -193,7 +193,7 @@ func TestGenerateRandomSymbolicExpressionSet(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := GenerateRandomSymbolicExpressionSet(tt.size); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("GenerateRandomSymbolicExpressionSet() = %v, want %v", got, tt.want)
+				t.Errorf("GenerateRandomSymbolicExpressionSet() = %v, wantAntagonist %v", got, tt.want)
 			}
 		})
 	}
@@ -221,7 +221,7 @@ func TestDualTree_Leafs(t *testing.T) {
 			}
 			for i := range got {
 				if !got[i].IsValEqual(tt.want[i]) {
-					t.Errorf("DualTree.Leafs() = %v, want %v", got[i].value, tt.want[i].value)
+					t.Errorf("DualTree.Leafs() = %v, wantAntagonist %v", got[i].value, tt.want[i].value)
 				}
 			}
 		})
@@ -242,7 +242,7 @@ func TestDualTree_Count(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.tree.Size(); got != tt.want {
-				t.Errorf("DualTree.Size() = %v, want %v", got, tt.want)
+				t.Errorf("DualTree.Size() = %v, wantAntagonist %v", got, tt.want)
 			}
 		})
 	}
@@ -303,7 +303,7 @@ func TestDualTree_Branches(t *testing.T) {
 			}
 			for i := range got {
 				if !got[i].IsValEqual(tt.want[i]) {
-					t.Errorf("DualTree.Leafs() = %v, want %v", got[i].value, tt.want[i].value)
+					t.Errorf("DualTree.Leafs() = %v, wantAntagonist %v", got[i].value, tt.want[i].value)
 				}
 			}
 		})
@@ -375,7 +375,7 @@ func TestDualTree_Contains(t *testing.T) {
 				return
 			}
 			if got != tt.want {
-				t.Errorf("DualTree.ContainsSubTree() = %v, want %v", got, tt.want)
+				t.Errorf("DualTree.ContainsSubTree() = %v, wantAntagonist %v", got, tt.want)
 			}
 		})
 	}
@@ -443,7 +443,7 @@ func TestDualTree_ContainsNode(t *testing.T) {
 				return
 			}
 			if got != tt.want {
-				t.Errorf("DualTree.ContainsNode() = %v, want %v", got, tt.want)
+				t.Errorf("DualTree.ContainsNode() = %v, wantAntagonist %v", got, tt.want)
 			}
 		})
 	}
@@ -663,7 +663,7 @@ func TestDualTree_HasDiverseNonTerminalSet(t *testing.T) {
 				return
 			}
 			if got != tt.want {
-				t.Errorf("DualTree.hasDiverseNonTerminalSet() = %v, want %v", got, tt.want)
+				t.Errorf("DualTree.hasDiverseNonTerminalSet() = %v, wantAntagonist %v", got, tt.want)
 			}
 		})
 	}
@@ -791,7 +791,7 @@ func TestDualTree_ToSymbolicExpressionSet(t *testing.T) {
 				lock: tt.fields.lock,
 			}
 			if got := bst.ToSymbolicExpressionSet(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("DualTree.ToSymbolicExpressionSet() = %v, \n want %v", got, tt.want)
+				t.Errorf("DualTree.ToSymbolicExpressionSet() = %v, \n wantAntagonist %v", got, tt.want)
 			}
 		})
 	}
@@ -821,7 +821,7 @@ func Test_weaver(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := weaver(tt.args.terminals, tt.args.nonTerminals); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("weaver() = %v, want %v", got, tt.want)
+				t.Errorf("weaver() = %v, wantAntagonist %v", got, tt.want)
 			}
 		})
 	}

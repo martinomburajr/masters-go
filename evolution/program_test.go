@@ -28,7 +28,7 @@ func TestProgram_Eval(t *testing.T) {
 				return
 			}
 			if got != tt.want {
-				t.Errorf("Program.Eval() = %v, want %v", got, tt.want)
+				t.Errorf("Program.Eval() = %v, wantAntagonist %v", got, tt.want)
 			}
 		})
 	}
@@ -46,6 +46,7 @@ func TestProgram_ApplyStrategy(t *testing.T) {
 		nonTerminals                   []SymbolicExpression
 		mutationProbability            float32
 		nonTerminalMutationProbability float32
+		depth int
 	}
 	tests := []struct {
 		name    string
@@ -60,9 +61,10 @@ func TestProgram_ApplyStrategy(t *testing.T) {
 			p := &Program{
 				ID:    tt.fields.ID,
 				T:     tt.fields.T,
-				Depth: tt.fields.Depth,
 			}
-			if err := p.ApplyStrategy(tt.args.strategy, tt.args.terminals, tt.args.nonTerminals, tt.args.mutationProbability, tt.args.nonTerminalMutationProbability); (err != nil) != tt.wantErr {
+			if err := p.ApplyStrategy(tt.args.strategy, tt.args.terminals, tt.args.nonTerminals,
+				tt.args.mutationProbability, tt.args.nonTerminalMutationProbability,
+				tt.args.depth); (err != nil) != tt.wantErr {
 				t.Errorf("Program.ApplyStrategy() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
