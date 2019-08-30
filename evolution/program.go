@@ -21,16 +21,16 @@ func (p *Program) ApplyStrategy(strategy Strategy, terminals []SymbolicExpressio
 	nonTerminals []SymbolicExpression, mutationProbability float32, nonTerminalMutationProbability float32, depth int) (err error) {
 
 	switch strategy.Kind {
-	case AddSubTree:
+	case StrategyAddSubTree:
 		var tree *DualTree
 		tree, err = GenerateRandomTree(depth, terminals, nonTerminals)
 		err = p.T.AddSubTree(tree)
-	case DeleteSubTree:
+	case StrategyDeleteSubTree:
 		err := p.T.DeleteSubTree()
 		if err != nil {
 			return err
 		}
-	case MutateNode:
+	case StrategyMutateNode:
 		chanceOfMutation := rand.Float32()
 		if mutationProbability > chanceOfMutation {
 			if nonTerminalMutationProbability > chanceOfMutation {

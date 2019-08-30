@@ -63,23 +63,22 @@ func (g *Generation) CurrentPopulation() ([]*Individual, error) {
 
 // runEpoch begins the run of a single epoch
 func (g *Generation) runEpochs() (*GenerationResult, error) {
-	if g.Epochs == nil {
-		return nil, fmt.Errorf("epochs have not been initialized | g.Epochs is nil")
-	}
-
-	epochResults := make([]*EpochResult, len(g.Epochs))
-	for i := range g.Epochs {
-		epochResult, err := g.Epochs[i].Start().Start()
-		if err != nil {
-			return nil, err
-		}
-		epochResults[i] = epochResult
-	}
-
-	return &GenerationResult{
-		epochResults: epochResults,
-		generation:   g,
-	}, nil
+	//if g.Epochs == nil {
+	//	return nil, fmt.Errorf("epochs have not been initialized | g.Epochs is nil")
+	//}
+	//
+	//_ := make([]*Epoch, len(g.Epochs))
+	//for i := range g.Epochs {
+	//	err := g.Epochs[i].Start()
+	//	if err != nil {
+	//		return nil, err
+	//	}
+	//}
+	//
+	//return &GenerationResult{
+	//	generation:   g,
+	//}, nil
+	return nil, nil
 }
 
 // Restart is similar to StartHOG but it restarts the evolutionary process from the selected Generation.
@@ -98,11 +97,14 @@ func (g *Generation) StartHOG(gen Generation) *Generation {
 // that returns the result of the epoch.
 func (g *Generation) Compete() error {
 	for _, epoch := range g.Epochs {
-		epochSimulator := epoch.Start()
-		if epochSimulator.hasAntagonistApplied && epochSimulator.hasProtagonistApplied {
+		err := epoch.Start()
+		if err != nil {
+			return err
+		}
+		if epoch.hasAntagonistApplied && epoch.hasProtagonistApplied {
 			continue
 		} else {
-			return fmt.Errorf("epoch completed but antagonist and/or protagonist not applied %#v, ", epochSimulator)
+			return fmt.Errorf("epoch completed but antagonist and/or protagonist not applied %#v, ", err)
 		}
 	}
 	g.hasCompeted = true
@@ -124,14 +126,14 @@ func (g *Generation) ApplyParentSelection() ([]*Individual, error) {
 	}
 
 	switch g.engine.parentSelection {
-	case TournamentSelectionID:
+	case ParentSelectionTournament:
 		selectedInvididuals, err := TournamentSelection(currentPopulation)
 		if err != nil {
 			return nil, err
 		}
 		g.hasParentSelected = true
 		return selectedInvididuals, nil
-	case ElitismID:
+	case ParentSelectionElitism:
 		selectedInvididuals, err := Elitism(currentPopulation, g.engine.elitismPercentage)
 		if err != nil {
 			return nil, err
@@ -157,7 +159,6 @@ func (g *Generation) ApplySurvivorSelection() ([]*Individual, error) {
 }
 
 type GenerationResult struct {
-	epochResults []*EpochResult
 	generation   *Generation
 }
 

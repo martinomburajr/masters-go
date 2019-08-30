@@ -329,7 +329,7 @@ func TestDualTree_AddSubTree(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if err1 := tt.tree.AddSubTree(tt.subTree); (err1 != nil) != tt.wantErr {
-				t.Errorf("DualTree.AddSubTree() error = %v, wantErr %v", err1, tt.wantErr)
+				t.Errorf("DualTree.StrategyAddSubTree() error = %v, wantErr %v", err1, tt.wantErr)
 			} else {
 				if err1 == nil {
 					contains, err := tt.tree.ContainsSubTree(tt.subTree)
@@ -468,12 +468,12 @@ func TestDualTree_DeleteSubTree(t *testing.T) {
 			var err error
 			tt.tree.Print()
 			if err = tt.tree.DeleteSubTree(); (err != nil) != tt.wantErr {
-				t.Errorf("DualTree.DeleteSubTree() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("DualTree.StrategyDeleteSubTree() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			if err == nil {
 				size := tt.tree.Size()
 				if tt.startingSize <= size {
-					t.Errorf("DualTree.DeleteSubTree() cannot be same size after delete = %d, wantErr %d", tt.startingSize,
+					t.Errorf("DualTree.StrategyDeleteSubTree() cannot be same size after delete = %d, wantErr %d", tt.startingSize,
 						size)
 				}
 			}
@@ -501,7 +501,7 @@ func TestDualTree_SoftDeleteSubTree(t *testing.T) {
 				lock: tt.fields.lock,
 			}
 			if err := bst.SoftDeleteSubTree(); (err != nil) != tt.wantErr {
-				t.Errorf("DualTree.SoftDeleteSubTree() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("DualTree.StrategySoftDeleteSubTree() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

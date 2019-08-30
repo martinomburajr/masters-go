@@ -22,6 +22,8 @@ type Epoch struct {
 	probabilityOfNonTerminalMutation float32
 	terminalSet                      []SymbolicExpression
 	nonTerminalSet                   []SymbolicExpression
+	hasAntagonistApplied  bool
+	hasProtagonistApplied bool
 }
 
 // NewEpoch creates a new epoch. The id string can simply be the index from an iteration that creates multiple epochs
@@ -73,84 +75,78 @@ func (e *Epoch) SetProbabilityOfNonTerminalMutation(probability float32) *Epoch 
 	return e
 }
 
-// Start creates the Epoch Simulator. You must call Start to begin this process
-func (e *Epoch) Start() *EpochSimulator {
-	return &EpochSimulator{
-		e, false, false, e.generation,
+// Start creates the Epoch process. This process applies the antagonist strategy first,
+// and then the protagonist strategy second.
+// It then appends the fitness values to each individual in the epoch.
+func (e *Epoch) Start() error {
+	if e.protagonist == nil {
+		return fmt.Errorf("epoch cannot have nil protagonist")
 	}
-}
+	if e.antagonist == nil {
+		return fmt.Errorf("epoch cannot have nil antagonist")
+	}
 
-// EpochSimulator is responsible for simulating actions in a given Epoch
-type EpochSimulator struct {
-	epoch                 *Epoch
-	hasAntagonistApplied  bool
-	hasProtagonistApplied bool
-	generation *Generation
+	err := e.applyAntagonistStrategy()
+	if err != nil {
+		return err
+	}
+
+	err = e.applyProtagonistStrategy()
+	if err != nil {
+		return err
+	}
+
+	if e.hasProtagonistApplied && e.hasAntagonistApplied {
+		return fmt.Errorf("antagonist and protagonist havent applied strategy to program")
+	}
+
+	antagonistFitness, protagonistFitness := 0, 0
+	switch e.generation.engine.parentSelection {
+		case FitnessProtagonistThresholdTally:
+			antagonistFitness, protagonistFitness, err = ProtagonistThresholdTally(e.generation.engine.spec,
+				&e.program, e.generation.engine.threshold,
+				e.generation.engine.minThreshold)
+				if err != nil {
+					return err
+				}
+	}
+
+	e.antagonist.fitness = append(e.antagonist.fitness, antagonistFitness)
+	e.protagonist.fitness = append(e.protagonist.fitness, protagonistFitness)
+
+	return nil
 }
 
 // applyAntagonistStrategy applies the Antagonist strategies to program.
-func (e *EpochSimulator) applyAntagonistStrategy() (*EpochSimulator, error) {
-	for _, strategy := range e.epoch.antagonist.strategy {
-		err := e.epoch.program.ApplyStrategy(strategy,
-			e.epoch.terminalSet,
-			e.epoch.nonTerminalSet,
-			e.epoch.probabilityOfMutation,
-			e.epoch.probabilityOfNonTerminalMutation,
-			e.epoch.generation.engine.maxDepth)
+func (e *Epoch) applyAntagonistStrategy() (error) {
+	for _, strategy := range e.antagonist.strategy {
+		err := e.program.ApplyStrategy(strategy,
+			e.terminalSet,
+			e.nonTerminalSet,
+			e.probabilityOfMutation,
+			e.probabilityOfNonTerminalMutation,
+			e.generation.engine.maxDepth)
 		if err != nil {
-			return nil, err
+			return err
 		}
 	}
 	e.hasAntagonistApplied = true
-	return e, nil
+	return nil
 }
 
 // applyProtagonistStrategy Apply Protagonist strategies to program.
-func (e *EpochSimulator) applyProtagonistStrategy() (*EpochSimulator, error) {
-	for _, strategy := range e.epoch.protagonist.strategy {
-		err := e.epoch.program.ApplyStrategy(strategy,
-			e.epoch.terminalSet,
-			e.epoch.nonTerminalSet,
-			e.epoch.probabilityOfMutation,
-			e.epoch.probabilityOfNonTerminalMutation,
-			e.epoch.generation.engine.maxDepth)
+func (e *Epoch) applyProtagonistStrategy() (error) {
+	for _, strategy := range e.protagonist.strategy {
+		err := e.program.ApplyStrategy(strategy,
+			e.terminalSet,
+			e.nonTerminalSet,
+			e.probabilityOfMutation,
+			e.probabilityOfNonTerminalMutation,
+			e.generation.engine.maxDepth)
 		if err != nil {
-			return nil, err
+			return err
 		}
 	}
 	e.hasProtagonistApplied = true
-	return e, nil
-}
-
-// Start begins the epoch simulation by allowing the competing individuals to compete
-func (e *EpochSimulator) Start() (*EpochResult, error) {
-	if e.epoch.protagonist == nil {
-		return nil, fmt.Errorf("epoch cannot have nil protagonist")
-	}
-	if e.epoch.antagonist == nil {
-		return nil, fmt.Errorf("epoch cannot have nil antagonist")
-	}
-
-	antagonistEpoch, err := e.applyAntagonistStrategy()
-	if err != nil {
-		return nil, err
-	}
-
-	combinedEpoch, err := antagonistEpoch.applyProtagonistStrategy()
-	if err != nil {
-		return nil, err
-	}
-
-	if combinedEpoch.hasProtagonistApplied && combinedEpoch.hasAntagonistApplied {
-		return nil, nil
-	}
-
-	return &EpochResult{
-		combinedEpoch.epoch,
-	}, nil
-
-}
-
-type EpochResult struct {
-	epoch *Epoch
+	return nil
 }

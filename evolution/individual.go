@@ -14,25 +14,19 @@ const (
 type Individual struct {
 	id                       string
 	strategy                 []Strategy
-	fitness                  []float32
+	fitness                  []int
 	hasAppliedStrategy       bool
 	hasCalculatedFitness     bool
 	fitnessCalculationMethod int
 	kind                     int
 	age                      int
 	Program                  *Program
+	Generation	*Generation
 }
 
 type Antagonist Individual
 type Protagonist Individual
 
-// CalculateFitness
-func (i *Individual) CalculateFitness() float32 {
-	switch i {
-
-	}
-	return 0
-}
 
 // GenerateRandomIndividuals creates a random number of individuals
 func GenerateRandomIndividuals(number int, idTemplate string, kind int, strategyLength int,

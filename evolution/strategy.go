@@ -13,10 +13,10 @@ func NewStrategy(kind string, action func(program *Program) *Program) Strategy {
 }
 
 const (
-	AddSubTree        = "AddSubTree"
-	DeleteSubTree     = "DeleteSubTree"
-	SoftDeleteSubTree = "SoftDeleteSubTree"
-	SwapSubTree       = "SwapSubTree"
-	MutateNode        = "MutateNode"
-	MutateSubTree     = "MutateSubTree"
+	StrategyAddSubTree        = "StrategyAddSubTree"
+	StrategyDeleteSubTree     = "StrategyDeleteSubTree"
+	StrategySoftDeleteSubTree = "StrategySoftDeleteSubTree"
+	StrategySwapSubTree       = "StrategySwapSubTree"
+	StrategyMutateNode        = "StrategyMutateNode"
+	StrategyMutateSubTree     = "StrategyMutateSubTree"
 )

@@ -1,8 +1,8 @@
 package evolution
 
 const (
-	SteadyState  = ""
-	Generational = ""
+	SurvivorSelectionSteadyState  = 0
+	SurvivorSelectionGenerational = 1
 )
 
 // GenerationalSurvivorSelection is a process where the entire input population gets replaced by their offspring.

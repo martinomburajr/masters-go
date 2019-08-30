@@ -1,33 +1,40 @@
 package evolution
 
-import (
-	"reflect"
-	"testing"
-)
+import "testing"
 
-func TestEpochSimulator_Start(t *testing.T) {
-	//epochNil := &Epoch{antagonist: nil, protagonist: nil, program: nil, protagonistBegins: false}
-	//epochNilProtaProg := &Epoch{antagonist: nil, protagonist: nil, program: nil, protagonistBegins: false}
-	//epochNilPr := &Epoch{antagonist: nil, protagonist: nil, program: p, protagonistBegins: false}
+func TestEpoch_Start(t *testing.T) {
 	tests := []struct {
 		name    string
-		fields  *EpochSimulator
-		want    *EpochResult
+		fields  *Epoch
 		wantErr bool
 	}{
-		//{"nil"},
+		{"nil-protagonist", &Epoch{}, true},
+		{"nil-antagonist", &Epoch{protagonist: &IndividualProg0Kind0}, true},
+		{"err-applyAntagonistStrategy", &Epoch{protagonist: &IndividualProg0Kind0, antagonist: &IndividualProg0Kind0},
+			true},
+		{"err-applyAntagonistStrategy", &Epoch{protagonist: &IndividualProg0Kind0, antagonist: &IndividualProg0Kind0},
+			true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := tt.fields.Start()
-			if (err != nil) != tt.wantErr {
-				t.Errorf("EpochSimulator.Start() error = %v, wantErr %v", err, tt.wantErr)
-				return
+			e := &Epoch{
+				id:                               tt.fields.id,
+				protagonist:                      tt.fields.protagonist,
+				antagonist:                       tt.fields.antagonist,
+				generation:                       tt.fields.generation,
+				program:                          tt.fields.program,
+				protagonistBegins:                tt.fields.protagonistBegins,
+				isComplete:                       tt.fields.isComplete,
+				probabilityOfMutation:            tt.fields.probabilityOfMutation,
+				probabilityOfNonTerminalMutation: tt.fields.probabilityOfNonTerminalMutation,
+				terminalSet:                      tt.fields.terminalSet,
+				nonTerminalSet:                   tt.fields.nonTerminalSet,
+				hasAntagonistApplied:             tt.fields.hasAntagonistApplied,
+				hasProtagonistApplied:            tt.fields.hasProtagonistApplied,
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("EpochSimulator.Start() = %v, wantAntagonist %v", got, tt.want)
+			if err := e.Start(); (err != nil) != tt.wantErr {
+				t.Errorf("Epoch.Start() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
 }
-

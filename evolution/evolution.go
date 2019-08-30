@@ -22,11 +22,14 @@ type EvolutionEngine struct {
 	availableStrategies              []Strategy
 	survivorSelection                int
 	parentSelection                  int
-	elitismPercentage                int
+	elitismPercentage                float32
 	programEval                      func() float32
 	statisticsOutput                 string
 	maxDepth int
 	depthPenalty int
+	threshold float64
+	minThreshold float64
+	fitnessStrategy int
 }
 
 func (engine *EvolutionEngine) StatisticsOutput() string {

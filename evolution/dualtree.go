@@ -113,7 +113,7 @@ func branch(node *DualTreeNode, nodes *[]*DualTreeNode) {
 	return
 }
 
-// AddSubTree adds a given subtree to a tree.
+// StrategyAddSubTree adds a given subtree to a tree.
 func (bst *DualTree) AddSubTree(subTree *DualTree) error {
 	if subTree == nil {
 		return fmt.Errorf("cannot add a nil subTree")
@@ -148,7 +148,7 @@ func (bst *DualTree) AddSubTree(subTree *DualTree) error {
 	return nil
 }
 
-// DeleteSubTree locates a random non-terminal and sets its value to 0,
+// StrategyDeleteSubTree locates a random non-terminal and sets its value to 0,
 // deleting its associated child nodes by setting them to nil
 func (bst *DualTree) DeleteSubTree() error {
 	if bst.root == nil {

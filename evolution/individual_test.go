@@ -17,8 +17,8 @@ func TestGenerateRandomStrategy(t *testing.T) {
 	}{
 		{"small number", args{0, 0, nil}, []Strategy{}},
 		{"small strategy length", args{4, 0, nil}, []Strategy{}},
-		{"ok", args{4, 12, []Strategy{{Kind: MutateNode}, {Kind: AddSubTree}}}, []Strategy{{Kind: MutateNode},
-			{Kind: AddSubTree}, {Kind: MutateNode}, {Kind: AddSubTree}}},
+		{"ok", args{4, 12, []Strategy{{Kind: StrategyMutateNode}, {Kind: StrategyAddSubTree}}}, []Strategy{{Kind: StrategyMutateNode},
+			{Kind: StrategyAddSubTree}, {Kind: StrategyMutateNode}, {Kind: StrategyAddSubTree}}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -51,8 +51,8 @@ func TestGenerateRandomIndividuals(t *testing.T) {
 		{"small max number of strategies", args{10, "sometemplate", IndividualAntagonist, 10, 0, nil}, nil, true},
 		{"nil available strategies", args{10, "sometemplate", IndividualAntagonist, 10, 10, nil}, nil, true},
 		{"empty strategies", args{10, "sometemplate", IndividualAntagonist, 10, 10, []Strategy{}}, nil, true},
-		{"empty id-template", args{10, "", IndividualAntagonist, 10, 10, []Strategy{{Kind: AddSubTree}}}, nil, true},
-		{"ok", args{2, "bugs", IndividualAntagonist, 10, 10, []Strategy{{Kind: AddSubTree}}}, []Individual{{}, {}}, false},
+		{"empty id-template", args{10, "", IndividualAntagonist, 10, 10, []Strategy{{Kind: StrategyAddSubTree}}}, nil, true},
+		{"ok", args{2, "bugs", IndividualAntagonist, 10, 10, []Strategy{{Kind: StrategyAddSubTree}}}, []Individual{{}, {}}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -72,30 +72,3 @@ func TestGenerateRandomIndividuals(t *testing.T) {
 	}
 }
 
-func TestIndividual_CalculateFitness(t *testing.T) {
-	tests := []struct {
-		name       string
-		individual *Individual
-		want       float32
-	}{
-		{"nil", &Individual{}, 0},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			i := &Individual{
-				id:                       tt.individual.id,
-				strategy:                 tt.individual.strategy,
-				fitness:                  tt.individual.fitness,
-				hasAppliedStrategy:       tt.individual.hasAppliedStrategy,
-				hasCalculatedFitness:     tt.individual.hasCalculatedFitness,
-				fitnessCalculationMethod: tt.individual.fitnessCalculationMethod,
-				kind:                     tt.individual.kind,
-				age:                      tt.individual.age,
-				Program:                  tt.individual.Program,
-			}
-			if got := i.CalculateFitness(); got != tt.want {
-				t.Errorf("Individual.CalculateFitness() = %v, wantAntagonist %v", got, tt.want)
-			}
-		})
-	}
-}
