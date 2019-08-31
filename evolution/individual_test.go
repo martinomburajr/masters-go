@@ -71,4 +71,3 @@ func TestGenerateRandomIndividuals(t *testing.T) {
 		})
 	}
 }
-

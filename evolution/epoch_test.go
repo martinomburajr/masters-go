@@ -14,6 +14,8 @@ func TestEpoch_Start(t *testing.T) {
 			true},
 		{"err-applyAntagonistStrategy", &Epoch{protagonist: &IndividualProg0Kind0, antagonist: &IndividualProg0Kind0},
 			true},
+		{"err-applyAntagonistStrategy", &Epoch{protagonist: &IndividualProg0Kind0, antagonist: &IndividualProg0Kind0},
+			true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

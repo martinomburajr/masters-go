@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	IndividualAntagonist = 0
+	IndividualAntagonist  = 0
 	IndividualProtagonist = 1
 )
 
@@ -21,12 +21,11 @@ type Individual struct {
 	kind                     int
 	age                      int
 	Program                  *Program
-	Generation	*Generation
+	Generation               *Generation
 }
 
 type Antagonist Individual
 type Protagonist Individual
-
 
 // GenerateRandomIndividuals creates a random number of individuals
 func GenerateRandomIndividuals(number int, idTemplate string, kind int, strategyLength int,

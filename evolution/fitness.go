@@ -13,7 +13,6 @@ const (
 	FitnessRelativeTally                   = 4
 )
 
-
 //// CalculateFitness
 //func CalculateFitness(spec Spec, protagonistAntagonistProgramPair *Program, threshold, minThreshold float64) (antagonistFitness int, protagonistFitness int, err error) {
 //	switch i.fitnessCalculationMethod {

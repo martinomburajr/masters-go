@@ -1,7 +1,7 @@
 package evolution
 
 // Spec0 x * 0 = y
-var Spec0  = Spec{
+var Spec0 = Spec{
 	EquationPairing{0, 0},
 	EquationPairing{1, 0},
 	EquationPairing{2, 0},
@@ -9,7 +9,7 @@ var Spec0  = Spec{
 }
 
 // SpecX x = y
-var SpecX  = Spec{
+var SpecX = Spec{
 	EquationPairing{0, 0},
 	EquationPairing{1, 1},
 	EquationPairing{2, 2},
@@ -18,7 +18,7 @@ var SpecX  = Spec{
 }
 
 // SpecXX 2x = y
-var Spec2X  = Spec{
+var Spec2X = Spec{
 	EquationPairing{0, 0},
 	EquationPairing{1, 2},
 	EquationPairing{2, 4},
@@ -27,7 +27,7 @@ var Spec2X  = Spec{
 }
 
 // SpecXX 2x+1 = y
-var Spec2XAdd1  = Spec{
+var Spec2XAdd1 = Spec{
 	EquationPairing{-2, -3},
 	EquationPairing{-1, -1},
 	EquationPairing{0, 1},
@@ -36,7 +36,7 @@ var Spec2XAdd1  = Spec{
 }
 
 // SpecXX x*x = y
-var SpecXX  = Spec{
+var SpecXX = Spec{
 	EquationPairing{0, 0},
 	EquationPairing{1, 1},
 	EquationPairing{2, 4},
@@ -45,7 +45,7 @@ var SpecXX  = Spec{
 }
 
 // SpecXXX x*x*x = y
-var SpecXXX  = Spec{
+var SpecXXX = Spec{
 	EquationPairing{-2, -8},
 	EquationPairing{-1, -1},
 	EquationPairing{0, 0},
@@ -56,7 +56,7 @@ var SpecXXX  = Spec{
 }
 
 // SpecXXXX x*x*x*x = y
-var SpecXXXX  = Spec{
+var SpecXXXX = Spec{
 	EquationPairing{-2, 16},
 	EquationPairing{-1, 1},
 	EquationPairing{0, 0},
@@ -67,7 +67,7 @@ var SpecXXXX  = Spec{
 }
 
 // SpecXXXXAdd4 x*x*x*x+4 = y
-var SpecXXXXAdd4  = Spec{
+var SpecXXXXAdd4 = Spec{
 	EquationPairing{-2, 20},
 	EquationPairing{-1, 5},
 	EquationPairing{0, 0},

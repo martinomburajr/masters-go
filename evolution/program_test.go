@@ -46,7 +46,7 @@ func TestProgram_ApplyStrategy(t *testing.T) {
 		nonTerminals                   []SymbolicExpression
 		mutationProbability            float32
 		nonTerminalMutationProbability float32
-		depth int
+		depth                          int
 	}
 	tests := []struct {
 		name    string
@@ -59,8 +59,8 @@ func TestProgram_ApplyStrategy(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			p := &Program{
-				ID:    tt.fields.ID,
-				T:     tt.fields.T,
+				ID: tt.fields.ID,
+				T:  tt.fields.T,
 			}
 			if err := p.ApplyStrategy(tt.args.strategy, tt.args.terminals, tt.args.nonTerminals,
 				tt.args.mutationProbability, tt.args.nonTerminalMutationProbability,

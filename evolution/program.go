@@ -10,8 +10,8 @@ import (
 
 // TODO generate AST tree from polynomial expression
 type Program struct {
-	ID    string
-	T     *DualTree
+	ID string
+	T  *DualTree
 }
 
 // ApplyStrategy takes a given strategy and applies a transformation to the given program.

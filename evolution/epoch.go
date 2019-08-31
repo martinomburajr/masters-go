@@ -14,7 +14,7 @@ type Epoch struct {
 	id                               string
 	protagonist                      *Individual
 	antagonist                       *Individual
-	generation  *Generation
+	generation                       *Generation
 	program                          Program
 	protagonistBegins                bool
 	isComplete                       bool
@@ -22,8 +22,8 @@ type Epoch struct {
 	probabilityOfNonTerminalMutation float32
 	terminalSet                      []SymbolicExpression
 	nonTerminalSet                   []SymbolicExpression
-	hasAntagonistApplied  bool
-	hasProtagonistApplied bool
+	hasAntagonistApplied             bool
+	hasProtagonistApplied            bool
 }
 
 // NewEpoch creates a new epoch. The id string can simply be the index from an iteration that creates multiple epochs
@@ -102,13 +102,13 @@ func (e *Epoch) Start() error {
 
 	antagonistFitness, protagonistFitness := 0, 0
 	switch e.generation.engine.parentSelection {
-		case FitnessProtagonistThresholdTally:
-			antagonistFitness, protagonistFitness, err = ProtagonistThresholdTally(e.generation.engine.spec,
-				&e.program, e.generation.engine.threshold,
-				e.generation.engine.minThreshold)
-				if err != nil {
-					return err
-				}
+	case FitnessProtagonistThresholdTally:
+		antagonistFitness, protagonistFitness, err = ProtagonistThresholdTally(e.generation.engine.spec,
+			&e.program, e.generation.engine.threshold,
+			e.generation.engine.minThreshold)
+		if err != nil {
+			return err
+		}
 	}
 
 	e.antagonist.fitness = append(e.antagonist.fitness, antagonistFitness)
@@ -118,7 +118,7 @@ func (e *Epoch) Start() error {
 }
 
 // applyAntagonistStrategy applies the Antagonist strategies to program.
-func (e *Epoch) applyAntagonistStrategy() (error) {
+func (e *Epoch) applyAntagonistStrategy() error {
 	for _, strategy := range e.antagonist.strategy {
 		err := e.program.ApplyStrategy(strategy,
 			e.terminalSet,
@@ -135,7 +135,7 @@ func (e *Epoch) applyAntagonistStrategy() (error) {
 }
 
 // applyProtagonistStrategy Apply Protagonist strategies to program.
-func (e *Epoch) applyProtagonistStrategy() (error) {
+func (e *Epoch) applyProtagonistStrategy() error {
 	for _, strategy := range e.protagonist.strategy {
 		err := e.program.ApplyStrategy(strategy,
 			e.terminalSet,

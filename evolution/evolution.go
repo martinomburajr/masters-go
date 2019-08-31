@@ -25,11 +25,11 @@ type EvolutionEngine struct {
 	elitismPercentage                float32
 	programEval                      func() float32
 	statisticsOutput                 string
-	maxDepth int
-	depthPenalty int
-	threshold float64
-	minThreshold float64
-	fitnessStrategy int
+	maxDepth                         int
+	depthPenalty                     int
+	threshold                        float64
+	minThreshold                     float64
+	fitnessStrategy                  int
 }
 
 func (engine *EvolutionEngine) StatisticsOutput() string {

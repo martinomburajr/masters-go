@@ -10,7 +10,7 @@ func TestProtagonistThresholdTally(t *testing.T) {
 		spec                             Spec
 		protagonistAntagonistProgramPair *Program
 		threshold                        float64
-		minthreshold                        float64
+		minthreshold                     float64
 	}
 	tests := []struct {
 		name            string
@@ -19,46 +19,46 @@ func TestProtagonistThresholdTally(t *testing.T) {
 		wantProtagonist int
 		wantErr         bool
 	}{
-		{"nil-spec", args{ nil, nil, 0, 0}, 0, 0, true},
-		{"nil-antagonist", args{ Spec0, nil, 0, 0}, 0, 0, true},
-		{"nil-protagonist", args{ Spec0,  nil, 0, 0}, 0, 0, true},
-		{"nil-papair", args{ Spec0, nil, 0, 0}, 0, 0, true},
-		{"nil-minthreshold0", args{ Spec0,  &ProgNil, 0, 0}, 0, 0,
+		{"nil-spec", args{nil, nil, 0, 0}, 0, 0, true},
+		{"nil-antagonist", args{Spec0, nil, 0, 0}, 0, 0, true},
+		{"nil-protagonist", args{Spec0, nil, 0, 0}, 0, 0, true},
+		{"nil-papair", args{Spec0, nil, 0, 0}, 0, 0, true},
+		{"nil-minthreshold0", args{Spec0, &ProgNil, 0, 0}, 0, 0,
 			true},
-		{"nil-threshold<minthreshold", args{ Spec0,  &ProgNil, 0.0001,
+		{"nil-threshold<minthreshold", args{Spec0, &ProgNil, 0.0001,
 			0.001}, 0, 0,
 			true},
-		{"empty-antagonist", args{ Spec0, &ProgNil, 1,
+		{"empty-antagonist", args{Spec0, &ProgNil, 1,
 			0.001}, 0, 0,
 			true},
-		{"empty-protagonist", args{ Spec0, &ProgNil, 1,
+		{"empty-protagonist", args{Spec0, &ProgNil, 1,
 			0.001}, 0, 0,
 			true},
-		{"empty-papair", args{ Spec0, &ProgNil, 1,
+		{"empty-papair", args{Spec0, &ProgNil, 1,
 			0.001}, 0, 0,
 			true},
-		{"spec0", args{ Spec0, &Prog1, 1,
+		{"spec0", args{Spec0, &Prog1, 1,
 			0.001}, 1, -1,
 			false},
-		{"spec0", args{ Spec0,  &Prog0, 1,
+		{"spec0", args{Spec0, &Prog0, 1,
 			0.001}, -1, 1,
 			false},
-		{"specX", args{ SpecX,  &Prog0, 1,
+		{"specX", args{SpecX, &Prog0, 1,
 			0.001}, 1, -1,
 			false},
-		{"specXX", args{ SpecXX,  &ProgTreeT_NT_T_4, 0.1,
+		{"specXX", args{SpecXX, &ProgTreeT_NT_T_4, 0.1,
 			0.001}, 1, -1,
 			false},
-		{"specXXXX", args{ SpecXXXX,  &ProgTreeTreeT_NT_T_NT_T_NT_T_2, 0.01,
+		{"specXXXX", args{SpecXXXX, &ProgTreeTreeT_NT_T_NT_T_NT_T_2, 0.01,
 			0.001}, 1, -1,
 			false},
-		{"specXXXXAdd4 - small threshold", args{ SpecXXXXAdd4,  &ProgTreeT_NT_T_NT_T_NT_T_NT_T_1, 0.01,
+		{"specXXXXAdd4 - small threshold", args{SpecXXXXAdd4, &ProgTreeT_NT_T_NT_T_NT_T_NT_T_1, 0.01,
 			0.001}, -1, 1,
 			false},
-		{"specXXXXAdd4 - large threshold", args{ SpecXXXXAdd4,  &ProgTreeT_NT_T_NT_T_NT_T_NT_T_1, 50,
+		{"specXXXXAdd4 - large threshold", args{SpecXXXXAdd4, &ProgTreeT_NT_T_NT_T_NT_T_NT_T_1, 50,
 			0.001}, 1, -1,
 			false},
-		{"specXXXXAdd4", args{ SpecXXXXAdd4,  &ProgTreeT_NT_T_NT_T_NT_T_NT_T_1, 1,
+		{"specXXXXAdd4", args{SpecXXXXAdd4, &ProgTreeT_NT_T_NT_T_NT_T_NT_T_1, 1,
 			0.001}, 1, -1,
 			false},
 	}

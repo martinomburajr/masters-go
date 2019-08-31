@@ -159,7 +159,7 @@ func (g *Generation) ApplySurvivorSelection() ([]*Individual, error) {
 }
 
 type GenerationResult struct {
-	generation   *Generation
+	generation *Generation
 }
 
 // RunNext takes in a current GenerationResult runs a set of parent and survivor selection mechanisms,
