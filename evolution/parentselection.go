@@ -32,7 +32,7 @@ func TournamentSelection(population []*Individual) ([]*Individual, error) {
 // Elitism is an evolutionary process where only the top (
 // n) individuals based on eliteCount are selected based on their fitness.
 // In essence it ranks the individuals based on fitness, then returns the top (n)
-func Elitism(population []*Individual, elitePercentage int) ([]*Individual, error) {
+func Elitism(population []*Individual, elitePercentage float32) ([]*Individual, error) {
 	return nil, nil
 }
 

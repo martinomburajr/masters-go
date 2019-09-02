@@ -64,3 +64,21 @@ func ProtagonistThresholdTally(spec Spec, protagonistAntagonistProgramPair *Prog
 	}
 	return -1, 1, nil
 }
+
+
+// AggregateFitness simply adds all the fitness values of a given individual to come up with a total number.
+// If the fitness array is nil or empty return MaxInt8 as values such as -1 or 0 have a differnt meaning
+func AggregateFitness(individual *Individual) (int, error) {
+	if individual.fitness == nil {
+		return math.MaxInt8, fmt.Errorf("individuals fitness arr cannot be nil")
+	}
+	if len(individual.fitness) == 0 {
+		return math.MaxInt8, fmt.Errorf("individuals fitness arr cannot be empty")
+	}
+
+	sum := 0
+	for i := range individual.fitness {
+		sum += individual.fitness[i]
+	}
+	return sum, nil
+}

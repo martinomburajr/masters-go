@@ -32,6 +32,11 @@ func NewEpoch(id string, protagonist *Individual, antagonist *Individual, progra
 	return &Epoch{id: id, protagonist: protagonist, antagonist: antagonist, program: program, probabilityOfMutation: probabilityOfMutation, probabilityOfNonTerminalMutation: probabilityOfNonTerminalMutation, terminalSet: terminalSet, nonTerminalSet: nonTerminalSet}
 }
 
+// CreateEpochID generates a given epoch id with some useful information
+func CreateEpochID(count int, generationId, antagonistId, protagonistId string) string {
+	return fmt.Sprintf("EPOCH-%d-GEN-%s-ANTAGON-%s-PROTAGON-%s", count, generationId, antagonistId, protagonistId)
+}
+
 func (e *Epoch) GetProtagonistBegins() bool {
 	return e.protagonistBegins
 }
@@ -136,6 +141,16 @@ func (e *Epoch) applyAntagonistStrategy() error {
 
 // applyProtagonistStrategy Apply Protagonist strategies to program.
 func (e *Epoch) applyProtagonistStrategy() error {
+	if e.protagonist == nil {
+		return fmt.Errorf("protagonist cannot be nil")
+	}
+	if e.protagonist.strategy == nil {
+		return fmt.Errorf("protagonist stategy cannot be nil")
+	}
+	if len(e.protagonist.strategy) < 1 {
+		return fmt.Errorf("protagonist strategy cannot be empty")
+	}
+
 	for _, strategy := range e.protagonist.strategy {
 		err := e.program.ApplyStrategy(strategy,
 			e.terminalSet,

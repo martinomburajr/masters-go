@@ -12,7 +12,6 @@ type EvolutionParams struct {
 type EvolutionEngine struct {
 	startIndividual                  Program
 	spec                             Spec
-	generationResults                []*GenerationResult
 	generations                      int
 	eachPopulation                   int
 	parallelize                      bool
@@ -20,6 +19,8 @@ type EvolutionEngine struct {
 	probabilityOfMutation            float32
 	probabilityOfNonTerminalMutation float32
 	availableStrategies              []Strategy
+	availableTerminalSet             SymbolicExpressionSet
+	availableNonTerminalSet          SymbolicExpressionSet
 	survivorSelection                int
 	parentSelection                  int
 	elitismPercentage                float32

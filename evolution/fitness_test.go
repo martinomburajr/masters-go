@@ -1,6 +1,7 @@
 package evolution
 
 import (
+	"math"
 	"reflect"
 	"testing"
 )
@@ -75,6 +76,33 @@ func TestProtagonistThresholdTally(t *testing.T) {
 			}
 			if !reflect.DeepEqual(got1, tt.wantProtagonist) {
 				t.Errorf("ProtagonistThresholdTally() got1 = %v, wantAntagonist %v", got1, tt.wantProtagonist)
+			}
+		})
+	}
+}
+
+func TestAggregateFitness(t *testing.T) {
+	tests := []struct {
+		name    string
+		args    *Individual
+		want    int
+		wantErr bool
+	}{
+		{"nil fitness", &Individual{}, math.MaxInt8, true},
+		{"empty fitness", &Individual{fitness: []int{}}, math.MaxInt8, true},
+		{"input | 1,2", &Individual{fitness: []int{1,2}}, 3, false},
+		{"input | 0", &Individual{fitness: []int{0}}, 0, false},
+		{"input | -1,1", &Individual{fitness: []int{-1,1}}, 0, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := AggregateFitness(tt.args)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("AggregateFitness() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("AggregateFitness() = %v, want %v", got, tt.want)
 			}
 		})
 	}

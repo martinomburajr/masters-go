@@ -21,7 +21,6 @@ type Individual struct {
 	kind                     int
 	age                      int
 	Program                  *Program
-	Generation               *Generation
 }
 
 type Antagonist Individual

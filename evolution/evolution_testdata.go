@@ -1,8 +1,8 @@
 package evolution
 
-var EvolutionNil = EvolutionEngine{}
+var EvolutionEngineTestNil = EvolutionEngine{}
 
-var Evolution0 = EvolutionEngine{
+var EvolutionEngineTest0 = EvolutionEngine{
 	minThreshold:                     0.001,
 	threshold:                        0.01,
 	spec:                             SpecX,
@@ -21,7 +21,7 @@ var Evolution0 = EvolutionEngine{
 	survivorSelection:                SurvivorSelectionGenerational,
 }
 
-var Evolution1 = EvolutionEngine{
+var EvolutionEngineTest1 = EvolutionEngine{
 	minThreshold:                     0.001,
 	threshold:                        0.01,
 	spec:                             SpecX,
