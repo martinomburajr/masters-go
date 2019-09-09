@@ -42,7 +42,7 @@ func TestGenerateRandomIndividuals(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    []Individual
+		want    []*Individual
 		wantErr bool
 	}{
 		{"small number", args{0, "", IndividualAntagonist, 0, 0, nil}, nil, true},

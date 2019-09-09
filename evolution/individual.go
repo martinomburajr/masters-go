@@ -20,15 +20,16 @@ type Individual struct {
 	fitnessCalculationMethod int
 	kind                     int
 	age                      int
+	totalFitness             int
 	Program                  *Program
 }
 
 type Antagonist Individual
 type Protagonist Individual
 
-// GenerateRandomIndividuals creates a random number of individuals
 func GenerateRandomIndividuals(number int, idTemplate string, kind int, strategyLength int,
-	maxNumberOfStrategies int, availableStrategies []Strategy) ([]Individual, error) {
+	maxNumberOfStrategies int, availableStrategies []Strategy, depth int, terminals SymbolicExpressionSet,
+	nonTerminals SymbolicExpressionSet) ([]*Individual, error) {
 	if number < 1 {
 		return nil, fmt.Errorf("number should at least be 1")
 	}
@@ -51,18 +52,30 @@ func GenerateRandomIndividuals(number int, idTemplate string, kind int, strategy
 		return nil, fmt.Errorf("idTemplate cannot be empty")
 	}
 
-	individuals := make([]Individual, number)
+	individuals := make([]*Individual, number)
 
 	for i := 0; i < number; i++ {
 		rand.Seed(time.Now().UnixNano())
 		numberOfStrategies := rand.Intn(maxNumberOfStrategies)
 		randomStrategies := GenerateRandomStrategy(numberOfStrategies, strategyLength, availableStrategies)
-		id := fmt.Sprintf("%s-%s-%d", KindToString(kind), idTemplate, i)
+		id := fmt.Sprintf("%s-%s-%d", KindToString(kind), "", i)
 
-		individual := Individual{
+		program := Program{}
+
+		programID := GenerateProgramID(i)
+		tree, err := GenerateRandomTree(depth, terminals, nonTerminals)
+		if err != nil {
+			return nil, err
+		}
+		program.T = tree
+		program.ID = programID
+
+		individual := &Individual{
 			kind:     kind,
 			id:       id,
 			strategy: randomStrategies,
+			fitness: make([]int, 0),
+			Program: &program,
 		}
 		individuals[i] = individual
 	}
@@ -73,10 +86,10 @@ func GenerateRandomIndividuals(number int, idTemplate string, kind int, strategy
 // They are randomly selected and populated.
 func GenerateRandomStrategy(number int, strategyLength int, availableStrategies []Strategy) []Strategy {
 	if number < 1 {
-		number = 0
+		number = 1
 	}
 	if strategyLength < 1 {
-		strategyLength = 0
+		strategyLength = 1
 	}
 	if availableStrategies == nil || len(availableStrategies) < 1 {
 		return []Strategy{}

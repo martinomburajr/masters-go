@@ -101,20 +101,22 @@ func (e *Epoch) Start() error {
 		return err
 	}
 
-	if e.hasProtagonistApplied && e.hasAntagonistApplied {
+	if !e.hasProtagonistApplied && !e.hasAntagonistApplied {
 		return fmt.Errorf("antagonist and protagonist havent applied strategy to program")
 	}
 
 	antagonistFitness, protagonistFitness := 0, 0
-	switch e.generation.engine.parentSelection {
+	switch e.generation.engine.FitnessStrategy {
 	case FitnessProtagonistThresholdTally:
-		antagonistFitness, protagonistFitness, err = ProtagonistThresholdTally(e.generation.engine.spec,
-			&e.program, e.generation.engine.threshold,
-			e.generation.engine.minThreshold)
+		antagonistFitness, protagonistFitness, err = ProtagonistThresholdTally(e.generation.engine.Spec,
+			&e.program, e.generation.engine.EvaluationThreshold,
+			e.generation.engine.EvaluationMinThreshold)
 		if err != nil {
 			return err
 		}
 	}
+	e.antagonist.age++
+	e.protagonist.age++
 
 	e.antagonist.fitness = append(e.antagonist.fitness, antagonistFitness)
 	e.protagonist.fitness = append(e.protagonist.fitness, protagonistFitness)
@@ -130,7 +132,7 @@ func (e *Epoch) applyAntagonistStrategy() error {
 			e.nonTerminalSet,
 			e.probabilityOfMutation,
 			e.probabilityOfNonTerminalMutation,
-			e.generation.engine.maxDepth)
+			e.generation.engine.MaxDepth)
 		if err != nil {
 			return err
 		}
@@ -157,7 +159,7 @@ func (e *Epoch) applyProtagonistStrategy() error {
 			e.nonTerminalSet,
 			e.probabilityOfMutation,
 			e.probabilityOfNonTerminalMutation,
-			e.generation.engine.maxDepth)
+			e.generation.engine.MaxDepth)
 		if err != nil {
 			return err
 		}

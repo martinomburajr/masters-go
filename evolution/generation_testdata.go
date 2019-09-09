@@ -9,9 +9,8 @@ var GenerationTest0 = Generation{
 	isComplete:                   false,
 	Protagonists:                 []*Individual{&IndividualProg0Kind0, &IndividualProg0Kind1},
 	Antagonists:                  []*Individual{&IndividualProg1Kind1, &IndividualNilProgNil},
-	PreviousGeneration:           &GenerationNil,
 	hasSurvivorSelectionHappened: false,
-	nextGeneration:               nil,
+
 }
 
 // GenerationTest1 1 less protagonist
@@ -22,7 +21,5 @@ var GenerationTest1 = Generation{
 	isComplete:                   false,
 	Protagonists:                 []*Individual{&IndividualProg0Kind0},
 	Antagonists:                  []*Individual{&IndividualProg1Kind1, &IndividualNilProgNil},
-	PreviousGeneration:           &GenerationNil,
 	hasSurvivorSelectionHappened: false,
-	nextGeneration:               nil,
 }

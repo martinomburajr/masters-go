@@ -14,6 +14,10 @@ type Program struct {
 	T  *DualTree
 }
 
+func GenerateProgramID(count int) string {
+	return fmt.Sprintf("PROG-%d", count)
+}
+
 // ApplyStrategy takes a given strategy and applies a transformation to the given program.
 // depth defines the exact depth the tree can evolve to given the transformation.
 // Depth of a tree increases exponentially. So keep depths small e.g. 1,2,3

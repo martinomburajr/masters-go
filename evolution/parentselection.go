@@ -1,5 +1,10 @@
 package evolution
 
+import (
+	"math/rand"
+	"time"
+)
+
 /**
 Selection is the stage of a genetic algorithm in which individual genomes are chosen from a population for later breeding (using the crossover operator).
 
@@ -25,8 +30,41 @@ const (
 
 // TournamentSelection is a process whereby a random set of individuals from the population are selected,
 // and the best in that sample succeed onto the next generation
-func TournamentSelection(population []*Individual) ([]*Individual, error) {
+func TournamentSelection(population []*Individual, tournamentSize int, selectionProbality float32) ([]*Individual, error) {
+	newPop := make([]*Individual, len(population))
+
+	for i := 0; i < len(population); i++ {
+		randSelectedIndividuals := getNRandom(population, tournamentSize)
+		fittest := tournamentSelect(randSelectedIndividuals)
+
+		newPop[i] = fittest
+	}
+
 	return nil, nil
+}
+
+// getNRandom selects  a random group of individiduals equivalent to the tournamentSize
+func getNRandom(population []*Individual, tournamentSize int) []*Individual {
+	newPop := make([]*Individual, tournamentSize)
+	for i := 0; i < tournamentSize; i++ {
+		rand.Seed(time.Now().UnixNano())
+
+		randIndex := rand.Intn(len(population))
+		newPop[i] = population[randIndex]
+	}
+
+	return newPop
+}
+
+//tournamentSelect returns the fittest individual in a given tournament
+func tournamentSelect(selectedIndividuals []*Individual) *Individual {
+	fittest := selectedIndividuals[0]
+	for i := range selectedIndividuals {
+		if selectedIndividuals[i].totalFitness > fittest.totalFitness {
+			fittest = selectedIndividuals[i]
+		}
+	}
+	return fittest
 }
 
 // Elitism is an evolutionary process where only the top (

@@ -4,25 +4,15 @@ import "fmt"
 
 type Generation struct {
 	GenerationID                 string
-	PreviousGeneration           *Generation
-	nextGeneration               *Generation
 	Protagonists                 []*Individual //Protagonists in a given generation
 	Antagonists                  []*Individual //Antagonists in a given generation
 	engine                       *EvolutionEngine
 	isComplete                   bool
 	hasParentSelectionHappened   bool
 	hasSurvivorSelectionHappened bool
+	count                        int
 }
 
-// Next returns the next generation
-func (g *Generation) Next() *Generation {
-	return g.nextGeneration
-}
-
-// Previous returns the previous generation
-func (g *Generation) Previous() *Generation {
-	return g.PreviousGeneration
-}
 
 // Start begins the generational evolutionary cycle.
 // It creates a new generation that it links the {nextGeneration} field to. Similar to the way a LinkedList works
@@ -32,31 +22,72 @@ func (g *Generation) Start() (*Generation, error) {
 		return nil, err
 	}
 
-	completedEpochs, err := g.runEpochs(setupEpochs)
+	// Runs the epochs and returns completed epochs that contain fitness information within each individual.
+	_, err = g.runEpochs(setupEpochs)
 	if err != nil {
 		return nil, err
 	}
 
-	for i := range completedEpochs {
-		AggregateFitness(completedEpochs[i])
+	// Calculate the fitness for individuals in the generation
+	for i := range g.Protagonists {
+		fitness, err := AggregateFitness(*g.Protagonists[i])
+		if err != nil {
+			return nil, err
+		}
+		g.Protagonists[i].totalFitness = fitness
+		g.Protagonists[i].hasCalculatedFitness = true
 	}
 
-	// perform parent selection
-	switch g.engine.parentSelection {
+	// Calculate the fitness for individuals in the generation
+	for i := range g.Antagonists {
+		fitness, err := AggregateFitness(*g.Antagonists[i])
+		if err != nil {
+			return nil, err
+		}
+		g.Antagonists[i].totalFitness = fitness
+		g.Antagonists[i].hasCalculatedFitness = true
+	}
+
+	// perform parent selection for protagonists
+	var protagonistsSelected, antagonistsSelected []*Individual
+	switch g.engine.ParentSelection {
 	case ParentSelectionTournament:
-		TournamentSelection(comp)
+		protagonistsSelected, err = TournamentSelection(g.Protagonists, g.engine.TournamentSize, 0)
+		if err != nil {
+			return nil, err
+		}
+		g.Protagonists = protagonistsSelected
+
+		antagonistsSelected, err = TournamentSelection(g.Antagonists, g.engine.TournamentSize, 0)
+		if err != nil {
+			return nil, err
+		}
+		g.Antagonists = antagonistsSelected
 	}
 
 	//perform survivor selection
 
+	nextGenID := GenerateGenerationID(g.count + 1)
 	//return new generation
-	g.nextGeneration = nil
-	return g.nextGeneration, nil
+	return &Generation{
+		Antagonists:                  antagonistsSelected,
+		Protagonists:                 protagonistsSelected,
+		engine:                       g.engine,
+		GenerationID:                 nextGenID,
+		hasSurvivorSelectionHappened: false,
+		isComplete:                   false,
+		hasParentSelectionHappened:   false,
+		count:                        (g.count + 1),
+	}, nil
+}
+
+func GenerateGenerationID(count int) string {
+	return fmt.Sprintf("GEN-%d", count)
 }
 
 // setupEpochs takes in the generation individuals (
 // protagonists and antagonists) and creates a set of uninitialized epochs
-func (g *Generation) setupEpochs() ([]Epoch, error){
+func (g *Generation) setupEpochs() ([]Epoch, error) {
 	if g.Antagonists == nil {
 		return nil, fmt.Errorf("antagonists cannot be nil in generation")
 	}
@@ -70,31 +101,30 @@ func (g *Generation) setupEpochs() ([]Epoch, error){
 		return nil, fmt.Errorf("protagonists cannot be empty")
 	}
 
-	epochs := make([]Epoch, len(g.Antagonists) * len(g.Protagonists))
+	epochs := make([]Epoch, len(g.Antagonists)*len(g.Protagonists))
 	count := 0
 	for _, antagonist := range g.Antagonists {
 		for _, protagonist := range g.Protagonists {
 			epochs[count] = Epoch{
-				isComplete:false,
-				protagonistBegins:false,
-				terminalSet:g.engine.availableTerminalSet,
-				nonTerminalSet:g.engine.availableNonTerminalSet,
-				hasAntagonistApplied:false,
-				hasProtagonistApplied:false,
-				probabilityOfMutation:g.engine.probabilityOfMutation,
-				probabilityOfNonTerminalMutation:g.engine.probabilityOfNonTerminalMutation,
-				antagonist:antagonist,
-				protagonist:protagonist,
-				generation:g,
-				program:g.engine.startIndividual,
-				id: CreateEpochID(count, g.GenerationID, antagonist.id, protagonist.id),
+				isComplete:                       false,
+				protagonistBegins:                false,
+				terminalSet:                      g.engine.AvailableTerminalSet,
+				nonTerminalSet:                   g.engine.AvailableNonTerminalSet,
+				hasAntagonistApplied:             false,
+				hasProtagonistApplied:            false,
+				probabilityOfMutation:            g.engine.ProbabilityOfMutation,
+				probabilityOfNonTerminalMutation: g.engine.ProbabilityOfNonTerminalMutation,
+				antagonist:                       antagonist,
+				protagonist:                      protagonist,
+				generation:                       g,
+				program:                          g.engine.StartIndividual,
+				id:                               CreateEpochID(count, g.GenerationID, antagonist.id, protagonist.id),
 			}
 			count++
 		}
 	}
 	return epochs, nil
 }
-
 
 // CurrentPopulation retrieves the current population of the given generation.
 // Individuals may have competed or may have been altered in a variety of ways.
@@ -117,18 +147,6 @@ func (g *Generation) runEpochs(epochs []Epoch) ([]Epoch, error) {
 	}
 
 	return epochs, nil
-}
-
-// Restart is similar to StartHOG but it restarts the evolutionary process from the selected Generation.
-// All future generations are deleted to make way for this evolutionary process
-func (g *Generation) Restart() *Generation {
-	return g.PreviousGeneration
-}
-
-// StartHOG is a unique version of start. It clears future history and jumps to a given generation,
-// inserts generational material into the generation, and creates a new evolutionary propagation from it.
-func (g *Generation) StartHOG(gen Generation) *Generation {
-	return g.PreviousGeneration
 }
 
 // Compete gives protagonist and anatagonists the chance to compete. A competition involves an epoch,
@@ -163,16 +181,16 @@ func (g *Generation) ApplyParentSelection() ([]*Individual, error) {
 		return nil, err
 	}
 
-	switch g.engine.parentSelection {
+	switch g.engine.ParentSelection {
 	case ParentSelectionTournament:
-		selectedInvididuals, err := TournamentSelection(currentPopulation)
+		selectedInvididuals, err := TournamentSelection(currentPopulation, g.engine.TournamentSize, 0)
 		if err != nil {
 			return nil, err
 		}
 		g.hasParentSelectionHappened = true
 		return selectedInvididuals, nil
 	case ParentSelectionElitism:
-		selectedInvididuals, err := Elitism(currentPopulation, g.engine.elitismPercentage)
+		selectedInvididuals, err := Elitism(currentPopulation, g.engine.ElitismPercentage)
 		if err != nil {
 			return nil, err
 		}

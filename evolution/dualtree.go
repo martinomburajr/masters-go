@@ -2,6 +2,7 @@ package evolution
 
 import (
 	"fmt"
+	"log"
 	"math"
 	"math/rand"
 	"strings"
@@ -145,6 +146,8 @@ func (bst *DualTree) AddSubTree(subTree *DualTree) error {
 		node.left = subTree.root
 	}
 
+	log.Print("Tree after operation")
+	bst.Print()
 	return nil
 }
 
@@ -798,6 +801,7 @@ func GenerateRandomTree(depth int, terminals []SymbolicExpression,
 	if err != nil {
 		return nil, fmt.Errorf("error creating random tree | %s", err.Error())
 	}
+	tree.Print()
 	return &tree, nil
 }
 
