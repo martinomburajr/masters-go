@@ -88,3 +88,9 @@ func (d *DualTreeNode) ToSymbolicExpression() SymbolicExpression {
 		kind:  kind,
 	}
 }
+
+// Clone performs an O(N) deep clone of a given DualTreeNode and returns a new DualTreeNode, 
+// granted no errors are present.
+func (d *DualTreeNode) Clone() (DualTreeNode, error) {
+	return DualTreeNode{}, nil
+}

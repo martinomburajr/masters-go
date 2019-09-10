@@ -24,16 +24,15 @@ func GenerateProgramID(count int) string {
 func (p *Program) ApplyStrategy(strategy Strategy, terminals []SymbolicExpression,
 	nonTerminals []SymbolicExpression, mutationProbability float32, nonTerminalMutationProbability float32, depth int) (err error) {
 
-	switch strategy.Kind {
+	switch strategy {
 	case StrategyAddSubTree:
 		var tree *DualTree
 		tree, err = GenerateRandomTree(depth, terminals, nonTerminals)
 		err = p.T.AddSubTree(tree)
+		break
 	case StrategyDeleteSubTree:
-		err := p.T.DeleteSubTree()
-		if err != nil {
-			return err
-		}
+		err = p.T.DeleteSubTree()
+		break
 	case StrategyMutateNode:
 		chanceOfMutation := rand.Float32()
 		if mutationProbability > chanceOfMutation {
@@ -42,13 +41,25 @@ func (p *Program) ApplyStrategy(strategy Strategy, terminals []SymbolicExpressio
 			}
 			err = p.T.MutateTerminal(terminals)
 		}
+		break
 	default:
+		break
 	}
 	return err
 }
 
 func (p *Program) Fitness() (float32, error) {
 	return -1, fmt.Errorf("")
+}
+
+// Crossover is a evolutionary technique used to take two parents swap their genetic material and form two new children.
+func Crossover(prog1 Program, prog2 Program) (child1 Program, child2 Program, err error) {
+	return Program{}, Program{}, nil
+}
+
+// Mutation is an evolutionary technique used to randomly change parts of a Program.
+func Mutation(prog Program) (Program, error) {
+	return Program{}, nil
 }
 
 // Eval is a simple helper function that takes in an independent variable,

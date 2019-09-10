@@ -362,6 +362,22 @@ func (bst *DualTree) GetRandomSubTree() (*DualTree, error) {
 	return nil, nil
 }
 
+// GetNode returns the first node it encounters with the given value. It uses Inorder DFS
+func (bst *DualTree) GetNode(value string) (node *DualTreeNode, parent *DualTreeNode, err error) {
+	return nil, nil, nil
+}
+
+// SelectNodesUpToDepth returns a list of nodes that do not exceed the indicated depth.
+// This will start from the root of the tree and follow and InorderDFS
+func (bst *DualTree) SelectNodesUpToDepth(depth int) ([]*DualTreeNode, error) {
+	return nil, nil
+}
+
+// Clone will perform an O(N) deep clone of a tree and its items and return its copy
+func (bst *DualTree) Clone() (DualTree, error) {
+	return DualTree{}, nil
+}
+
 func (bst *DualTree) Size() int {
 	count := 0
 	bst.InOrderTraverse(func(node *DualTreeNode) {
