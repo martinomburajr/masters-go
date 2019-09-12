@@ -826,3 +826,75 @@ func Test_weaver(t *testing.T) {
 		})
 	}
 }
+
+func TestDualTree_GetNode(t *testing.T) {
+	tests := []struct {
+		name       string
+		fields     *DualTree
+		value      string
+		wantNode   *DualTreeNode
+		wantParent *DualTreeNode
+		wantErr    bool
+	}{
+		{"nil", TreeNil(), "", nil, nil, true},
+		{"empty-value", TreeT_0(), "", nil, nil, true},
+		{"wrong-value", TreeT_0(), "y", nil, nil, true},
+		{"correct-value", TreeT_0(), "x", TreeT_0().root, TreeT_0().root, false},
+		{"T-NT-T-wrong-value", TreeT_NT_T_0(), "3", nil, nil, true},
+		{"T-NT-T-correct-value", TreeT_NT_T_0(), "x", TreeT_NT_T_0().root.left, TreeT_NT_T_0().root, false},
+		{"T-NT-T-correct-value-other-T", TreeT_NT_T_0(), "4", TreeT_NT_T_0().root.right, TreeT_NT_T_0().root, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotNode, gotParent, err := tt.fields.GetNode(tt.value)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("DualTree.GetNode() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(gotNode, tt.wantNode) {
+				t.Errorf("DualTree.GetNode() gotNode = %v, want %v", gotNode, tt.wantNode)
+			}
+			if !reflect.DeepEqual(gotParent, tt.wantParent) {
+				t.Errorf("DualTree.GetNode() gotParent = %v, want %v", gotParent, tt.wantParent)
+			}
+		})
+	}
+}
+
+
+func TestDualTree_Depth(t *testing.T) {
+	tests := []struct {
+		name    string
+		fields  *DualTree
+		want    int
+		wantErr bool
+	}{
+		{"nil", TreeNil(), -1, true},
+		{"T", TreeT_0(), 0, false},
+		{"T", TreeT_1(), 0, false},
+		{"T-NT-T", TreeT_NT_T_0(), 1, false},
+		{"TreeT_NT_T_NT_T_0", TreeT_NT_T_NT_T_0(), 2, false},
+		{"TreeT_NT_T_NT_T_0", TreeT_NT_T_NT_T_0(), 2, false},
+		{"TreeVine_D3", TreeVine_D3(), 3, false},
+		{"TreeVine_D4", TreeVine_D4(), 4, false},
+		{"TreeVine_D5_R", TreeVine_D5_R(), 5, false},
+		{"TreeVine_D6_R", TreeVine_D6_R(), 6, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			d := &DualTree{
+				root: tt.fields.root,
+				lock: tt.fields.lock,
+			}
+			d.Print()
+			got, err := d.Depth()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("DualTree.Depth() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("DualTree.Depth() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

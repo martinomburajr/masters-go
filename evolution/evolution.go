@@ -9,15 +9,15 @@ type EvolutionParams struct {
 	EnableParallelism bool
 	survivorSelection                int
 	parentSelection                  int
-	elitismPercentage                float32
-	programEval                      func() float32
-	statisticsOutput                 string
-	maxDepth                         int
-	depthPenalty                     int
-	threshold                        float64
-	minThreshold                     float64
-	fitnessStrategy                  int
-	tournamentSize                   int
+	ElitismPercentage                float32
+	ProgramEval                      func() float32
+	StatisticsOutput                 string
+	MaxDepth                         int
+	DepthPenalty                     int
+	Threshold                        float64
+	MinThreshold                     float64
+	FitnessStrategy                  int
+	TournamentSize                   int
 }
 
 type EvolutionEngine struct {

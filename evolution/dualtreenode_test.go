@@ -1,6 +1,7 @@
 package evolution
 
 import (
+	"reflect"
 	"testing"
 )
 
@@ -97,3 +98,33 @@ func TestDualTreeNode_IsValEqual(t *testing.T) {
 //		})
 //	}
 //}
+
+func TestDualTreeNode_Clone(t *testing.T) {
+	tests := []struct {
+		name   string
+		fields DualTreeNode
+		want   DualTreeNode
+	}{
+		{"nil", DualTreeNode{}, DualTreeNode{}},
+		{"const1", *Const1.ToDualTreeNode(1), *Const1.ToDualTreeNode(1)},
+		{"const4", *Const4.ToDualTreeNode(2), *Const4.ToDualTreeNode(2)},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			d := DualTreeNode{
+				key:   tt.fields.key,
+				value: tt.fields.value,
+				left:  tt.fields.left,
+				right: tt.fields.right,
+				arity: tt.fields.arity,
+			}
+			var got DualTreeNode
+			if got = d.Clone(); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("DualTreeNode.Clone() = %v, want %v", got, tt.want)
+			}
+			if &got == &tt.want {
+				t.Errorf("DualTreeNode.Clone() cannot reference the same address = %p, want %p", &got, &tt.want)
+			}
+		})
+	}
+}

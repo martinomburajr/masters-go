@@ -151,6 +151,11 @@ func (bst *DualTree) AddSubTree(subTree *DualTree) error {
 	return nil
 }
 
+// InsertSubTree will insert a subTree at a given index
+func (bst *DualTree) InsertSubTree(index int, subTree *DualTree) error {
+	return nil
+}
+
 // StrategyDeleteSubTree locates a random non-terminal and sets its value to 0,
 // deleting its associated child nodes by setting them to nil
 func (bst *DualTree) DeleteSubTree() error {
@@ -265,20 +270,7 @@ func (bst *DualTree) MutateTerminal(terminalSet []SymbolicExpression) error {
 	return nil
 }
 
-func (bst *DualTree) hasDiverseNonTerminalSet() (bool, error) {
-	branches, err := bst.Branches()
-	if err != nil {
-		return false, err
-	}
 
-	holder := branches[0]
-	for i := range branches {
-		if !branches[i].IsValEqual(holder) {
-			return true, nil
-		}
-	}
-	return false, nil
-}
 
 // MutateNonTerminal will mutate a terminal to another valid nonTerminal. Ensure set is nonTerminal set only,
 // otherwise arities will break
@@ -362,9 +354,38 @@ func (bst *DualTree) GetRandomSubTree() (*DualTree, error) {
 	return nil, nil
 }
 
-// GetNode returns the first node it encounters with the given value. It uses Inorder DFS
+// GetNode returns the first node it encounters with the given value.
+// It uses Inorder DFS to iterate through the tree, if it cannot locate an object it returns an error,
+// if the tree is of size 1 i.e only containing the root, both parent and node will point to the root,
+// in all other cases where size > 1, node and parent will be different granted the value can be found.
 func (bst *DualTree) GetNode(value string) (node *DualTreeNode, parent *DualTreeNode, err error) {
-	return nil, nil, nil
+	// require
+	if bst.root == nil {
+		return nil, nil, fmt.Errorf("tree root cannot be nil")
+	}
+	if value == "" {
+		return nil, nil, fmt.Errorf("value cannot be empty")
+	}
+	if bst.root.left == nil && bst.root.right == nil {
+		if bst.root.value != value {
+			return nil, nil, fmt.Errorf("tree node not found")
+		}else {
+			return bst.root, bst.root, nil
+		}
+	}
+
+	err = fmt.Errorf("tree node not found")
+
+	bst.InOrderTraverseAware(func(n *DualTreeNode, p *DualTreeNode) {
+		if n.value == value {
+			node = n
+			parent = p
+			err = nil
+			return
+		}
+	})
+
+	return node, parent, err
 }
 
 // SelectNodesUpToDepth returns a list of nodes that do not exceed the indicated depth.
@@ -373,9 +394,9 @@ func (bst *DualTree) SelectNodesUpToDepth(depth int) ([]*DualTreeNode, error) {
 	return nil, nil
 }
 
-// Clone will perform an O(N) deep clone of a tree and its items and return its copy
-func (bst *DualTree) Clone() (DualTree, error) {
-	return DualTree{}, nil
+// Clone will perform an O(N) deep clone of a tree and its items and return its copy.
+func (bst DualTree) Clone() DualTree {
+	return bst
 }
 
 func (bst *DualTree) Size() int {
@@ -617,37 +638,27 @@ func combinator(node0, node1 *DualTreeNode) *DualTreeNode {
 }
 
 // Depth calculates the height of the tree. A tree with a nil root returns -1.
-func (d *DualTree) Depth() {
-	//if d.root == nil {
-	//	return -1
-	//}
-	//
-	//
-	//if d.root.left == nil && d.root.right == nil {
-	//	return 0
-	//}
-	//
-	//leftCounter := 0
-	//rightCounter := 0
-	//leftNode := d.root.left
-	//rightNode := d.root.right
-	//isRightDead := false
-	//isLeftDead := false
-	//for {
-	//	if leftNode != nil {
-	//		leftCounter++
-	//		leftNode = leftNode.left
-	//	}else {
-	//		isLeftDead = true
-	//	}
-	//	if rightNode != nil {
-	//		rightCounter++
-	//		rightNode = rightNode.right
-	//	}else {
-	//		isLeftDead
-	//	}
-	//}
-	//return 0
+func (d *DualTree) Depth() (int, error) {
+	if d.root == nil {
+		return -1, fmt.Errorf("cannot find depth in nil tree | root == nil")
+	}
+
+	currentDepth := dive(d.root)
+	return currentDepth-1, nil
+}
+
+func dive(node *DualTreeNode) int {
+	if node == nil {
+		return 0
+	}
+	lDepth := dive(node.left)
+	rDepth := dive(node.right)
+
+	if lDepth > rDepth {
+		return lDepth + 1
+	} else {
+		return rDepth + 1
+	}
 }
 
 func (bst *DualTree) Random(terminalSet []SymbolicExpression, maxDepth int) error {
@@ -659,6 +670,13 @@ func (bst *DualTree) InOrderTraverse(f func(node *DualTreeNode)) {
 	bst.lock.RLock()
 	defer bst.lock.RUnlock()
 	inOrderTraverse(bst.root, f)
+}
+
+// InOrderTraverse visits all nodes with in-order traversing
+func (bst *DualTree) InOrderTraverseAware(f func(node *DualTreeNode, parentNode *DualTreeNode)) {
+	bst.lock.RLock()
+	defer bst.lock.RUnlock()
+	inOrderTraverseAware(bst.root, bst.root, f)
 }
 
 // InOrderTraverse visits all nodes with in-order traversing
@@ -676,6 +694,15 @@ func inOrderTraverse(n *DualTreeNode, f func(node *DualTreeNode)) {
 		inOrderTraverse(n.left, f)
 		f(n)
 		inOrderTraverse(n.right, f)
+	}
+}
+
+// internal recursive function to traverse in order
+func inOrderTraverseAware(n *DualTreeNode, parent *DualTreeNode, f func(node *DualTreeNode, parentNode *DualTreeNode)) {
+	if n != nil {
+		inOrderTraverseAware(n.left, n, f)
+		f(n, parent)
+		inOrderTraverseAware(n.right,n, f)
 	}
 }
 
@@ -899,4 +926,20 @@ func GenerateRandomSymbolicExpressionSet(size int) []SymbolicExpression {
 	}
 
 	return symbolicExpressions
+}
+
+
+func (bst *DualTree) hasDiverseNonTerminalSet() (bool, error) {
+	branches, err := bst.Branches()
+	if err != nil {
+		return false, err
+	}
+
+	holder := branches[0]
+	for i := range branches {
+		if !branches[i].IsValEqual(holder) {
+			return true, nil
+		}
+	}
+	return false, nil
 }
