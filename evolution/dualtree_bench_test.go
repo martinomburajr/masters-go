@@ -3,6 +3,7 @@ package evolution
 import "testing"
 
 func BenchmarkDualTree_FromSymbolicExpressionSet_1(b *testing.B) {
+	b.ReportAllocs()
 	expressionSet1 := GenerateRandomSymbolicExpressionSet(1)
 	tree1 := DualTree{}
 	for i := 0; i < b.N; i++ {
@@ -11,6 +12,7 @@ func BenchmarkDualTree_FromSymbolicExpressionSet_1(b *testing.B) {
 }
 
 func BenchmarkDualTree_FromSymbolicExpressionSet2_1(b *testing.B) {
+	b.ReportAllocs()
 	expressionSet1 := GenerateRandomSymbolicExpressionSet(1)
 	tree1 := DualTree{}
 	for i := 0; i < b.N; i++ {
@@ -19,6 +21,7 @@ func BenchmarkDualTree_FromSymbolicExpressionSet2_1(b *testing.B) {
 }
 
 func BenchmarkDualTree_FromSymbolicExpressionSet_10(b *testing.B) {
+	b.ReportAllocs()
 	expressionSet1 := GenerateRandomSymbolicExpressionSet(10)
 	tree1 := DualTree{}
 	for i := 0; i < b.N; i++ {
@@ -27,6 +30,7 @@ func BenchmarkDualTree_FromSymbolicExpressionSet_10(b *testing.B) {
 }
 
 func BenchmarkDualTree_FromSymbolicExpressionSet2_10(b *testing.B) {
+	b.ReportAllocs()
 	expressionSet1 := GenerateRandomSymbolicExpressionSet(10)
 	tree1 := DualTree{}
 	for i := 0; i < b.N; i++ {
@@ -83,6 +87,7 @@ func BenchmarkDualTree_FromSymbolicExpressionSet2_1000000(b *testing.B) {
 }
 
 func BenchmarkGenerateRandomTree_1(b *testing.B) {
+	b.ReportAllocs()
 	depth := 1
 	terminals := []SymbolicExpression{X1, Const0, Const1, Const2, Const3, Const4, Const5, Const6,
 		Const7, Const8, Const9}
@@ -92,6 +97,7 @@ func BenchmarkGenerateRandomTree_1(b *testing.B) {
 	}
 }
 func BenchmarkGenerateRandomTree_10(b *testing.B) {
+	b.ReportAllocs()
 	depth := 10
 	terminals := []SymbolicExpression{X1, Const0, Const1, Const2, Const3, Const4, Const5, Const6,
 		Const7, Const8, Const9}

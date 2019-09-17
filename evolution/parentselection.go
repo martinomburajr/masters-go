@@ -1,6 +1,7 @@
 package evolution
 
 import (
+	"fmt"
 	"math/rand"
 	"time"
 )
@@ -30,7 +31,18 @@ const (
 
 // TournamentSelection is a process whereby a random set of individuals from the population are selected,
 // and the best in that sample succeed onto the next generation
-func TournamentSelection(population []*Individual, tournamentSize int, selectionProbality float32) ([]*Individual, error) {
+func TournamentSelection(population []*Individual, tournamentSize int) ([]*Individual, error) {
+	if population == nil {
+		return nil, fmt.Errorf("tournament population cannot be nil")
+	}
+	if len(population) < 1 {
+		return nil, fmt.Errorf("tournament population cannot have len < 1")
+	}
+	if tournamentSize < 1 {
+		return nil, fmt.Errorf("tournament size cannot be less than 1")
+	}
+
+	// do
 	newPop := make([]*Individual, len(population))
 
 	for i := 0; i < len(population); i++ {
@@ -40,7 +52,7 @@ func TournamentSelection(population []*Individual, tournamentSize int, selection
 		newPop[i] = fittest
 	}
 
-	return nil, nil
+	return newPop, nil
 }
 
 // getNRandom selects  a random group of individiduals equivalent to the tournamentSize

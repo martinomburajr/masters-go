@@ -31,7 +31,7 @@ func TestGenerateRandomStrategy(t *testing.T) {
 }
 
 //func TestGenerateRandomIndividuals(t *testing.T) {
-//	type args struct {
+//	type depth struct {
 //		number                int
 //		idTemplate            string
 //		kind                  int
@@ -41,25 +41,25 @@ func TestGenerateRandomStrategy(t *testing.T) {
 //	}
 //	tests := []struct {
 //		name    string
-//		args    args
+//		depth    depth
 //		want    []*Individual
 //		wantErr bool
 //	}{
-//		{"small number", args{0, "", IndividualAntagonist, 0, 0, nil}, nil, true},
-//		{"empty kind", args{10, "sometemplate", IndividualAntagonist, 10, 10, nil}, nil, true},
-//		{"small strategy len", args{10, "sometemplate", IndividualAntagonist, 0, 10, nil}, nil, true},
-//		{"small max number of strategies", args{10, "sometemplate", IndividualAntagonist, 10, 0, nil}, nil, true},
-//		{"nil available strategies", args{10, "sometemplate", IndividualAntagonist, 10, 10, nil}, nil, true},
-//		{"empty strategies", args{10, "sometemplate", IndividualAntagonist, 10, 10, []Strategy{}}, nil, true},
-//		{"empty id-template", args{10, "", IndividualAntagonist, 10, 10, []Strategy{StrategyAddSubTree}}, nil, true},
-//		{"ok", args{2, "bugs", IndividualAntagonist, 10, 10, []Strategy{StrategyAddSubTree}},
+//		{"small number", depth{0, "", IndividualAntagonist, 0, 0, nil}, nil, true},
+//		{"empty kind", depth{10, "sometemplate", IndividualAntagonist, 10, 10, nil}, nil, true},
+//		{"small strategy len", depth{10, "sometemplate", IndividualAntagonist, 0, 10, nil}, nil, true},
+//		{"small max number of strategies", depth{10, "sometemplate", IndividualAntagonist, 10, 0, nil}, nil, true},
+//		{"nil available strategies", depth{10, "sometemplate", IndividualAntagonist, 10, 10, nil}, nil, true},
+//		{"empty strategies", depth{10, "sometemplate", IndividualAntagonist, 10, 10, []Strategy{}}, nil, true},
+//		{"empty id-template", depth{10, "", IndividualAntagonist, 10, 10, []Strategy{StrategyAddSubTree}}, nil, true},
+//		{"ok", depth{2, "bugs", IndividualAntagonist, 10, 10, []Strategy{StrategyAddSubTree}},
 //			[]Individual{IndividualProg0Kind1, IndividualProg0Kind1}, false},
 //	}
 //	for _, tt := range tests {
 //		t.Run(tt.name, func(t *testing.T) {
 //			var got []Individual
 //			var err error
-//			got, err = GenerateRandomIndividuals(tt.args.number, tt.args.idTemplate, tt.args.kind, tt.args.strategyLength, tt.args.maxNumberOfStrategies, tt.args.availableStrategies)
+//			got, err = GenerateRandomIndividuals(tt.depth.number, tt.depth.idTemplate, tt.depth.kind, tt.depth.strategyLength, tt.depth.maxNumberOfStrategies, tt.depth.availableStrategies)
 //			if (err != nil) != tt.wantErr {
 //				t.Errorf("GenerateRandomIndividuals() error = %v, wantErr %v", err, tt.wantErr)
 //				return

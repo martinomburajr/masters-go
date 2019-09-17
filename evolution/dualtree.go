@@ -391,8 +391,38 @@ func (bst *DualTree) GetNode(value string) (node *DualTreeNode, parent *DualTree
 // SelectNodesUpToDepth returns a list of nodes that do not exceed the indicated depth.
 // This will start from the root of the tree and follow and InorderDFS
 func (bst *DualTree) SelectNodesUpToDepth(depth int) ([]*DualTreeNode, error) {
-	return nil, nil
+	if bst.root == nil {
+		return nil, fmt.Errorf("cannot find depth in nil tree | root == nil")
+	}
+
+	nodes := make([]*DualTreeNode, 0)
+	nodes = diveMaxDepth(bst.root, depth, nodes)
+
+	return nodes, nil
 }
+
+func diveMaxDepth(node *DualTreeNode, maxDepth int, nodes []*DualTreeNode) []*DualTreeNode {
+	if node == nil {
+		return nodes
+	}
+	lDepth := dive(node.left)
+	rDepth := dive(node.right)
+
+	if lDepth < maxDepth {
+		nodes = append(nodes, node)
+	}
+	if rDepth < maxDepth {
+		nodes = append(nodes, node)
+	}
+	return nodes
+}
+
+// CalculateMinDepth calculates the minimum depth of a given tree
+//func CalculateMinDepth(nodeCount int) int {
+//	if nodeCount < 1 {
+//		return 0
+//	}
+//}
 
 // Clone will perform an O(N) deep clone of a tree and its items and return its copy.
 func (bst DualTree) Clone() DualTree {
@@ -661,6 +691,60 @@ func dive(node *DualTreeNode) int {
 	}
 }
 
+// DepthTo calculates the depth of the tree until the given set of nodes.
+// All nodes traversed will be returned until that point (Not including).
+func (d *DualTree) DepthTo(depth int) ([]*DualTreeNode, error) {
+	if d.root == nil {
+		return nil, fmt.Errorf("cannot find depth in nil tree | root == nil")
+	}
+	if depth < 0 {
+		return nil, fmt.Errorf("cannot find depth when supplied depth is negative")
+	}
+
+	nodes := make([]*DualTreeNode, 0)
+	startDepth := 0
+	nodes, _ = diveUntil(d.root, nodes, &startDepth, depth)
+	return nodes, nil
+}
+
+func diveUntil(node *DualTreeNode, nodes []*DualTreeNode, currDepth *int, maxDepth int) ([]*DualTreeNode, int) {
+	*currDepth = *currDepth + 1
+	if *currDepth <= maxDepth {
+		_, _ = diveUntil(node.left, nodes, currDepth, maxDepth)
+	} else {
+		nodes = append(nodes, node)
+		return nodes, 0
+	}
+
+	*currDepth = 0
+	if *currDepth <= maxDepth {
+		_, _ = diveUntil(node.right, nodes, currDepth, maxDepth)
+	} else {
+		nodes = append(nodes, node)
+		return nodes, 0
+	}
+
+	//if *currDepth < maxDepth {
+	//	if node == nil {
+	//		return nodes, 0
+	//	}
+	//}else {
+	//	return  nodes, 0
+	//}
+	//
+	//*currDepth = *currDepth + 1
+	//nodes, lDepth := diveUntil(node.left, nodes, currDepth, maxDepth)
+	//nodes = append(nodes, node)
+	//nodes, rDepth := diveUntil(node.right, nodes, currDepth, maxDepth)
+	//
+	//if lDepth > rDepth {
+	//	return nodes, lDepth + 1
+	//} else {
+	//	return nodes, rDepth + 1
+	//}
+	return nodes, 0
+}
+
 func (bst *DualTree) Random(terminalSet []SymbolicExpression, maxDepth int) error {
 	return nil
 }
@@ -844,7 +928,6 @@ func GenerateRandomTree(depth int, terminals []SymbolicExpression,
 	if err != nil {
 		return nil, fmt.Errorf("error creating random tree | %s", err.Error())
 	}
-	tree.Print()
 	return &tree, nil
 }
 
@@ -942,4 +1025,37 @@ func (bst *DualTree) hasDiverseNonTerminalSet() (bool, error) {
 		}
 	}
 	return false, nil
+}
+
+// GetRandomSubTreeAtDepth will obtain a random subTree from a given tree.
+// It assumes the depth you provide is the appropriate range as it WILL NOT check the depth and panic incase of a
+// depth out of bounds. (This is done to prevent ane xtra redundant call to the depth method of tree if the user has
+// already called it.
+func (d *DualTree) GetRandomSubTreeAtDepth(depth int) (DualTree, error) {
+	if d.root == nil {
+		return DualTree{}, fmt.Errorf("cannot get depth - tree nil")
+	}
+	if depth < 0 {
+		return DualTree{}, fmt.Errorf("cannot get depth - depth is less than 0")
+	}
+
+	// Get Nodes at Depth
+	// Get Random Node at Depth
+
+	//do
+	return DualTree{}, nil
+}
+
+// GetNodesAtDepth returns all the nodes at a given depth
+func (d *DualTree) GetNodesAtDepth(depth int) ([]*DualTreeNode, error) {
+	if d.root == nil {
+		return nil, fmt.Errorf("cannot get depth - tree nil")
+	}
+	if depth < 0 {
+		return nil, fmt.Errorf("cannot get depth - depth is less than 0")
+	}
+
+	nodes := make([]*DualTreeNode, 0)
+
+	return nodes, nil
 }

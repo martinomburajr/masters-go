@@ -52,10 +52,7 @@ func (p *Program) Fitness() (float32, error) {
 	return -1, fmt.Errorf("")
 }
 
-// Crossover is a evolutionary technique used to take two parents swap their genetic material and form two new children.
-func Crossover(prog1 Program, prog2 Program) (child1 Program, child2 Program, err error) {
-	return Program{}, Program{}, nil
-}
+
 
 // Mutation is an evolutionary technique used to randomly change parts of a Program.
 func Mutation(prog Program) (Program, error) {

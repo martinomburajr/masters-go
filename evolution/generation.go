@@ -52,13 +52,13 @@ func (g *Generation) Start() (*Generation, error) {
 	var protagonistsSelected, antagonistsSelected []*Individual
 	switch g.engine.ParentSelection {
 	case ParentSelectionTournament:
-		protagonistsSelected, err = TournamentSelection(g.Protagonists, g.engine.TournamentSize, 0)
+		protagonistsSelected, err = TournamentSelection(g.Protagonists, g.engine.TournamentSize)
 		if err != nil {
 			return nil, err
 		}
 		g.Protagonists = protagonistsSelected
 
-		antagonistsSelected, err = TournamentSelection(g.Antagonists, g.engine.TournamentSize, 0)
+		antagonistsSelected, err = TournamentSelection(g.Antagonists, g.engine.TournamentSize)
 		if err != nil {
 			return nil, err
 		}
@@ -183,7 +183,7 @@ func (g *Generation) ApplyParentSelection() ([]*Individual, error) {
 
 	switch g.engine.ParentSelection {
 	case ParentSelectionTournament:
-		selectedInvididuals, err := TournamentSelection(currentPopulation, g.engine.TournamentSize, 0)
+		selectedInvididuals, err := TournamentSelection(currentPopulation, g.engine.TournamentSize)
 		if err != nil {
 			return nil, err
 		}

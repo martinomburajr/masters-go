@@ -9,9 +9,14 @@ package evolution
 // 4. Survivor Selection
 // 5. Statistical Output
 // 6. FinalPopulation configuration (incrementing age, clearing fitness values for old worthy individuals)
-func JudgementDay(incomingPopulation []Individual, opts EvolutionParams) ([]Individual, error) {
+func JudgementDay(incomingPopulation []*Individual, opts EvolutionParams) ([]*Individual, error) {
+	survivors := make([]*Individual, len(incomingPopulation))
 	// Parent Selection
 		// Tournament Selection
+	_, err := TournamentSelection(incomingPopulation, opts.TournamentSize)
+	if err != nil {
+		return nil, err
+	}
 
 	// Reproduction
 		// Crossover
@@ -25,5 +30,5 @@ func JudgementDay(incomingPopulation []Individual, opts EvolutionParams) ([]Indi
 
 	// Anointing Final Population and Return
 
-	return nil, nil
+	return survivors, nil
 }

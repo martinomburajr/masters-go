@@ -1,6 +1,7 @@
 package evolution
 
 import (
+	"fmt"
 	"reflect"
 	"sync"
 	"testing"
@@ -861,7 +862,6 @@ func TestDualTree_GetNode(t *testing.T) {
 	}
 }
 
-
 func TestDualTree_Depth(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -897,4 +897,128 @@ func TestDualTree_Depth(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestDualTree_SelectNodesUpToDepth(t *testing.T) {
+	tests := []struct {
+		name    string
+		fields  *DualTree
+		depth   int
+		want    []*DualTreeNode
+		wantErr bool
+	}{
+		//{"nil", TreeNil(), 3, nil, true},
+		{"T", TreeT_0(), 3, []*DualTreeNode{X1.ToDualTreeNode(0)}, false},
+		{"TreeT_NT_T_0", TreeT_NT_T_0(), 3, []*DualTreeNode{X1.ToDualTreeNode(0), Mult.ToDualTreeNode(1),
+			Const4.ToDualTreeNode(2)},
+			false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			bst := &DualTree{
+				root: tt.fields.root,
+				lock: tt.fields.lock,
+			}
+			got, err := bst.SelectNodesUpToDepth(tt.depth)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("DualTree.SelectNodesUpToDepth() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if len(got) != len(tt.want) {
+				t.Errorf("DualTree.SelectNodesUpToDepth() | Not same length = %v, want %v", got, tt.want)
+			}
+			//if !reflect.DeepEqual(got, tt.want) {
+			//	t.Errorf("DualTree.SelectNodesUpToDepth() = %v, want %v", got, tt.want)
+			//}
+		})
+	}
+}
+
+func TestDualTree_GetNodesAtDepth(t *testing.T) {
+	type args struct {
+		depth int
+	}
+	tests := []struct {
+		name    string
+		fields  *DualTree
+		depth   int
+		want    []*DualTreeNode
+		wantErr bool
+	}{
+		//{"nil-root", TreeNil(), 0, nil, true},
+		//{"negative depth", TreeT_0(), -1, nil, true},
+		{"depth=0", TreeT_0(), 0, []*DualTreeNode{TreeT_0().root}, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := tt.fields.GetNodesAtDepth(tt.depth)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("DualTree.GetNodesAtDepth() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("DualTree.GetNodesAtDepth() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestDualTree_DepthTo(t *testing.T) {
+	type args struct {
+		depth int
+	}
+	tests := []struct {
+		name    string
+		fields  *DualTree
+		depth int
+		want    []*DualTreeNode
+		wantErr bool
+	}{
+		//{"nil root", TreeNil(), 0, nil, true},
+		//{"negative depth", TreeT_0(), -1, nil, true},
+		//{"T", TreeT_0(), 0, []*DualTreeNode{X1.ToDualTreeNode(0)}, false},
+		//{"T-NT-T", TreeT_NT_T_1(), 0, []*DualTreeNode{Add.ToDualTreeNode(0)}, false},
+		{"T-NT-T", TreeT_NT_T_1(), 1, []*DualTreeNode{Add.ToDualTreeNode(0), Const8.ToDualTreeNode(0),
+			Add.ToDualTreeNode(0)}, false},
+		//{"T-NT-NT-NT-T", TreeT_NT_T_NT_T_0(), 2, []*DualTreeNode{Sub.ToDualTreeNode(0), Const4.ToDualTreeNode(0),
+		//	Mult.ToDualTreeNode(0), X1.ToDualTreeNode(0)}, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			d := &DualTree{
+				root: tt.fields.root,
+				lock: tt.fields.lock,
+			}
+			got, err := d.DepthTo(tt.depth)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("DualTree.DepthTo() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			contain, err := contains(got, tt.want)
+			if err != nil {
+				t.Error(err)
+			}
+			if !contain {
+				t.Errorf("DualTree.DepthTo() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+
+func contains(a, b []*DualTreeNode) (bool, error) {
+	if len(a) != len(b) {
+		return false, fmt.Errorf("not the same size a %v | b %v", a, b)
+	}
+		count := 0
+	for i := range a {
+		for j := range b {
+			if a[i].IsValEqual(b[j]) {
+				count++
+				break
+			}
+		}
+	}
+
+	return count == len(a), nil
 }
