@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-// TODO generate AST tree from polynomial expression
+// TODO generate AST treeNode from polynomial expression
 type Program struct {
 	ID string
 	T  *DualTree
@@ -19,8 +19,8 @@ func GenerateProgramID(count int) string {
 }
 
 // ApplyStrategy takes a given strategy and applies a transformation to the given program.
-// depth defines the exact depth the tree can evolve to given the transformation.
-// Depth of a tree increases exponentially. So keep depths small e.g. 1,2,3
+// depth defines the exact depth the treeNode can evolve to given the transformation.
+// Depth of a treeNode increases exponentially. So keep depths small e.g. 1,2,3
 func (p *Program) ApplyStrategy(strategy Strategy, terminals []SymbolicExpression,
 	nonTerminals []SymbolicExpression, mutationProbability float32, nonTerminalMutationProbability float32, depth int) (err error) {
 
@@ -60,10 +60,10 @@ func Mutation(prog Program) (Program, error) {
 }
 
 // Eval is a simple helper function that takes in an independent variable,
-// uses the programs tree to compute the resultant value
+// uses the programs treeNode to compute the resultant value
 func (p *Program) Eval(independentVar float32) (float32, error) {
 	if p.T == nil {
-		return -1, fmt.Errorf("program: %v -> tree is nil", p.ID)
+		return -1, fmt.Errorf("program: %v -> treeNode is nil", p.ID)
 	}
 
 	err := p.T.Validate()

@@ -34,7 +34,7 @@ func TestDualTreeNode_IsLeaf(t *testing.T) {
 		node *DualTreeNode
 		want bool
 	}{
-		{"nil", &DualTreeNode{0, "", nil, nil, 0}, true},
+		{"nil", &DualTreeNode{RandString(5), "", nil, nil, 0}, true},
 		{"root", TreeT_NT_T_0().root, false},
 		{"x in x * 4", TreeT_NT_T_0().root.left, true},
 		{"4 in x * 4", TreeT_NT_T_0().root.right, true},
@@ -72,32 +72,32 @@ func TestDualTreeNode_IsValEqual(t *testing.T) {
 	}
 }
 
-//func TestDualTreeNode_IsEqual(t *testing.T) {
-//	tests := []struct {
-//		name   string
-//		tree *DualTreeNode
-//		subTree   *DualTreeNode
-//		wantAntagonist   bool
-//	}{
-//		//{"", &DualTreeNode{}, &DualTreeNode{}, true},
-//		//{"value", &DualTreeNode{value: "x"}, &DualTreeNode{value: "x"}, true},
-//		{"same-val-same-left", &DualTreeNode{value: "x", left: Add.ToDualTreeNode(0)}, &DualTreeNode{value: "x",
-//			left: Add.ToDualTreeNode(0)},
-//			true},
-//		{"same-val-same-right", &DualTreeNode{value: "x", right: Add.ToDualTreeNode(0)}, &DualTreeNode{value: "x",
-//			right: Add.ToDualTreeNode(0)},
-//			true},
-//		{"diff-arity-same-val", &DualTreeNode{value: "x", arity: 2}, &DualTreeNode{value: "x", arity: 1}, false},
-//		{"diff-arity-same-val", &DualTreeNode{value: "*", arity: 2}, &DualTreeNode{value: "x", arity: 1}, false},
-//	}
-//	for _, tt := range tests {
-//		t.Run(tt.name, func(t *testing.T) {
-//			if got := tt.tree.IsEqual(tt.subTree); got != tt.wantAntagonist {
-//				t.Errorf("DualTreeNode.IsEqual() = %v, wantAntagonist %v", got, tt.wantAntagonist)
-//			}
-//		})
-//	}
-//}
+func TestDualTreeNode_IsEqual(t *testing.T) {
+	tests := []struct {
+		name           string
+		treeNode       *DualTreeNode
+		subTree        *DualTreeNode
+		wantAntagonist bool
+	}{
+		{"", &DualTreeNode{}, &DualTreeNode{}, true},
+		{"value", &DualTreeNode{value: "x"}, &DualTreeNode{value: "x"}, true},
+		{"same-val-same-left", &DualTreeNode{value: "x", left: Add.ToDualTreeNode("1")}, &DualTreeNode{value: "x",
+			left: Add.ToDualTreeNode("1"), key:"123"},
+			true},
+		{"same-val-same-right", &DualTreeNode{value: "x", right: Add.ToDualTreeNode("1")}, &DualTreeNode{value: "x",
+			right: Add.ToDualTreeNode("1")},
+			true},
+		{"diff-arity-same-val", &DualTreeNode{value: "x", arity: 2}, &DualTreeNode{value: "x", arity: 1}, false},
+		{"diff-arity-same-val", &DualTreeNode{value: "*", arity: 2}, &DualTreeNode{value: "x", arity: 1}, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.treeNode.IsEqual(tt.subTree); got != tt.wantAntagonist {
+				t.Errorf("DualTreeNode.IsEqual() = %v, wantAntagonist %v", got, tt.wantAntagonist)
+			}
+		})
+	}
+}
 
 func TestDualTreeNode_Clone(t *testing.T) {
 	tests := []struct {
@@ -106,8 +106,8 @@ func TestDualTreeNode_Clone(t *testing.T) {
 		want   DualTreeNode
 	}{
 		{"nil", DualTreeNode{}, DualTreeNode{}},
-		{"const1", *Const1.ToDualTreeNode(1), *Const1.ToDualTreeNode(1)},
-		{"const4", *Const4.ToDualTreeNode(2), *Const4.ToDualTreeNode(2)},
+		{"const1", *Const1.ToDualTreeNode(RandString(5)), *Const1.ToDualTreeNode(RandString(5))},
+		{"const4", *Const4.ToDualTreeNode(RandString(5)), *Const4.ToDualTreeNode(RandString(5))},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

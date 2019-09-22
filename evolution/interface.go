@@ -1,6 +1,6 @@
 package evolution
 
-// IDualTree represents a complete behavior for a tree
+// IDualTree represents a complete behavior for a treeNode
 type IDualTree interface {
 	IDualTreeInsertable
 	Get(index int) (*DualTreeNode, error)

@@ -1,10 +1,10 @@
 package evolution
 
-// DualTreeNode represents a a tree with a maximum of two children.
-// It is not technically a binary tree as it DOES not place any ordering on left and right children as binary trees
+// DualTreeNode represents a a treeNode with a maximum of two children.
+// It is not technically a binary treeNode as it DOES not place any ordering on left and right children as binary trees
 // prototypically do.
 type DualTreeNode struct {
-	key   int
+	key   string
 	value string
 	left  *DualTreeNode //left
 	right *DualTreeNode //right
@@ -12,30 +12,15 @@ type DualTreeNode struct {
 }
 
 // IsEqual checks to see if all aspects of a DualTreeNode are equivalent. This includes value as well as pointers
-//func (b *DualTreeNode) IsEqual(t *DualTreeNode) bool {
-//	if b.value != t.value {
-//		return false
-//	}
-//	if b.arity != b.arity {
-//		return false
-//	}
-//	if b.left  != nil && t.left == nil {
-//		return false
-//	}
-//	if b.left  == nil && t.left != nil {
-//		return false
-//	}
-//	if b.left  == nil && t.left == nil {
-//		return true
-//	}
-//	if b.left.IsEqual(t.left) {
-//		return false
-//	}
-//	if b.right.IsEqual(t.right) {
-//		return false
-//	}
-//	return true
-//}
+func (b *DualTreeNode) IsEqual(t *DualTreeNode) bool {
+	if b.key != t.key {
+		return false
+	}
+	if b.value != t.value {
+		return false
+	}
+	return true
+}
 
 // IsValEqual is a simple check to see if values of strings in the nodes are equal
 func (d *DualTreeNode) IsValEqual(t *DualTreeNode) bool {
@@ -86,6 +71,13 @@ func (d *DualTreeNode) ToSymbolicExpression() SymbolicExpression {
 		arity: d.arity,
 		value: d.value,
 		kind:  kind,
+	}
+}
+
+// ToDualTree takes a given node and returns a treeNode from it by following the path.
+func (d *DualTreeNode) ToDualTree() DualTree {
+	return DualTree{
+		root: d,
 	}
 }
 

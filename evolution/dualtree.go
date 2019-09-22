@@ -12,13 +12,13 @@ import (
 
 // TODO enable concurrent safe access for DualTree Methods
 
-// DualTree the binary search tree of Items
+// DualTree the binary search treeNode of Items
 type DualTree struct {
 	root *DualTreeNode
 	lock sync.RWMutex
 }
 
-// RandomLeaf locates a random leaf within a tree and returns the ref to the node.
+// RandomLeaf locates a random leaf within a treeNode and returns the ref to the node.
 func (bst *DualTree) RandomLeaf() (*DualTreeNode, error) {
 	if bst.root == nil {
 		return nil, fmt.Errorf("root cannot be nil")
@@ -37,14 +37,14 @@ func (bst *DualTree) RandomLeaf() (*DualTreeNode, error) {
 	return nodes[randIndex], nil
 }
 
-// RandomBranch locates a random branch within a tree and returns the ref to the node.
+// RandomBranch locates a random branch within a treeNode and returns the ref to the node.
 func (bst *DualTree) RandomBranch() (*DualTreeNode, error) {
 	if bst.root == nil {
 		return nil, fmt.Errorf("root cannot be nil")
 	}
 	node := bst.root
 	if node.left == nil && node.right == nil {
-		return nil, fmt.Errorf("invalid tree, cannot only contain non-terminal")
+		return nil, fmt.Errorf("invalid treeNode, cannot only contain non-terminal")
 	}
 
 	nodes, err := bst.Branches()
@@ -57,11 +57,11 @@ func (bst *DualTree) RandomBranch() (*DualTreeNode, error) {
 	return nodes[randIndex], nil
 }
 
-// Leafs returns all the leaves in a given tree
+// Leafs returns all the leaves in a given treeNode
 func (d *DualTree) Leafs() ([]*DualTreeNode, error) {
 	nodes := make([]*DualTreeNode, 0)
 	if d.root == nil {
-		return nil, fmt.Errorf("tree root cannot be nil")
+		return nil, fmt.Errorf("treeNode root cannot be nil")
 	}
 
 	if d.root.right == nil && d.root.left == nil {
@@ -91,12 +91,12 @@ func leaf(node *DualTreeNode, nodes *[]*DualTreeNode) {
 func (d *DualTree) Branches() ([]*DualTreeNode, error) {
 	nodes := make([]*DualTreeNode, 0)
 	if d.root == nil {
-		return nil, fmt.Errorf("tree root cannot be nil")
+		return nil, fmt.Errorf("treeNode root cannot be nil")
 	}
 
 	if d.root.right == nil && d.root.left == nil {
 		nodes = append(nodes, d.root)
-		return nil, fmt.Errorf("tree has size (1) root is not a nonterminal")
+		return nil, fmt.Errorf("treeNode has size (1) root is not a nonterminal")
 	}
 
 	branch(d.root, &nodes)
@@ -114,7 +114,7 @@ func branch(node *DualTreeNode, nodes *[]*DualTreeNode) {
 	return
 }
 
-// StrategyAddSubTree adds a given subtree to a tree.
+// StrategyAddSubTree adds a given subtree to a treeNode.
 func (bst *DualTree) AddSubTree(subTree *DualTree) error {
 	if subTree == nil {
 		return fmt.Errorf("cannot add a nil subTree")
@@ -123,14 +123,14 @@ func (bst *DualTree) AddSubTree(subTree *DualTree) error {
 		return fmt.Errorf("cannot add a subTree with a nil root")
 	}
 	if subTree.root.left == nil && subTree.root.right == nil {
-		return fmt.Errorf("subTree cannot be composed of a single terminal - no operation to add it to the tree.")
+		return fmt.Errorf("subTree cannot be composed of a single terminal - no operation to add it to the treeNode.")
 	}
 
 	if bst.root == nil {
-		return fmt.Errorf("tree you are adding to has nil root")
+		return fmt.Errorf("treeNode you are adding to has nil root")
 	}
 	if bst.root.left == nil && bst.root.right == nil {
-		return fmt.Errorf("tree you are adding to is a lone terminal")
+		return fmt.Errorf("treeNode you are adding to is a lone terminal")
 	}
 
 	node, err := bst.RandomBranch()
@@ -160,10 +160,10 @@ func (bst *DualTree) InsertSubTree(index int, subTree *DualTree) error {
 // deleting its associated child nodes by setting them to nil
 func (bst *DualTree) DeleteSubTree() error {
 	if bst.root == nil {
-		return fmt.Errorf("tree you are deleting to has nil root")
+		return fmt.Errorf("treeNode you are deleting to has nil root")
 	}
 	if bst.root.left == nil && bst.root.right == nil {
-		return fmt.Errorf("tree you are deleting to is a lone terminal")
+		return fmt.Errorf("treeNode you are deleting to is a lone terminal")
 	}
 
 	node, err := bst.RandomBranch()
@@ -196,14 +196,14 @@ func (bst *DualTree) SoftDeleteSubTree() error {
 	return nil
 }
 
-// SwapSubTrees swaps a set of subtrees in a given tree. It is a bit expensive as the parent needs to be obtained
+// SwapSubTrees swaps a set of subtrees in a given treeNode. It is a bit expensive as the parent needs to be obtained
 // TODO Create Efficient Way of Locating Parent of NonTerminal Node
 func (bst *DualTree) SwapSubTrees() error {
 	if bst.root == nil {
-		return fmt.Errorf("tree you are swapping to has nil root")
+		return fmt.Errorf("treeNode you are swapping to has nil root")
 	}
 	if bst.root.left == nil && bst.root.right == nil {
-		return fmt.Errorf("tree you are swapping to is a lone terminal")
+		return fmt.Errorf("treeNode you are swapping to is a lone terminal")
 	}
 
 	nodes, err := bst.Branches()
@@ -227,11 +227,11 @@ func (bst *DualTree) SwapSubTrees() error {
 }
 
 // MutateTerminal will mutate a terminal to another valid terminal. If the terminalSet only contains a single item,
-// that is already in the tree and that tree element is of size 1 (root only).
+// that is already in the treeNode and that treeNode element is of size 1 (root only).
 // If both these elements are identical no change will occur
 func (bst *DualTree) MutateTerminal(terminalSet []SymbolicExpression) error {
 	if bst.root == nil {
-		return fmt.Errorf("tree you are swapping to has nil root")
+		return fmt.Errorf("treeNode you are swapping to has nil root")
 	}
 	if terminalSet == nil {
 		return fmt.Errorf("terminal set cannot be nil")
@@ -277,10 +277,10 @@ func (bst *DualTree) MutateTerminal(terminalSet []SymbolicExpression) error {
 // NOTE ensure nonTerminalSet contains no duplicates
 func (bst *DualTree) MutateNonTerminal(nonTerminalSet []SymbolicExpression) error {
 	if bst.root == nil {
-		return fmt.Errorf("tree you are swapping to has nil root")
+		return fmt.Errorf("treeNode you are swapping to has nil root")
 	}
 	if bst.root.left == nil && bst.root.right == nil {
-		return fmt.Errorf("tree you are swapping to is a lone terminal")
+		return fmt.Errorf("treeNode you are swapping to is a lone terminal")
 	}
 	if nonTerminalSet == nil {
 		return fmt.Errorf("nonTerminalSet set cannot be nil")
@@ -317,11 +317,11 @@ func (bst *DualTree) MutateNonTerminal(nonTerminalSet []SymbolicExpression) erro
 				}
 				if !hasDiverseNonTerminalSet {
 					// If the terminal set only has an item (
-					// which will always get chosen since its just one item) and the tree has no set of diverse terminals
+					// which will always get chosen since its just one item) and the treeNode has no set of diverse terminals
 					// i.e. all the nonterminals have the same value, just return as no useful work can be done here.
 					return nil
 				} else {
-					// if the tree has a diverse set of non terminals,
+					// if the treeNode has a diverse set of non terminals,
 					// then the set should at least be able to replace one of those differing Non Terminals
 					continue
 				}
@@ -341,10 +341,10 @@ func (bst *DualTree) MutateNonTerminal(nonTerminalSet []SymbolicExpression) erro
 
 func (bst *DualTree) GetRandomSubTree() (*DualTree, error) {
 	if bst.root == nil {
-		return nil, fmt.Errorf("tree you are adding to has nil root")
+		return nil, fmt.Errorf("treeNode you are adding to has nil root")
 	}
 	if bst.root.left == nil && bst.root.right == nil {
-		return nil, fmt.Errorf("tree you are adding to is a lone terminal")
+		return nil, fmt.Errorf("treeNode you are adding to is a lone terminal")
 	}
 	//node, err := bst.RandomBranch()
 	//if err != nil {
@@ -355,26 +355,26 @@ func (bst *DualTree) GetRandomSubTree() (*DualTree, error) {
 }
 
 // GetNode returns the first node it encounters with the given value.
-// It uses Inorder DFS to iterate through the tree, if it cannot locate an object it returns an error,
-// if the tree is of size 1 i.e only containing the root, both parent and node will point to the root,
+// It uses Inorder DFS to iterate through the treeNode, if it cannot locate an object it returns an error,
+// if the treeNode is of size 1 i.e only containing the root, both parent and node will point to the root,
 // in all other cases where size > 1, node and parent will be different granted the value can be found.
 func (bst *DualTree) GetNode(value string) (node *DualTreeNode, parent *DualTreeNode, err error) {
 	// require
 	if bst.root == nil {
-		return nil, nil, fmt.Errorf("tree root cannot be nil")
+		return nil, nil, fmt.Errorf("treeNode root cannot be nil")
 	}
 	if value == "" {
 		return nil, nil, fmt.Errorf("value cannot be empty")
 	}
 	if bst.root.left == nil && bst.root.right == nil {
 		if bst.root.value != value {
-			return nil, nil, fmt.Errorf("tree node not found")
+			return nil, nil, fmt.Errorf("treeNode node not found")
 		}else {
 			return bst.root, bst.root, nil
 		}
 	}
 
-	err = fmt.Errorf("tree node not found")
+	err = fmt.Errorf("treeNode node not found")
 
 	bst.InOrderTraverseAware(func(n *DualTreeNode, p *DualTreeNode) {
 		if n.value == value {
@@ -389,10 +389,10 @@ func (bst *DualTree) GetNode(value string) (node *DualTreeNode, parent *DualTree
 }
 
 // SelectNodesUpToDepth returns a list of nodes that do not exceed the indicated depth.
-// This will start from the root of the tree and follow and InorderDFS
+// This will start from the root of the treeNode and follow and InorderDFS
 func (bst *DualTree) SelectNodesUpToDepth(depth int) ([]*DualTreeNode, error) {
 	if bst.root == nil {
-		return nil, fmt.Errorf("cannot find depth in nil tree | root == nil")
+		return nil, fmt.Errorf("cannot find depth in nil treeNode | root == nil")
 	}
 
 	nodes := make([]*DualTreeNode, 0)
@@ -417,14 +417,14 @@ func diveMaxDepth(node *DualTreeNode, maxDepth int, nodes []*DualTreeNode) []*Du
 	return nodes
 }
 
-// CalculateMinDepth calculates the minimum depth of a given tree
+// CalculateMinDepth calculates the minimum depth of a given treeNode
 //func CalculateMinDepth(nodeCount int) int {
 //	if nodeCount < 1 {
 //		return 0
 //	}
 //}
 
-// Clone will perform an O(N) deep clone of a tree and its items and return its copy.
+// Clone will perform an O(N) deep clone of a treeNode and its items and return its copy.
 func (bst DualTree) Clone() DualTree {
 	return bst
 }
@@ -437,7 +437,7 @@ func (bst *DualTree) Size() int {
 	return count
 }
 
-// ContainsSubTree checks to see if a tree contains part of a subTree
+// ContainsSubTree checks to see if a treeNode contains part of a subTree
 func (bst *DualTree) ContainsSubTree(subTree *DualTree) (bool, error) {
 	if subTree == nil {
 		return false, fmt.Errorf("cannot add a nil subTree")
@@ -446,7 +446,7 @@ func (bst *DualTree) ContainsSubTree(subTree *DualTree) (bool, error) {
 		return false, fmt.Errorf("cannot add a subTree with a nil root")
 	}
 	if bst.root == nil {
-		return false, fmt.Errorf("tree you are adding to has nil root")
+		return false, fmt.Errorf("treeNode you are adding to has nil root")
 	}
 
 	subTreeSlice := make([]*DualTreeNode, 0)
@@ -481,10 +481,10 @@ func (bst *DualTree) ContainsSubTree(subTree *DualTree) (bool, error) {
 	return false, nil
 }
 
-// ContainsNode checks to see if a tree contains a given node
+// ContainsNode checks to see if a treeNode contains a given node
 func (bst *DualTree) ContainsNode(treeNode *DualTreeNode) (bool, error) {
 	if bst.root == nil {
-		return false, fmt.Errorf("tree has nil root")
+		return false, fmt.Errorf("treeNode has nil root")
 	}
 	if treeNode == nil {
 		return false, fmt.Errorf("cannot search for a nil treeNode")
@@ -492,7 +492,7 @@ func (bst *DualTree) ContainsNode(treeNode *DualTreeNode) (bool, error) {
 
 	found := false
 	bst.InOrderTraverse(func(node *DualTreeNode) {
-		if treeNode.IsValEqual(node) {
+		if treeNode.IsEqual(node) {
 			found = true
 		}
 		return
@@ -516,13 +516,13 @@ func (bst *DualTree) FromSymbolicExpressionSet(terminalSet []SymbolicExpression)
 		return fmt.Errorf("terminalSet cannot start with type nonterminal i.e SymbolicExpression.kind > 1")
 	}
 	if len(terminalSet) == 1 && terminalSet[0].kind < 1 {
-		bst.root = terminalSet[0].ToDualTreeNode(0)
+		bst.root = terminalSet[0].ToDualTreeNode(RandString(5))
 		return nil
 	}
 
 	//MainCase setup  -  SetupRoot and First Child
-	bst.root = terminalSet[1].ToDualTreeNode(0)
-	bst.root.left = terminalSet[0].ToDualTreeNode(1)
+	bst.root = terminalSet[1].ToDualTreeNode(RandString(5))
+	bst.root.left = terminalSet[0].ToDualTreeNode(RandString(5))
 
 	if terminalSet[0].kind < 1 && terminalSet[1].kind < 1 {
 		return fmt.Errorf("cannot have adjacent terminals got %#v %#v", bst.root, bst.root.left)
@@ -534,7 +534,7 @@ func (bst *DualTree) FromSymbolicExpressionSet(terminalSet []SymbolicExpression)
 		rem := bst.root.ArityRemainder()
 		if rem == 0 {
 			if terminalSet[i].kind >= 1 {
-				dtn := terminalSet[i].ToDualTreeNode(i)
+				dtn := terminalSet[i].ToDualTreeNode(RandString(5))
 				oldRoot := bst.root
 				dtn.left = oldRoot
 				bst.root = dtn
@@ -545,7 +545,7 @@ func (bst *DualTree) FromSymbolicExpressionSet(terminalSet []SymbolicExpression)
 			if terminalSet[i].kind >= 1 {
 				return fmt.Errorf("expected terminal at index: %d | got non-terminal %s", i, terminalSet[i].value)
 			} else {
-				dtn := terminalSet[i].ToDualTreeNode(i)
+				dtn := terminalSet[i].ToDualTreeNode(RandString(5))
 				bst.root.right = dtn
 			}
 		}
@@ -553,7 +553,7 @@ func (bst *DualTree) FromSymbolicExpressionSet(terminalSet []SymbolicExpression)
 
 	rem := bst.root.ArityRemainder()
 	if rem != 0 {
-		return fmt.Errorf("invalid tree - arity remainder is %d for root", rem)
+		return fmt.Errorf("invalid treeNode - arity remainder is %d for root", rem)
 	}
 
 	return nil
@@ -575,7 +575,7 @@ func (bst *DualTree) FromSymbolicExpressionSet2(terminalSet []SymbolicExpression
 		return fmt.Errorf("terminalSet cannot start with type nonterminal i.e SymbolicExpression.kind > 1")
 	}
 	if len(terminalSet) == 1 && terminalSet[0].kind < 1 {
-		bst.root = terminalSet[0].ToDualTreeNode(0)
+		bst.root = terminalSet[0].ToDualTreeNode(RandString(5))
 		return nil
 	}
 
@@ -630,7 +630,7 @@ func Splitter(expressionSet []SymbolicExpression) ([]*DualTreeNode, error) {
 
 	nodeSet := make([]*DualTreeNode, len(expressionSet))
 	for e := range expressionSet {
-		nodeSet[e] = expressionSet[e].ToDualTreeNode(e)
+		nodeSet[e] = expressionSet[e].ToDualTreeNode(RandString(5))
 	}
 
 	initialTrees := make([]*DualTreeNode, 0)
@@ -638,7 +638,7 @@ func Splitter(expressionSet []SymbolicExpression) ([]*DualTreeNode, error) {
 		nodeSet[i+1].left = nodeSet[i]
 		initialTrees = append(initialTrees, nodeSet[i+1])
 	}
-	initialTrees[len(initialTrees)-1].right = expressionSet[len(expressionSet)-1].ToDualTreeNode(len(expressionSet) - 1)
+	initialTrees[len(initialTrees)-1].right = expressionSet[len(expressionSet)-1].ToDualTreeNode(RandString(5))
 	return initialTrees, nil
 }
 
@@ -667,10 +667,10 @@ func combinator(node0, node1 *DualTreeNode) *DualTreeNode {
 	return node0
 }
 
-// Depth calculates the height of the tree. A tree with a nil root returns -1.
+// Depth calculates the height of the treeNode. A treeNode with a nil root returns -1.
 func (d *DualTree) Depth() (int, error) {
 	if d.root == nil {
-		return -1, fmt.Errorf("cannot find depth in nil tree | root == nil")
+		return -1, fmt.Errorf("cannot find depth in nil treeNode | root == nil")
 	}
 
 	currentDepth := dive(d.root)
@@ -691,11 +691,10 @@ func dive(node *DualTreeNode) int {
 	}
 }
 
-// DepthTo calculates the depth of the tree until the given set of nodes.
-// All nodes traversed will be returned until that point (Not including).
-func (d *DualTree) DepthTo(depth int) ([]*DualTreeNode, error) {
+// DepthAt returns a group of nodes AT the specified depth. No more no less.
+func (d *DualTree) DepthAt(depth int) ([]*DualTreeNode, error) {
 	if d.root == nil {
-		return nil, fmt.Errorf("cannot find depth in nil tree | root == nil")
+		return nil, fmt.Errorf("cannot find depth in nil treeNode | root == nil")
 	}
 	if depth < 0 {
 		return nil, fmt.Errorf("cannot find depth when supplied depth is negative")
@@ -703,46 +702,75 @@ func (d *DualTree) DepthTo(depth int) ([]*DualTreeNode, error) {
 
 	nodes := make([]*DualTreeNode, 0)
 	startDepth := 0
-	nodes, _ = diveUntil(d.root, nodes, &startDepth, depth)
+	nodes = diveTo(d.root, &nodes, &startDepth, depth)
 	return nodes, nil
 }
 
-func diveUntil(node *DualTreeNode, nodes []*DualTreeNode, currDepth *int, maxDepth int) ([]*DualTreeNode, int) {
-	*currDepth = *currDepth + 1
+func diveTo(node *DualTreeNode, nodes *[]*DualTreeNode, currDepth *int, maxDepth int) []*DualTreeNode {
+	if node == nil {
+		return *nodes
+	}
 	if *currDepth <= maxDepth {
-		_, _ = diveUntil(node.left, nodes, currDepth, maxDepth)
-	} else {
-		nodes = append(nodes, node)
-		return nodes, 0
+		if node.left == nil && node.right == nil {
+			if *currDepth == maxDepth {
+				*nodes = append(*nodes, node)
+				return *nodes
+			}
+			return *nodes
+		}
+		cDIncr := *currDepth + 1
+		if cDIncr > maxDepth {
+			*nodes = append(*nodes, node)
+			return *nodes
+		}
+		*currDepth++
+		diveTo(node.left, nodes, currDepth,  maxDepth)
+		diveTo(node.right, nodes, currDepth, maxDepth)
+		*currDepth--
+	}
+	return *nodes
+}
+
+
+
+// DepthTo calculates the depth of the treeNode until the given set of nodes.
+// All nodes traversed will be returned until that point (Not including).
+// A depth value greater than the size of the treeNode will return the entire treeNode's nodes.
+func (d *DualTree) DepthTo(depth int) ([]*DualTreeNode, error) {
+	if d.root == nil {
+		return nil, fmt.Errorf("cannot find depth in nil treeNode | root == nil")
+	}
+	if depth < 0 {
+		return nil, fmt.Errorf("cannot find depth when supplied depth is negative")
 	}
 
-	*currDepth = 0
-	if *currDepth <= maxDepth {
-		_, _ = diveUntil(node.right, nodes, currDepth, maxDepth)
-	} else {
-		nodes = append(nodes, node)
-		return nodes, 0
-	}
+	nodes := make([]*DualTreeNode, 0)
+	startDepth := 0
+	nodes = diveUntil(d.root, &nodes, &startDepth, depth)
+	return nodes, nil
+}
 
-	//if *currDepth < maxDepth {
-	//	if node == nil {
-	//		return nodes, 0
-	//	}
-	//}else {
-	//	return  nodes, 0
-	//}
-	//
-	//*currDepth = *currDepth + 1
-	//nodes, lDepth := diveUntil(node.left, nodes, currDepth, maxDepth)
-	//nodes = append(nodes, node)
-	//nodes, rDepth := diveUntil(node.right, nodes, currDepth, maxDepth)
-	//
-	//if lDepth > rDepth {
-	//	return nodes, lDepth + 1
-	//} else {
-	//	return nodes, rDepth + 1
-	//}
-	return nodes, 0
+
+func diveUntil(node *DualTreeNode, nodes *[]*DualTreeNode, currDepth *int, maxDepth int) []*DualTreeNode {
+	if node == nil {
+		return *nodes
+	}
+	if *currDepth <= maxDepth {
+		if node.left == nil && node.right == nil {
+			*nodes = append(*nodes, node)
+			return *nodes
+		}
+		*nodes = append(*nodes, node)
+		cDIncr := *currDepth + 1
+		if cDIncr > maxDepth {
+			return *nodes
+		}
+		*currDepth++
+		diveUntil(node.left, nodes, currDepth,  maxDepth)
+		diveUntil(node.right, nodes, currDepth, maxDepth)
+		*currDepth--
+	}
+	return *nodes
 }
 
 func (bst *DualTree) Random(terminalSet []SymbolicExpression, maxDepth int) error {
@@ -756,7 +784,7 @@ func (bst *DualTree) InOrderTraverse(f func(node *DualTreeNode)) {
 	inOrderTraverse(bst.root, f)
 }
 
-// InOrderTraverse visits all nodes with in-order traversing
+// InOrderTraverse visits all nodes with in-order traversing but remembers its parent. (A good child :D)
 func (bst *DualTree) InOrderTraverseAware(f func(node *DualTreeNode, parentNode *DualTreeNode)) {
 	bst.lock.RLock()
 	defer bst.lock.RUnlock()
@@ -790,7 +818,7 @@ func inOrderTraverseAware(n *DualTreeNode, parent *DualTreeNode, f func(node *Du
 	}
 }
 
-// Print prints a visual representation of the tree
+// Print prints a visual representation of the treeNode
 func (bst *DualTree) Print() {
 	bst.lock.Lock()
 	defer bst.lock.Unlock()
@@ -799,7 +827,7 @@ func (bst *DualTree) Print() {
 	fmt.Println("------------------------------------------------")
 }
 
-// internal recursive function to print a tree
+// internal recursive function to print a treeNode
 func stringify(n *DualTreeNode, level int) {
 	if n != nil {
 		format := ""
@@ -814,10 +842,10 @@ func stringify(n *DualTreeNode, level int) {
 	}
 }
 
-// ToMathematicalString returns a mathematical representation of the tree after reading it using Inorder DFS
+// ToMathematicalString returns a mathematical representation of the treeNode after reading it using Inorder DFS
 func (d *DualTree) ToMathematicalString() (string, error) {
 	if d.root == nil {
-		return "", fmt.Errorf("tree root is nil cannot compute mathematical expression")
+		return "", fmt.Errorf("treeNode root is nil cannot compute mathematical expression")
 	}
 
 	var err error = nil
@@ -825,13 +853,13 @@ func (d *DualTree) ToMathematicalString() (string, error) {
 	sb := strings.Builder{}
 	d.InOrderTraverse(func(node *DualTreeNode) {
 		if node.arity == 1 && node.left == nil {
-			err = fmt.Errorf("invalid tree structure, "+
-				"unable to convert to mathematical expression: see node: %d", node.key)
+			err = fmt.Errorf("invalid treeNode structure, "+
+				"unable to convert to mathematical expression: see node: %s", node.key)
 			return
 		}
 
 		if node.arity > 1 && (node.left == nil || node.right == nil) {
-			err = fmt.Errorf("invalid tree structure to convert to mathematical expression: see node: %d", node.key)
+			err = fmt.Errorf("invalid treeNode structure to convert to mathematical expression: see node: %s", node.key)
 			return
 		}
 		sb.WriteString(node.value + " ")
@@ -845,20 +873,20 @@ func (d *DualTree) ToMathematicalString() (string, error) {
 
 func (d *DualTree) Validate() error {
 	if d.root == nil {
-		return fmt.Errorf("error: tree root is nil")
+		return fmt.Errorf("error: treeNode root is nil")
 	}
 
 	var err error = nil
 
 	d.InOrderTraverse(func(node *DualTreeNode) {
 		if node.arity == 1 && node.left == nil {
-			err = fmt.Errorf("invalid tree structure, "+
-				"unable to convert to mathematical expression: see node: %d", node.key)
+			err = fmt.Errorf("invalid treeNode structure, "+
+				"unable to convert to mathematical expression: see node: %s", node.key)
 			return
 		}
 
 		if node.arity > 1 && (node.left == nil || node.right == nil) {
-			err = fmt.Errorf("invalid tree structure to convert to mathematical expression: see node: %d", node.key)
+			err = fmt.Errorf("invalid treeNode structure to convert to mathematical expression: see node: %s", node.key)
 			return
 		}
 	})
@@ -866,8 +894,8 @@ func (d *DualTree) Validate() error {
 	return err
 }
 
-// GenerateRandomTree generates a given tree of a depth between 0 (i.e) root and (inclusive of) the depth specified.
-// Assuming a binary structured tree. The number of terminals (T) is equal to 2^D where D is the depth.
+// GenerateRandomTree generates a given treeNode of a depth between 0 (i.e) root and (inclusive of) the depth specified.
+// Assuming a binary structured treeNode. The number of terminals (T) is equal to 2^D where D is the depth.
 // The number of NonTerminals (NT) is equal to 2^D - 1
 func GenerateRandomTree(depth int, terminals []SymbolicExpression,
 	nonTerminals []SymbolicExpression) (*DualTree, error) {
@@ -890,7 +918,7 @@ func GenerateRandomTree(depth int, terminals []SymbolicExpression,
 	if len(nonTerminals) < 1 {
 		rand.Seed(time.Now().UnixNano())
 		tree := &DualTree{}
-		tree.root = terminals[rand.Intn(len(terminals))].ToDualTreeNode(0)
+		tree.root = terminals[rand.Intn(len(terminals))].ToDualTreeNode(RandString(5))
 		return tree, nil
 	}
 
@@ -926,7 +954,7 @@ func GenerateRandomTree(depth int, terminals []SymbolicExpression,
 
 	err := tree.FromSymbolicExpressionSet2(combinedArr)
 	if err != nil {
-		return nil, fmt.Errorf("error creating random tree | %s", err.Error())
+		return nil, fmt.Errorf("error creating random treeNode | %s", err.Error())
 	}
 	return &tree, nil
 }
@@ -979,7 +1007,7 @@ func (n *SymbolicExpression) CreateTerminal(arity int, value string) {
 	n.kind = 0
 }
 
-func (n *SymbolicExpression) ToDualTreeNode(key int) *DualTreeNode {
+func (n *SymbolicExpression) ToDualTreeNode(key string) *DualTreeNode {
 	return &DualTreeNode{
 		value: n.value,
 		arity: n.arity,
@@ -1027,35 +1055,61 @@ func (bst *DualTree) hasDiverseNonTerminalSet() (bool, error) {
 	return false, nil
 }
 
-// GetRandomSubTreeAtDepth will obtain a random subTree from a given tree.
-// It assumes the depth you provide is the appropriate range as it WILL NOT check the depth and panic incase of a
-// depth out of bounds. (This is done to prevent ane xtra redundant call to the depth method of tree if the user has
+// GetRandomSubTreeAtDepth will obtain a random subTree from a given treeNode.
+// It assumes the depth you provide is the appropriate range as it WILL NOT check the depth and panic in case of a
+// depth out of bounds. (This is done to prevent an extra redundant call to the depth method of treeNode if the user has
 // already called it.
 func (d *DualTree) GetRandomSubTreeAtDepth(depth int) (DualTree, error) {
 	if d.root == nil {
-		return DualTree{}, fmt.Errorf("cannot get depth - tree nil")
+		return DualTree{}, fmt.Errorf("cannot get depth - treeNode nil")
 	}
 	if depth < 0 {
 		return DualTree{}, fmt.Errorf("cannot get depth - depth is less than 0")
 	}
 
-	// Get Nodes at Depth
-	// Get Random Node at Depth
+	rand.Seed(time.Now().UnixNano())
+	randomDepth := rand.Intn(depth+1)
 
-	//do
-	return DualTree{}, nil
+	nodes, err := d.DepthTo(randomDepth)
+	if err != nil {
+		return DualTree{}, err
+	}
+
+	rand.Seed(time.Now().UnixNano())
+	randomNodeIndex := rand.Intn(len(nodes))
+	randomNode := nodes[randomNodeIndex]
+
+	return randomNode.ToDualTree(), nil
 }
 
-// GetNodesAtDepth returns all the nodes at a given depth
-func (d *DualTree) GetNodesAtDepth(depth int) ([]*DualTreeNode, error) {
+// GetRandomSubTreeAtDepth will obtain a random subTree from a given treeNode.
+// It assumes the depth you provide is the appropriate range as it WILL NOT check the depth and panic in case of a
+// depth out of bounds. (This is done to prevent an extra redundant call to the depth method of treeNode if the user has
+// already called it.
+func (d *DualTree) GetRandomSubTreeAtDepthAware(depth int) (DualTree, error) {
 	if d.root == nil {
-		return nil, fmt.Errorf("cannot get depth - tree nil")
+		return DualTree{}, fmt.Errorf("cannot get depth - treeNode nil")
 	}
 	if depth < 0 {
-		return nil, fmt.Errorf("cannot get depth - depth is less than 0")
+		return DualTree{}, fmt.Errorf("cannot get depth - depth is less than 0")
 	}
 
-	nodes := make([]*DualTreeNode, 0)
+	rand.Seed(time.Now().UnixNano())
+	randomDepth := rand.Intn(depth+1)
 
-	return nodes, nil
+	nodes, err := d.DepthTo(randomDepth)
+	if err != nil {
+		return DualTree{}, err
+	}
+
+	rand.Seed(time.Now().UnixNano())
+	randomNodeIndex := rand.Intn(len(nodes))
+	randomNode := nodes[randomNodeIndex]
+
+	return randomNode.ToDualTree(), nil
 }
+
+//func Swapper(tree1 DualTree, tree2 DualTree, subTree1 DualTree, subTree2 DualTree) (p1 DualTree, p2 DualTree,
+//	c1 DualTree, c2 DualTree) {
+//
+//}

@@ -208,10 +208,10 @@ func TestDualTree_Leafs(t *testing.T) {
 		wantErr bool
 	}{
 		{"nil", TreeNil(), nil, true},
-		{"T", TreeT_0(), []*DualTreeNode{X1.ToDualTreeNode(0)}, false},
-		{"T-NT-T", TreeT_NT_T_0(), []*DualTreeNode{X1.ToDualTreeNode(0), Const4.ToDualTreeNode(1)}, false},
-		{"T-NT-T-NT-T", TreeT_NT_T_NT_T_0(), []*DualTreeNode{X1.ToDualTreeNode(0), X1.ToDualTreeNode(0),
-			Const4.ToDualTreeNode(1)}, false},
+		{"T", TreeT_0(), []*DualTreeNode{X1.ToDualTreeNode(RandString(5))}, false},
+		{"T-NT-T", TreeT_NT_T_0(), []*DualTreeNode{X1.ToDualTreeNode(RandString(5)), Const4.ToDualTreeNode(RandString(5))}, false},
+		{"T-NT-T-NT-T", TreeT_NT_T_NT_T_0(), []*DualTreeNode{X1.ToDualTreeNode(RandString(5)), X1.ToDualTreeNode(RandString(5)),
+			Const4.ToDualTreeNode(RandString(5))}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -257,9 +257,9 @@ func TestDualTree_RandomLeaf(t *testing.T) {
 		wantErr bool
 	}{
 		{"nil", TreeNil(), nil, true},
-		{"T", TreeT_0(), X1.ToDualTreeNode(0), false},
-		{"T-NT-T", TreeT_NT_T_0(), X1.ToDualTreeNode(0), false},
-		{"T-NT-T-NT-T", TreeT_NT_T_NT_T_0(), Const4.ToDualTreeNode(0), false},
+		{"T", TreeT_0(), X1.ToDualTreeNode(RandString(5)), false},
+		{"T-NT-T", TreeT_NT_T_0(), X1.ToDualTreeNode(RandString(5)), false},
+		{"T-NT-T-NT-T", TreeT_NT_T_NT_T_0(), Const4.ToDualTreeNode(RandString(5)), false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -291,9 +291,9 @@ func TestDualTree_Branches(t *testing.T) {
 	}{
 		{"nil", TreeNil(), nil, true},
 		{"T", TreeT_0(), nil, true},
-		{"T-NT-T", TreeT_NT_T_0(), []*DualTreeNode{Mult.ToDualTreeNode(0)}, false},
-		{"T-NT-T", Tree8(), []*DualTreeNode{Mult.ToDualTreeNode(0)}, false},
-		{"T-NT-T-NT-T", TreeT_NT_T_NT_T_0(), []*DualTreeNode{Sub.ToDualTreeNode(0), Mult.ToDualTreeNode(0)}, false},
+		{"T-NT-T", TreeT_NT_T_0(), []*DualTreeNode{Mult.ToDualTreeNode(RandString(5))}, false},
+		{"T-NT-T", Tree8(), []*DualTreeNode{Mult.ToDualTreeNode(RandString(5))}, false},
+		{"T-NT-T-NT-T", TreeT_NT_T_NT_T_0(), []*DualTreeNode{Sub.ToDualTreeNode(RandString(5)), Mult.ToDualTreeNode(RandString(5))}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -321,8 +321,8 @@ func TestDualTree_AddSubTree(t *testing.T) {
 		{"nil-subTree", TreeNil(), nil, true},
 		{"nil-subTree-root", TreeNil(), TreeNil(), true},
 		{"err-subTree-T", TreeNil(), TreeT_0(), true},
-		{"nil-tree-T", TreeNil(), TreeT_NT_T_0(), true},
-		{"tree-T", TreeT_0(), TreeT_NT_T_0(), true},
+		{"nil-treeNode-T", TreeNil(), TreeT_NT_T_0(), true},
+		{"treeNode-T", TreeT_0(), TreeT_NT_T_0(), true},
 		{"T-NT-T + T-NT-T", TreeT_NT_T_0(), TreeT_NT_T_1(), false},
 		{"T-NT-T + T-NT-T-NT-T", TreeT_NT_T_0(), TreeT_NT_T_NT_T_3(), false},
 		{"T-NT-T + T-NT-T-NT-T", TreeT_NT_T_NT_T_3(), TreeT_NT_T_NT_T_3(), false},
@@ -338,7 +338,7 @@ func TestDualTree_AddSubTree(t *testing.T) {
 						t.Error(err)
 					}
 					if !contains {
-						t.Errorf("The main tree does not contain elements of the subTree")
+						t.Errorf("The main treeNode does not contain elements of the subTree")
 					}
 					tt.tree.Print()
 				}
@@ -359,7 +359,7 @@ func TestDualTree_Contains(t *testing.T) {
 		{"nil-subTree", TreeNil(), nil, false, true},
 		{"nil-subTree-root", TreeNil(), TreeNil(), false, true},
 		{"err-subTree-T", TreeNil(), TreeT_0(), false, true},
-		{"nil-tree-T", TreeNil(), TreeT_NT_T_0(), false, true},
+		{"nil-treeNode-T", TreeNil(), TreeT_NT_T_0(), false, true},
 		{"same - T in T", TreeT_0(), TreeT_0(), true, false},
 		{"diff - T in T", TreeT_0(), TreeT_1(), false, false},
 		{"diff sizes", TreeT_0(), TreeT_NT_T_NT_T_1(), false, false},
@@ -392,9 +392,9 @@ func TestDualTree_RandomBranch(t *testing.T) {
 	}{
 		{"nil", TreeNil(), nil, true},
 		{"T", TreeT_0(), nil, true},
-		{"T-NT-T", TreeT_NT_T_0(), X1.ToDualTreeNode(0), false},
-		{"T-NT-T-NT-T", TreeT_NT_T_NT_T_3(), X1.ToDualTreeNode(0), false},
-		{"T-NT-T-NT-T", TreeT_NT_T_NT_T_3(), Const8.ToDualTreeNode(0), false},
+		{"T-NT-T", TreeT_NT_T_0(), X1.ToDualTreeNode(RandString(5)), false},
+		{"T-NT-T-NT-T", TreeT_NT_T_NT_T_3(), X1.ToDualTreeNode(RandString(5)), false},
+		{"T-NT-T-NT-T", TreeT_NT_T_NT_T_3(), Const8.ToDualTreeNode(RandString(5)), false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -426,11 +426,11 @@ func TestDualTree_ContainsNode(t *testing.T) {
 	}{
 		{"nil", TreeNil(), nil, false, true},
 		{"nil node", TreeT_0(), nil, false, true},
-		{"same | T in T", TreeT_0(), X1.ToDualTreeNode(0), true, false},
-		{"same | T in T-NT-T", TreeT_NT_T_0(), X1.ToDualTreeNode(0), true, false},
-		{"same | T in T-NT-T", TreeT_NT_T_0(), Const4.ToDualTreeNode(0), true, false},
-		{"same | T in T-NT-T", TreeT_NT_T_0(), Const8.ToDualTreeNode(0), false, false},
-		{"same | T in T-NT-T-NT-T", TreeT_NT_T_NT_T_3(), Sub.ToDualTreeNode(0), true, false},
+		{"same | T in T", TreeT_0(), X1.ToDualTreeNode("0"), true, false},
+		{"same | T in T-NT-T", TreeT_NT_T_0(), X1.ToDualTreeNode("2"), true, false},
+		{"same | T in T-NT-T", TreeT_NT_T_0(), Const4.ToDualTreeNode("3"), true, false},
+		{"same | T in T-NT-T", TreeT_NT_T_0(), Const8.ToDualTreeNode("2"), false, false},
+		{"same | T in T-NT-T-NT-T", TreeT_NT_T_NT_T_3(), Sub.ToDualTreeNode("1"), true, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -542,7 +542,7 @@ func TestDualTree_MutateTerminal(t *testing.T) {
 					t.Error(err)
 				}
 				if len(oldTreeLeafs) != len(newTreeLeafs) {
-					t.Errorf("len of oldTree is not equal to new tree %d | got: %d", len(oldTreeLeafs), len(newTreeLeafs))
+					t.Errorf("len of oldTree is not equal to new treeNode %d | got: %d", len(oldTreeLeafs), len(newTreeLeafs))
 				}
 
 				diffCount := 0
@@ -551,7 +551,7 @@ func TestDualTree_MutateTerminal(t *testing.T) {
 						diffCount++
 					}
 					if diffCount > 1 {
-						t.Errorf("old and new tree should by different by only a single node. "+
+						t.Errorf("old and new treeNode should by different by only a single node. "+
 							"got: %#v |  original: %#v", newTreeLeafs, oldTreeLeafs)
 					}
 				}
@@ -611,7 +611,7 @@ func TestDualTree_MutateNonTerminal(t *testing.T) {
 					t.Error(err)
 				}
 				if len(oldTreeNonTerminals) != len(newTreeNonTerminals) {
-					t.Errorf("len of oldTree is not equal to new tree %d | got: %d", len(oldTreeNonTerminals), len(newTreeNonTerminals))
+					t.Errorf("len of oldTree is not equal to new treeNode %d | got: %d", len(oldTreeNonTerminals), len(newTreeNonTerminals))
 				}
 
 				diffCount := 0
@@ -620,7 +620,7 @@ func TestDualTree_MutateNonTerminal(t *testing.T) {
 						diffCount++
 					}
 					if diffCount > 1 {
-						t.Errorf("old and new tree should by different by only a single node. "+
+						t.Errorf("old and new treeNode should by different by only a single node. "+
 							"got: %#v |  original: %#v", newTreeNonTerminals, oldTreeNonTerminals)
 					}
 				}
@@ -677,17 +677,17 @@ func BenchmarkSplitter(b *testing.B) {
 func TestSplitter(t *testing.T) {
 
 	symEx0 := []SymbolicExpression{X1, Add, Const4}
-	node0 := symEx0[1].ToDualTreeNode(1)
-	node0.left = symEx0[0].ToDualTreeNode(0)
-	node0.right = symEx0[2].ToDualTreeNode(2)
+	node0 := symEx0[1].ToDualTreeNode(RandString(5))
+	node0.left = symEx0[0].ToDualTreeNode(RandString(5))
+	node0.right = symEx0[2].ToDualTreeNode(RandString(5))
 	node0Arr := []*DualTreeNode{node0}
 
 	symEx1 := []SymbolicExpression{X1, Add, Const4, Mult, Const8}
-	node1 := symEx1[1].ToDualTreeNode(1)
-	node1.left = symEx1[0].ToDualTreeNode(0)
-	node2 := symEx1[3].ToDualTreeNode(1)
-	node2.left = symEx1[2].ToDualTreeNode(1)
-	node3 := symEx1[4].ToDualTreeNode(1)
+	node1 := symEx1[1].ToDualTreeNode(RandString(5))
+	node1.left = symEx1[0].ToDualTreeNode(RandString(5))
+	node2 := symEx1[3].ToDualTreeNode(RandString(5))
+	node2.left = symEx1[2].ToDualTreeNode(RandString(5))
+	node3 := symEx1[4].ToDualTreeNode(RandString(5))
 	node1Arr := []*DualTreeNode{node1, node2, node3}
 
 	tests := []struct {
@@ -771,7 +771,7 @@ func TestDualTree_ToSymbolicExpressionSet(t *testing.T) {
 		fields *DualTree
 		want   []SymbolicExpression
 	}{
-		{"tree-nil", TreeNil(), []SymbolicExpression{}},
+		{"treeNode-nil", TreeNil(), []SymbolicExpression{}},
 		{"T", TreeT_1(), []SymbolicExpression{Const0}},
 		{"T-NT-T", TreeT_NT_T_0(), []SymbolicExpression{X1, Mult, Const4}},
 		{"T-NT-T-NT-T", TreeT_NT_T_NT_T_0(), []SymbolicExpression{X1, Sub, X1, Mult, Const4}},
@@ -908,9 +908,9 @@ func TestDualTree_SelectNodesUpToDepth(t *testing.T) {
 		wantErr bool
 	}{
 		//{"nil", TreeNil(), 3, nil, true},
-		{"T", TreeT_0(), 3, []*DualTreeNode{X1.ToDualTreeNode(0)}, false},
-		{"TreeT_NT_T_0", TreeT_NT_T_0(), 3, []*DualTreeNode{X1.ToDualTreeNode(0), Mult.ToDualTreeNode(1),
-			Const4.ToDualTreeNode(2)},
+		{"T", TreeT_0(), 3, []*DualTreeNode{X1.ToDualTreeNode(RandString(5))}, false},
+		{"TreeT_NT_T_0", TreeT_NT_T_0(), 3, []*DualTreeNode{X1.ToDualTreeNode(RandString(5)), Mult.ToDualTreeNode(RandString(5)),
+			Const4.ToDualTreeNode(RandString(5))},
 			false},
 	}
 	for _, tt := range tests {
@@ -934,7 +934,8 @@ func TestDualTree_SelectNodesUpToDepth(t *testing.T) {
 	}
 }
 
-func TestDualTree_GetNodesAtDepth(t *testing.T) {
+
+func TestDualTree_DepthTo(t *testing.T) {
 	type args struct {
 		depth int
 	}
@@ -945,43 +946,31 @@ func TestDualTree_GetNodesAtDepth(t *testing.T) {
 		want    []*DualTreeNode
 		wantErr bool
 	}{
-		//{"nil-root", TreeNil(), 0, nil, true},
-		//{"negative depth", TreeT_0(), -1, nil, true},
-		{"depth=0", TreeT_0(), 0, []*DualTreeNode{TreeT_0().root}, false},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := tt.fields.GetNodesAtDepth(tt.depth)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("DualTree.GetNodesAtDepth() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("DualTree.GetNodesAtDepth() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestDualTree_DepthTo(t *testing.T) {
-	type args struct {
-		depth int
-	}
-	tests := []struct {
-		name    string
-		fields  *DualTree
-		depth int
-		want    []*DualTreeNode
-		wantErr bool
-	}{
-		//{"nil root", TreeNil(), 0, nil, true},
-		//{"negative depth", TreeT_0(), -1, nil, true},
-		//{"T", TreeT_0(), 0, []*DualTreeNode{X1.ToDualTreeNode(0)}, false},
-		//{"T-NT-T", TreeT_NT_T_1(), 0, []*DualTreeNode{Add.ToDualTreeNode(0)}, false},
-		{"T-NT-T", TreeT_NT_T_1(), 1, []*DualTreeNode{Add.ToDualTreeNode(0), Const8.ToDualTreeNode(0),
-			Add.ToDualTreeNode(0)}, false},
-		//{"T-NT-NT-NT-T", TreeT_NT_T_NT_T_0(), 2, []*DualTreeNode{Sub.ToDualTreeNode(0), Const4.ToDualTreeNode(0),
-		//	Mult.ToDualTreeNode(0), X1.ToDualTreeNode(0)}, false},
+		{"nil root", TreeNil(), 0, nil, true},
+		{"negative depth", TreeT_0(), -1, nil, true},
+		{"T", TreeT_0(), 0, []*DualTreeNode{X1.ToDualTreeNode(RandString(5))}, false},
+		{"T-NT-T", TreeT_NT_T_1(), 0, []*DualTreeNode{Add.ToDualTreeNode(RandString(5))}, false},
+		{"T-NT-T", TreeT_NT_T_1(), 1, []*DualTreeNode{Add.ToDualTreeNode(RandString(5)), Const8.ToDualTreeNode(RandString(5)),
+			X1.ToDualTreeNode(RandString(5))}, false},
+		{"T-NT-NT-NT-T", TreeT_NT_T_NT_T_0(), 1, []*DualTreeNode{Sub.ToDualTreeNode(RandString(5)), Const4.ToDualTreeNode(RandString(5)),
+			Mult.ToDualTreeNode(RandString(5))}, false},
+		{"T-NT-NT-NT-T", TreeT_NT_T_NT_T_0(), 2, []*DualTreeNode{Sub.ToDualTreeNode(RandString(5)), Const4.ToDualTreeNode(RandString(5)),
+			Mult.ToDualTreeNode(RandString(5)), X1.ToDualTreeNode(RandString(5)), X1.ToDualTreeNode(RandString(5))}, false},
+		{"Vine-NT-NT-NT-T", TreeVine_D3(), 2, []*DualTreeNode{Sin.ToDualTreeNode(RandString(5)), Sin.ToDualTreeNode(RandString(5)),
+			Sin.ToDualTreeNode(RandString(5))}, false},
+		{"Vine-NT-NT-NT-T", TreeVine_D6_R(), 2, []*DualTreeNode{Add.ToDualTreeNode(RandString(5)), Sin.ToDualTreeNode(RandString(5)),
+			Sin.ToDualTreeNode(RandString(5)), Sin.ToDualTreeNode(RandString(5)), Sin.ToDualTreeNode(RandString(5))}, false},
+		{"Vine-6", TreeVine_D6_R(), 5, []*DualTreeNode{Add.ToDualTreeNode(RandString(5)), Sin.ToDualTreeNode(RandString(5)),
+			Sin.ToDualTreeNode(RandString(5)), Sin.ToDualTreeNode(RandString(5)), Sin.ToDualTreeNode(RandString(5)), Sin.ToDualTreeNode(RandString(5)), Sin.ToDualTreeNode(RandString(5)),
+			Sin.ToDualTreeNode(RandString(5)), Sin.ToDualTreeNode(RandString(5)), X1.ToDualTreeNode(RandString(5))}, false},
+		{"Vine-6v2", TreeVine_D6_R(), 6, []*DualTreeNode{Add.ToDualTreeNode(RandString(5)), Sin.ToDualTreeNode(RandString(5)),
+			Sin.ToDualTreeNode(RandString(5)), Sin.ToDualTreeNode(RandString(5)), Sin.ToDualTreeNode(RandString(5)), Sin.ToDualTreeNode(RandString(5)), Sin.ToDualTreeNode(RandString(5)),
+			Sin.ToDualTreeNode(RandString(5)), Sin.ToDualTreeNode(RandString(5)), X1.ToDualTreeNode(RandString(5)), X1.ToDualTreeNode(RandString(5))}, false},
+		{"Vine-5", TreeVine_D5_R(), 5, []*DualTreeNode{Add.ToDualTreeNode(RandString(5)), Sin.ToDualTreeNode(RandString(5)),
+			Sin.ToDualTreeNode(RandString(5)), Sin.ToDualTreeNode(RandString(5)), Sin.ToDualTreeNode(RandString(5)), Sin.ToDualTreeNode(RandString(5)), Sin.ToDualTreeNode(RandString(5)),
+			Sin.ToDualTreeNode(RandString(5)), Sin.ToDualTreeNode(RandString(5)), X1.ToDualTreeNode(RandString(5))}, false},
+		{"Vine-4", TreeVine_D4(), 4, []*DualTreeNode{Sin.ToDualTreeNode(RandString(5)),
+			Sin.ToDualTreeNode(RandString(5)), Sin.ToDualTreeNode(RandString(5)), Sin.ToDualTreeNode(RandString(5)), X1.ToDualTreeNode(RandString(5))}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -1005,12 +994,11 @@ func TestDualTree_DepthTo(t *testing.T) {
 	}
 }
 
-
 func contains(a, b []*DualTreeNode) (bool, error) {
 	if len(a) != len(b) {
 		return false, fmt.Errorf("not the same size a %v | b %v", a, b)
 	}
-		count := 0
+	count := 0
 	for i := range a {
 		for j := range b {
 			if a[i].IsValEqual(b[j]) {
@@ -1021,4 +1009,92 @@ func contains(a, b []*DualTreeNode) (bool, error) {
 	}
 
 	return count == len(a), nil
+}
+
+func TestDualTree_GetRandomSubTreeAtDepth(t *testing.T) {
+	tests := []struct {
+		name    string
+		fields  *DualTree
+		depth   int
+		want    DualTree
+		wantErr bool
+	}{
+		{"nil", TreeNil(), 0, DualTree{}, true},
+		{"negative depth", TreeT_0(), -1, DualTree{}, true},
+		{"T", TreeT_0(), 0, DualTree{}, false},
+		{"TreeT_NT_T_NT_T_NT_T_NT_T_NT_T_0", TreeT_NT_T_NT_T_NT_T_NT_T_NT_T_0(), 2, DualTree{}, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			d := &DualTree{
+				root: tt.fields.root,
+				lock: tt.fields.lock,
+			}
+			got, err := d.GetRandomSubTreeAtDepth(tt.depth)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("DualTree.GetRandomSubTreeAtDepth() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr {
+				return
+			}
+			b, err := tt.fields.ContainsSubTree(&got)
+			if err != nil {
+				t.Errorf("DualTree.GetRandomSubTreeAtDepth() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if !b {
+				t.Errorf("DualTree.GetRandomSubTreeAtDepth() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			got.Print()
+		})
+	}
+}
+
+func TestDualTree_DepthAt(t *testing.T) {
+	tests := []struct {
+		name    string
+		fields  *DualTree
+		depth int
+		want    []*DualTreeNode
+		wantErr bool
+	}{
+		{"nil root", TreeNil(), 0, nil, true},
+		{"negative depth", TreeT_0(), -1, nil, true},
+		{"T", TreeT_0(), 0, []*DualTreeNode{X1.ToDualTreeNode(RandString(5))}, false},
+		{"T-NT-T", TreeT_NT_T_1(), 0, []*DualTreeNode{Add.ToDualTreeNode(RandString(5))}, false},
+		{"T-NT-T", TreeT_NT_T_1(), 1, []*DualTreeNode{Const8.ToDualTreeNode(RandString(5)),
+			X1.ToDualTreeNode(RandString(5))}, false},
+		{"T-NT-NT-NT-T", TreeT_NT_T_NT_T_0(), 1, []*DualTreeNode{Sub.ToDualTreeNode(RandString(5)), Const4.ToDualTreeNode(RandString(5)),
+			}, false},
+		{"T-NT-NT-NT-T", TreeT_NT_T_NT_T_0(), 2, []*DualTreeNode{X1.ToDualTreeNode(RandString(5)), X1.ToDualTreeNode(RandString(5)),
+		}, false},
+		{"Vine-NT-NT-NT-T", TreeVine_D3(), 2, []*DualTreeNode{
+			Sin.ToDualTreeNode(RandString(5))}, false},
+		{"Vine-NT-NT-NT-T", TreeVine_D3(), 3, []*DualTreeNode{
+			X1.ToDualTreeNode(RandString(5))}, false},
+		{"Vine-NT-NT-NT-T", TreeVine_D6_R(), 0, []*DualTreeNode{Add.ToDualTreeNode(RandString(5))}, false},
+		{"Vine-6", TreeVine_D6_R(), 4, []*DualTreeNode{Sin.ToDualTreeNode(RandString(5)), X1.ToDualTreeNode(RandString(5))}, false},
+		{"Vine-6v2", TreeVine_D6_R(), 6, []*DualTreeNode{ X1.ToDualTreeNode(RandString(5))}, false},
+		{"Vine-5", TreeVine_D5_R(), 5, []*DualTreeNode{X1.ToDualTreeNode(RandString(5))}, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			d := &DualTree{
+				root: tt.fields.root,
+				lock: tt.fields.lock,
+			}
+			got, err := d.DepthAt(tt.depth)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("DualTree.DepthAt() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			contain, err := contains(got, tt.want)
+			if err != nil {
+				t.Error(err)
+			}
+			if !contain {
+				t.Errorf("DualTree.DepthAt() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
 }
