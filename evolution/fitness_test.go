@@ -72,10 +72,10 @@ func TestProtagonistThresholdTally(t *testing.T) {
 				return
 			}
 			if !reflect.DeepEqual(got, tt.wantAntagonist) {
-				t.Errorf("ProtagonistThresholdTally() got = %v, wantAntagonist %v", got, tt.wantAntagonist)
+				t.Errorf("ProtagonistThresholdTally() got = %v, isEqual %v", got, tt.wantAntagonist)
 			}
 			if !reflect.DeepEqual(got1, tt.wantProtagonist) {
-				t.Errorf("ProtagonistThresholdTally() got1 = %v, wantAntagonist %v", got1, tt.wantProtagonist)
+				t.Errorf("ProtagonistThresholdTally() got1 = %v, isEqual %v", got1, tt.wantProtagonist)
 			}
 		})
 	}

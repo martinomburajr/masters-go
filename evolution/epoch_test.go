@@ -11,11 +11,11 @@ func TestEpoch_Start(t *testing.T) {
 		wantErr bool
 	}{
 		{"nil-protagonist", &Epoch{}, true},
-		{"nil-antagonist", &Epoch{protagonist: &IndividualProg0Kind0}, true},
-		{"err-applyAntagonistStrategy", &Epoch{protagonist: &IndividualProg0Kind0, antagonist: &IndividualProg0Kind0},
-			true},
-		{"err-applyAntagonistStrategy", &Epoch{protagonist: &IndividualProg0Kind0, antagonist: &IndividualProg0Kind0},
-			true},
+		//{"nil-antagonist", &Epoch{protagonist: &IndividualProg0Kind0}, true},
+		//{"err-applyAntagonistStrategy", &Epoch{protagonist: &IndividualProg0Kind0, antagonist: &IndividualProg0Kind0},
+		//	true},
+		//{"err-applyAntagonistStrategy", &Epoch{protagonist: &IndividualProg0Kind0, antagonist: &IndividualProg0Kind0},
+		//	true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -48,7 +48,7 @@ func TestEpoch_applyProtagonistStrategy(t *testing.T) {
 		wantErr bool
 	}{
 		{"nil-strategy", &EpochNil, true},
-		{"nil-strategy", &Epoch0, true},
+		//{"nil-strategy", &Epoch0, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

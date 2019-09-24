@@ -270,6 +270,41 @@ func (bst *DualTree) MutateTerminal(terminalSet []SymbolicExpression) error {
 	return nil
 }
 
+// Search will use a node id and linearly traverse the tree using Inorder Depth First Search until it comes across
+// the correct node. It will also return the parent of the given node.
+// If the tree only contains a root and the search key matches,
+// then the node is set to the root and the parent is set to nil. In the event the given key is not found,
+// no error will be returned,
+// therefore the onus is on the user to verify that the returned node is not nil over and above typical error handling.
+func (bst *DualTree) Search(key string) (node *DualTreeNode, parent *DualTreeNode, err error)  {
+	if bst.root == nil {
+		return nil, nil, fmt.Errorf("search | tree root cannot be nil")
+	}
+	inOrderTraverseAware(bst.root, parent, func(n *DualTreeNode, parentNode *DualTreeNode) {
+		if n != nil {
+			if n.key == key && node == nil {
+				node = n
+				parent = nil
+			}
+			if n.left != nil {
+				if n.left.key == key {
+					parent = n
+					node = n.left
+					return
+				}
+			}
+			if n.right != nil {
+				if n.right.key == key {
+					parent = n
+					node = n.right
+					return
+				}
+			}
+		}
+	})
+	return node, parent, nil
+}
+
 
 
 // MutateNonTerminal will mutate a terminal to another valid nonTerminal. Ensure set is nonTerminal set only,
@@ -388,42 +423,6 @@ func (bst *DualTree) GetNode(value string) (node *DualTreeNode, parent *DualTree
 	return node, parent, err
 }
 
-// SelectNodesUpToDepth returns a list of nodes that do not exceed the indicated depth.
-// This will start from the root of the treeNode and follow and InorderDFS
-func (bst *DualTree) SelectNodesUpToDepth(depth int) ([]*DualTreeNode, error) {
-	if bst.root == nil {
-		return nil, fmt.Errorf("cannot find depth in nil treeNode | root == nil")
-	}
-
-	nodes := make([]*DualTreeNode, 0)
-	nodes = diveMaxDepth(bst.root, depth, nodes)
-
-	return nodes, nil
-}
-
-func diveMaxDepth(node *DualTreeNode, maxDepth int, nodes []*DualTreeNode) []*DualTreeNode {
-	if node == nil {
-		return nodes
-	}
-	lDepth := dive(node.left)
-	rDepth := dive(node.right)
-
-	if lDepth < maxDepth {
-		nodes = append(nodes, node)
-	}
-	if rDepth < maxDepth {
-		nodes = append(nodes, node)
-	}
-	return nodes
-}
-
-// CalculateMinDepth calculates the minimum depth of a given treeNode
-//func CalculateMinDepth(nodeCount int) int {
-//	if nodeCount < 1 {
-//		return 0
-//	}
-//}
-
 // Clone will perform an O(N) deep clone of a treeNode and its items and return its copy.
 func (bst DualTree) Clone() DualTree {
 	return bst
@@ -502,7 +501,7 @@ func (bst *DualTree) ContainsNode(treeNode *DualTreeNode) (bool, error) {
 }
 
 /**
-FromNodeTypes Creates a Tree from a list of NodeTypes
+	FromNodeTypes Creates a Tree from a list of NodeTypes
 */
 func (bst *DualTree) FromSymbolicExpressionSet(terminalSet []SymbolicExpression) error {
 	//EdgeCases

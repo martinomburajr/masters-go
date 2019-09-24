@@ -7,7 +7,8 @@ import (
 )
 
 // Crossover is a evolutionary technique used to take two parents swap their genetic material and form two new children.
-func Crossover(individual1 *Individual, individual2 *Individual, maxDepth int) (child1 Individual, child2 Individual,
+func Crossover(individual1 *Individual, individual2 *Individual, maxDepth int, params EvolutionParams) (child1 Individual,
+	child2 Individual,
 	err error) {
 		// Requirements
 	if individual1 == nil {
@@ -40,38 +41,21 @@ func Crossover(individual1 *Individual, individual2 *Individual, maxDepth int) (
 
 	// DO!
 
-	// 1. Depth Information
-	prog1Depth, err := individual1.Program.T.Depth()
-	if err != nil {
-		return Individual{}, Individual{}, nil
-	}
-
-	prog2Depth, err := individual2.Program.T.Depth()
-	if err != nil {
-		return Individual{}, Individual{}, nil
-	}
-
-	// 2. Calculate depth remainders
-	prog1DepthRem := maxDepth - prog1Depth
-	prog2DepthRem := maxDepth - prog2Depth
-
-	// 3. Calculate a random depth in the treeNode to extract information from
-	var randDepthProg1, randDepthProg2 int
-	if prog1DepthRem != 0 {
-		rand.Seed(time.Now().UnixNano())
-		randDepthProg1 = rand.Intn(prog1DepthRem)
-	}
-	if prog1DepthRem != 0 {
-		rand.Seed(time.Now().UnixNano())
-		randDepthProg2 = rand.Intn(prog2DepthRem)
-	}
-
-	// 4. Get Random SubTree based on depth of each program
-	subTreeAtDepthProg1, err := individual1.Program.T.GetRandomSubTreeAtDepth(randDepthProg1)
+	// 1. Depth and Remainder Information
+	individual1DepthRemainderFromMaX, individual2DepthRemainderFromMax, err := calculateRemainderDepths(individual1, individual2, maxDepth, params)
 	if err != nil {
 		return Individual{}, Individual{}, err
 	}
-	subTreeAtDepthProg2, err := individual2.Program.T.GetRandomSubTreeAtDepth(randDepthProg2)
+
+	// 3. Calculate a random depth in the treeNode to extract information from
+	randDepthOfInd1FromRem, randDepthOfInd2FromRem := getRandomDepthTargetLocation(individual1DepthRemainderFromMaX, individual2DepthRemainderFromMax)
+
+	// 4. Get Random SubTree based on depth of each program
+	subTreeAtDepthProg1, err := individual1.Program.T.GetRandomSubTreeAtDepth(randDepthOfInd1FromRem)
+	if err != nil {
+		return Individual{}, Individual{}, err
+	}
+	subTreeAtDepthProg2, err := individual2.Program.T.GetRandomSubTreeAtDepth(randDepthOfInd2FromRem)
 	if err != nil {
 		return Individual{}, Individual{}, err
 	}
@@ -87,19 +71,25 @@ func Crossover(individual1 *Individual, individual2 *Individual, maxDepth int) (
 	}
 
 	// 6. Select Nodes with A Given Depth
-	nodesProg1, err := subTreeAtDepthProg1.DepthAt(maxDepth - subTreeInd1Depth)
+	nodesProg1, err := subTreeAtDepthProg1.DepthAt(subTreeInd1Depth)
 	if err != nil {
 		return Individual{}, Individual{}, err
 	}
-	nodesProg2, err := subTreeAtDepthProg2.DepthAt(maxDepth - subTreeInd2Depth)
+	nodesProg2, err := subTreeAtDepthProg2.DepthAt(subTreeInd2Depth)
 	if err != nil {
 		return Individual{}, Individual{}, err
 	}
 
 	rand.Seed(time.Now().UnixNano())
-	nodesProg1RandomIndex := rand.Intn(len(nodesProg1))
-	rand.Seed(time.Now().UnixNano())
-	nodesProg2RandomIndex := rand.Intn(len(nodesProg2))
+	var nodesProg1RandomIndex, nodesProg2RandomIndex int
+	if len(nodesProg1) > 0 {
+		rand.Seed(time.Now().UnixNano())
+		nodesProg1RandomIndex = rand.Intn(len(nodesProg1))
+	}
+	if len(nodesProg2) > 0 {
+		rand.Seed(time.Now().UnixNano())
+		nodesProg2RandomIndex = rand.Intn(len(nodesProg2))
+	}
 
 	// 7. Get random node in subTree
 	// 7.a node1 = rand(nodesInd1SubTree)
@@ -107,10 +97,177 @@ func Crossover(individual1 *Individual, individual2 *Individual, maxDepth int) (
 	nodeProg1Random := nodesProg1[nodesProg1RandomIndex]
 	nodeProg2Random := nodesProg2[nodesProg2RandomIndex]
 
-	nodeProg1Random.ToDualTree()
-	nodeProg2Random.ToDualTree()
+	nodeProg1PieceTree := nodeProg1Random.ToDualTree()
+	nodeProg2PieceTree := nodeProg2Random.ToDualTree()
 
-	return Individual{}, Individual{}, nil
+	child1 = individual1.Clone()
+	child2 = individual2.Clone()
+
+	// Child 1
+	node, parent, err := child1.Program.T.Search(nodeProg1PieceTree.root.key)
+	if err != nil {
+		return Individual{}, Individual{}, err
+	}
+	if node == nil {
+		return Individual{}, Individual{}, fmt.Errorf("crossover | failed to locate node in the tree it came from..." +
+			" weird error")
+	}
+	if parent == nil {
+		return child1, child2, nil
+	}
+	if parent.right.key == nodeProg1PieceTree.root.key {
+		parent.right = nodeProg1PieceTree.root
+	} else if parent.left.key == nodeProg1PieceTree.root.key {
+		parent.left = nodeProg1PieceTree.root
+	}
+
+	// Child 2
+	node2, parent2, err := child2.Program.T.Search(nodeProg2PieceTree.root.key)
+	if err != nil {
+		return Individual{}, Individual{}, err
+	}
+	if node2 == nil {
+		return Individual{}, Individual{}, fmt.Errorf("crossover | failed to locate node in the tree it came from..." +
+			" weird error")
+	}
+	if parent2 == nil {
+		return Individual{}, Individual{}, fmt.Errorf("crossover | failed to locate parent in the tree it came from.." +
+			"." +
+			" weird error")
+	}
+	if parent2.right.key == nodeProg2PieceTree.root.key {
+		parent2.right = nodeProg2PieceTree.root
+	} else if parent.left.key == nodeProg2PieceTree.root.key {
+		parent2.left = nodeProg2PieceTree.root
+	}
+
+	return child1, child2, nil
+}
+
+// getRandomDepthTargetLocation obtains a random depth for each individual that the crossover will target.
+// For example if the depth of individual1 is 10,
+// and the max depth is 15. The remainder will be 5.
+// This function takes the remainder and gets a random number between 0 and 5 of individual2
+func getRandomDepthTargetLocation(individual1DepthRemainderFromMaX int, individual2DepthRemainderFromMax int) (int, int) {
+	var randDepthOfInd1FromRem, randDepthOfInd2FromRem int
+	if individual1DepthRemainderFromMaX != 0 {
+		rand.Seed(time.Now().UnixNano())
+		randDepthOfInd1FromRem = rand.Intn(individual1DepthRemainderFromMaX)
+	}
+	if individual2DepthRemainderFromMax != 0 {
+		rand.Seed(time.Now().UnixNano())
+		randDepthOfInd2FromRem = rand.Intn(individual2DepthRemainderFromMax)
+	}
+	return randDepthOfInd1FromRem, randDepthOfInd2FromRem
+}
+
+// calculateRemainderDepths returns the remainders. It does no checking to ensure individuals are correct.
+// This has to be done by the user.
+func calculateRemainderDepths(individual1 *Individual, individual2 *Individual, maxDepth int,
+	params EvolutionParams) (int, int, error) {
+
+	individual1Depth, err := individual1.Program.T.Depth()
+	if err != nil {
+		return -1, -1, err
+	}
+
+	individual2Depth, err := individual2.Program.T.Depth()
+	if err != nil {
+		return -1, -1, err
+	}
+
+	if params.DepthPenaltyStrategy == DepthPenaltyStrategyIgnore {
+		i, i2 := depthPenaltyIgnore(maxDepth, individual1Depth, individual2Depth)
+		return i, i2, nil
+	}
+	if params.DepthPenaltyStrategy == DepthPenaltyStrategyPenalize {
+		return depthPenaltyPenalization(individual1, individual2, individual1Depth, individual2Depth, maxDepth,
+			params.DepthPenaltyStrategyPenalization)
+	}
+	i, i2 := depthPenaltyIgnore(maxDepth, individual1Depth, individual2Depth)
+	return i, i2, nil
 }
 
 
+func depthPenaltyIgnore(maxDepth int, individual1Depth int, individual2Depth int)(int, int) {
+	if maxDepth < 0 {
+		maxDepth = 0
+	}
+	var individual1DepthRemainderFromMaX, individual2DepthRemainderFromMax int
+	if individual1Depth >= maxDepth {
+		individual1DepthRemainderFromMaX = 0
+	}else {
+		individual1DepthRemainderFromMaX = maxDepth - individual1Depth
+	}
+	if individual2Depth >= maxDepth {
+		individual2DepthRemainderFromMax = 0
+	}else {
+		individual2DepthRemainderFromMax = maxDepth - individual2Depth
+	}
+	return individual1DepthRemainderFromMaX, individual2DepthRemainderFromMax
+}
+
+// depthPenaltyPenalization applies a penalty to an individual whose depth exceeds maxDepth.
+// Ensure that the individual has calculated its fitness
+func depthPenaltyPenalization(individual1 *Individual, individual2 *Individual, individual1Depth int,
+	individual2Depth int, maxDepth int,
+	penalization float32)(int, int, error) {
+	if maxDepth < 0 {
+		maxDepth = 0
+	}
+	var individual1DepthRemainderFromMaX, individual2DepthRemainderFromMax int
+	if individual1Depth >= maxDepth {
+		if individual1.hasCalculatedFitness {
+			individual1.totalFitness = individual1.totalFitness + int(penalization)
+		}else {
+			return -1, -1, fmt.Errorf("crossover | depthPenalty | fitness of individual %s has not been calculated" +
+				" before crossover", individual1.id)
+		}
+	}else {
+		individual1DepthRemainderFromMaX = maxDepth - individual1Depth
+	}
+
+	if individual2Depth >= maxDepth {
+		if individual2.hasCalculatedFitness {
+			individual2.totalFitness = individual2.totalFitness + int(penalization)
+		}else {
+			return -1, -1, fmt.Errorf("crossover | depthPenalty | fitness of individual %s has not been calculated" +
+				" before crossover", individual1.id)
+		}
+	}else {
+		individual2DepthRemainderFromMax = maxDepth - individual2Depth
+	}
+	return individual1DepthRemainderFromMaX, individual2DepthRemainderFromMax, nil
+}
+
+
+//func depthPenaltyTrim(individual1 *Individual, individual2 *Individual, individual1Depth int,
+//	individual2Depth int, maxDepth int,
+//	penalization float32)(int, int, error) {
+//	if maxDepth < 0 {
+//		maxDepth = 0
+//	}
+//	var individual1DepthRemainderFromMaX, individual2DepthRemainderFromMax int
+//	if individual1Depth >= maxDepth {
+//		if individual1.hasCalculatedFitness {
+//			individual1.
+//		}else {
+//			return -1, -1, fmt.Errorf("crossover | depthPenalty | fitness of individual %s has not been calculated" +
+//				" before crossover", individual1.id)
+//		}
+//	}else {
+//		individual1DepthRemainderFromMaX = maxDepth - individual1Depth
+//	}
+//
+//	if individual2Depth >= maxDepth {
+//		if individual2.hasCalculatedFitness {
+//			individual2.totalFitness = individual2.totalFitness + int(penalization)
+//		}else {
+//			return -1, -1, fmt.Errorf("crossover | depthPenalty | fitness of individual %s has not been calculated" +
+//				" before crossover", individual1.id)
+//		}
+//	}else {
+//		individual2DepthRemainderFromMax = maxDepth - individual2Depth
+//	}
+//	return individual1DepthRemainderFromMaX, individual2DepthRemainderFromMax, nil
+//}

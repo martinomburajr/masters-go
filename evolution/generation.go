@@ -170,7 +170,7 @@ func (g *Generation) Compete() error {
 // ApplyParentSelection takes in a given generation and returns a set of individuals once the preselected parent
 // selection strategy has been applied to the generation.
 // These individuals are ready to be taken to either a new generation or preferably through survivor selection in the
-// case you do not wantAntagonist the population to grow in size.
+// case you do not isEqual the population to grow in size.
 func (g *Generation) ApplyParentSelection() ([]*Individual, error) {
 	if !g.isComplete {
 		return nil, fmt.Errorf("generation #id: %s has not competed, ", g.GenerationID)

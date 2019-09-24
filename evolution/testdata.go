@@ -98,11 +98,11 @@ var TreeT_NT_T_3 = func() *DualTree {
 // TreeT_NT_T_NT_T_0 = x - x * 4
 var TreeT_NT_T_NT_T_0 = func() *DualTree {
 	t := DualTree{}
-	t.root = Mult.ToDualTreeNode(RandString(5))
-	t.root.right = Const4.ToDualTreeNode(RandString(5))
-	t.root.left = Sub.ToDualTreeNode(RandString(5))
-	t.root.left.left = X1.ToDualTreeNode(RandString(5))
-	t.root.left.right = X1.ToDualTreeNode(RandString(5))
+	t.root = Mult.ToDualTreeNode("0")
+	t.root.right = Const4.ToDualTreeNode("1")
+	t.root.left = Sub.ToDualTreeNode("2")
+	t.root.left.left = X1.ToDualTreeNode("3")
+	t.root.left.right = X1.ToDualTreeNode("4")
 	return &t
 }
 
@@ -336,18 +336,18 @@ var TreeVine_D5_R = func() *DualTree {
 // TreeVine_D5_R = It looks like  triangle with depth 6 on the right side.
 var TreeVine_D6_R = func() *DualTree {
 	t := DualTree{}
-	t.root = Add.ToDualTreeNode(RandString(5))
-	t.root.left = Sin.ToDualTreeNode(RandString(5))
-	t.root.left.left = Sin.ToDualTreeNode(RandString(5))
-	t.root.left.left.left = Sin.ToDualTreeNode(RandString(5))
-	t.root.left.left.left.left = X1.ToDualTreeNode(RandString(5))
+	t.root = Add.ToDualTreeNode("0")
+	t.root.left = Sin.ToDualTreeNode("1")
+	t.root.left.left = Sin.ToDualTreeNode("2")
+	t.root.left.left.left = Sin.ToDualTreeNode("3")
+	t.root.left.left.left.left = X1.ToDualTreeNode("4")
 
-	t.root.right = Sin.ToDualTreeNode(RandString(5))
-	t.root.right.right = Sin.ToDualTreeNode(RandString(5))
-	t.root.right.right.right = Sin.ToDualTreeNode(RandString(5))
-	t.root.right.right.right.right = Sin.ToDualTreeNode(RandString(5))
-	t.root.right.right.right.right.right = Sin.ToDualTreeNode(RandString(5))
-	t.root.right.right.right.right.right.left = X1.ToDualTreeNode(RandString(5))
+	t.root.right = Sin.ToDualTreeNode("5")
+	t.root.right.right = Sin.ToDualTreeNode("6")
+	t.root.right.right.right = Sin.ToDualTreeNode("7")
+	t.root.right.right.right.right = Sin.ToDualTreeNode("8")
+	t.root.right.right.right.right.right = Sin.ToDualTreeNode("9")
+	t.root.right.right.right.right.right.left = X1.ToDualTreeNode("10")
 	return &t
 }
 

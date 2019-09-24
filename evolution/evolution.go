@@ -5,20 +5,27 @@ import (
 )
 
 type EvolutionParams struct {
-	Generations       int
-	EnableParallelism bool
-	survivorSelection                int
-	parentSelection                  int
-	ElitismPercentage                float32
-	ProgramEval                      func() float32
-	StatisticsOutput                 string
-	MaxDepth                         int
-	DepthPenalty                     int
-	Threshold                        float64
-	MinThreshold                     float64
-	FitnessStrategy                  int
-	TournamentSize                   int
+	Generations          int
+	EnableParallelism    bool
+	survivorSelection    int
+	parentSelection      int
+	ElitismPercentage    float32
+	ProgramEval          func() float32
+	StatisticsOutput     string
+	MaxDepth             int
+	DepthPenaltyStrategy int
+	DepthPenaltyStrategyPenalization float32
+	Threshold            float64
+	MinThreshold         float64
+	FitnessStrategy      int
+	TournamentSize       int
 }
+
+const (
+	DepthPenaltyStrategyIgnore = 0
+	DepthPenaltyStrategyPenalize = 2
+	DepthPenaltyStrategyTrim = 1
+)
 
 type EvolutionEngine struct {
 	StartIndividual                  Program

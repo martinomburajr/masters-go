@@ -24,6 +24,10 @@ type Individual struct {
 	Program                  *Program
 }
 
+func (i Individual) Clone() Individual {
+	return i
+}
+
 type Antagonist Individual
 type Protagonist Individual
 

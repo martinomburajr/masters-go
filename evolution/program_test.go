@@ -28,7 +28,7 @@ func TestProgram_Eval(t *testing.T) {
 				return
 			}
 			if got != tt.want {
-				t.Errorf("Program.Eval() = %v, wantAntagonist %v", got, tt.want)
+				t.Errorf("Program.Eval() = %v, isEqual %v", got, tt.want)
 			}
 		})
 	}

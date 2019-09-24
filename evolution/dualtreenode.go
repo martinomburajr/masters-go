@@ -13,10 +13,16 @@ type DualTreeNode struct {
 
 // IsEqual checks to see if all aspects of a DualTreeNode are equivalent. This includes value as well as pointers
 func (b *DualTreeNode) IsEqual(t *DualTreeNode) bool {
+	if b == nil && t == nil {
+		return true
+	}
 	if b.key != t.key {
 		return false
 	}
 	if b.value != t.value {
+		return false
+	}
+	if b.arity != t.arity {
 		return false
 	}
 	return true

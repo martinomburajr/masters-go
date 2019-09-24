@@ -1,5 +1,7 @@
 package evolution
 
+
+
 // IndividualNilProgNil
 var IndividualNilProgNil = Individual{
 	Program:              &ProgNil,
@@ -48,7 +50,72 @@ var IndividualProg1Kind1 = Individual{
 	hasAppliedStrategy:       false,
 }
 
-// IndividualProg0-Kind-1
+// IndividualProgTreeT_NT_T_0
+var IndividualProgTreeT_NT_T_0 = Individual{
+	Program:                  &ProgTreeT_NT_T_0,
+	kind:                     1,
+	id:                       "PROTAGONIST-",
+	age:                      0,
+	hasCalculatedFitness:     false,
+	strategy:                 []Strategy{StrategyMutateNode, StrategyDeleteSubTree, StrategyAddSubTree},
+	fitness:                  []int{},
+	fitnessCalculationMethod: FitnessProtagonistThresholdTally,
+	hasAppliedStrategy:       false,
+}
+
+// IndividualProgTreeT_NT_T_4
+var IndividualProgTreeT_NT_T_4 = Individual{
+	Program:                  &ProgTreeT_NT_T_4,
+	kind:                     1,
+	id:                       "PROTAGONIST-",
+	age:                      0,
+	hasCalculatedFitness:     false,
+	strategy:                 []Strategy{StrategyMutateNode, StrategyDeleteSubTree, StrategyAddSubTree},
+	fitness:                  []int{},
+	fitnessCalculationMethod: FitnessProtagonistThresholdTally,
+	hasAppliedStrategy:       false,
+}
+
+// IndividualProgTreeT_NT_T_NT_T_0
+var IndividualProgTreeT_NT_T_NT_T_0 = Individual{
+	Program:                  &ProgTreeT_NT_T_NT_T_0,
+	kind:                     1,
+	id:                       "PROTAGONIST-",
+	age:                      0,
+	hasCalculatedFitness:     false,
+	strategy:                 []Strategy{StrategyMutateNode, StrategyDeleteSubTree, StrategyAddSubTree},
+	fitness:                  []int{},
+	fitnessCalculationMethod: FitnessProtagonistThresholdTally,
+	hasAppliedStrategy:       false,
+}
+
+// IndividualProgTreeT_NT_T_NT_T_NT_T_0
+var IndividualProgTreeT_NT_T_NT_T_NT_T_0 = Individual{
+	Program:                  &ProgTreeT_NT_T_NT_T_NT_T_0,
+	kind:                     1,
+	id:                       "PROTAGONIST-",
+	age:                      0,
+	hasCalculatedFitness:     false,
+	strategy:                 []Strategy{StrategyMutateNode, StrategyDeleteSubTree, StrategyAddSubTree},
+	fitness:                  []int{},
+	fitnessCalculationMethod: FitnessProtagonistThresholdTally,
+	hasAppliedStrategy:       false,
+}
+
+// IndividualProgTreeT_NT_T_NT_T_NT_T_NT_T_1
+var IndividualProgTreeT_NT_T_NT_T_NT_T_NT_T_1 = Individual{
+	Program:                  &ProgTreeT_NT_T_NT_T_NT_T_NT_T_1,
+	kind:                     1,
+	id:                       "PROTAGONIST-",
+	age:                      0,
+	hasCalculatedFitness:     false,
+	strategy:                 []Strategy{StrategyMutateNode, StrategyDeleteSubTree, StrategyAddSubTree},
+	fitness:                  []int{},
+	fitnessCalculationMethod: FitnessProtagonistThresholdTally,
+	hasAppliedStrategy:       false,
+}
+
+// IndividualProgTreeT_NT_T_NT_T_NT_T_NT_T_NT_T_NT_T_NT_T_0Kind0-Kind-1
 var IndividualProgTreeT_NT_T_NT_T_NT_T_NT_T_NT_T_NT_T_NT_T_0Kind0 = Individual{
 	Program:                  &ProgTreeT_NT_T_NT_T_NT_T_NT_T_NT_T_NT_T_NT_T_0,
 	kind:                     0,

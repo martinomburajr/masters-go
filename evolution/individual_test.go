@@ -24,7 +24,7 @@ func TestGenerateRandomStrategy(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			var got []Strategy
 			if got = GenerateRandomStrategy(tt.args.number, tt.args.strategyLength, tt.args.availableStrategies); len(got) != len(tt.want) {
-				t.Errorf("GenerateRandomStrategy() = %v, wantAntagonist %v", got, tt.want)
+				t.Errorf("GenerateRandomStrategy() = %v, isEqual %v", got, tt.want)
 			}
 		})
 	}
@@ -66,7 +66,7 @@ func TestGenerateRandomStrategy(t *testing.T) {
 //			}
 //			if err == nil {
 //				if len(got) != len(tt.want) {
-//					t.Errorf("GenerateRandomIndividuals() = %v, wantAntagonist %v", got, tt.want)
+//					t.Errorf("GenerateRandomIndividuals() = %v, isEqual %v", got, tt.want)
 //				}
 //			}
 //		})

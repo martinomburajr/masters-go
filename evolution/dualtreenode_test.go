@@ -22,7 +22,7 @@ func Test_arityRemainder(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.tree.root.ArityRemainder(); got != tt.want {
-				t.Errorf("ArityRemainder() = %v, wantAntagonist %v", got, tt.want)
+				t.Errorf("ArityRemainder() = %v, isEqual %v", got, tt.want)
 			}
 		})
 	}
@@ -45,7 +45,7 @@ func TestDualTreeNode_IsLeaf(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.node.IsLeaf(); got != tt.want {
-				t.Errorf("IsLeaf() = %v, wantAntagonist %v", got, tt.want)
+				t.Errorf("IsLeaf() = %v, isEqual %v", got, tt.want)
 			}
 		})
 	}
@@ -66,7 +66,7 @@ func TestDualTreeNode_IsValEqual(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.fields.IsValEqual(tt.args); got != tt.want {
-				t.Errorf("DualTreeNode.IsValEqual() = %v, wantAntagonist %v", got, tt.want)
+				t.Errorf("DualTreeNode.IsValEqual() = %v, isEqual %v", got, tt.want)
 			}
 		})
 	}
@@ -74,16 +74,16 @@ func TestDualTreeNode_IsValEqual(t *testing.T) {
 
 func TestDualTreeNode_IsEqual(t *testing.T) {
 	tests := []struct {
-		name           string
-		treeNode       *DualTreeNode
-		subTree        *DualTreeNode
-		wantAntagonist bool
+		name     string
+		treeNode *DualTreeNode
+		subTree  *DualTreeNode
+		isEqual  bool
 	}{
-		{"", &DualTreeNode{}, &DualTreeNode{}, true},
+		{"nil", &DualTreeNode{}, &DualTreeNode{}, true},
 		{"value", &DualTreeNode{value: "x"}, &DualTreeNode{value: "x"}, true},
-		{"same-val-same-left", &DualTreeNode{value: "x", left: Add.ToDualTreeNode("1")}, &DualTreeNode{value: "x",
+		{"same-val-same-left", &DualTreeNode{value: "x"}, &DualTreeNode{value: "x",
 			left: Add.ToDualTreeNode("1"), key:"123"},
-			true},
+			false},
 		{"same-val-same-right", &DualTreeNode{value: "x", right: Add.ToDualTreeNode("1")}, &DualTreeNode{value: "x",
 			right: Add.ToDualTreeNode("1")},
 			true},
@@ -92,8 +92,8 @@ func TestDualTreeNode_IsEqual(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.treeNode.IsEqual(tt.subTree); got != tt.wantAntagonist {
-				t.Errorf("DualTreeNode.IsEqual() = %v, wantAntagonist %v", got, tt.wantAntagonist)
+			if got := tt.treeNode.IsEqual(tt.subTree); got != tt.isEqual {
+				t.Errorf("DualTreeNode.IsEqual() = %v, isEqual %v", got, tt.isEqual)
 			}
 		})
 	}
@@ -106,8 +106,8 @@ func TestDualTreeNode_Clone(t *testing.T) {
 		want   DualTreeNode
 	}{
 		{"nil", DualTreeNode{}, DualTreeNode{}},
-		{"const1", *Const1.ToDualTreeNode(RandString(5)), *Const1.ToDualTreeNode(RandString(5))},
-		{"const4", *Const4.ToDualTreeNode(RandString(5)), *Const4.ToDualTreeNode(RandString(5))},
+		{"const1", *Const1.ToDualTreeNode("123"), *Const1.ToDualTreeNode("123")},
+		{"const4", *Const4.ToDualTreeNode("234"), *Const4.ToDualTreeNode("234")},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
