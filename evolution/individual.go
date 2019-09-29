@@ -25,11 +25,24 @@ type Individual struct {
 }
 
 func (i Individual) Clone() Individual {
+	i.id = GenerateIndividualID("", i.kind)
+	i.fitness = make([]int, 0)
+	i.totalFitness = 0
+	i.hasCalculatedFitness = false
+	i.age = 0
+
+	programClone := i.Program.Clone()
+	i.Program = &programClone
 	return i
 }
 
+
 type Antagonist Individual
 type Protagonist Individual
+
+func GenerateIndividualID(identifier string, individualKind int ) string {
+	return fmt.Sprintf("%s-%s-%s%s","individual", KindToString(individualKind), RandString(3), identifier)
+}
 
 func GenerateRandomIndividuals(number int, idTemplate string, kind int, strategyLength int,
 	maxNumberOfStrategies int, availableStrategies []Strategy, depth int, terminals SymbolicExpressionSet,

@@ -15,7 +15,8 @@ type Program struct {
 }
 
 func GenerateProgramID(count int) string {
-	return fmt.Sprintf("PROG-%d", count)
+	randString := RandString(2)
+	return fmt.Sprintf("%s-%s-%d", "PROG", randString, count)
 }
 
 // ApplyStrategy takes a given strategy and applies a transformation to the given program.
@@ -51,7 +52,6 @@ func (p *Program) ApplyStrategy(strategy Strategy, terminals []SymbolicExpressio
 func (p *Program) Fitness() (float32, error) {
 	return -1, fmt.Errorf("")
 }
-
 
 
 // Mutation is an evolutionary technique used to randomly change parts of a Program.
@@ -96,6 +96,14 @@ func (p *Program) Eval(independentVar float32) (float32, error) {
 
 	return ans, nil
 }
+
+func (p Program) Clone() Program {
+	dualTree := p.T.Clone()
+	p.T = &dualTree
+	p.ID = GenerateProgramID(0)
+	return p
+}
+
 
 type Bug *Program
 type Test *Program

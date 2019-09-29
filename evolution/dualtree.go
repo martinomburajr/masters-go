@@ -37,6 +37,47 @@ func (bst *DualTree) RandomLeaf() (*DualTreeNode, error) {
 	return nodes[randIndex], nil
 }
 
+// RandomLeafAware returns a random leaf along with their parent. If the tree is of depth 0 -> Parent is always nil.
+// It is the clients responsibility to check for this.
+func (bst *DualTree) RandomLeafAware() (node *DualTreeNode, parent *DualTreeNode, err error) {
+	if bst.root == nil {
+		return nil, nil, fmt.Errorf("root cannot be nil")
+	}
+	size := bst.Size()
+	rand.Seed(time.Now().UnixNano())
+	max := rand.Intn(size)
+	count := 0
+
+	bst.InOrderTraverseAware(func(n *DualTreeNode, parentNode *DualTreeNode) {
+		if count <= max {
+			if n.IsLeaf() {
+				if parentNode != nil {
+					if parentNode.IsEqual(bst.root) {
+						node = n
+						parent = nil
+						return
+					}else {
+						node = n
+						parent = parentNode
+						return
+					}
+				}else {
+					node = n
+					parent = nil
+					return
+				}
+			}
+		}
+		count ++
+	})
+
+	if node == nil {
+		return nil, nil, fmt.Errorf("node is nil")
+	}
+
+	return node, parent, nil
+}
+
 // RandomBranch locates a random branch within a treeNode and returns the ref to the node.
 func (bst *DualTree) RandomBranch() (*DualTreeNode, error) {
 	if bst.root == nil {
@@ -151,6 +192,8 @@ func (bst *DualTree) AddSubTree(subTree *DualTree) error {
 	return nil
 }
 
+
+
 // InsertSubTree will insert a subTree at a given index
 func (bst *DualTree) InsertSubTree(index int, subTree *DualTree) error {
 	return nil
@@ -224,6 +267,128 @@ func (bst *DualTree) SwapSubTrees() error {
 
 	//nodes[nonTerminalIndex0]
 	return nil
+}
+
+// Replace replaces a node with replacer node. It DOES NOT Check to see if they are the same type.
+// For simplicity a parent will never be nil if there is no error.
+func (bst *DualTree) Replace(node *DualTreeNode, replacer DualTreeNode) (hobo DualTreeNode, parent *DualTreeNode,
+	err error) {
+	if bst.root == nil {
+		return DualTreeNode{}, nil, fmt.Errorf("replace | treeNode you are swapping to has nil root")
+	}
+	if node == nil {
+		return DualTreeNode{}, nil, fmt.Errorf("replace | cannot swap nil node")
+	}
+	if replacer.value == "" {
+		return DualTreeNode{}, nil, fmt.Errorf("replace | replacer cannot have an empty value")
+	}
+
+	treeNode, parent, err := bst.Search(node.key)
+	if err != nil {
+		return DualTreeNode{}, nil, err
+	}
+	if treeNode == nil {
+		return DualTreeNode{}, nil, fmt.Errorf("replace | cannot find the node to replace in tree")
+	}
+
+	// DO
+	// Apply New Keys for Each new node to be added.
+	replacerTree, err := replacer.ToDualTree()
+	if err != nil {
+		return DualTreeNode{}, nil, err
+	}
+	replacerTree.InOrderTraverse(func(replacerNodes *DualTreeNode) {
+		replacerNodes.key = RandString(5) // Give it a new key
+	})
+
+	if parent == nil {
+		bst.root = &replacer
+		return node.Clone(), bst.root, nil
+	}
+
+	if parent.left.key == node.key {
+		parent.left = &replacer
+	} else {
+		parent.right = &replacer
+	}
+
+	return node.Clone(), parent, nil
+}
+
+
+// Replace replaces a node with replacer node. It DOES NOT Check to see if they are the same type,
+func (bst *DualTree) ReplaceStrict(node *DualTreeNode, replacer DualTreeNode) (hobo DualTreeNode, parent *DualTreeNode,
+	err error) {
+	if bst.root == nil {
+		return DualTreeNode{}, nil, fmt.Errorf("replace | treeNode you are swapping to has nil root")
+	}
+	if node == nil {
+		return DualTreeNode{}, nil, fmt.Errorf("replace | cannot swap nil node")
+	}
+	if replacer.value == "" {
+		return DualTreeNode{}, nil, fmt.Errorf("replace | replacer cannot have an empty value")
+	}
+
+	treeNode, parent, err := bst.Search(node.key)
+	if err != nil {
+		return DualTreeNode{}, nil, err
+	}
+	if treeNode == nil {
+		return DualTreeNode{}, nil, fmt.Errorf("replace | cannot find the node to replace in tree")
+	}
+
+	//childRight := treeNode.right
+	//childLeft := treeNode.left
+
+	// DO
+	replacerKey := RandString(5) // Give it a new key
+	replacer.key = replacerKey
+
+	if parent == nil {
+		bst.root = &replacer
+		return node.Clone(), bst.root, nil
+	}
+
+	//if replacer.arity >= node.arity {
+	if parent.left.key == node.key {
+		parent.left = &replacer
+		//if replacer.arity == 0 {
+		//	parent.left.left = childLeft
+		//} else if replacer.arity == 1 {
+		//	parent.left.left = childLeft
+		//	parent.left.right = childRight
+		//} else  {
+		//	parent.left.left = childLeft
+		//	parent.left.right = childRight
+		//}
+	} else {
+		parent.right = &replacer
+		//if replacer.arity == 0 {
+		//	parent.right.left = childLeft
+		//} else if replacer.arity == 1 {
+		//	parent.right.left = childLeft
+		//} else  {
+		//	parent.right.left = childLeft
+		//	parent.right.right = childRight
+		//}
+	}
+	//}
+	//if replacer.arity < node.arity {
+	//	if parent.left.key == node.key {
+	//		parent.left = &replacer
+	//	}else {
+	//		parent.right = &replacer
+	//	}
+	//}
+
+
+	//if replacer.arity
+	//if node.arity != replacer.arity {
+	//	return DualTreeNode{}, nil,
+	//	fmt.Errorf("replace | replacer and node must have same arity")
+	//}
+
+	return node.Clone(), parent, nil
 }
 
 // MutateTerminal will mutate a terminal to another valid terminal. If the terminalSet only contains a single item,
@@ -425,7 +590,16 @@ func (bst *DualTree) GetNode(value string) (node *DualTreeNode, parent *DualTree
 
 // Clone will perform an O(N) deep clone of a treeNode and its items and return its copy.
 func (bst DualTree) Clone() DualTree {
-	return bst
+	x := bst
+	symbolicExpressionSet := x.ToSymbolicExpressionSet()
+
+	if len(symbolicExpressionSet) < 1 {
+		return DualTree{}
+	}
+	t := DualTree{}
+	t.FromSymbolicExpressionSet2(symbolicExpressionSet)
+
+	return t
 }
 
 func (bst *DualTree) Size() int {
@@ -463,10 +637,10 @@ func (bst *DualTree) ContainsSubTree(subTree *DualTree) (bool, error) {
 	}
 
 	for i := range tree {
-		if tree[i].IsValEqual(subTreeSlice[0]) {
+		if tree[i].IsEqual(subTreeSlice[0]) {
 			count := 0
 			for j := 0; j < len(subTreeSlice); j++ {
-				if !tree[i+j].IsValEqual(subTreeSlice[j]) {
+				if !tree[i+j].IsEqual(subTreeSlice[j]) {
 					break
 				}
 				count++
@@ -790,6 +964,41 @@ func (bst *DualTree) InOrderTraverseAware(f func(node *DualTreeNode, parentNode 
 	inOrderTraverseAware(bst.root, bst.root, f)
 }
 
+// InOrderTraverse visits all nodes with in-order traversing but remembers its parent. (A good child :D)
+func (bst *DualTree) InOrderTraverseDepthAware(f func(node *DualTreeNode, parentNode *DualTreeNode, depth *int,
+	shouldReturn *bool)) {
+	bst.lock.RLock()
+	defer bst.lock.RUnlock()
+	depth := -1
+	shouldReturn := false
+	inOrderTraverseAwareDepth(bst.root, bst.root, &depth, &shouldReturn, f)
+}
+
+// internal recursive function to traverse in order
+func inOrderTraverseAwareDepth(n *DualTreeNode, parent *DualTreeNode, depth *int, shouldReturn *bool,
+	f func(node *DualTreeNode,
+	parentNode *DualTreeNode, depth *int, shouldReturn *bool)) {
+
+	if *shouldReturn {
+		return
+	}
+	if n != nil {
+		if *shouldReturn {
+			return
+		}
+		*depth++
+		inOrderTraverseAwareDepth(n.left, n, depth, shouldReturn, f)
+
+		f(n, parent, depth, shouldReturn)
+
+		if *shouldReturn {
+			return
+		}
+		inOrderTraverseAwareDepth(n.right,n, depth, shouldReturn, f)
+		*depth--
+	}
+}
+
 // InOrderTraverse visits all nodes with in-order traversing
 func (bst *DualTree) ToSymbolicExpressionSet() []SymbolicExpression {
 	symbSet := make([]SymbolicExpression, 0)
@@ -1078,7 +1287,12 @@ func (d *DualTree) GetRandomSubTreeAtDepth(depth int) (DualTree, error) {
 	randomNodeIndex := rand.Intn(len(nodes))
 	randomNode := nodes[randomNodeIndex]
 
-	return randomNode.ToDualTree(), nil
+	tree, err := randomNode.ToDualTree()
+	if err != nil {
+		return DualTree{}, err
+	}
+
+	return tree, nil
 }
 
 // GetRandomSubTreeAtDepth will obtain a random subTree from a given treeNode.
@@ -1096,7 +1310,7 @@ func (d *DualTree) GetRandomSubTreeAtDepthAware(depth int) (DualTree, error) {
 	rand.Seed(time.Now().UnixNano())
 	randomDepth := rand.Intn(depth+1)
 
-	nodes, err := d.DepthTo(randomDepth)
+	nodes, err := d.DepthAt(randomDepth)
 	if err != nil {
 		return DualTree{}, err
 	}
@@ -1105,8 +1319,63 @@ func (d *DualTree) GetRandomSubTreeAtDepthAware(depth int) (DualTree, error) {
 	randomNodeIndex := rand.Intn(len(nodes))
 	randomNode := nodes[randomNodeIndex]
 
-	return randomNode.ToDualTree(), nil
+	tree, err := randomNode.ToDualTree()
+	if err != nil {
+		return DualTree{}, err
+	}
+
+	return tree, nil
 }
+
+// GetShortestBranch returns the shortest branch in a given tree.
+// The minAcceptableDepth is used to accept a node on a tree with a small enough acceptable depth that it can be
+// used. This will prevent having to check each node. As with any Inorder DFS traversal,
+// nodes placed furthest right are checked last.
+// If the parent is nil and there is a nil error, assume the tree itself only contains the root.
+// You have to explicitly check this
+func (bst *DualTree) GetShortestBranch(minAcceptableDepth int) (shortestNode *DualTreeNode,
+	shortestNodeParent *DualTreeNode, shortestDepth int, err error) {
+	if bst.root == nil {
+		return nil, nil, -1, fmt.Errorf("cannot get depth - treeNode nil")
+	}
+	if minAcceptableDepth < 0 {
+		return nil, nil, -1, fmt.Errorf("getShortestBranch | minAcceptableDepth cannot be negative")
+	}
+	if minAcceptableDepth == 0 {
+		minAcceptableDepth = 1
+	}
+
+	nodeDepth := struct {
+		parent *DualTreeNode
+		node *DualTreeNode
+		depth int
+	}{}
+	depth := -1
+	shouldReturn := false
+	inOrderTraverseAwareDepth(bst.root, bst.root, &depth, &shouldReturn, func(n *DualTreeNode, p *DualTreeNode, d *int, shouldReturn *bool) {
+		if *d <= minAcceptableDepth {
+			if *shouldReturn {
+				return
+			}
+			nodeDepth.depth = *d
+			if n.IsEqual(p) {
+				nodeDepth.node = n
+				nodeDepth.parent = nil
+				*shouldReturn = true
+			}else {
+				nodeDepth.node = n
+				nodeDepth.parent = p
+				*shouldReturn = true
+			}
+			return
+		}
+		return
+	})
+
+	return nodeDepth.node, nodeDepth.parent, nodeDepth.depth, nil
+}
+
+
 
 //func Swapper(tree1 DualTree, tree2 DualTree, subTree1 DualTree, subTree2 DualTree) (p1 DualTree, p2 DualTree,
 //	c1 DualTree, c2 DualTree) {

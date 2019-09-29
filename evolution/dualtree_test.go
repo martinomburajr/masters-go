@@ -1065,10 +1065,10 @@ func TestDualTree_Search(t *testing.T) {
 	tests := []struct {
 		name       string
 		fields     *DualTree
-		key string
+		key        string
 		wantNode   *DualTreeNode
 		wantParent *DualTreeNode
-		wantErr bool
+		wantErr    bool
 	}{
 		{"nil", TreeNil(), "", nil, nil, true},
 		{"T", TreeT_0(), "0", X1.ToDualTreeNode("0"), nil, false},
@@ -1097,3 +1097,201 @@ func TestDualTree_Search(t *testing.T) {
 		})
 	}
 }
+
+func TestDualTree_Replace(t *testing.T) {
+	//t0 := TreeT_0()
+	type fields struct {
+		root *DualTreeNode
+		lock sync.RWMutex
+	}
+	type args struct {
+		node     *DualTreeNode
+		replacer DualTreeNode
+	}
+	tests := []struct {
+		name       string
+		fields     *DualTree
+		args       args
+		wantHobo   DualTreeNode
+		wantParent *DualTreeNode
+		wantErr    bool
+	}{
+		{"nil-tree", TreeNil(), args{nil, DualTreeNode{}}, DualTreeNode{}, nil, true},
+		{"nil-node", TreeT_0(), args{nil, DualTreeNode{}}, DualTreeNode{}, nil, true},
+		{"nil-replacer", TreeT_0(), args{X1.ToDualTreeNode("0"), DualTreeNode{}}, DualTreeNode{}, nil, true},
+		{"cannot find node to swap", TreeT_0(), args{X1.ToDualTreeNode("30"), DualTreeNode{value: "3"}},
+			DualTreeNode{}, nil,
+			true},
+		{"T", TreeT_0(), args{X1.ToDualTreeNode("0"), DualTreeNode{value: "3"}},
+			*X1.ToDualTreeNode("0"), &DualTreeNode{value: "3"},
+			false},
+		{"T-NT-T", TreeT_NT_T_0(), args{X1.ToDualTreeNode("2"), DualTreeNode{value: "y", arity: 0}},
+			*X1.ToDualTreeNode("2"), &DualTreeNode{value: "*", arity: 2},
+			false},
+		{"T-NT-T + T-NT-T", TreeT_NT_T_0(), args{X1.ToDualTreeNode("2"), *TreeT_NT_T_0().root},
+			*X1.ToDualTreeNode("2"), &DualTreeNode{value: "*", arity: 2},
+			false},
+		{"T-NT-T + T at root", TreeT_NT_T_0(), args{Mult.ToDualTreeNode("1"), *X1.ToDualTreeNode("4")},
+			*Mult.ToDualTreeNode("1"), X1.ToDualTreeNode("4"),
+			false},
+		{"T-NT-T + T-NT-T at root", TreeT_NT_T_0(), args{Mult.ToDualTreeNode("1"), *TreeT_NT_T_1().root},
+			*Mult.ToDualTreeNode("1"), Add.ToDualTreeNode("1234"),
+			false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotHobo, gotParent, err := tt.fields.Replace(tt.args.node, tt.args.replacer)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("DualTree.Replace() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(gotHobo, tt.wantHobo) {
+				t.Errorf("DualTree.Replace() gotHobo = %v, want %v", gotHobo, tt.wantHobo)
+			}
+			if !tt.wantErr {
+				if gotParent == nil {
+					t.Errorf("DualTree.Replace() Parent is nil | goParentKey:  gotHobo = %v, want %v", gotParent,
+						tt.wantParent)
+					return
+				}
+				if gotParent.key == "" {
+					t.Errorf("DualTree.Replace() | goParentKey:  gotHobo = %v, want %v", gotParent, tt.wantParent)
+				}
+				if gotParent.value != tt.wantParent.value {
+					t.Errorf("DualTree.Replace() | goParentKey:  gotHobo = %v, want %v", gotParent, tt.wantParent)
+				}
+				if gotParent.arity != tt.wantParent.arity {
+					t.Errorf("DualTree.Replace() | goParentKey:  gotHobo = %v, want %v", gotParent, tt.wantParent)
+				}
+			}
+		})
+	}
+}
+
+func TestDualTree_RandomLeafAware(t *testing.T) {
+	tests := []struct {
+		name       string
+		fields     *DualTree
+		wantNode   *DualTreeNode
+		wantParent *DualTreeNode
+		wantErr    bool
+	}{
+		//{"nil", TreeNil(), nil,nil, true },
+		{"T", TreeT_0(), X1.ToDualTreeNode("0"), nil, false},
+		{"T-NT-T", TreeT_0(), X1.ToDualTreeNode("0"), nil, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			bst := &DualTree{
+				root: tt.fields.root,
+				lock: tt.fields.lock,
+			}
+			gotNode, gotParent, err := bst.RandomLeafAware()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("DualTree.RandomLeafAware() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(gotNode, tt.wantNode) {
+				t.Errorf("DualTree.RandomLeafAware() gotNode = %v, want %v", gotNode, tt.wantNode)
+			}
+			if !reflect.DeepEqual(gotParent, tt.wantParent) {
+				t.Errorf("DualTree.RandomLeafAware() gotParent = %v, want %v", gotParent, tt.wantParent)
+			}
+		})
+	}
+}
+
+func TestDualTree_Clone(t *testing.T) {
+	type fields struct {
+		root *DualTreeNode
+		lock sync.RWMutex
+	}
+	tests := []struct {
+		name   string
+		fields *DualTree
+	}{
+		{"nil", TreeNil()},
+		{"T", TreeT_0()},
+		{"T-NT-T", TreeT_NT_T_0()},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			bst := DualTree{
+				root: tt.fields.root,
+				lock: tt.fields.lock,
+			}
+			got := bst.Clone()
+			if tt.fields.root == nil && got.root == nil {
+				return
+			}
+			b, err := got.ContainsSubTree(tt.fields)
+			if err != nil {
+				t.Error(err)
+			}
+			if b {
+				t.Errorf("DualTree.Clone() They contain = %#v, want %#v", got, tt.fields)
+			}
+			if &got == tt.fields {
+				t.Errorf("DualTree.Clone() = %#v, want %#v", got, tt.fields)
+			}
+		})
+	}
+}
+
+func TestDualTree_GetShortestBranch(t *testing.T) {
+	tests := []struct {
+		name                   string
+		fields                 *DualTree
+		minAcceptableDepth     int
+		wantShortestNode       *DualTreeNode
+		wantShortestNodeParent *DualTreeNode
+		wantShortestDepth      int
+		wantErr                bool
+	}{
+		{"nil", TreeNil(), 2, nil,nil, -1, true},
+		{"negative minAcceptableDepth", TreeT_0(), -1, nil,nil, -1, true},
+		{"T", TreeT_0(), 0, TreeT_0().root,nil, 0, false},
+		{"T-NT-T", TreeT_NT_T_1(), 1, TreeT_NT_T_1().root.left, TreeT_NT_T_1().root, 1, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			bst := &DualTree{
+				root: tt.fields.root,
+				lock: tt.fields.lock,
+			}
+			gotShortestNode, gotShortestNodeParent, gotShortestDepth, err := bst.GetShortestBranch(tt.minAcceptableDepth)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("DualTree.GetShortestBranch() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(gotShortestNode, tt.wantShortestNode) {
+				t.Errorf("DualTree.GetShortestBranch() gotShortestNode = %v, want %v", gotShortestNode, tt.wantShortestNode)
+			}
+			if !reflect.DeepEqual(gotShortestNodeParent, tt.wantShortestNodeParent) {
+				t.Errorf("DualTree.GetShortestBranch() gotShortestNodeParent = %v, want %v", gotShortestNodeParent, tt.wantShortestNodeParent)
+			}
+			if gotShortestDepth != tt.wantShortestDepth {
+				t.Errorf("DualTree.GetShortestBranch() gotShortestDepth = %v, want %v", gotShortestDepth, tt.wantShortestDepth)
+			}
+		})
+	}
+}
+
+//func TestDualTree_InOrderTraverseDepthAware(t *testing.T) {
+//	tests := []struct {
+//		name   string
+//		fields *DualTree
+//		f func(node *DualTreeNode, parentNode *DualTreeNode, depth *int)
+//	}{
+//		{"nil", TreeNil(), },
+//	}
+//	for _, tt := range tests {
+//		t.Run(tt.name, func(t *testing.T) {
+//			bst := &DualTree{
+//				root: tt.fields.root,
+//				lock: tt.fields.lock,
+//			}
+//			bst.InOrderTraverseDepthAware(tt.f)
+//		})
+//	}
+//}

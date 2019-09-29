@@ -1,7 +1,7 @@
 package evolution
 
 import (
-	"reflect"
+	"log"
 	"testing"
 )
 
@@ -41,7 +41,14 @@ func TestCrossover(t *testing.T) {
 		//{"depth == 0", args{&IndividualProg0Kind1, &IndividualProg1Kind1, 0},  IndividualProg0Kind1,
 		//	IndividualProg1Kind1,
 		//	false},
-		{"depth == 1", args{&IndividualProg0Kind1, &IndividualProgTreeT_NT_T_0, 1, EvolutionParams{}}, IndividualProg0Kind1,
+		//{"depth == 1", args{&IndividualProg0Kind1, &IndividualProgTreeT_NT_T_0, 1,
+		//	EvolutionParams{DepthPenaltyStrategyPenalization: 3}},
+		//	IndividualProg0Kind1,
+		//	IndividualProg1Kind1,
+		//	false},
+		{"depth == 1", args{&IndividualProgTreeT_NT_T_1, &IndividualProgTreeT_NT_T_0, 1,
+			EvolutionParams{DepthPenaltyStrategyPenalization: 3}},
+			IndividualProg0Kind1,
 			IndividualProg1Kind1,
 			false},
 	}
@@ -52,12 +59,35 @@ func TestCrossover(t *testing.T) {
 				t.Errorf("Crossover() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(gotChild1, tt.wantChild1) {
-				t.Errorf("Crossover() gotChild1 = %v, want %v", gotChild1, tt.wantChild1)
+			//containsSubTree, err := gotChild1.Program.T.ContainsSubTree(tt.args.individual1.Program.T)
+			//if err != nil {
+			//	t.Errorf("Crossover() error = %v, wantErr %v", err, tt.wantErr)
+			//}
+			//if containsSubTree {
+			//	t.Errorf("Crossover() | child1 is identical to parent1 gotChild1 = %v, want %v", gotChild1,
+			//		tt.args.individual1)
+			//}
+			//
+			//containsSubTree2, err := gotChild2.Program.T.ContainsSubTree(tt.args.individual2.Program.T)
+			//if err != nil {
+			//	t.Errorf("Crossover() error = %v, wantErr %v", err, tt.wantErr)
+			//}
+			//if containsSubTree2 {
+			//	t.Errorf("Crossover() | child1 is identical to parent1 gotChild1 = %v, individual 2 %v", gotChild2,
+			//		tt.args.individual2)
+			//}
+
+			if gotChild1.Program.T != nil && gotChild2.Program != nil {
+				log.Print("Individual 1")
+				tt.args.individual1.Program.T.Print()
+				log.Print("Individual 2")
+				tt.args.individual2.Program.T.Print()
+				log.Print("Child 1")
+				gotChild1.Program.T.Print()
+				log.Print("Child 2")
+				gotChild2.Program.T.Print()
 			}
-			if !reflect.DeepEqual(gotChild2, tt.wantChild2) {
-				t.Errorf("Crossover() gotChild2 = %v, want %v", gotChild2, tt.wantChild2)
-			}
+
 		})
 	}
 }

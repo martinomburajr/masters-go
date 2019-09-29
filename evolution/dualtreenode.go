@@ -1,5 +1,7 @@
 package evolution
 
+import "fmt"
+
 // DualTreeNode represents a a treeNode with a maximum of two children.
 // It is not technically a binary treeNode as it DOES not place any ordering on left and right children as binary trees
 // prototypically do.
@@ -81,14 +83,29 @@ func (d *DualTreeNode) ToSymbolicExpression() SymbolicExpression {
 }
 
 // ToDualTree takes a given node and returns a treeNode from it by following the path.
-func (d *DualTreeNode) ToDualTree() DualTree {
+func (d *DualTreeNode) ToDualTree() (DualTree, error) {
+	err := d.isValid()
+	if err != nil {
+		return DualTree{}, err
+	}
 	return DualTree{
 		root: d,
+	}, err
+}
+
+func (d *DualTreeNode) isValid() error {
+	if d.key == "" {
+		return fmt.Errorf("ToDualTree | key is empty")
 	}
+	if d.value == "" {
+		return fmt.Errorf("ToDualTree | value is empty")
+	}
+	return nil
 }
 
 // Clone performs an O(N) deep clone of a given DualTreeNode and returns a new DualTreeNode, 
 // granted no errors are present.
 func (d DualTreeNode) Clone() DualTreeNode {
+	d.key = RandString(5)
 	return d
 }

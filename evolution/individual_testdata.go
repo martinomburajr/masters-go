@@ -76,6 +76,21 @@ var IndividualProgTreeT_NT_T_4 = Individual{
 	hasAppliedStrategy:       false,
 }
 
+
+// IndividualProgTreeT_NT_T_4
+var IndividualProgTreeT_NT_T_1 = Individual{
+	Program:                  &ProgTreeT_NT_T_1,
+	kind:                     1,
+	id:                       "PROTAGONIST-",
+	age:                      0,
+	hasCalculatedFitness:     false,
+	strategy:                 []Strategy{StrategyMutateNode, StrategyDeleteSubTree, StrategyAddSubTree},
+	fitness:                  []int{},
+	fitnessCalculationMethod: FitnessProtagonistThresholdTally,
+	hasAppliedStrategy:       false,
+}
+
+
 // IndividualProgTreeT_NT_T_NT_T_0
 var IndividualProgTreeT_NT_T_NT_T_0 = Individual{
 	Program:                  &ProgTreeT_NT_T_NT_T_0,

@@ -82,7 +82,7 @@ func TestDualTreeNode_IsEqual(t *testing.T) {
 		{"nil", &DualTreeNode{}, &DualTreeNode{}, true},
 		{"value", &DualTreeNode{value: "x"}, &DualTreeNode{value: "x"}, true},
 		{"same-val-same-left", &DualTreeNode{value: "x"}, &DualTreeNode{value: "x",
-			left: Add.ToDualTreeNode("1"), key:"123"},
+			left: Add.ToDualTreeNode("1"), key: "123"},
 			false},
 		{"same-val-same-right", &DualTreeNode{value: "x", right: Add.ToDualTreeNode("1")}, &DualTreeNode{value: "x",
 			right: Add.ToDualTreeNode("1")},
@@ -118,12 +118,46 @@ func TestDualTreeNode_Clone(t *testing.T) {
 				right: tt.fields.right,
 				arity: tt.fields.arity,
 			}
-			var got DualTreeNode
-			if got = d.Clone(); !reflect.DeepEqual(got, tt.want) {
+			var got DualTreeNode = d.Clone()
+
+			if got.key == d.key {
 				t.Errorf("DualTreeNode.Clone() = %v, want %v", got, tt.want)
 			}
-			if &got == &tt.want {
-				t.Errorf("DualTreeNode.Clone() cannot reference the same address = %p, want %p", &got, &tt.want)
+			if &got == &tt.fields {
+				t.Errorf("DualTreeNode.Clone() = %v, want %v | same address", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestDualTreeNode_ToDualTree(t *testing.T) {
+
+	tests := []struct {
+		name    string
+		fields  *DualTreeNode
+		want    DualTree
+		wantErr bool
+	}{
+		{"T", TreeT_0().root, *TreeT_0(), false},
+		{"T-NT-T", TreeT_NT_T_0().root, *TreeT_NT_T_0(), false},
+		{"T-NT-T-NT-T", TreeT_NT_T_NT_T_0().root.left, *TreeT_NT_T_5(), false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			d := &DualTreeNode{
+				key:   tt.fields.key,
+				value: tt.fields.value,
+				left:  tt.fields.left,
+				right: tt.fields.right,
+				arity: tt.fields.arity,
+			}
+			got, err := d.ToDualTree()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("DualTreeNode.ToDualTree() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("DualTreeNode.ToDualTree() = %v, want %v", got, tt.want)
 			}
 		})
 	}

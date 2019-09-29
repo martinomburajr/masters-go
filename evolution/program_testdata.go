@@ -24,6 +24,12 @@ var ProgTreeT_NT_T_0 = Program{
 	ID: "ProgTreeT_NT_T_0",
 }
 
+// ProgTreeT_NT_T_0
+var ProgTreeT_NT_T_1 = Program{
+	T:  TreeT_NT_T_1(),
+	ID: "ProgTreeT_NT_T_0",
+}
+
 // ProgTreeT_NT_T_4 = x * x
 var ProgTreeT_NT_T_4 = Program{
 	T:  TreeT_NT_T_4(),

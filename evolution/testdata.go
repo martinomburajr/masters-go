@@ -68,12 +68,21 @@ var TreeT_NT_T_0 = func() *DualTree {
 	return &t
 }
 
+// TreeT_NT_T_5 = x - x
+var TreeT_NT_T_5 = func() *DualTree {
+	t := DualTree{}
+	t.root = Sub.ToDualTreeNode("2")
+	t.root.left = X1.ToDualTreeNode("3")
+	t.root.right = X1.ToDualTreeNode("4")
+	return &t
+}
+
 // TreeT_NT_T_1 = x + 8
 var TreeT_NT_T_1 = func() *DualTree {
 	t := DualTree{}
-	t.root = Add.ToDualTreeNode(RandString(5))
-	t.root.left = X1.ToDualTreeNode(RandString(5))
-	t.root.right = Const8.ToDualTreeNode(RandString(5))
+	t.root = Add.ToDualTreeNode("1234")
+	t.root.left = X1.ToDualTreeNode("12345")
+	t.root.right = Const8.ToDualTreeNode("456")
 	return &t
 }
 

@@ -40,108 +40,117 @@ func Crossover(individual1 *Individual, individual2 *Individual, maxDepth int, p
 	}
 
 	// DO!
+	cloneA := individual1.Clone()
+	cloneB := individual2.Clone()
 
-	// 1. Depth and Remainder Information
-	individual1DepthRemainderFromMaX, individual2DepthRemainderFromMax, err := calculateRemainderDepths(individual1, individual2, maxDepth, params)
+	cloneATree := cloneA.Program.T
+	cloneBTree := cloneB.Program.T
+
+	cloneADepth, err := cloneATree.Depth()
 	if err != nil {
 		return Individual{}, Individual{}, err
 	}
 
-	// 3. Calculate a random depth in the treeNode to extract information from
-	randDepthOfInd1FromRem, randDepthOfInd2FromRem := getRandomDepthTargetLocation(individual1DepthRemainderFromMaX, individual2DepthRemainderFromMax)
-
-	// 4. Get Random SubTree based on depth of each program
-	subTreeAtDepthProg1, err := individual1.Program.T.GetRandomSubTreeAtDepth(randDepthOfInd1FromRem)
-	if err != nil {
-		return Individual{}, Individual{}, err
-	}
-	subTreeAtDepthProg2, err := individual2.Program.T.GetRandomSubTreeAtDepth(randDepthOfInd2FromRem)
+	cloneBDepth, err := cloneBTree.Depth()
 	if err != nil {
 		return Individual{}, Individual{}, err
 	}
 
-	// 5. Get depth of randomly selected subTrees
-	subTreeInd1Depth, err := subTreeAtDepthProg1.Depth()
+	// Check Depths for Swap
+
+	// 1. If depths < 1 in case it is just a tree with only a root
+	if cloneADepth < 1 {
+		nodeB, _, err := cloneBTree.RandomLeafAware()
+		if err != nil {
+			return Individual{}, Individual{}, err
+		}
+		hoboA, _, err := cloneATree.Replace(cloneATree.root, *nodeB)
+		if err != nil {
+			return Individual{}, Individual{}, err
+		}
+		_, _, err = cloneBTree.Replace(nodeB, hoboA)
+		if err != nil {
+			return Individual{}, Individual{}, err
+		}
+		return cloneA, cloneB, err
+	}
+
+	if cloneBDepth < 1 {
+		nodeA, _, err := cloneATree.RandomLeafAware()
+		if err != nil {
+			return Individual{}, Individual{}, err
+		}
+		hoboB, _, err := cloneBTree.Replace(cloneATree.root, *nodeA)
+		if err != nil {
+			return Individual{}, Individual{}, err
+		}
+		_, _, err = cloneATree.Replace(nodeA, hoboB)
+		if err != nil {
+			return Individual{}, Individual{}, err
+		}
+		return cloneA, cloneB, err
+	}
+
+	shortestNodeA, _, shortestDepthA, err := cloneATree.GetShortestBranch(maxDepth / 2)
+	if err != nil {
+		return Individual{}, Individual{}, nil
+	}
+	_, _, shortestDepthB, err := cloneBTree.GetShortestBranch(maxDepth / 2)
+	if err != nil {
+		return Individual{}, Individual{}, nil
+	}
+
+
+	if cloneADepth > maxDepth {
+		if shortestDepthA >= maxDepth {
+			// Penalize Parent
+			penalty := int(params.DepthPenaltyStrategyPenalization) * (shortestDepthA / maxDepth)
+			if individual1.hasCalculatedFitness {
+				return Individual{}, Individual{}, fmt.Errorf("cannot be penalized | fitness uncalculated")
+			}
+			individual1.totalFitness = individual1.totalFitness + int(penalty)
+		}
+	}
+	if cloneBDepth > maxDepth {
+		if shortestDepthB >= maxDepth {
+			// Penalize Parent
+			penalty := int(params.DepthPenaltyStrategyPenalization) * (shortestDepthB / maxDepth)
+			if individual2.hasCalculatedFitness {
+				return Individual{}, Individual{}, fmt.Errorf("cannot be penalized | fitness uncalculated")
+			}
+			individual2.totalFitness = individual2.totalFitness + int(penalty)
+		}
+	}
+
+	subTreeBAtDepth, err := cloneBTree.GetRandomSubTreeAtDepthAware(cloneBDepth) // confirm
 	if err != nil {
 		return Individual{}, Individual{}, err
 	}
-	subTreeInd2Depth, err := subTreeAtDepthProg2.Depth()
+	hoboA, _, err := cloneATree.Replace(shortestNodeA, *subTreeBAtDepth.root)
+	if err != nil {
+		return Individual{}, Individual{}, err
+	}
+	_, _, err = cloneBTree.Replace(subTreeBAtDepth.root, hoboA)
 	if err != nil {
 		return Individual{}, Individual{}, err
 	}
 
-	// 6. Select Nodes with A Given Depth
-	nodesProg1, err := subTreeAtDepthProg1.DepthAt(subTreeInd1Depth)
-	if err != nil {
-		return Individual{}, Individual{}, err
-	}
-	nodesProg2, err := subTreeAtDepthProg2.DepthAt(subTreeInd2Depth)
-	if err != nil {
-		return Individual{}, Individual{}, err
-	}
 
-	rand.Seed(time.Now().UnixNano())
-	var nodesProg1RandomIndex, nodesProg2RandomIndex int
-	if len(nodesProg1) > 0 {
-		rand.Seed(time.Now().UnixNano())
-		nodesProg1RandomIndex = rand.Intn(len(nodesProg1))
-	}
-	if len(nodesProg2) > 0 {
-		rand.Seed(time.Now().UnixNano())
-		nodesProg2RandomIndex = rand.Intn(len(nodesProg2))
-	}
-
-	// 7. Get random node in subTree
-	// 7.a node1 = rand(nodesInd1SubTree)
-	// 7.b node2 = rand(nodesInd2SubTree)
-	nodeProg1Random := nodesProg1[nodesProg1RandomIndex]
-	nodeProg2Random := nodesProg2[nodesProg2RandomIndex]
-
-	nodeProg1PieceTree := nodeProg1Random.ToDualTree()
-	nodeProg2PieceTree := nodeProg2Random.ToDualTree()
-
-	child1 = individual1.Clone()
-	child2 = individual2.Clone()
-
-	// Child 1
-	node, parent, err := child1.Program.T.Search(nodeProg1PieceTree.root.key)
-	if err != nil {
-		return Individual{}, Individual{}, err
-	}
-	if node == nil {
-		return Individual{}, Individual{}, fmt.Errorf("crossover | failed to locate node in the tree it came from..." +
-			" weird error")
-	}
-	if parent == nil {
-		return child1, child2, nil
-	}
-	if parent.right.key == nodeProg1PieceTree.root.key {
-		parent.right = nodeProg1PieceTree.root
-	} else if parent.left.key == nodeProg1PieceTree.root.key {
-		parent.left = nodeProg1PieceTree.root
-	}
-
-	// Child 2
-	node2, parent2, err := child2.Program.T.Search(nodeProg2PieceTree.root.key)
-	if err != nil {
-		return Individual{}, Individual{}, err
-	}
-	if node2 == nil {
-		return Individual{}, Individual{}, fmt.Errorf("crossover | failed to locate node in the tree it came from..." +
-			" weird error")
-	}
-	if parent2 == nil {
-		return Individual{}, Individual{}, fmt.Errorf("crossover | failed to locate parent in the tree it came from.." +
-			"." +
-			" weird error")
-	}
-	if parent2.right.key == nodeProg2PieceTree.root.key {
-		parent2.right = nodeProg2PieceTree.root
-	} else if parent.left.key == nodeProg2PieceTree.root.key {
-		parent2.left = nodeProg2PieceTree.root
-	}
-
-	return child1, child2, nil
+	//subTreeAAtDepth, err := cloneATree.GetRandomSubTreeAtDepthAware(cloneADepth) // confirm
+	//if err != nil {
+	//	return Individual{}, Individual{}, err
+	//}
+	//hoboB, _, err := cloneBTree.Replace(shortestNodeB, *subTreeAAtDepth.root)
+	//if err != nil {
+	//	return Individual{}, Individual{}, err
+	//}
+	//_, _, err = cloneATree.Replace(subTreeAAtDepth.root, hoboB)
+	//if err != nil {
+	//	return Individual{}, Individual{}, err
+	//}
+	cloneA.Program.T = cloneATree
+	cloneB.Program.T = cloneBTree
+	return cloneA, cloneB, err
 }
 
 // getRandomDepthTargetLocation obtains a random depth for each individual that the crossover will target.
@@ -271,3 +280,104 @@ func depthPenaltyPenalization(individual1 *Individual, individual2 *Individual, 
 //	}
 //	return individual1DepthRemainderFromMaX, individual2DepthRemainderFromMax, nil
 //}
+
+// 1. Depth and Remainder Information
+//individual1DepthRemainderFromMaX, individual2DepthRemainderFromMax, err := calculateRemainderDepths(individual1, individual2, maxDepth, params)
+//if err != nil {
+//	return Individual{}, Individual{}, err
+//}
+//
+//// 3. Calculate a random depth in the treeNode to extract information from
+//randDepthOfInd1FromRem, randDepthOfInd2FromRem := getRandomDepthTargetLocation(individual1DepthRemainderFromMaX, individual2DepthRemainderFromMax)
+//
+//// 4. Get Random SubTree based on depth of each program
+//subTreeAtDepthProg1, err := individual1.Program.T.GetRandomSubTreeAtDepth(randDepthOfInd1FromRem)
+//if err != nil {
+//	return Individual{}, Individual{}, err
+//}
+//subTreeAtDepthProg2, err := individual2.Program.T.GetRandomSubTreeAtDepth(randDepthOfInd2FromRem)
+//if err != nil {
+//	return Individual{}, Individual{}, err
+//}
+//
+//// 5. Get depth of randomly selected subTrees
+//subTreeInd1Depth, err := subTreeAtDepthProg1.Depth()
+//if err != nil {
+//	return Individual{}, Individual{}, err
+//}
+//subTreeInd2Depth, err := subTreeAtDepthProg2.Depth()
+//if err != nil {
+//	return Individual{}, Individual{}, err
+//}
+//
+//// 6. Select Nodes with A Given Depth
+//nodesProg1, err := subTreeAtDepthProg1.DepthAt(subTreeInd1Depth)
+//if err != nil {
+//	return Individual{}, Individual{}, err
+//}
+//nodesProg2, err := subTreeAtDepthProg2.DepthAt(subTreeInd2Depth)
+//if err != nil {
+//	return Individual{}, Individual{}, err
+//}
+//
+//rand.Seed(time.Now().UnixNano())
+//var nodesProg1RandomIndex, nodesProg2RandomIndex int
+//if len(nodesProg1) > 0 {
+//	rand.Seed(time.Now().UnixNano())
+//	nodesProg1RandomIndex = rand.Intn(len(nodesProg1))
+//}
+//if len(nodesProg2) > 0 {
+//	rand.Seed(time.Now().UnixNano())
+//	nodesProg2RandomIndex = rand.Intn(len(nodesProg2))
+//}
+//
+//// 7. Get random node in subTree
+//// 7.a node1 = rand(nodesInd1SubTree)
+//// 7.b node2 = rand(nodesInd2SubTree)
+//nodeProg1Random := nodesProg1[nodesProg1RandomIndex]
+//nodeProg2Random := nodesProg2[nodesProg2RandomIndex]
+//
+//nodeProg1PieceTree := nodeProg1Random.ToDualTree()
+//nodeProg2PieceTree := nodeProg2Random.ToDualTree()
+//
+//child1 = individual1.Clone()
+//child2 = individual2.Clone()
+//
+//// Child 1
+//node, parent, err := child1.Program.T.Search(nodeProg1PieceTree.root.key)
+//if err != nil {
+//	return Individual{}, Individual{}, err
+//}
+//if node == nil {
+//	return Individual{}, Individual{}, fmt.Errorf("crossover | failed to locate node in the tree it came from..." +
+//		" weird error")
+//}
+//if parent == nil {
+//	return child1, child2, nil
+//}
+//if parent.right.key == nodeProg1PieceTree.root.key {
+//	parent.right = nodeProg1PieceTree.root
+//} else if parent.left.key == nodeProg1PieceTree.root.key {
+//	parent.left = nodeProg1PieceTree.root
+//}
+//
+//// Child 2
+//node2, parent2, err := child2.Program.T.Search(nodeProg2PieceTree.root.key)
+//if err != nil {
+//	return Individual{}, Individual{}, err
+//}
+//if node2 == nil {
+//	return Individual{}, Individual{}, fmt.Errorf("crossover | failed to locate node in the tree it came from..." +
+//		" weird error")
+//}
+//if parent2 == nil {
+//	return Individual{}, Individual{}, fmt.Errorf("crossover | failed to locate parent in the tree it came from.." +
+//		"." +
+//		" weird error")
+//}
+//if parent2.right.key == nodeProg2PieceTree.root.key {
+//	parent2.right = nodeProg2PieceTree.root
+//} else if parent.left.key == nodeProg2PieceTree.root.key {
+//	parent2.left = nodeProg2PieceTree.root
+//}
+//
