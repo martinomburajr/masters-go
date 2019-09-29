@@ -100,7 +100,6 @@ func Crossover(individual1 *Individual, individual2 *Individual, maxDepth int, p
 		return Individual{}, Individual{}, nil
 	}
 
-
 	if cloneADepth > maxDepth {
 		if shortestDepthA >= maxDepth {
 			// Penalize Parent
@@ -122,7 +121,6 @@ func Crossover(individual1 *Individual, individual2 *Individual, maxDepth int, p
 		}
 	}
 
-
 	if shortestDepthA <= shortestDepthB {
 		subTreeBAtDepth, err := cloneBTree.GetRandomSubTreeAtDepthAware(cloneBDepth) // confirm
 		if err != nil {
@@ -136,7 +134,7 @@ func Crossover(individual1 *Individual, individual2 *Individual, maxDepth int, p
 		if err != nil {
 			return Individual{}, Individual{}, err
 		}
-	}else {
+	} else {
 		subTreeAAtDepth, err := cloneATree.GetRandomSubTreeAtDepthAware(cloneADepth) // confirm
 		if err != nil {
 			return Individual{}, Individual{}, err
@@ -150,7 +148,6 @@ func Crossover(individual1 *Individual, individual2 *Individual, maxDepth int, p
 			return Individual{}, Individual{}, err
 		}
 	}
-
 
 	cloneA.Program.T = cloneATree
 	cloneB.Program.T = cloneBTree

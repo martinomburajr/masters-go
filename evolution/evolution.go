@@ -19,6 +19,15 @@ type EvolutionParams struct {
 	MinThreshold         float64
 	FitnessStrategy      int
 	TournamentSize       int
+	EachPopulationSize int
+	ProbabilityOfRecombination       float32
+	ProbabilityOfMutation            float32
+	ProbabilityOfNonTerminalMutation float32
+	AntagonistMaxStrategies int
+	AntagonistStrategyLength int
+	ProtagonistMaxStrategies int
+	ProtagonistStrategyLength int
+	SurvivorPercentage float32
 }
 
 const (
@@ -31,11 +40,7 @@ type EvolutionEngine struct {
 	StartIndividual                  Program
 	Spec                             Spec
 	GenerationCount                  int
-	EachPopulation                   int
 	Parallelize                      bool
-	ProbabilityOfRecombination       float32
-	ProbabilityOfMutation            float32
-	ProbabilityOfNonTerminalMutation float32
 	Generations                      []*Generation
 	AvailableStrategies              []Strategy
 	AvailableTerminalSet             SymbolicExpressionSet
@@ -50,7 +55,7 @@ type EvolutionEngine struct {
 	EvaluationMinThreshold           float64
 	FitnessStrategy                  int
 	TournamentSize                   int
-
+	Parameters EvolutionParams
 }
 
 
@@ -64,12 +69,14 @@ func (e *EvolutionEngine) Start() (*EvolutionResult, error) {
 	// Init Population
 	e.Generations = make([]*Generation, e.GenerationCount)
 	// Set First Generation - TODO Parallelize Individual Creation
-	antagonists, err := GenerateRandomIndividuals(e.EachPopulation, "ANT", IndividualAntagonist, 3, 4,
+	antagonists, err := GenerateRandomIndividuals(e.Parameters.EachPopulationSize, "ANT", IndividualAntagonist,
+		e.Parameters.AntagonistStrategyLength, e.Parameters.AntagonistMaxStrategies,
 		e.AvailableStrategies, 1, e.AvailableTerminalSet, e.AvailableNonTerminalSet)
 	if err != nil {
 		return nil, err
 	}
-	protagonists, err := GenerateRandomIndividuals(e.EachPopulation, "PRO", IndividualProtagonist, 3, 4,
+	protagonists, err := GenerateRandomIndividuals(e.Parameters.EachPopulationSize, "PRO", IndividualProtagonist,
+		e.Parameters.ProtagonistStrategyLength, e.Parameters.ProtagonistMaxStrategies,
 		e.AvailableStrategies, 1, e.AvailableTerminalSet, e.AvailableNonTerminalSet)
 	if err != nil {
 		return nil, err

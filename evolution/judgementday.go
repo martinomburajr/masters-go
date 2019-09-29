@@ -10,21 +10,44 @@ package evolution
 // 5. Statistical Output
 // 6. FinalPopulation configuration (incrementing age, clearing fitness values for old worthy individuals)
 func JudgementDay(incomingPopulation []*Individual, opts EvolutionParams) ([]*Individual, error) {
-	survivors := make([]*Individual, len(incomingPopulation))
+	survivors := make([]*Individual, opts.TournamentSize)
 	// Parent Selection
 		// Tournament Selection
-	_, err := TournamentSelection(incomingPopulation, opts.TournamentSize)
+	outgoingParents, err := TournamentSelection(incomingPopulation, opts.TournamentSize)
 	if err != nil {
 		return nil, err
 	}
 
 	// Reproduction
 		// Crossover
+		children := make([]Individual, opts.EachPopulationSize)
+		for i := 0; i < len(outgoingParents); i+=2 {
+			child1, child2, err := Crossover(outgoingParents[i], outgoingParents[i + 1], opts.MaxDepth, opts)
+			if err != nil {
+				return nil, err
+			}
+			children[i] = child1
+			children[i+1] = child2
+		}
 
 	// Reproduction
 		// Mutation
 
+		parentPopulationSize := int(opts.SurvivorPercentage * float32(opts.EachPopulationSize))
+		childPopulationSize := opts.EachPopulationSize - parentPopulationSize
+
+		// CHANGE - This only selects the first N parents
+
+		for i := 0; i < parentPopulationSize; i++ {
+			survivors[i] = outgoingParents[i]
+		}
+		for i := parentPopulationSize; i < parentPopulationSize + childPopulationSize; i++ {
+			survivors[i] = outgoingParents[i]
+		}
+
+
 	// Survivor Selection
+
 
 	// Statistical Output
 
