@@ -1307,8 +1307,13 @@ func (d *DualTree) GetRandomSubTreeAtDepthAware(depth int) (DualTree, error) {
 		return DualTree{}, fmt.Errorf("cannot get depth - depth is less than 0")
 	}
 
-	rand.Seed(time.Now().UnixNano())
-	randomDepth := rand.Intn(depth+1)
+	randomDepth := 0
+	if depth < 2 {
+		randomDepth = depth
+	} else {
+		rand.Seed(time.Now().UnixNano())
+		randomDepth = rand.Intn(depth)
+	}
 
 	nodes, err := d.DepthAt(randomDepth)
 	if err != nil {
@@ -1332,7 +1337,7 @@ func (d *DualTree) GetRandomSubTreeAtDepthAware(depth int) (DualTree, error) {
 // used. This will prevent having to check each node. As with any Inorder DFS traversal,
 // nodes placed furthest right are checked last.
 // If the parent is nil and there is a nil error, assume the tree itself only contains the root.
-// You have to explicitly check this
+// You have to explicitly check this. This heavily skews to nodes on the left
 func (bst *DualTree) GetShortestBranch(minAcceptableDepth int) (shortestNode *DualTreeNode,
 	shortestNodeParent *DualTreeNode, shortestDepth int, err error) {
 	if bst.root == nil {

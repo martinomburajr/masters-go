@@ -95,7 +95,7 @@ func Crossover(individual1 *Individual, individual2 *Individual, maxDepth int, p
 	if err != nil {
 		return Individual{}, Individual{}, nil
 	}
-	_, _, shortestDepthB, err := cloneBTree.GetShortestBranch(maxDepth / 2)
+	shortestNodeB, _, shortestDepthB, err := cloneBTree.GetShortestBranch(maxDepth / 2)
 	if err != nil {
 		return Individual{}, Individual{}, nil
 	}
@@ -122,32 +122,36 @@ func Crossover(individual1 *Individual, individual2 *Individual, maxDepth int, p
 		}
 	}
 
-	subTreeBAtDepth, err := cloneBTree.GetRandomSubTreeAtDepthAware(cloneBDepth) // confirm
-	if err != nil {
-		return Individual{}, Individual{}, err
-	}
-	hoboA, _, err := cloneATree.Replace(shortestNodeA, *subTreeBAtDepth.root)
-	if err != nil {
-		return Individual{}, Individual{}, err
-	}
-	_, _, err = cloneBTree.Replace(subTreeBAtDepth.root, hoboA)
-	if err != nil {
-		return Individual{}, Individual{}, err
+
+	if shortestDepthA <= shortestDepthB {
+		subTreeBAtDepth, err := cloneBTree.GetRandomSubTreeAtDepthAware(cloneBDepth) // confirm
+		if err != nil {
+			return Individual{}, Individual{}, err
+		}
+		hoboA, _, err := cloneATree.Replace(shortestNodeA, *subTreeBAtDepth.root)
+		if err != nil {
+			return Individual{}, Individual{}, err
+		}
+		_, _, err = cloneBTree.Replace(subTreeBAtDepth.root, hoboA)
+		if err != nil {
+			return Individual{}, Individual{}, err
+		}
+	}else {
+		subTreeAAtDepth, err := cloneATree.GetRandomSubTreeAtDepthAware(cloneADepth) // confirm
+		if err != nil {
+			return Individual{}, Individual{}, err
+		}
+		hoboB, _, err := cloneBTree.Replace(shortestNodeB, *subTreeAAtDepth.root)
+		if err != nil {
+			return Individual{}, Individual{}, err
+		}
+		_, _, err = cloneATree.Replace(subTreeAAtDepth.root, hoboB)
+		if err != nil {
+			return Individual{}, Individual{}, err
+		}
 	}
 
 
-	//subTreeAAtDepth, err := cloneATree.GetRandomSubTreeAtDepthAware(cloneADepth) // confirm
-	//if err != nil {
-	//	return Individual{}, Individual{}, err
-	//}
-	//hoboB, _, err := cloneBTree.Replace(shortestNodeB, *subTreeAAtDepth.root)
-	//if err != nil {
-	//	return Individual{}, Individual{}, err
-	//}
-	//_, _, err = cloneATree.Replace(subTreeAAtDepth.root, hoboB)
-	//if err != nil {
-	//	return Individual{}, Individual{}, err
-	//}
 	cloneA.Program.T = cloneATree
 	cloneB.Program.T = cloneBTree
 	return cloneA, cloneB, err
