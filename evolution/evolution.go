@@ -5,60 +5,58 @@ import (
 )
 
 type EvolutionParams struct {
-	Generations          int
-	EnableParallelism    bool
-	survivorSelection    int
-	parentSelection      int
-	ElitismPercentage    float32
-	ProgramEval          func() float32
-	StatisticsOutput     string
-	MaxDepth             int
-	DepthPenaltyStrategy int
+	Generations                      int
+	EnableParallelism                bool
+	survivorSelection                int
+	parentSelection                  int
+	ElitismPercentage                float32
+	ProgramEval                      func() float32
+	StatisticsOutput                 string
+	MaxDepth                         int
+	DepthPenaltyStrategy             int
 	DepthPenaltyStrategyPenalization float32
-	Threshold            float64
-	MinThreshold         float64
-	FitnessStrategy      int
-	TournamentSize       int
-	EachPopulationSize int
+	Threshold                        float64
+	MinThreshold                     float64
+	FitnessStrategy                  int
+	TournamentSize                   int
+	EachPopulationSize               int
 	ProbabilityOfRecombination       float32
 	ProbabilityOfMutation            float32
 	ProbabilityOfNonTerminalMutation float32
-	AntagonistMaxStrategies int
-	AntagonistStrategyLength int
-	ProtagonistMaxStrategies int
-	ProtagonistStrategyLength int
-	SurvivorPercentage float32
+	AntagonistMaxStrategies          int
+	AntagonistStrategyLength         int
+	ProtagonistMaxStrategies         int
+	ProtagonistStrategyLength        int
+	SurvivorPercentage               float32
 }
 
 const (
-	DepthPenaltyStrategyIgnore = 0
+	DepthPenaltyStrategyIgnore   = 0
 	DepthPenaltyStrategyPenalize = 2
-	DepthPenaltyStrategyTrim = 1
+	DepthPenaltyStrategyTrim     = 1
 )
 
 type EvolutionEngine struct {
-	StartIndividual                  Program
-	Spec                             Spec
-	GenerationCount                  int
-	Parallelize                      bool
-	Generations                      []*Generation
-	AvailableStrategies              []Strategy
-	AvailableTerminalSet             SymbolicExpressionSet
-	AvailableNonTerminalSet          SymbolicExpressionSet
-	SurvivorSelection                int
-	ParentSelection                  int
-	ElitismPercentage                float32
-	StatisticsOutput                 string
-	MaxDepth                         int
-	DepthPenalty                     int
-	EvaluationThreshold              float64
-	EvaluationMinThreshold           float64
-	FitnessStrategy                  int
-	TournamentSize                   int
-	Parameters EvolutionParams
+	StartIndividual         Program
+	Spec                    Spec
+	GenerationCount         int
+	Parallelize             bool
+	Generations             []*Generation
+	AvailableStrategies     []Strategy
+	AvailableTerminalSet    SymbolicExpressionSet
+	AvailableNonTerminalSet SymbolicExpressionSet
+	SurvivorSelection       int
+	ParentSelection         int
+	ElitismPercentage       float32
+	StatisticsOutput        string
+	MaxDepth                int
+	DepthPenalty            int
+	EvaluationThreshold     float64
+	EvaluationMinThreshold  float64
+	FitnessStrategy         int
+	TournamentSize          int
+	Parameters              EvolutionParams
 }
-
-
 
 func (e *EvolutionEngine) Start() (*EvolutionResult, error) {
 	err := e.validate()
@@ -85,11 +83,11 @@ func (e *EvolutionEngine) Start() (*EvolutionResult, error) {
 	//// create the 1st gen0, and begin
 	genID := GenerateGenerationID(0)
 	gen0 := Generation{
-		count:          0,
-		GenerationID:   genID,
-		Protagonists:   protagonists,
-		Antagonists:    antagonists,
-		engine: e,
+		count:        0,
+		GenerationID: genID,
+		Protagonists: protagonists,
+		Antagonists:  antagonists,
+		engine:       e,
 	}
 	e.Generations[0] = &gen0
 
@@ -123,7 +121,6 @@ func (e *EvolutionEngine) validate() error {
 	//}
 	return nil
 }
-
 
 //
 //// InitialIndividual returns the input individual

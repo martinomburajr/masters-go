@@ -164,8 +164,14 @@ func TestGenerateRandomTree(t *testing.T) {
 				return
 			}
 			if err == nil {
-				wantExpressionSet := tt.want.ToSymbolicExpressionSet()
-				gotExpressionSet := got.ToSymbolicExpressionSet()
+				wantExpressionSet, err := tt.want.ToSymbolicExpressionSet()
+				if err != nil {
+					t.Error(err)
+				}
+				gotExpressionSet, err := got.ToSymbolicExpressionSet()
+				if err != nil {
+					t.Error(err)
+				}
 
 				if len(wantExpressionSet) != len(gotExpressionSet) {
 					t.Errorf("They are not the same length error = %v, wantErr %v", gotExpressionSet, wantExpressionSet)
@@ -363,10 +369,10 @@ func TestDualTree_Contains(t *testing.T) {
 		{"same - T in T", TreeT_0(), TreeT_0(), true, false},
 		{"diff - T in T", TreeT_0(), TreeT_1(), false, false},
 		{"diff sizes", TreeT_0(), TreeT_NT_T_NT_T_1(), false, false},
-		{"same - T in T-NT-T", TreeT_NT_T_0(), TreeT_0(), true, false},
+		{"same - T in T-NT-T", TreeT_NT_T_0(), TreeT_0(), false, false},
 		{"diff - T in T-NT-T", TreeT_NT_T_0(), TreeT_1(), false, false},
 		{"same - T-NT-T in T-NT-T", TreeT_NT_T_0(), TreeT_NT_T_0(), true, false},
-		{"same - T-NT-T in T-NT-T-NT-T", TreeT_NT_T_NT_T_0(), TreeT_NT_T_0(), true, false},
+		{"same - T-NT-T in T-NT-T-NT-T", TreeT_NT_T_NT_T_0(), TreeT_NT_T_0(), false, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -556,9 +562,7 @@ func TestDualTree_MutateTerminal(t *testing.T) {
 					}
 				}
 
-				TestSectionDivider("MUTATE TERMINAL: BEFORE", t)
 				tt.oldTree.Print()
-				TestSectionDivider("MUTATE TERMINAL: AFTER", t)
 				tt.tree.Print()
 			}
 		})
@@ -625,9 +629,7 @@ func TestDualTree_MutateNonTerminal(t *testing.T) {
 					}
 				}
 
-				TestSectionDivider("MUTATE NON-TERMINAL: BEFORE", t)
 				tt.oldTree.Print()
-				TestSectionDivider("MUTATE NON-TERMINAL: AFTER", t)
 				tt.tree.Print()
 			}
 		})
@@ -746,7 +748,10 @@ func TestDualTree_FromSymbolicExpressionSet2(t *testing.T) {
 				t.Errorf("DualTree.FromSymbolicExpressionSet2() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			if err == nil {
-				expressionSet := tt.tree.ToSymbolicExpressionSet()
+				expressionSet, err := tt.tree.ToSymbolicExpressionSet()
+				if err != nil {
+					t.Error(err)
+				}
 				if len(expressionSet) != len(tt.terminalSet) {
 					t.Errorf("Generated Tree not the same LENGTH as input symbolic set error = %q, wantErr %q",
 						expressionSet,
@@ -791,7 +796,11 @@ func TestDualTree_ToSymbolicExpressionSet(t *testing.T) {
 				root: tt.fields.root,
 				lock: tt.fields.lock,
 			}
-			if got := bst.ToSymbolicExpressionSet(); !reflect.DeepEqual(got, tt.want) {
+			got, err := bst.ToSymbolicExpressionSet()
+			if err != nil {
+				t.Error(err)
+			}
+			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("DualTree.ToSymbolicExpressionSet() = %v, \n isEqual %v", got, tt.want)
 			}
 		})
@@ -1122,10 +1131,10 @@ func TestDualTree_Replace(t *testing.T) {
 		{"cannot find node to swap", TreeT_0(), args{X1.ToDualTreeNode("30"), DualTreeNode{value: "3"}},
 			DualTreeNode{}, nil,
 			true},
-		{"T", TreeT_0(), args{X1.ToDualTreeNode("0"), DualTreeNode{value: "3"}},
+		{"T", TreeT_0(), args{X1.ToDualTreeNode("0"), DualTreeNode{value: "3", key: "123414"}},
 			*X1.ToDualTreeNode("0"), &DualTreeNode{value: "3"},
 			false},
-		{"T-NT-T", TreeT_NT_T_0(), args{X1.ToDualTreeNode("2"), DualTreeNode{value: "y", arity: 0}},
+		{"T-NT-T", TreeT_NT_T_0(), args{X1.ToDualTreeNode("2"), DualTreeNode{value: "y", arity: 0, key: "123414"}},
 			*X1.ToDualTreeNode("2"), &DualTreeNode{value: "*", arity: 2},
 			false},
 		{"T-NT-T + T-NT-T", TreeT_NT_T_0(), args{X1.ToDualTreeNode("2"), *TreeT_NT_T_0().root},
@@ -1145,23 +1154,26 @@ func TestDualTree_Replace(t *testing.T) {
 				t.Errorf("DualTree.Replace() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(gotHobo, tt.wantHobo) {
-				t.Errorf("DualTree.Replace() gotHobo = %v, want %v", gotHobo, tt.wantHobo)
-			}
 			if !tt.wantErr {
+				equal := gotHobo.IsValEqual(tt.args.node)
+				if !equal {
+					t.Errorf("DualTree.Replace() Hobo node doesnt have the same value is nil | goParentKey:  gotHobo"+
+						" = %v, want %v", gotParent,
+						tt.wantParent)
+				}
 				if gotParent == nil {
-					t.Errorf("DualTree.Replace() Parent is nil | goParentKey:  gotHobo = %v, want %v", gotParent,
+					t.Errorf("DualTree.Replace() Parent is nil | goParentKey:  gotParent = %v, want %v", gotParent,
 						tt.wantParent)
 					return
 				}
 				if gotParent.key == "" {
-					t.Errorf("DualTree.Replace() | goParentKey:  gotHobo = %v, want %v", gotParent, tt.wantParent)
+					t.Errorf("DualTree.Replace() | goParentKey:  gotParent = %v, want %v", gotParent, tt.wantParent)
 				}
 				if gotParent.value != tt.wantParent.value {
-					t.Errorf("DualTree.Replace() | goParentKey:  gotHobo = %v, want %v", gotParent, tt.wantParent)
+					t.Errorf("DualTree.Replace() | goParentKey:  gotParent = %v, want %v", gotParent, tt.wantParent)
 				}
 				if gotParent.arity != tt.wantParent.arity {
-					t.Errorf("DualTree.Replace() | goParentKey:  gotHobo = %v, want %v", gotParent, tt.wantParent)
+					t.Errorf("DualTree.Replace() | goParentKey:  gotParent = %v, want %v", gotParent, tt.wantParent)
 				}
 			}
 		})
@@ -1220,7 +1232,10 @@ func TestDualTree_Clone(t *testing.T) {
 				root: tt.fields.root,
 				lock: tt.fields.lock,
 			}
-			got := bst.Clone()
+			got, err := bst.Clone()
+			if err != nil {
+				t.Error(err)
+			}
 			if tt.fields.root == nil && got.root == nil {
 				return
 			}
@@ -1248,9 +1263,9 @@ func TestDualTree_GetShortestBranch(t *testing.T) {
 		wantShortestDepth      int
 		wantErr                bool
 	}{
-		{"nil", TreeNil(), 2, nil,nil, -1, true},
-		{"negative minAcceptableDepth", TreeT_0(), -1, nil,nil, -1, true},
-		{"T", TreeT_0(), 0, TreeT_0().root,nil, 0, false},
+		{"nil", TreeNil(), 2, nil, nil, -1, true},
+		{"negative minAcceptableDepth", TreeT_0(), -1, nil, nil, -1, true},
+		{"T", TreeT_0(), 0, TreeT_0().root, nil, 0, false},
 		{"T-NT-T", TreeT_NT_T_1(), 1, TreeT_NT_T_1().root.left, TreeT_NT_T_1().root, 1, false},
 	}
 	for _, tt := range tests {
@@ -1295,3 +1310,81 @@ func TestDualTree_GetShortestBranch(t *testing.T) {
 //		})
 //	}
 //}
+
+func TestGenerateRandomTreeEnforceIndependentVariable(t *testing.T) {
+	type args struct {
+		depth          int
+		independentVar SymbolicExpression
+		terminals      []SymbolicExpression
+		nonTerminals   []SymbolicExpression
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *DualTree
+		wantErr bool
+	}{
+		{"err-lowMaxDepth", args{-1, SymbolicExpression{}, nil, nil}, nil, true},
+		{"err-empty-indepvar", args{-1, SymbolicExpression{}, nil, nil}, nil, true},
+		{"err-nil-terminals", args{2, X1, nil, nil}, nil, true},
+		{"err-nil-non-terminals", args{2, X1, []SymbolicExpression{X1}, nil}, nil, true},
+		{"err-nil-empty-terminals", args{2, X1, []SymbolicExpression{}, []SymbolicExpression{}}, nil, true},
+		{"err-nil-empty-nonterminals", args{2, X1, []SymbolicExpression{X1}, []SymbolicExpression{}}, nil, true},
+		{"err-nil-empty-nonterminals", args{2, X1, []SymbolicExpression{X1}, []SymbolicExpression{}}, nil, true},
+		{"T", args{0, X1, []SymbolicExpression{X1}, []SymbolicExpression{}}, TreeT_1(), false},
+		{"T", args{0, X1, []SymbolicExpression{X1, Const0, Const1, Const2, Const3, Const4, Const5, Const6,
+			Const7, Const8, Const9}, []SymbolicExpression{}}, TreeT_1(), false},
+		{"err-depth-1-no-NT", args{1, X1, []SymbolicExpression{X1}, []SymbolicExpression{}}, TreeT_1(), true},
+		{"depth-1", args{1, X1, []SymbolicExpression{X1}, []SymbolicExpression{Add}}, TreeT_NT_T_0(), false},
+		{"depth-2", args{2, X1, []SymbolicExpression{X1}, []SymbolicExpression{Add}}, TreeT_NT_T_NT_T_NT_T_0(), false},
+		{"depth-3-diverse", args{2, X1, []SymbolicExpression{X1, Const0, Const1, Const2, Const3, Const4, Const5, Const6,
+			Const7, Const8, Const9},
+			[]SymbolicExpression{Add,
+				Mult,
+				Sub}},
+			TreeT_NT_T_NT_T_NT_T_0(),
+			false},
+		{"depth-2-diverse", args{3, X1, []SymbolicExpression{X1, Const0, Const1, Const2, Const3, Const4, Const5, Const6,
+			Const7, Const8, Const9},
+			[]SymbolicExpression{Add,
+				Mult,
+				Sub}},
+			TreeT_NT_T_NT_T_NT_T_NT_T_NT_T_NT_T_NT_T_0(),
+			false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var err error
+			got, err := GenerateRandomTreeEnforceIndependentVariable(tt.args.depth, tt.args.independentVar,
+				tt.args.terminals,
+				tt.args.nonTerminals)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GenerateRandomTree() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if err == nil {
+				wantExpressionSet, err := tt.want.ToSymbolicExpressionSet()
+				if err != nil {
+					t.Error(err)
+				}
+				gotExpressionSet, err := got.ToSymbolicExpressionSet()
+				if err != nil {
+					t.Error(err)
+				}
+
+				if len(wantExpressionSet) != len(gotExpressionSet) {
+					t.Errorf("They are not the same length error = %v, wantErr %v", gotExpressionSet, wantExpressionSet)
+				}
+
+				for e := range gotExpressionSet {
+					if gotExpressionSet[e].value == tt.args.independentVar.value {
+						break
+					}
+					t.Errorf("Does not contain independent variable = %v, "+
+						"wantErr %v", gotExpressionSet,
+						wantExpressionSet)
+				}
+			}
+		})
+	}
+}

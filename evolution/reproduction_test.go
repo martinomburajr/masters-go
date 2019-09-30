@@ -10,7 +10,7 @@ func TestCrossover(t *testing.T) {
 		individual1 *Individual
 		individual2 *Individual
 		maxDepth    int
-		params EvolutionParams
+		params      EvolutionParams
 	}
 	tests := []struct {
 		name       string

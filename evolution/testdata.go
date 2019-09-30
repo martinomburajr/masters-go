@@ -1,14 +1,5 @@
 package evolution
 
-import (
-	"fmt"
-	"testing"
-)
-
-var TestSectionDivider = func(title string, t *testing.T) {
-	t.Log(fmt.Sprintf("############################## %s ##########################", title))
-}
-
 //TERMINALS
 var X1 = SymbolicExpression{kind: 0, value: "x", arity: 0}
 var Const0 = SymbolicExpression{kind: 0, value: "0", arity: 0}

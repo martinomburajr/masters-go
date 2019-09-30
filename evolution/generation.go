@@ -13,7 +13,6 @@ type Generation struct {
 	count                        int
 }
 
-
 // Start begins the generational evolutionary cycle.
 // It creates a new generation that it links the {nextGeneration} field to. Similar to the way a LinkedList works
 func (g *Generation) Start() (*Generation, error) {

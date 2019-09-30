@@ -37,6 +37,7 @@ func compInt(str int, str2 int) bool {
 }
 
 var response = false
+
 func BenchmarkCompareString(b *testing.B) {
 	slices := []string{"1234", "2345", "3456", "5678"}
 	for i := 0; i < b.N; i++ {
@@ -45,7 +46,6 @@ func BenchmarkCompareString(b *testing.B) {
 		}
 	}
 }
-
 
 func BenchmarkCompareInt(b *testing.B) {
 	slices := []int{1234, 2345, 3456, 5678}
@@ -57,7 +57,7 @@ func BenchmarkCompareInt(b *testing.B) {
 }
 
 func BenchmarkRandString(b *testing.B) {
-	n := 5;
+	n := 5
 	for i := 0; i < b.N; i++ {
 		RandString(n)
 	}

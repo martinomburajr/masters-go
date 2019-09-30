@@ -10,7 +10,7 @@ import (
 func Crossover(individual1 *Individual, individual2 *Individual, maxDepth int, params EvolutionParams) (child1 Individual,
 	child2 Individual,
 	err error) {
-		// Requirements
+	// Requirements
 	if individual1 == nil {
 		return Individual{}, Individual{}, fmt.Errorf("crossover: individual 1 cannot be nil")
 	}
@@ -40,8 +40,14 @@ func Crossover(individual1 *Individual, individual2 *Individual, maxDepth int, p
 	}
 
 	// DO!
-	cloneA := individual1.Clone()
-	cloneB := individual2.Clone()
+	cloneA, err := individual1.Clone()
+	if err != nil {
+		return Individual{}, Individual{}, err
+	}
+	cloneB, err := individual2.Clone()
+	if err != nil {
+		return Individual{}, Individual{}, err
+	}
 
 	cloneATree := cloneA.Program.T
 	cloneBTree := cloneB.Program.T
@@ -198,20 +204,19 @@ func calculateRemainderDepths(individual1 *Individual, individual2 *Individual, 
 	return i, i2, nil
 }
 
-
-func depthPenaltyIgnore(maxDepth int, individual1Depth int, individual2Depth int)(int, int) {
+func depthPenaltyIgnore(maxDepth int, individual1Depth int, individual2Depth int) (int, int) {
 	if maxDepth < 0 {
 		maxDepth = 0
 	}
 	var individual1DepthRemainderFromMaX, individual2DepthRemainderFromMax int
 	if individual1Depth >= maxDepth {
 		individual1DepthRemainderFromMaX = 0
-	}else {
+	} else {
 		individual1DepthRemainderFromMaX = maxDepth - individual1Depth
 	}
 	if individual2Depth >= maxDepth {
 		individual2DepthRemainderFromMax = 0
-	}else {
+	} else {
 		individual2DepthRemainderFromMax = maxDepth - individual2Depth
 	}
 	return individual1DepthRemainderFromMaX, individual2DepthRemainderFromMax
@@ -221,7 +226,7 @@ func depthPenaltyIgnore(maxDepth int, individual1Depth int, individual2Depth int
 // Ensure that the individual has calculated its fitness
 func depthPenaltyPenalization(individual1 *Individual, individual2 *Individual, individual1Depth int,
 	individual2Depth int, maxDepth int,
-	penalization float32)(int, int, error) {
+	penalization float32) (int, int, error) {
 	if maxDepth < 0 {
 		maxDepth = 0
 	}
@@ -229,27 +234,26 @@ func depthPenaltyPenalization(individual1 *Individual, individual2 *Individual, 
 	if individual1Depth >= maxDepth {
 		if individual1.hasCalculatedFitness {
 			individual1.totalFitness = individual1.totalFitness + int(penalization)
-		}else {
-			return -1, -1, fmt.Errorf("crossover | depthPenalty | fitness of individual %s has not been calculated" +
+		} else {
+			return -1, -1, fmt.Errorf("crossover | depthPenalty | fitness of individual %s has not been calculated"+
 				" before crossover", individual1.id)
 		}
-	}else {
+	} else {
 		individual1DepthRemainderFromMaX = maxDepth - individual1Depth
 	}
 
 	if individual2Depth >= maxDepth {
 		if individual2.hasCalculatedFitness {
 			individual2.totalFitness = individual2.totalFitness + int(penalization)
-		}else {
-			return -1, -1, fmt.Errorf("crossover | depthPenalty | fitness of individual %s has not been calculated" +
+		} else {
+			return -1, -1, fmt.Errorf("crossover | depthPenalty | fitness of individual %s has not been calculated"+
 				" before crossover", individual1.id)
 		}
-	}else {
+	} else {
 		individual2DepthRemainderFromMax = maxDepth - individual2Depth
 	}
 	return individual1DepthRemainderFromMaX, individual2DepthRemainderFromMax, nil
 }
-
 
 //func depthPenaltyTrim(individual1 *Individual, individual2 *Individual, individual1Depth int,
 //	individual2Depth int, maxDepth int,

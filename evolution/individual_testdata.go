@@ -1,7 +1,5 @@
 package evolution
 
-
-
 // IndividualNilProgNil
 var IndividualNilProgNil = Individual{
 	Program:              &ProgNil,
@@ -76,7 +74,6 @@ var IndividualProgTreeT_NT_T_4 = Individual{
 	hasAppliedStrategy:       false,
 }
 
-
 // IndividualProgTreeT_NT_T_4
 var IndividualProgTreeT_NT_T_1 = Individual{
 	Program:                  &ProgTreeT_NT_T_1,
@@ -89,7 +86,6 @@ var IndividualProgTreeT_NT_T_1 = Individual{
 	fitnessCalculationMethod: FitnessProtagonistThresholdTally,
 	hasAppliedStrategy:       false,
 }
-
 
 // IndividualProgTreeT_NT_T_NT_T_0
 var IndividualProgTreeT_NT_T_NT_T_0 = Individual{

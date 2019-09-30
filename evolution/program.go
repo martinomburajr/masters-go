@@ -22,13 +22,17 @@ func GenerateProgramID(count int) string {
 // ApplyStrategy takes a given strategy and applies a transformation to the given program.
 // depth defines the exact depth the treeNode can evolve to given the transformation.
 // Depth of a treeNode increases exponentially. So keep depths small e.g. 1,2,3
+// Ensure to place the independent variabel e.g X at the start of the SymbolicExpression terminals array.
+// Otherwise there is less of a chance of having the independent variable propagate.
+// The system is designed such that the first element of the terminals array will be the most prominent with regards
+// to appearance.
 func (p *Program) ApplyStrategy(strategy Strategy, terminals []SymbolicExpression,
 	nonTerminals []SymbolicExpression, mutationProbability float32, nonTerminalMutationProbability float32, depth int) (err error) {
 
 	switch strategy {
 	case StrategyAddSubTree:
 		var tree *DualTree
-		tree, err = GenerateRandomTree(depth, terminals, nonTerminals)
+		tree, err = GenerateRandomTreeEnforceIndependentVariable(depth, terminals[0], terminals, nonTerminals)
 		err = p.T.AddSubTree(tree)
 		break
 	case StrategyDeleteSubTree:
@@ -52,7 +56,6 @@ func (p *Program) ApplyStrategy(strategy Strategy, terminals []SymbolicExpressio
 func (p *Program) Fitness() (float32, error) {
 	return -1, fmt.Errorf("")
 }
-
 
 // Mutation is an evolutionary technique used to randomly change parts of a Program.
 func Mutation(prog Program) (Program, error) {
@@ -97,13 +100,15 @@ func (p *Program) Eval(independentVar float32) (float32, error) {
 	return ans, nil
 }
 
-func (p Program) Clone() Program {
-	dualTree := p.T.Clone()
+func (p Program) Clone() (Program, error) {
+	dualTree, err := p.T.Clone()
+	if err != nil {
+		return Program{}, err
+	}
 	p.T = &dualTree
 	p.ID = GenerateProgramID(0)
-	return p
+	return p, nil
 }
-
 
 type Bug *Program
 type Test *Program

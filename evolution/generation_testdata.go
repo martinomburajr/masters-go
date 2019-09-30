@@ -10,7 +10,6 @@ var GenerationTest0 = Generation{
 	Protagonists:                 []*Individual{&IndividualProg0Kind0, &IndividualProg0Kind1},
 	Antagonists:                  []*Individual{&IndividualProg1Kind1, &IndividualNilProgNil},
 	hasSurvivorSelectionHappened: false,
-
 }
 
 // GenerationTest1 1 less protagonist

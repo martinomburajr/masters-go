@@ -70,7 +70,12 @@ func (d *DualTreeNode) ArityRemainder() int {
 }
 
 // IsLeaf checks to see if a given node is a leaf
-func (d *DualTreeNode) ToSymbolicExpression() SymbolicExpression {
+func (d *DualTreeNode) ToSymbolicExpression() (SymbolicExpression, error) {
+	err := d.isValid()
+	if err != nil {
+		return SymbolicExpression{}, err
+	}
+
 	kind := 0
 	if d.arity == 2 {
 		kind = 1
@@ -79,7 +84,7 @@ func (d *DualTreeNode) ToSymbolicExpression() SymbolicExpression {
 		arity: d.arity,
 		value: d.value,
 		kind:  kind,
-	}
+	}, err
 }
 
 // ToDualTree takes a given node and returns a treeNode from it by following the path.
@@ -103,7 +108,7 @@ func (d *DualTreeNode) isValid() error {
 	return nil
 }
 
-// Clone performs an O(N) deep clone of a given DualTreeNode and returns a new DualTreeNode, 
+// Clone performs an O(N) deep clone of a given DualTreeNode and returns a new DualTreeNode,
 // granted no errors are present.
 func (d DualTreeNode) Clone() DualTreeNode {
 	d.key = RandString(5)
