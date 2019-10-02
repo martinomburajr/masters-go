@@ -114,17 +114,17 @@ func Crossover(individual Individual, individual2 Individual, params EvolutionPa
 
 	if individual1ChunkSize >= individual1ChunkSize {
 		//if params.MaintainCrossoverGeneTransferEquality {
-			rand.Seed(time.Now().UnixNano())
-			var ind1StartIndex int
-			if individual1Len == individual1ChunkSize {
-				ind1StartIndex = 0
-			} else {
-				ind1StartIndex = rand.Intn(individual1Len+1 - individual1ChunkSize)
-			}
-			c1, c2 := StrategySwapper(individual.strategy, individual2.strategy, individual1ChunkSize, ind1StartIndex)
-			child1.strategy = c1
-			child2.strategy = c2
-			return child1, child2, nil
+		rand.Seed(time.Now().UnixNano())
+		var ind1StartIndex int
+		if individual1Len == individual1ChunkSize {
+			ind1StartIndex = 0
+		} else {
+			ind1StartIndex = rand.Intn(individual1Len + 1 - individual1ChunkSize)
+		}
+		c1, c2 := StrategySwapper(individual.strategy, individual2.strategy, individual1ChunkSize, ind1StartIndex)
+		child1.strategy = c1
+		child2.strategy = c2
+		return child1, child2, nil
 		//} else {
 		//
 		//}
@@ -134,14 +134,13 @@ func Crossover(individual Individual, individual2 Individual, params EvolutionPa
 		if individual2Len == individual2ChunkSize {
 			ind2StartIndex = 0
 		} else {
-			ind2StartIndex = rand.Intn(individual1Len+1 - individual1ChunkSize)
+			ind2StartIndex = rand.Intn(individual1Len + 1 - individual1ChunkSize)
 		}
 		c1, c2 := StrategySwapper(individual.strategy, individual2.strategy, individual1ChunkSize, ind2StartIndex)
 		child1.strategy = c1
 		child2.strategy = c2
 		return child1, child2, nil
 	}
-
 
 	//ind1Copy := make([]Strategy, individual1Len)
 	//copy(ind1Copy, individual.strategy)
@@ -242,7 +241,7 @@ func Crossover(individual Individual, individual2 Individual, params EvolutionPa
 // The swapLength must be smaller than the length of the largest, but less than the length of the smallest.
 // A swap length of 0 will return the same arrays a and b untouched.
 func StrategySwapper(a []Strategy, b []Strategy, swapLength int, startIndex int) ([]Strategy, []Strategy) {
-	if a == nil || b == nil{
+	if a == nil || b == nil {
 		return nil, nil
 	}
 	if len(a) == 0 || len(b) == 0 {
@@ -268,31 +267,29 @@ func StrategySwapper(a []Strategy, b []Strategy, swapLength int, startIndex int)
 		if swapLength > len(b) {
 			swapLength = len(b)
 		}
-		if (swapLength + startIndex) > len(b)  {
+		if (swapLength + startIndex) > len(b) {
 			startIndex = 0
 		}
-	}else {
+	} else {
 		if swapLength > len(a) {
 			swapLength = len(a)
 		}
-		if (swapLength + startIndex) > len(a)  {
+		if (swapLength + startIndex) > len(a) {
 			startIndex = 0
 		}
 	}
-
 
 	aHolder := make([]Strategy, swapLength)
 	bHolder := make([]Strategy, swapLength)
 
-	for i:= 0; i < swapLength; i++ {
-		aHolder[i] = a[i + startIndex]
-		bHolder[i] = b[i + startIndex]
+	for i := 0; i < swapLength; i++ {
+		aHolder[i] = a[i+startIndex]
+		bHolder[i] = b[i+startIndex]
 	}
 
-
-	for i:= 0; i < swapLength; i++ {
-		aCopy[startIndex + i] = bHolder[i]
-		bCopy[startIndex + i] = aHolder[i]
+	for i := 0; i < swapLength; i++ {
+		aCopy[startIndex+i] = bHolder[i]
+		bCopy[startIndex+i] = aHolder[i]
 	}
 
 	return aCopy, bCopy
@@ -300,7 +297,7 @@ func StrategySwapper(a []Strategy, b []Strategy, swapLength int, startIndex int)
 
 // StrategySwapperIgnorant will perform crossover regardless of size
 func StrategySwapperIgnorant(a []Strategy, b []Strategy, swapLength int, startIndex int) ([]Strategy, []Strategy) {
-	if a == nil || b == nil{
+	if a == nil || b == nil {
 		return nil, nil
 	}
 	if len(a) == 0 || len(b) == 0 {
@@ -321,7 +318,7 @@ func StrategySwapperIgnorant(a []Strategy, b []Strategy, swapLength int, startIn
 		if swapLength > len(a) {
 			swapLength = len(a)
 		}
-		if startIndex + swapLength >= len(a) {
+		if startIndex+swapLength >= len(a) {
 			startIndex = 0
 		}
 		aCopy = make([]Strategy, len(a))
@@ -331,17 +328,17 @@ func StrategySwapperIgnorant(a []Strategy, b []Strategy, swapLength int, startIn
 		copy(aCopy, a)
 		copy(bCopy, b)
 
-		for i:= 0; i < swapLength; i++ {
-			aHolder[i] = a[i + startIndex]
+		for i := 0; i < swapLength; i++ {
+			aHolder[i] = a[i+startIndex]
 		}
-		for i:= 0; i < swapLength; i++ {
-			bHolder[i] = b[i + startIndex]
+		for i := 0; i < swapLength; i++ {
+			bHolder[i] = b[i+startIndex]
 		}
 	} else {
 		if swapLength > len(b) {
 			swapLength = len(b)
 		}
-		if startIndex + swapLength >= len(b) {
+		if startIndex+swapLength >= len(b) {
 			startIndex = 0
 		}
 		aCopy = make([]Strategy, len(b))
@@ -351,15 +348,15 @@ func StrategySwapperIgnorant(a []Strategy, b []Strategy, swapLength int, startIn
 		copy(aCopy, a)
 		copy(bCopy, b)
 
-		for i:= 0; i < len(aCopy); i++ {
-			aHolder[i] = a[i + startIndex]
+		for i := 0; i < len(aCopy); i++ {
+			aHolder[i] = a[i+startIndex]
 		}
-		for i:= 0; i < len(bCopy); i++ {
-			bHolder[i] = b[i + startIndex]
+		for i := 0; i < len(bCopy); i++ {
+			bHolder[i] = b[i+startIndex]
 		}
 	}
 
-	for i:= 0; i < swapLength; i++ {
+	for i := 0; i < swapLength; i++ {
 		aCopy[startIndex+i] = bHolder[i]
 		bCopy[startIndex+i] = aHolder[i]
 	}

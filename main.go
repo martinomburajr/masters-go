@@ -16,8 +16,8 @@ func main() {
 	spec := evolution.Spec2X
 
 	params := evolution.EvolutionParams{
-		Generations: 50,
-		EachPopulationSize:                    6, // Must be an even number to prevent awkward ordering of children.
+		Generations:        50,
+		EachPopulationSize: 6, // Must be an even number to prevent awkward ordering of children.
 		// This will fail if odd.
 		AntagonistMaxStrategies:               4,
 		AntagonistStrategyLength:              3,
@@ -33,7 +33,7 @@ func main() {
 		Strategies:                            strategies,
 		CrossoverPercentage:                   0.2,
 		MaintainCrossoverGeneTransferEquality: true,
-		NonTerminalSet: []evolution.SymbolicExpression{evolution.Add, evolution.Mult, evolution.Sub},
+		NonTerminalSet:                        []evolution.SymbolicExpression{evolution.Add, evolution.Mult, evolution.Sub},
 		TerminalSet: []evolution.SymbolicExpression{
 			evolution.X1, evolution.Const1, evolution.Const2, evolution.Const3, evolution.Const4, evolution.Const5,
 			evolution.Const6, evolution.Const7, evolution.Const8, evolution.Const9, evolution.Const0,
@@ -41,10 +41,10 @@ func main() {
 		FitnessStrategy:        evolution.FitnessProtagonistThresholdTally,
 		EvaluationThreshold:    0.1,
 		EvaluationMinThreshold: 0.01,
-		TournamentSize:  3,
-		ParentSelection: evolution.ParentSelectionTournament,
-		StrategyLengthLimit: 10,
-		SurvivorPercentage: 0.5,
+		TournamentSize:         3,
+		ParentSelection:        evolution.ParentSelectionTournament,
+		StrategyLengthLimit:    10,
+		SurvivorPercentage:     0.5,
 	}
 
 	engine := evolution.EvolutionEngine{

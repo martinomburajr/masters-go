@@ -63,7 +63,7 @@ type EvolutionParams struct {
 
 	EvaluationThreshold    float64
 	EvaluationMinThreshold float64
-	ParentSelection int
+	ParentSelection        int
 }
 
 const (
@@ -135,7 +135,7 @@ func (e *EvolutionEngine) validate() error {
 	if e.Parameters.Generations < 1 {
 		return fmt.Errorf("set number of generationCount by calling e.Generations(x)")
 	}
-	if e.Parameters.EachPopulationSize % 2 != 0 {
+	if e.Parameters.EachPopulationSize%2 != 0 {
 		return fmt.Errorf("set number of EachPopulationSize to an Even number")
 	}
 	//if e.StartIndividual == Program{} {

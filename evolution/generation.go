@@ -87,7 +87,7 @@ func (g *Generation) Start() (*Generation, error) {
 		hasSurvivorSelectionHappened: false,
 		isComplete:                   false,
 		hasParentSelectionHappened:   false,
-		count:                        (g.count + 1),
+		count:                        g.count + 1,
 	}, nil
 }
 
