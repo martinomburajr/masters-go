@@ -95,22 +95,24 @@ func (e *Epoch) Start() error {
 	if err != nil {
 		return err
 	}
+	e.antagonist.hasAppliedStrategy = true
 
 	err = e.applyProtagonistStrategy()
 	if err != nil {
 		return err
 	}
+	e.protagonist.hasAppliedStrategy = true
 
 	if !e.hasProtagonistApplied && !e.hasAntagonistApplied {
 		return fmt.Errorf("antagonist and protagonist havent applied strategy to program")
 	}
 
 	antagonistFitness, protagonistFitness := 0, 0
-	switch e.generation.engine.FitnessStrategy {
+	switch e.generation.engine.Parameters.FitnessStrategy {
 	case FitnessProtagonistThresholdTally:
 		antagonistFitness, protagonistFitness, err = ProtagonistThresholdTally(e.generation.engine.Spec,
-			&e.program, e.generation.engine.EvaluationThreshold,
-			e.generation.engine.EvaluationMinThreshold)
+			&e.program, e.generation.engine.Parameters.EvaluationThreshold,
+			e.generation.engine.Parameters.EvaluationMinThreshold)
 		if err != nil {
 			return err
 		}
@@ -132,7 +134,8 @@ func (e *Epoch) applyAntagonistStrategy() error {
 			e.nonTerminalSet,
 			e.probabilityOfMutation,
 			e.probabilityOfNonTerminalMutation,
-			e.generation.engine.MaxDepth)
+			e.generation.engine.Parameters.DepthOfRandomNewTrees,
+			e.generation.engine.Parameters.DeletionType)
 		if err != nil {
 			return err
 		}
@@ -159,7 +162,8 @@ func (e *Epoch) applyProtagonistStrategy() error {
 			e.nonTerminalSet,
 			e.probabilityOfMutation,
 			e.probabilityOfNonTerminalMutation,
-			e.generation.engine.MaxDepth)
+			e.generation.engine.Parameters.DepthOfRandomNewTrees,
+			e.generation.engine.Parameters.DeletionType)
 		if err != nil {
 			return err
 		}

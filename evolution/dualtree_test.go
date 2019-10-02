@@ -2,6 +2,7 @@ package evolution
 
 import (
 	"fmt"
+	"log"
 	"reflect"
 	"sync"
 	"testing"
@@ -87,6 +88,7 @@ func TestDualTree_ToMathematicalString(t *testing.T) {
 			if got != tt.want {
 				t.Errorf("DualTree.ToMathematicalString() = %v, isEqual %v", got, tt.want)
 			}
+			log.Print(got)
 		})
 	}
 }
@@ -189,7 +191,7 @@ func TestGenerateRandomSymbolicExpressionSet(t *testing.T) {
 		want []SymbolicExpression
 	}{
 		{"size 0", 0, []SymbolicExpression{X1}},
-		{"size -1", -1, []SymbolicExpression{X1}},
+		{"size 1", -1, []SymbolicExpression{X1}},
 		{"size 1", 1, []SymbolicExpression{X1}},
 		{"size 2", 2, []SymbolicExpression{X1}},
 		{"size 3", 3, []SymbolicExpression{X1, Add, X1}},
@@ -328,7 +330,7 @@ func TestDualTree_AddSubTree(t *testing.T) {
 		{"nil-subTree-root", TreeNil(), TreeNil(), true},
 		{"err-subTree-T", TreeNil(), TreeT_0(), true},
 		{"nil-treeNode-T", TreeNil(), TreeT_NT_T_0(), true},
-		{"treeNode-T", TreeT_0(), TreeT_NT_T_0(), true},
+		{"treeNode-T", TreeT_0(), TreeT_NT_T_0(), false},
 		{"T-NT-T + T-NT-T", TreeT_NT_T_0(), TreeT_NT_T_1(), false},
 		{"T-NT-T + T-NT-T-NT-T", TreeT_NT_T_0(), TreeT_NT_T_NT_T_3(), false},
 		{"T-NT-T + T-NT-T-NT-T", TreeT_NT_T_NT_T_3(), TreeT_NT_T_NT_T_3(), false},
@@ -458,28 +460,37 @@ func TestDualTree_ContainsNode(t *testing.T) {
 
 func TestDualTree_DeleteSubTree(t *testing.T) {
 	tests := []struct {
-		name         string
-		tree         *DualTree
-		startingSize int
-		wantErr      bool
+		name             string
+		tree             *DualTree
+		deletionStrategy int
+		startingSize     int
+		wantErr          bool
 	}{
-		{"nil", TreeNil(), 0, true},
-		{"T", TreeT_0(), 0, true},
-		{"T-NT-T", TreeT_NT_T_0(), TreeT_NT_T_0().Size(), false},
-		{"T-NT-T-NT-T", TreeT_NT_T_NT_T_3(), TreeT_NT_T_NT_T_3().Size(), false},
-		{"TreeT_NT_T_NT_T_NT_T_0", TreeT_NT_T_NT_T_NT_T_0(), TreeT_NT_T_NT_T_NT_T_0().Size(), false},
-		{"TreeT_NT_T_NT_T_NT_T_NT_T_0", TreeT_NT_T_NT_T_NT_T_NT_T_0(), TreeT_NT_T_NT_T_NT_T_NT_T_0().Size(), false},
+		{"nil", TreeNil(), 0, 0, true},
+		{"T", TreeT_0(), 0, 1, false},
+		{"T", TreeT_0(), 1, 1, false},
+		{"T", TreeT_0(), -1, 1, false},
+		{"T", TreeT_0(), 20, 1, false},
+		{"T-NT-T", TreeT_NT_T_0(), 0, TreeT_NT_T_0().Size(), false},
+		{"T-NT-T-NT-T", TreeT_NT_T_NT_T_3(), 0, TreeT_NT_T_NT_T_3().Size(), false},
+		{"TreeT_NT_T_NT_T_NT_T_0", TreeT_NT_T_NT_T_NT_T_0(), 0, TreeT_NT_T_NT_T_NT_T_0().Size(), false},
+		{"TreeT_NT_T_NT_T_NT_T_NT_T_0", TreeT_NT_T_NT_T_NT_T_NT_T_0(), 0, TreeT_NT_T_NT_T_NT_T_NT_T_0().Size(), false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var err error
 			tt.tree.Print()
-			if err = tt.tree.DeleteSubTree(); (err != nil) != tt.wantErr {
+			if err = tt.tree.DeleteSubTree(tt.deletionStrategy); (err != nil) != tt.wantErr {
 				t.Errorf("DualTree.StrategyDeleteSubTree() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			if err == nil {
 				size := tt.tree.Size()
-				if tt.startingSize <= size {
+				if tt.startingSize == 1 {
+					if size < tt.startingSize {
+						t.Errorf("DualTree.StrategyDeleteSubTree() cannot be same size after delete = %d, wantErr %d", tt.startingSize,
+							size)
+					}
+				} else if tt.startingSize <= size {
 					t.Errorf("DualTree.StrategyDeleteSubTree() cannot be same size after delete = %d, wantErr %d", tt.startingSize,
 						size)
 				}

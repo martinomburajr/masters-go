@@ -171,7 +171,8 @@ func (bst *DualTree) AddSubTree(subTree *DualTree) error {
 		return fmt.Errorf("treeNode you are adding to has nil root")
 	}
 	if bst.root.left == nil && bst.root.right == nil {
-		return fmt.Errorf("treeNode you are adding to is a lone terminal")
+		err := bst.AddEmptyToTreeRoot(subTree)
+		return err
 	}
 
 	node, err := bst.RandomBranch()
@@ -192,19 +193,88 @@ func (bst *DualTree) AddSubTree(subTree *DualTree) error {
 	return nil
 }
 
+// AddEmptyToTree is a conservative means of performing add and delete operations on trees that end up as single
+// nodes. This function will add a 0 or subtract a 0 whenever an add operation encounters a single node
+func (bst *DualTree) AddEmptyToTreeRoot(subTree *DualTree) error {
+	if bst.root == nil {
+		return fmt.Errorf("treeNode you are deleting to has nil root")
+	}
+	if bst.root.right == nil && bst.root.left == nil {
+		addNode := SymbolicExpression{value: "+", arity: 2}
+		treeNode := bst.root.Clone()
+		nodePlus := addNode.ToDualTreeNode(RandString(5))
+		bst.root = nodePlus
+		bst.root.left = &treeNode
+		bst.root.right = subTree.root
+		return nil
+	}
+	return fmt.Errorf("AddEmptyToTreeRoot | is not tree root")
+}
+
+// DeleteEmptyToTreeRoot is a conservative means of performing delete operations on trees that end up as single
+// nodes. This function will add new nodes to subtract itself whenever an delete operation encounters a single node.
+func (bst *DualTree) DeleteEmptyToTreeRoot() error {
+	if bst.root == nil {
+		return fmt.Errorf("treeNode you are deleting to has nil root")
+	}
+	if bst.root.right == nil && bst.root.left == nil {
+		addNode := SymbolicExpression{value: "-", arity: 2}
+		treeNode := bst.root.Clone()
+		nodePlus := addNode.ToDualTreeNode(RandString(5))
+		bst.root = nodePlus
+		bst.root.left = &treeNode
+		bst.root.right = &treeNode
+		return nil
+	}
+	return fmt.Errorf("DeleteEmptyToTreeRoot | is not tree root")
+}
+
 // InsertSubTree will insert a subTree at a given index
 func (bst *DualTree) InsertSubTree(index int, subTree *DualTree) error {
 	return nil
 }
 
-// StrategyDeleteSubTree locates a random non-terminal and sets its value to 0,
-// deleting its associated child nodes by setting them to nil
-func (bst *DualTree) DeleteSubTree() error {
+// DeleteSubTree will delete a random branch of a subTree.
+// If the tree is already a terminal it will add a - 0 branch to the terminal to ensure the value is not deleted.
+// This also ensures the tree can be operated on in the future by other operators.
+// To get rid of the actual value use DeleteSubTreeMalicious. Which will set the lone-terminal to 0
+func (bst *DualTree) DeleteSubTree(deletionStrategy int) error {
+	if deletionStrategy < 0 && deletionStrategy > 1 {
+		deletionStrategy = 0
+	}
+	if deletionStrategy == 1 {
+		err := bst.DeleteSubTreeMalicious()
+		return err
+	}
 	if bst.root == nil {
 		return fmt.Errorf("treeNode you are deleting to has nil root")
 	}
 	if bst.root.left == nil && bst.root.right == nil {
-		return fmt.Errorf("treeNode you are deleting to is a lone terminal")
+		err := bst.DeleteEmptyToTreeRoot()
+		return err
+	}
+	node, err := bst.RandomBranch()
+	if err != nil {
+		return err
+	}
+
+	remove2(node)
+	node.arity = 0
+	node.value = "0"
+	return nil
+}
+
+// DeleteSubTreeMalicious locates a random non-terminal and sets its value to 0,
+// deleting its associated child nodes by setting them to nil
+func (bst *DualTree) DeleteSubTreeMalicious() error {
+	if bst.root == nil {
+		return fmt.Errorf("treeNode you are deleting to has nil root")
+	}
+	if bst.root.left == nil && bst.root.right == nil {
+		const0 := SymbolicExpression{arity: 0, value: "0"}
+		const0Node := const0.ToDualTreeNode(RandString(5))
+		bst.root = nil
+		bst.root = const0Node
 	}
 
 	node, err := bst.RandomBranch()
@@ -1070,9 +1140,11 @@ func (d *DualTree) ToMathematicalString() (string, error) {
 			return
 		}
 
-		if node.arity > 1 && (node.left == nil || node.right == nil) {
-			err = fmt.Errorf("invalid treeNode structure to convert to mathematical expression: see node: %s", node.key)
-			return
+		if node.arity > 1 {
+			if node.left == nil || node.right == nil {
+				err = fmt.Errorf("invalid treeNode structure to convert to mathematical expression: see node: %s", node.key)
+				return
+			}
 		}
 		sb.WriteString(node.value + " ")
 	})
@@ -1168,7 +1240,9 @@ func GenerateRandomTree(depth int, terminals []SymbolicExpression,
 	if err != nil {
 		return nil, fmt.Errorf("error creating random treeNode | %s", err.Error())
 	}
-	return &tree, nil
+
+	err = tree.Validate()
+	return &tree, err
 }
 
 // GenerateRandomTree generates a given treeNode of a depth between 0 (i.e) root and (inclusive of) the depth specified.
@@ -1238,7 +1312,8 @@ func GenerateRandomTreeEnforceIndependentVariable(depth int, independentVar Symb
 	if err != nil {
 		return nil, fmt.Errorf("error creating random treeNode | %s", err.Error())
 	}
-	return &tree, nil
+	err = tree.Validate()
+	return &tree, err
 }
 
 func weaver(terminals, nonTerminals []SymbolicExpression) []SymbolicExpression {

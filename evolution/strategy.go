@@ -7,6 +7,7 @@ type Strategy string
 const (
 	StrategyAddSubTree        = "StrategyAddSubTree"
 	StrategyDeleteSubTree     = "StrategyDeleteSubTree"
+	StrategyDeleteMalicious   = "StrategyDeleteMalicious"
 	StrategySoftDeleteSubTree = "StrategySoftDeleteSubTree"
 	StrategySwapSubTree       = "StrategySwapSubTree"
 	StrategyMutateNode        = "StrategyMutateNode"

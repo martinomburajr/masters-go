@@ -47,30 +47,41 @@ func (g *Generation) Start() (*Generation, error) {
 		g.Antagonists[i].hasCalculatedFitness = true
 	}
 
-	// perform parent selection for protagonists
-	var protagonistsSelected, antagonistsSelected []*Individual
-	switch g.engine.ParentSelection {
-	case ParentSelectionTournament:
-		protagonistsSelected, err = TournamentSelection(g.Protagonists, g.engine.TournamentSize)
-		if err != nil {
-			return nil, err
-		}
-		g.Protagonists = protagonistsSelected
+	//protagonists := make([]Individual, len(g.Protagonists))
+	//for i := range g.Protagonists {
+	//	protagonists[i] = *g.Protagonists[i]
+	//}
+	//
+	//antagonists := make([]Individual, len(g.Antagonists))
+	//for i := range g.Antagonists {
+	//	antagonists[i] = *g.Antagonists[i]
+	//}
 
-		antagonistsSelected, err = TournamentSelection(g.Antagonists, g.engine.TournamentSize)
-		if err != nil {
-			return nil, err
-		}
-		g.Antagonists = antagonistsSelected
+	nextGenAntagonists, err := JudgementDay(g.Antagonists, g.engine.Parameters)
+	if err != nil {
+		return nil, err
 	}
 
-	//perform survivor selection
+	nextGenProtagonists, err := JudgementDay(g.Protagonists, g.engine.Parameters)
+	if err != nil {
+		return nil, err
+	}
+
+	//protagonists := make([]*Individual, len(nextGenProtagonists))
+	//for i := range nextGenProtagonists {
+	//	protagonists[i] = &nextGenProtagonists[i]
+	//}
+	//
+	//antagonists := make([]*Individual, len(nextGenAntagonists))
+	//for i := range nextGenAntagonists {
+	//	antagonists[i] = &nextGenAntagonists[i]
+	//}
 
 	nextGenID := GenerateGenerationID(g.count + 1)
 	//return new generation
 	return &Generation{
-		Antagonists:                  antagonistsSelected,
-		Protagonists:                 protagonistsSelected,
+		Antagonists:                  nextGenAntagonists,
+		Protagonists:                 nextGenProtagonists,
 		engine:                       g.engine,
 		GenerationID:                 nextGenID,
 		hasSurvivorSelectionHappened: false,
@@ -107,8 +118,8 @@ func (g *Generation) setupEpochs() ([]Epoch, error) {
 			epochs[count] = Epoch{
 				isComplete:                       false,
 				protagonistBegins:                false,
-				terminalSet:                      g.engine.AvailableTerminalSet,
-				nonTerminalSet:                   g.engine.AvailableNonTerminalSet,
+				terminalSet:                      g.engine.Parameters.TerminalSet,
+				nonTerminalSet:                   g.engine.Parameters.NonTerminalSet,
 				hasAntagonistApplied:             false,
 				hasProtagonistApplied:            false,
 				probabilityOfMutation:            g.engine.Parameters.ProbabilityOfMutation,
@@ -182,7 +193,7 @@ func (g *Generation) ApplyParentSelection() ([]*Individual, error) {
 
 	switch g.engine.ParentSelection {
 	case ParentSelectionTournament:
-		selectedInvididuals, err := TournamentSelection(currentPopulation, g.engine.TournamentSize)
+		selectedInvididuals, err := TournamentSelection(currentPopulation, g.engine.Parameters.TournamentSize)
 		if err != nil {
 			return nil, err
 		}

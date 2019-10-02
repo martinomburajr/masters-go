@@ -11,7 +11,6 @@ type EvolutionParams struct {
 	parentSelection                  int
 	ElitismPercentage                float32
 	ProgramEval                      func() float32
-	StatisticsOutput                 string
 	MaxDepth                         int
 	DepthPenaltyStrategy             int
 	DepthPenaltyStrategyPenalization float32
@@ -19,6 +18,8 @@ type EvolutionParams struct {
 	MinThreshold                     float64
 	FitnessStrategy                  int
 	TournamentSize                   int
+	// EachPopulationSize represents the size of each protagonist or antagonist population.
+	// This value must be even otherwise pairwise operations such as crossover will fail
 	EachPopulationSize               int
 	ProbabilityOfRecombination       float32
 	ProbabilityOfMutation            float32
@@ -28,6 +29,41 @@ type EvolutionParams struct {
 	ProtagonistMaxStrategies         int
 	ProtagonistStrategyLength        int
 	SurvivorPercentage               float32
+	// Strategies is a list of available strategies for each individual.
+	// These can be randomly allocated to individuals and duplicates are expected.
+	Strategies            []Strategy
+	DepthOfRandomNewTrees int
+	// StrategyLengthPenalty is the penalty given to strategies that exceed a given length
+	StrategyLengthPenalty float32
+	// StrategyLengthLimit is the maximum length a strategy can reach before being penalized
+	StrategyLengthLimit int
+
+	// DeletionType pertains to the different kinds of deletion operations possible for a given tree.
+	DeletionType int
+
+	// EnforceIndependentVariable ensures that during individual generation at the start of the evolution,
+	// independent variables are injected to the program meaning every program will at least have one independent
+	// variable e.g. X
+	EnforceIndependentVariable bool
+
+	// CrossoverPercentage pertains to the amount of genetic material crossed-over.
+	// This is a percentage represented as a float32. A value of 1 means all material is swapped.
+	// A value of 0 means no material is swapped (which in effect are the same thing).
+	// Avoid 0 or 1 use values in between
+	CrossoverPercentage float32
+
+	//MaintainGeneTransferEquality pertains to a scenario where in the event of differing strategy lengths betweween
+	// two individuals, if N objects are to be swapped during crossover,
+	// then N objects will be swapped from both individuals.
+	// This prevents one individual receiving more genetic material from another individual and vice-versa
+	MaintainCrossoverGeneTransferEquality bool
+
+	TerminalSet    SymbolicExpressionSet
+	NonTerminalSet SymbolicExpressionSet
+
+	EvaluationThreshold    float64
+	EvaluationMinThreshold float64
+	ParentSelection int
 }
 
 const (
@@ -37,25 +73,18 @@ const (
 )
 
 type EvolutionEngine struct {
-	StartIndividual         Program
-	Spec                    Spec
-	GenerationCount         int
-	Parallelize             bool
-	Generations             []*Generation
-	AvailableStrategies     []Strategy
-	AvailableTerminalSet    SymbolicExpressionSet
-	AvailableNonTerminalSet SymbolicExpressionSet
-	SurvivorSelection       int
-	ParentSelection         int
-	ElitismPercentage       float32
-	StatisticsOutput        string
-	MaxDepth                int
-	DepthPenalty            int
-	EvaluationThreshold     float64
-	EvaluationMinThreshold  float64
-	FitnessStrategy         int
-	TournamentSize          int
-	Parameters              EvolutionParams
+	StartIndividual Program
+	Spec            Spec
+
+	Parallelize bool
+	Generations []*Generation
+
+	SurvivorSelection int
+	ParentSelection   int
+	ElitismPercentage float32
+	StatisticsOutput  string
+
+	Parameters EvolutionParams
 }
 
 func (e *EvolutionEngine) Start() (*EvolutionResult, error) {
@@ -65,17 +94,17 @@ func (e *EvolutionEngine) Start() (*EvolutionResult, error) {
 	}
 
 	// Init Population
-	e.Generations = make([]*Generation, e.GenerationCount)
+	e.Generations = make([]*Generation, e.Parameters.Generations)
 	// Set First Generation - TODO Parallelize Individual Creation
 	antagonists, err := GenerateRandomIndividuals(e.Parameters.EachPopulationSize, "ANT", IndividualAntagonist,
 		e.Parameters.AntagonistStrategyLength, e.Parameters.AntagonistMaxStrategies,
-		e.AvailableStrategies, 1, e.AvailableTerminalSet, e.AvailableNonTerminalSet)
+		e.Parameters.Strategies, 1, e.Parameters.TerminalSet, e.Parameters.NonTerminalSet, e.Parameters.EnforceIndependentVariable)
 	if err != nil {
 		return nil, err
 	}
 	protagonists, err := GenerateRandomIndividuals(e.Parameters.EachPopulationSize, "PRO", IndividualProtagonist,
 		e.Parameters.ProtagonistStrategyLength, e.Parameters.ProtagonistMaxStrategies,
-		e.AvailableStrategies, 1, e.AvailableTerminalSet, e.AvailableNonTerminalSet)
+		e.Parameters.Strategies, 1, e.Parameters.TerminalSet, e.Parameters.NonTerminalSet, e.Parameters.EnforceIndependentVariable)
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +121,7 @@ func (e *EvolutionEngine) Start() (*EvolutionResult, error) {
 	e.Generations[0] = &gen0
 
 	// cycle through generationCount
-	for i := 0; i < e.GenerationCount; i++ {
+	for i := 0; i < e.Parameters.Generations; i++ {
 		e.Generations[i], err = e.Generations[i].Start()
 		if err != nil {
 			return nil, err
@@ -103,8 +132,11 @@ func (e *EvolutionEngine) Start() (*EvolutionResult, error) {
 
 // Todo Implement EvolutionProcess validate
 func (e *EvolutionEngine) validate() error {
-	if e.GenerationCount < 1 {
+	if e.Parameters.Generations < 1 {
 		return fmt.Errorf("set number of generationCount by calling e.Generations(x)")
+	}
+	if e.Parameters.EachPopulationSize % 2 != 0 {
+		return fmt.Errorf("set number of EachPopulationSize to an Even number")
 	}
 	//if e.StartIndividual == Program{} {
 	//	return fmt.Errorf("set a start individuals")
@@ -121,99 +153,3 @@ func (e *EvolutionEngine) validate() error {
 	//}
 	return nil
 }
-
-//
-//// InitialIndividual returns the input individual
-//func (e *EvolutionEngine) GetInitialIndividual() *InitialProgram {
-//	return e.StartIndividual
-//}
-//
-//// Options Sets Options to be used in the Evolutionary Process
-//func (e *EvolutionEngine) Options(params EvolutionParams) *EvolutionEngine {
-//	return e
-//}
-//
-//
-//// FitnessEval is a function provided that gives the engine and individuals a means to calculate fitness.
-//func (e *EvolutionEngine) FitnessEval(fitnessFunc func() float32) *EvolutionEngine {
-//	return e
-//}
-//
-//// ProgramEval
-//func (e *EvolutionEngine) ProgramEval(programFunc func() float32) *EvolutionEngine {
-//	return e
-//}
-//
-//// Protagonist sets the protagonists count as well as defines a fitness function that is used to calculate its
-//// fitness. If you are using sharedFitness,
-//// set fitnessFunc to nil. The protagonist is also initialized with a set of strategies it can use.
-//// If nil it will pull from a list of available strategies
-//func (e *EvolutionEngine) Protagonist(count int, fitnessFunc func() float32, strategies []Strategable) *EvolutionEngine {
-//	return e
-//}
-//
-
-//
-//// AvailableStrategies represents a list of strategies available to the population
-//func (e *EvolutionEngine) AvailableStrategies(strategies []Strategable) *EvolutionEngine {
-//	return e
-//}
-//
-//// Generations indicates the maximum number of generationCount before the simulation ends.
-//func (e *EvolutionEngine) Generations(i int) *EvolutionEngine {
-//	return e
-//}
-//
-//// GenerationsByError uses maxError to determine how much to minimize the solutions error by before terminating the
-//// evolutionary process
-//func (e *EvolutionEngine) GenerationsByError(maxError float32) *EvolutionEngine {
-//	return e
-//}
-//
-//func (e *EvolutionEngine) ParentSelection(b bool) *EvolutionEngine {
-//	return e
-//}
-//
-//func (e *EvolutionEngine) SurvivorSelection(b bool) *EvolutionEngine {
-//	return e
-//}
-//
-//func (e *EvolutionEngine) OptimizationStrategy(b bool) *EvolutionEngine {
-//	return e
-//}
-//
-//func (e *EvolutionEngine) Parallelize(b bool) *EvolutionEngine {
-//	return e
-//}
-//
-//// GenerateStatistics will output statistics to a given file
-//func (e *EvolutionEngine) GenerateStatistics(s string) *EvolutionEngine {
-//	return e
-//}
-//
-//// Start begines the evolutionary engine, and starts the evolutionary process returning an EvolutionaryProcess
-//func (e *EvolutionEngine) Start() *EvolutionProcess {
-//	e.validate()
-//	return nil
-//}
-//
-//func (e *EvolutionEngine) SetProbabilityOfMutation(probabilityOfMutation float32) {
-//	e.probabilityOfMutation = probabilityOfMutation
-//}
-//
-//func (e *EvolutionEngine) SetProbabilityOfNonTerminalMutation(probabilityOfNonTerminalMutation float32) {
-//	e.probabilityOfNonTerminalMutation = probabilityOfNonTerminalMutation
-//}
-//
-//// ZeroSumFitness is a measure where both protagonist and antagonist compete from a shared fitness pool.
-//// The more one side gets the less the other gets. If this strategy is chosen,
-//// you cannot set different fitness strategies for the protagonist and antagonists
-//func (e *EvolutionEngine) ZeroSumFitness(i func() float32) *EvolutionEngine {
-//	return nil
-//}
-//
-//type InitialProgram struct {
-//	ID   string
-//	T    *DualTree
-//	spec Spec
-//}

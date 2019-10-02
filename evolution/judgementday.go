@@ -4,13 +4,13 @@ package evolution
 // onto who proceeds to the next generation. Judgement day is a compound function or abstraction that includes the
 // following processes.
 // 1. Parent Selection
-// 2. Reproduction (via Crossover)
+// 2. Reproduction (via CrossoverTree)
 // 3. Mutation (low probability)
 // 4. Survivor Selection
 // 5. Statistical Output
 // 6. FinalPopulation configuration (incrementing age, clearing fitness values for old worthy individuals)
 func JudgementDay(incomingPopulation []*Individual, opts EvolutionParams) ([]*Individual, error) {
-	survivors := make([]*Individual, opts.TournamentSize)
+	survivors := make([]*Individual, len(incomingPopulation))
 	// Parent Selection
 	// Tournament Selection
 	outgoingParents, err := TournamentSelection(incomingPopulation, opts.TournamentSize)
@@ -19,10 +19,10 @@ func JudgementDay(incomingPopulation []*Individual, opts EvolutionParams) ([]*In
 	}
 
 	// Reproduction
-	// Crossover
+	// CrossoverTree
 	children := make([]Individual, opts.EachPopulationSize)
 	for i := 0; i < len(outgoingParents); i += 2 {
-		child1, child2, err := Crossover(outgoingParents[i], outgoingParents[i+1], opts.MaxDepth, opts)
+		child1, child2, err := Crossover(*outgoingParents[i], *outgoingParents[i+1], opts)
 		if err != nil {
 			return nil, err
 		}

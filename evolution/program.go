@@ -6,7 +6,11 @@ import (
 	"github.com/martinomburajr/masters-go/utils"
 	"math/rand"
 	"strings"
+	"time"
 )
+
+const DeletionTypeMalicious = 1
+const DeletionTypeSafe = 0
 
 // TODO generate AST treeNode from polynomial expression
 type Program struct {
@@ -27,7 +31,8 @@ func GenerateProgramID(count int) string {
 // The system is designed such that the first element of the terminals array will be the most prominent with regards
 // to appearance.
 func (p *Program) ApplyStrategy(strategy Strategy, terminals []SymbolicExpression,
-	nonTerminals []SymbolicExpression, mutationProbability float32, nonTerminalMutationProbability float32, depth int) (err error) {
+	nonTerminals []SymbolicExpression, mutationProbability float32, nonTerminalMutationProbability float32,
+	depth int, deletionStrategy int) (err error) {
 
 	switch strategy {
 	case StrategyAddSubTree:
@@ -36,9 +41,10 @@ func (p *Program) ApplyStrategy(strategy Strategy, terminals []SymbolicExpressio
 		err = p.T.AddSubTree(tree)
 		break
 	case StrategyDeleteSubTree:
-		err = p.T.DeleteSubTree()
+		err = p.T.DeleteSubTree(deletionStrategy)
 		break
 	case StrategyMutateNode:
+		rand.Seed(time.Now().UnixNano())
 		chanceOfMutation := rand.Float32()
 		if mutationProbability > chanceOfMutation {
 			if nonTerminalMutationProbability > chanceOfMutation {

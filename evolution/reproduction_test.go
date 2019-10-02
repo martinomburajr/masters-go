@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestCrossover(t *testing.T) {
+func TestCrossoverTree(t *testing.T) {
 	type args struct {
 		individual1 *Individual
 		individual2 *Individual
@@ -59,26 +59,27 @@ func TestCrossover(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotChild1, gotChild2, err := Crossover(tt.args.individual1, tt.args.individual2, tt.args.maxDepth, tt.args.params)
+			gotChild1, gotChild2, err := CrossoverTree(tt.args.individual1, tt.args.individual2, tt.args.maxDepth,
+				tt.args.params)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Crossover() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("CrossoverTree() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			//containsSubTree, err := gotChild1.Program.T.ContainsSubTree(tt.args.individual1.Program.T)
 			//if err != nil {
-			//	t.Errorf("Crossover() error = %v, wantErr %v", err, tt.wantErr)
+			//	t.Errorf("CrossoverTree() error = %v, wantErr %v", err, tt.wantErr)
 			//}
 			//if containsSubTree {
-			//	t.Errorf("Crossover() | child1 is identical to parent1 gotChild1 = %v, want %v", gotChild1,
+			//	t.Errorf("CrossoverTree() | child1 is identical to parent1 gotChild1 = %v, want %v", gotChild1,
 			//		tt.args.individual1)
 			//}
 			//
 			//containsSubTree2, err := gotChild2.Program.T.ContainsSubTree(tt.args.individual2.Program.T)
 			//if err != nil {
-			//	t.Errorf("Crossover() error = %v, wantErr %v", err, tt.wantErr)
+			//	t.Errorf("CrossoverTree() error = %v, wantErr %v", err, tt.wantErr)
 			//}
 			//if containsSubTree2 {
-			//	t.Errorf("Crossover() | child1 is identical to parent1 gotChild1 = %v, individual 2 %v", gotChild2,
+			//	t.Errorf("CrossoverTree() | child1 is identical to parent1 gotChild1 = %v, individual 2 %v", gotChild2,
 			//		tt.args.individual2)
 			//}
 

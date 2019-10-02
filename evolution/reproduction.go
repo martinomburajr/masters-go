@@ -6,8 +6,8 @@ import (
 	"time"
 )
 
-// Crossover is a evolutionary technique used to take two parents swap their genetic material and form two new children.
-func Crossover(individual1 *Individual, individual2 *Individual, maxDepth int, params EvolutionParams) (child1 Individual,
+// CrossoverTree is a evolutionary technique used to take two parents swap their genetic material and form two new children.
+func CrossoverTree(individual1 *Individual, individual2 *Individual, maxDepth int, params EvolutionParams) (child1 Individual,
 	child2 Individual,
 	err error) {
 	// Requirements
