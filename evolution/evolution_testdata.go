@@ -3,13 +3,8 @@ package evolution
 var EvolutionEngineTestNil = EvolutionEngine{}
 
 var EvolutionEngineTest0 = EvolutionEngine{
-	Spec:              SpecX,
-	ParentSelection:   ParentSelectionElitism,
-	ElitismPercentage: 1,
-	StartIndividual:   Prog1,
-
 	StatisticsOutput:  "stats.json",
-	SurvivorSelection: SurvivorSelectionGenerational,
+
 	Parameters: EvolutionParams{
 		MaxDepth:               10,
 		FitnessStrategy:        FitnessProtagonistThresholdTally,
@@ -19,16 +14,8 @@ var EvolutionEngineTest0 = EvolutionEngine{
 }
 
 var EvolutionEngineTest1 = EvolutionEngine{
-
-	Spec: SpecX,
-
-	ParentSelection:   ParentSelectionElitism,
-	ElitismPercentage: 1,
-
-	StartIndividual: Prog1,
-
 	StatisticsOutput:  "stats.json",
-	SurvivorSelection: SurvivorSelectionGenerational,
+
 	Parameters: EvolutionParams{
 		MaxDepth:               10,
 		FitnessStrategy:        FitnessProtagonistThresholdTally,

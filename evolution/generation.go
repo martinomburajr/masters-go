@@ -1,6 +1,10 @@
 package evolution
 
-import "fmt"
+import (
+	"fmt"
+	"math/rand"
+	"time"
+)
 
 type Generation struct {
 	GenerationID                 string
@@ -127,7 +131,7 @@ func (g *Generation) setupEpochs() ([]Epoch, error) {
 				antagonist:                       antagonist,
 				protagonist:                      protagonist,
 				generation:                       g,
-				program:                          g.engine.StartIndividual,
+				program:                          g.engine.Parameters.StartIndividual,
 				id:                               CreateEpochID(count, g.GenerationID, antagonist.id, protagonist.id),
 			}
 			count++
@@ -147,6 +151,9 @@ func (g *Generation) CurrentPopulation() ([]*Individual, error) {
 func (g *Generation) runEpochs(epochs []Epoch) ([]Epoch, error) {
 	if epochs == nil {
 		return nil, fmt.Errorf("epochs have not been initialized | epochs is nil")
+	}
+	if len(epochs) < 1 {
+		return nil, fmt.Errorf("epochs slice is empty")
 	}
 
 	for i := range epochs {
@@ -191,7 +198,7 @@ func (g *Generation) ApplyParentSelection() ([]*Individual, error) {
 		return nil, err
 	}
 
-	switch g.engine.ParentSelection {
+	switch g.engine.Parameters.ParentSelection {
 	case ParentSelectionTournament:
 		selectedInvididuals, err := TournamentSelection(currentPopulation, g.engine.Parameters.TournamentSize)
 		if err != nil {
@@ -200,7 +207,7 @@ func (g *Generation) ApplyParentSelection() ([]*Individual, error) {
 		g.hasParentSelectionHappened = true
 		return selectedInvididuals, nil
 	case ParentSelectionElitism:
-		selectedInvididuals, err := Elitism(currentPopulation, g.engine.ElitismPercentage)
+		selectedInvididuals, err := Elitism(currentPopulation, g.engine.Parameters.ElitismPercentage)
 		if err != nil {
 			return nil, err
 		}
@@ -222,6 +229,115 @@ func (g *Generation) ApplySurvivorSelection() ([]*Individual, error) {
 	}
 
 	return nil, nil
+}
+
+
+// GenerateRandomAntagonists creates a a random set of antagonists based on the parameters passed into the
+// evolution engine. Antagonists are by default set with the StartIndividuals Program as their own program.
+func (g *Generation) GenerateRandomAntagonists(idTemplate string) ([]*Individual, error) {
+	kind := IndividualAntagonist
+	if g.engine.Parameters.EachPopulationSize < 1 {
+		return nil, fmt.Errorf("number should at least be 1")
+	}
+	if g.engine.Parameters.AntagonistMaxStrategies < 1 {
+		return nil, fmt.Errorf("maxNumberOfStrategies should at least be 1")
+	}
+	if g.engine.Parameters.Strategies == nil {
+		return nil, fmt.Errorf("availableStrategies cannot be nil")
+	}
+	if len(g.engine.Parameters.AntagonistAvailableStrategies) < 1 {
+		return nil, fmt.Errorf("availableStrategies should at least have one strategy")
+	}
+	if idTemplate == "" {
+		return nil, fmt.Errorf("idTemplate cannot be empty")
+	}
+
+	individuals := make([]*Individual, g.engine.Parameters.EachPopulationSize)
+
+	for i := 0; i < g.engine.Parameters.EachPopulationSize; i++ {
+		rand.Seed(time.Now().UnixNano())
+		var numberOfStrategies int
+		var randomStrategies []Strategy
+		if g.engine.Parameters.SetEqualStrategyLength {
+			numberOfStrategies = rand.Intn(g.engine.Parameters.EqualStrategiesLength)
+			randomStrategies = GenerateRandomStrategy(numberOfStrategies, g.engine.Parameters.EqualStrategiesLength,
+				g.engine.Parameters.AntagonistAvailableStrategies)
+		} else {
+			numberOfStrategies = rand.Intn(g.engine.Parameters.ProtagonistMaxStrategies)
+			randomStrategies = GenerateRandomStrategy(numberOfStrategies, numberOfStrategies, g.engine.Parameters.AntagonistAvailableStrategies)
+		}
+		id := fmt.Sprintf("%s-%s-%d", KindToString(kind), "", i)
+
+		program := g.engine.Parameters.StartIndividual
+		programID := GenerateProgramID(i)
+		program.ID = programID
+		clone, err := program.Clone()
+
+		if err != nil {
+			return nil, err
+		}
+
+		individual := &Individual{
+			kind:     kind,
+			id:       id,
+			strategy: randomStrategies,
+			fitness:  make([]int, 0),
+			Program:  &clone,
+		}
+		individuals[i] = individual
+	}
+	return individuals, nil
+}
+
+// GenerateRandomProtagonists creates a a random set of protagonists based on the parameters passed into the
+// evolution engine.
+func (g *Generation) GenerateRandomProtagonists(idTemplate string) ([]*Individual, error) {
+	kind := IndividualProtagonist
+	if g.engine.Parameters.EachPopulationSize < 1 {
+		return nil, fmt.Errorf("number should at least be 1")
+	}
+	if g.engine.Parameters.ProtagonistMaxStrategies < 1 {
+		return nil, fmt.Errorf("maxNumberOfStrategies should at least be 1")
+	}
+	if g.engine.Parameters.Strategies == nil {
+		return nil, fmt.Errorf("availableStrategies cannot be nil")
+	}
+	if len(g.engine.Parameters.ProtagonistAvailableStrategies) < 1 {
+		return nil, fmt.Errorf("availableStrategies should at least have one strategy")
+	}
+	if idTemplate == "" {
+		return nil, fmt.Errorf("idTemplate cannot be empty")
+	}
+
+	individuals := make([]*Individual, g.engine.Parameters.EachPopulationSize)
+
+	for i := 0; i < g.engine.Parameters.EachPopulationSize; i++ {
+		rand.Seed(time.Now().UnixNano())
+		var numberOfStrategies int
+		var randomStrategies []Strategy
+		if g.engine.Parameters.SetEqualStrategyLength {
+			numberOfStrategies = rand.Intn(g.engine.Parameters.EqualStrategiesLength)
+			randomStrategies = GenerateRandomStrategy(numberOfStrategies, g.engine.Parameters.EqualStrategiesLength, g.engine.Parameters.ProtagonistAvailableStrategies)
+		} else {
+			numberOfStrategies = rand.Intn(g.engine.Parameters.ProtagonistMaxStrategies)
+			randomStrategies = GenerateRandomStrategy(numberOfStrategies, numberOfStrategies, g.engine.Parameters.ProtagonistAvailableStrategies)
+		}
+		id := fmt.Sprintf("%s-%s-%d", KindToString(kind), "", i)
+
+		program := Program{}
+		programID := GenerateProgramID(i)
+		program.ID = programID
+
+		individual := &Individual{
+			kind:     kind,
+			id:       id,
+			strategy: randomStrategies,
+			fitness:  make([]int, 0),
+			Program:  &program,
+		}
+		individuals[i] = individual
+	}
+	return individuals, nil
 }
 
 type GenerationResult struct {

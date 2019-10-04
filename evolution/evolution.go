@@ -25,9 +25,9 @@ type EvolutionParams struct {
 	ProbabilityOfMutation            float32
 	ProbabilityOfNonTerminalMutation float32
 	AntagonistMaxStrategies          int
-	AntagonistStrategyLength         int
+	//AntagonistStrategyLength         int
 	ProtagonistMaxStrategies         int
-	ProtagonistStrategyLength        int
+	//ProtagonistStrategyLength        int
 	SurvivorPercentage               float32
 	// Strategies is a list of available strategies for each individual.
 	// These can be randomly allocated to individuals and duplicates are expected.
@@ -64,6 +64,15 @@ type EvolutionParams struct {
 	EvaluationThreshold    float64
 	EvaluationMinThreshold float64
 	ParentSelection        int
+	StartIndividual        Program
+	Spec            Spec
+	SurvivorSelection int
+
+	ProtagonistAvailableStrategies []Strategy
+	AntagonistAvailableStrategies  []Strategy
+	SetEqualStrategyLength         bool
+	EqualStrategiesLength          int
+
 }
 
 const (
@@ -73,17 +82,9 @@ const (
 )
 
 type EvolutionEngine struct {
-	StartIndividual Program
-	Spec            Spec
-
 	Parallelize bool
 	Generations []*Generation
-
-	SurvivorSelection int
-	ParentSelection   int
-	ElitismPercentage float32
 	StatisticsOutput  string
-
 	Parameters EvolutionParams
 }
 
@@ -93,32 +94,31 @@ func (e *EvolutionEngine) Start() (*EvolutionResult, error) {
 		return nil, err
 	}
 
-	// Init Population
 	e.Generations = make([]*Generation, e.Parameters.Generations)
-	// Set First Generation - TODO Parallelize Individual Creation
-	antagonists, err := GenerateRandomIndividuals(e.Parameters.EachPopulationSize, "ANT", IndividualAntagonist,
-		e.Parameters.AntagonistStrategyLength, e.Parameters.AntagonistMaxStrategies,
-		e.Parameters.Strategies, 1, e.Parameters.TerminalSet, e.Parameters.NonTerminalSet, e.Parameters.EnforceIndependentVariable)
-	if err != nil {
-		return nil, err
-	}
-	protagonists, err := GenerateRandomIndividuals(e.Parameters.EachPopulationSize, "PRO", IndividualProtagonist,
-		e.Parameters.ProtagonistStrategyLength, e.Parameters.ProtagonistMaxStrategies,
-		e.Parameters.Strategies, 1, e.Parameters.TerminalSet, e.Parameters.NonTerminalSet, e.Parameters.EnforceIndependentVariable)
-	if err != nil {
-		return nil, err
-	}
 
-	//// create the 1st gen0, and begin
+	// Set First Generation - TODO Parallelize Individual Creation
 	genID := GenerateGenerationID(0)
 	gen0 := Generation{
 		count:        0,
 		GenerationID: genID,
-		Protagonists: protagonists,
-		Antagonists:  antagonists,
+		Protagonists: nil,
+		Antagonists:  nil,
 		engine:       e,
 	}
 	e.Generations[0] = &gen0
+
+	antagonists, err := e.Generations[0].GenerateRandomAntagonists("ANT")
+	if err != nil {
+		return nil, err
+	}
+
+	protagonists, err := e.Generations[0].GenerateRandomProtagonists("PRO")
+	if err != nil {
+		return nil, err
+	}
+
+	gen0.Protagonists = protagonists
+	gen0.Antagonists = antagonists
 
 	// cycle through generationCount
 	for i := 0; i < e.Parameters.Generations; i++ {
@@ -138,18 +138,25 @@ func (e *EvolutionEngine) validate() error {
 	if e.Parameters.EachPopulationSize%2 != 0 {
 		return fmt.Errorf("set number of EachPopulationSize to an Even number")
 	}
-	//if e.StartIndividual == Program{} {
-	//	return fmt.Errorf("set a start individuals")
-	//}
+	if e.Parameters.SetEqualStrategyLength == true && e.Parameters.EqualStrategiesLength < 1 {
+		return fmt.Errorf("cannot SetEqualStrategyLength to true and EqualStrategiesLength less than 1")
+	}
+	if e.Parameters.StartIndividual.T == nil {
+		return fmt.Errorf("start individual cannot have a nil tree")
+	}
+	if e.Parameters.Spec == nil {
+		return fmt.Errorf("spec cannot be nil")
+	}
+	if len(e.Parameters.Spec) < 1 {
+		return fmt.Errorf("spec cannot be empty")
+	}
 	//err := e.StartIndividual.Validate()
 	//if err != nil {
 	//	return err
 	//}
-	//if e.spec == nil {
-	//	return fmt.Errorf("set a valid spec")
-	//}
-	//if len(e.spec) < 3 {
-	//	return fmt.Errorf("a small spec will hamper evolutionary accuracy")
-	//}
+
+	if len(e.Parameters.Spec) < 3 {
+		return fmt.Errorf("a small spec will hamper evolutionary accuracy")
+	}
 	return nil
 }

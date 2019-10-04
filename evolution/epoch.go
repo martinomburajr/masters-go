@@ -97,7 +97,7 @@ func (e *Epoch) Start() error {
 	}
 	e.antagonist.hasAppliedStrategy = true
 
-	err = e.applyProtagonistStrategy()
+	err = e.applyProtagonistStrategy(e.antagonist.Program.T)
 	if err != nil {
 		return err
 	}
@@ -110,7 +110,7 @@ func (e *Epoch) Start() error {
 	antagonistFitness, protagonistFitness := 0, 0
 	switch e.generation.engine.Parameters.FitnessStrategy {
 	case FitnessProtagonistThresholdTally:
-		antagonistFitness, protagonistFitness, err = ProtagonistThresholdTally(e.generation.engine.Spec,
+		antagonistFitness, protagonistFitness, err = ProtagonistThresholdTally(e.generation.engine.Parameters.Spec,
 			&e.program, e.generation.engine.Parameters.EvaluationThreshold,
 			e.generation.engine.Parameters.EvaluationMinThreshold)
 		if err != nil {
@@ -129,7 +129,7 @@ func (e *Epoch) Start() error {
 // applyAntagonistStrategy applies the Antagonist strategies to program.
 func (e *Epoch) applyAntagonistStrategy() error {
 	for _, strategy := range e.antagonist.strategy {
-		err := e.program.ApplyStrategy(strategy,
+		err := e.antagonist.Program.ApplyStrategy(strategy,
 			e.terminalSet,
 			e.nonTerminalSet,
 			e.probabilityOfMutation,
@@ -145,7 +145,7 @@ func (e *Epoch) applyAntagonistStrategy() error {
 }
 
 // applyProtagonistStrategy Apply Protagonist strategies to program.
-func (e *Epoch) applyProtagonistStrategy() error {
+func (e *Epoch) applyProtagonistStrategy(antagonistTree *DualTree) error {
 	if e.protagonist == nil {
 		return fmt.Errorf("protagonist cannot be nil")
 	}
@@ -155,9 +155,16 @@ func (e *Epoch) applyProtagonistStrategy() error {
 	if len(e.protagonist.strategy) < 1 {
 		return fmt.Errorf("protagonist strategy cannot be empty")
 	}
+	if antagonistTree == nil {
+		return fmt.Errorf("applyProtagonistStrategy | antagonist supplied to protagonist is nil")
+	}
+	if antagonistTree.root == nil {
+		return fmt.Errorf("applyProtagonistStrategy | antagonist supplied to protagonist has a nill root tree")
+	}
+	e.protagonist.Program.T = antagonistTree
 
 	for _, strategy := range e.protagonist.strategy {
-		err := e.program.ApplyStrategy(strategy,
+		err := e.protagonist.Program.ApplyStrategy(strategy,
 			e.terminalSet,
 			e.nonTerminalSet,
 			e.probabilityOfMutation,

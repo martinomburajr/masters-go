@@ -53,3 +53,15 @@ func JudgementDay(incomingPopulation []*Individual, opts EvolutionParams) ([]*In
 
 	return survivors, nil
 }
+
+//CleansePopulation removes the trees from the population and refits them with the starter tree.
+func CleansePopulation(individuals []Individual, treeReplacer DualTree) []Individual {
+	for i := range individuals {
+		individuals[i].Program.T = nil
+	}
+}
+
+type JudementDayStatistics struct {
+	Top3Antagonists []Individual
+	Top3Protagonists []Individual
+}

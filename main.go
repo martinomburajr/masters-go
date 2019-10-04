@@ -20,9 +20,9 @@ func main() {
 		EachPopulationSize: 6, // Must be an even number to prevent awkward ordering of children.
 		// This will fail if odd.
 		AntagonistMaxStrategies:               4,
-		AntagonistStrategyLength:              3,
+		//AntagonistStrategyLength:              3,
 		ProtagonistMaxStrategies:              4,
-		ProtagonistStrategyLength:             3,
+		//ProtagonistStrategyLength:             3,
 		MaxDepth:                              4,
 		DepthPenaltyStrategyPenalization:      10,
 		ProbabilityOfMutation:                 0.1,
@@ -31,6 +31,9 @@ func main() {
 		DeletionType:                          evolution.DeletionTypeSafe,
 		EnforceIndependentVariable:            true,
 		Strategies:                            strategies,
+		ProtagonistAvailableStrategies:        strategies,
+		AntagonistAvailableStrategies:         strategies,
+		SetEqualStrategyLength:                false,
 		CrossoverPercentage:                   0.2,
 		MaintainCrossoverGeneTransferEquality: true,
 		NonTerminalSet:                        []evolution.SymbolicExpression{evolution.Add, evolution.Mult, evolution.Sub},
@@ -42,15 +45,14 @@ func main() {
 		EvaluationThreshold:    0.1,
 		EvaluationMinThreshold: 0.01,
 		TournamentSize:         3,
-		ParentSelection:        evolution.ParentSelectionTournament,
 		StrategyLengthLimit:    10,
 		SurvivorPercentage:     0.5,
-	}
-
-	engine := evolution.EvolutionEngine{
 		StartIndividual: evolution.ProgTreeT_NT_T_0,
 		Spec:            spec,
 		ParentSelection: evolution.ParentSelectionTournament,
+	}
+
+	engine := evolution.EvolutionEngine{
 		Parameters:      params,
 	}
 
