@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
-	"time"
 )
 
 const (
@@ -34,6 +33,14 @@ func (i Individual) Clone() (Individual, error) {
 	}
 	i.Program = &programClone
 	return i, nil
+}
+
+func (i Individual) CloneWithTree(tree DualTree) Individual {
+	i.id = GenerateIndividualID("", i.kind)
+
+	programClone := i.Program.CloneWithTree(tree)
+	i.Program = &programClone
+	return i
 }
 
 type Antagonist Individual
@@ -114,7 +121,7 @@ func Crossover(individual Individual, individual2 Individual, params EvolutionPa
 
 	if individual1ChunkSize >= individual1ChunkSize {
 		//if params.MaintainCrossoverGeneTransferEquality {
-		rand.Seed(time.Now().UnixNano())
+
 		var ind1StartIndex int
 		if individual1Len == individual1ChunkSize {
 			ind1StartIndex = 0
@@ -129,7 +136,7 @@ func Crossover(individual Individual, individual2 Individual, params EvolutionPa
 		//
 		//}
 	} else {
-		rand.Seed(time.Now().UnixNano())
+
 		var ind2StartIndex int
 		if individual2Len == individual2ChunkSize {
 			ind2StartIndex = 0
@@ -150,7 +157,7 @@ func Crossover(individual Individual, individual2 Individual, params EvolutionPa
 	//if individual1Len <= individual2Len {
 	//	individual1ChunkSize := int(math.Ceil(float64(individual1Len) * float64(crossoverPercentage)))
 	//	if params.MaintainCrossoverGeneTransferEquality {
-	//		rand.Seed(time.Now().UnixNano())
+	//
 	//		var ind1StartIndex int
 	//		if individual1Len == individual1ChunkSize {
 	//			ind1StartIndex = 0
@@ -166,7 +173,7 @@ func Crossover(individual Individual, individual2 Individual, params EvolutionPa
 	//		}
 	//	} else {
 	//		individual2ChunkSize := int(float32(individual2Len) * crossoverPercentage)
-	//		rand.Seed(time.Now().UnixNano())
+	//
 	//		ind1StartIndex := rand.Intn(individual1Len - individual1ChunkSize)
 	//		ind1EndIndex := ind1StartIndex + individual1ChunkSize
 	//		ind2StartIndex := rand.Intn(individual2Len - individual2ChunkSize)
@@ -193,7 +200,7 @@ func Crossover(individual Individual, individual2 Individual, params EvolutionPa
 	//} else {
 	//	individual2ChunkSize := int(math.Ceil(float64(individual2Len) * float64(crossoverPercentage)))
 	//	if params.MaintainCrossoverGeneTransferEquality {
-	//		rand.Seed(time.Now().UnixNano())
+	//
 	//		var ind2StartIndex int
 	//		if individual2Len == individual2ChunkSize {
 	//			ind2StartIndex = 0
@@ -209,7 +216,7 @@ func Crossover(individual Individual, individual2 Individual, params EvolutionPa
 	//		}
 	//	} else {
 	//		individual1ChunkSize := int(float32(individual1Len) * crossoverPercentage)
-	//		rand.Seed(time.Now().UnixNano())
+	//
 	//		ind2StartIndex := rand.Intn(individual2Len - individual2ChunkSize)
 	//		ind2EndIndex := ind2StartIndex + individual2ChunkSize
 	//		ind1StartIndex := rand.Intn(individual1Len - individual1ChunkSize)
@@ -365,34 +372,22 @@ func StrategySwapperIgnorant(a []Strategy, b []Strategy, swapLength int, startIn
 }
 
 // Mutate will mutate the strategy in a given individual
-func Mutate(individual Individual, params EvolutionParams) (Individual, error) {
-	if individual.id == "" {
-		return Individual{}, fmt.Errorf("crossover | individual1 - individual id cannot be empty")
+func (i *Individual) Mutate(availableStrategies []Strategy) error {
+	if availableStrategies == nil {
+		return fmt.Errorf("Mutate | availableStrategies param cannot be nil")
 	}
-	if individual.strategy == nil {
-		return Individual{}, fmt.Errorf("crossover | individual1 - strategy array cannot be nil")
+	if i.strategy == nil {
+		return fmt.Errorf("Mutate | individual's strategies cannot be nil")
 	}
-	if len(individual.strategy) == 0 {
-		return Individual{}, fmt.Errorf("crossover | individual1 - strategy array cannot be empty")
-	}
-	if individual.hasCalculatedFitness == false {
-		return Individual{}, fmt.Errorf("crossover | individual1 - hasCalculatedFitness should be true")
-	}
-	if individual.hasAppliedStrategy == false {
-		return Individual{}, fmt.Errorf("crossover | individual1 - hasAppliedStrategy should be true")
-	}
-	if len(params.Strategies) < 1 {
-		return Individual{}, fmt.Errorf("crossover | params.Strategies cannot be length 0")
+	if len(i.strategy) < 1 {
+		return fmt.Errorf("Mutate | individual's strategies cannot empty")
 	}
 
-	rand.Seed(time.Now().UnixNano())
-	randIndex := rand.Intn(len(individual.strategy))
+	randIndexToMutate := rand.Intn(len(i.strategy))
 
-	rand.Seed(time.Now().UnixNano())
-	randomStrategy := rand.Intn(len(params.Strategies))
-	individual.strategy[randIndex] = params.Strategies[randomStrategy]
-
-	return individual, nil
+	randIndexForStrategies := rand.Intn(len(availableStrategies))
+	i.strategy[randIndexToMutate] = availableStrategies[randIndexForStrategies]
+	return nil
 }
 
 func GenerateIndividualID(identifier string, individualKind int) string {
@@ -427,7 +422,7 @@ func GenerateRandomIndividuals(number int, idTemplate string, kind int, strategy
 	individuals := make([]*Individual, number)
 
 	for i := 0; i < number; i++ {
-		rand.Seed(time.Now().UnixNano())
+
 		numberOfStrategies := rand.Intn(maxNumberOfStrategies)
 		randomStrategies := GenerateRandomStrategy(numberOfStrategies, strategyLength, availableStrategies)
 		id := fmt.Sprintf("%s-%s-%d", KindToString(kind), "", i)
@@ -488,7 +483,7 @@ func GenerateRandomStrategy(number int, strategyLength int, availableStrategies 
 
 	for i := 0; i < number; i++ {
 		for j := 0; j < strategyLength; j++ {
-			rand.Seed(time.Now().UnixNano())
+
 			strategyIndex := rand.Intn(len(availableStrategies))
 			strategies[i] = availableStrategies[strategyIndex]
 		}

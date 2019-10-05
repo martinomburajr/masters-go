@@ -1,5 +1,9 @@
 package evolution
 
+import (
+	"math/rand"
+)
+
 // JudgementDay represents a moment where all individuals have completed their epoch phase and are waiting a decision
 // onto who proceeds to the next generation. Judgement day is a compound function or abstraction that includes the
 // following processes.
@@ -36,6 +40,33 @@ func JudgementDay(incomingPopulation []*Individual, opts EvolutionParams) ([]*In
 	parentPopulationSize := int(opts.SurvivorPercentage * float32(opts.EachPopulationSize))
 	childPopulationSize := opts.EachPopulationSize - parentPopulationSize
 
+	// Reproduction
+	// Mutation
+	dualStrategies := append(opts.AntagonistAvailableStrategies, opts.ProtagonistAvailableStrategies...)
+	// parents
+	for i := 0; i < (len(outgoingParents)); i++ {
+
+		probabilityOfMutation := rand.Float32()
+		if probabilityOfMutation < opts.ProbabilityOfMutation {
+			err := outgoingParents[i].Mutate(dualStrategies)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	// childs
+	for i := 0; i < (len(children)); i++ {
+
+		probabilityOfMutation := rand.Float32()
+		if probabilityOfMutation < opts.ProbabilityOfMutation {
+			err := children[i].Mutate(dualStrategies)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
 	// CHANGE - This only selects the first N parents
 
 	for i := 0; i < parentPopulationSize; i++ {
@@ -50,18 +81,25 @@ func JudgementDay(incomingPopulation []*Individual, opts EvolutionParams) ([]*In
 	// Statistical Output
 
 	// Anointing Final Population and Return
+	//individuals, err := CleansePopulation(survivors, *opts.StartIndividual.T)
+	//if err != nil {
+	//	return nil, err
+	//}
 
 	return survivors, nil
 }
 
-//CleansePopulation removes the trees from the population and refits them with the starter tree.
-func CleansePopulation(individuals []Individual, treeReplacer DualTree) []Individual {
+// CleansePopulation removes the trees from the population and refits them with the starter tree.
+func CleansePopulation(individuals []*Individual, treeReplacer DualTree) []*Individual {
 	for i := range individuals {
-		individuals[i].Program.T = nil
+		if individuals[i].kind == IndividualAntagonist {
+			newIndividual := individuals[i].CloneWithTree(treeReplacer)
+			individuals[i] = &newIndividual
+		} else {
+			newIndividual := individuals[i].CloneWithTree(treeReplacer)
+			individuals[i] = &newIndividual
+			individuals[i].Program.T = nil
+		}
 	}
-}
-
-type JudementDayStatistics struct {
-	Top3Antagonists []Individual
-	Top3Protagonists []Individual
+	return individuals
 }

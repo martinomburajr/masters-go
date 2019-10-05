@@ -2,12 +2,10 @@ package evolution
 
 import (
 	"fmt"
-	"log"
 	"math"
 	"math/rand"
 	"strings"
 	"sync"
-	"time"
 )
 
 // TODO enable concurrent safe access for DualTree Methods
@@ -44,7 +42,7 @@ func (bst *DualTree) RandomLeafAware() (node *DualTreeNode, parent *DualTreeNode
 		return nil, nil, fmt.Errorf("root cannot be nil")
 	}
 	size := bst.Size()
-	rand.Seed(time.Now().UnixNano())
+
 	max := rand.Intn(size)
 	count := 0
 
@@ -93,7 +91,6 @@ func (bst *DualTree) RandomBranch() (*DualTreeNode, error) {
 		return nil, err
 	}
 
-	rand.Seed(time.Now().UnixNano())
 	randIndex := rand.Intn(len(nodes))
 	return nodes[randIndex], nil
 }
@@ -188,8 +185,6 @@ func (bst *DualTree) AddSubTree(subTree *DualTree) error {
 		node.left = subTree.root
 	}
 
-	log.Print("Tree after operation")
-	bst.Print()
 	return nil
 }
 
@@ -326,9 +321,9 @@ func (bst *DualTree) SwapSubTrees() error {
 	nonTerminalIndex1 := 0
 
 	for nonTerminalIndex0 == nonTerminalIndex1 {
-		rand.Seed(time.Now().UnixNano())
+
 		nonTerminalIndex0 = rand.Intn(len(nodes))
-		rand.Seed(time.Now().UnixNano())
+
 		nonTerminalIndex1 = rand.Intn(len(nodes))
 	}
 	// once they are different
@@ -480,10 +475,9 @@ func (bst *DualTree) MutateTerminal(terminalSet []SymbolicExpression) error {
 	itemFromSet := ""
 
 	for nodeValue == itemFromSet {
-		rand.Seed(time.Now().UnixNano())
+
 		nonTerminalIndex0 := rand.Intn(len(nodes))
 
-		rand.Seed(time.Now().UnixNano())
 		itemFromTSet := terminalSet[rand.Intn(len(terminalSet))]
 		nodeValue = nodes[nonTerminalIndex0].value
 		itemFromSet = itemFromTSet.value
@@ -564,10 +558,9 @@ func (bst *DualTree) MutateNonTerminal(nonTerminalSet []SymbolicExpression) erro
 	counter := 0
 	for nodeValue == fromSetValue && len(nonTerminalSet) >= 1 && counter < 20 { //pray for no duplicates.
 		// Counter is a failsafe to prevent infinite looping
-		rand.Seed(time.Now().UnixNano())
+
 		nonTerminalIndex := rand.Intn(len(nodes))
 
-		rand.Seed(time.Now().UnixNano())
 		nonTerminalSetIndex := rand.Intn(len(nonTerminalSet))
 
 		nodeValue = nodes[nonTerminalIndex].value
@@ -1124,6 +1117,42 @@ func stringify(n *DualTreeNode, level int) {
 	}
 }
 
+// Print prints a visual representation of the treeNode
+func (bst *DualTree) ToString() string {
+	bst.lock.Lock()
+	defer bst.lock.Unlock()
+	sb := &strings.Builder{}
+	fmt.Println("------------------------------------------------")
+	stringifyBuilder(bst.root, sb, 0)
+	fmt.Println("------------------------------------------------")
+
+	return sb.String()
+}
+
+// internal recursive function to print a treeNode
+func stringifyBuilder(n *DualTreeNode, sb *strings.Builder, level int) error {
+	if n != nil {
+		format := ""
+		for i := 0; i < level; i++ {
+			format += "       "
+			_, err := sb.WriteString(format)
+			if err != nil {
+				return err
+			}
+		}
+		format += "---[ "
+		_, err := sb.WriteString(format)
+		if err != nil {
+			return err
+		}
+		level++
+		stringifyBuilder(n.right, sb, level)
+		fmt.Printf(format+"%s\n", n.value)
+		stringifyBuilder(n.left, sb, level)
+	}
+	return nil
+}
+
 // ToMathematicalString returns a mathematical representation of the treeNode after reading it using Inorder DFS
 func (d *DualTree) ToMathematicalString() (string, error) {
 	if d.root == nil {
@@ -1200,7 +1229,7 @@ func GenerateRandomTree(depth int, terminals []SymbolicExpression,
 		return nil, fmt.Errorf("non terminal expression set cannot be empty if depth > 0")
 	}
 	if len(nonTerminals) < 1 {
-		rand.Seed(time.Now().UnixNano())
+
 		tree := &DualTree{}
 		tree.root = terminals[rand.Intn(len(terminals))].ToDualTreeNode(RandString(5))
 		return tree, nil
@@ -1218,14 +1247,14 @@ func GenerateRandomTree(depth int, terminals []SymbolicExpression,
 
 	randTerminals := make([]SymbolicExpression, terminalCount)
 	for i := 0; i < terminalCount; i++ {
-		rand.Seed(time.Now().UnixNano())
+
 		randTerminalIndex := rand.Intn(len(terminals))
 		randTerminals[i] = terminals[randTerminalIndex]
 	}
 
 	randNonTerminals := make([]SymbolicExpression, nonTerminalCount)
 	for i := 0; i < nonTerminalCount; i++ {
-		rand.Seed(time.Now().UnixNano())
+
 		index := rand.Intn(len(nonTerminals))
 		randNonTerminals[i] = nonTerminals[index]
 	}
@@ -1271,7 +1300,7 @@ func GenerateRandomTreeEnforceIndependentVariable(depth int, independentVar Symb
 		return nil, fmt.Errorf("non terminal expression set cannot be empty if depth > 0")
 	}
 	if len(nonTerminals) < 1 {
-		rand.Seed(time.Now().UnixNano())
+
 		tree := &DualTree{}
 		tree.root = independentVar.ToDualTreeNode(RandString(5))
 		return tree, nil
@@ -1290,14 +1319,14 @@ func GenerateRandomTreeEnforceIndependentVariable(depth int, independentVar Symb
 	randTerminals := make([]SymbolicExpression, terminalCount)
 	randTerminals[0] = independentVar
 	for i := 1; i < terminalCount; i++ {
-		rand.Seed(time.Now().UnixNano())
+
 		randTerminalIndex := rand.Intn(len(terminals))
 		randTerminals[i] = terminals[randTerminalIndex]
 	}
 
 	randNonTerminals := make([]SymbolicExpression, nonTerminalCount)
 	for i := 0; i < nonTerminalCount; i++ {
-		rand.Seed(time.Now().UnixNano())
+
 		index := rand.Intn(len(nonTerminals))
 		randNonTerminals[i] = nonTerminals[index]
 	}
@@ -1423,7 +1452,6 @@ func (d *DualTree) GetRandomSubTreeAtDepth(depth int) (DualTree, error) {
 		return DualTree{}, fmt.Errorf("cannot get depth - depth is less than 0")
 	}
 
-	rand.Seed(time.Now().UnixNano())
 	randomDepth := rand.Intn(depth + 1)
 
 	nodes, err := d.DepthTo(randomDepth)
@@ -1431,7 +1459,6 @@ func (d *DualTree) GetRandomSubTreeAtDepth(depth int) (DualTree, error) {
 		return DualTree{}, err
 	}
 
-	rand.Seed(time.Now().UnixNano())
 	randomNodeIndex := rand.Intn(len(nodes))
 	randomNode := nodes[randomNodeIndex]
 
@@ -1459,7 +1486,7 @@ func (d *DualTree) GetRandomSubTreeAtDepthAware(depth int) (DualTree, error) {
 	if depth < 2 {
 		randomDepth = depth
 	} else {
-		rand.Seed(time.Now().UnixNano())
+
 		randomDepth = rand.Intn(depth)
 	}
 
@@ -1468,7 +1495,6 @@ func (d *DualTree) GetRandomSubTreeAtDepthAware(depth int) (DualTree, error) {
 		return DualTree{}, err
 	}
 
-	rand.Seed(time.Now().UnixNano())
 	randomNodeIndex := rand.Intn(len(nodes))
 	randomNode := nodes[randomNodeIndex]
 

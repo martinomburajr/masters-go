@@ -26,12 +26,12 @@ type EvolutionParams struct {
 	ProbabilityOfNonTerminalMutation float32
 	AntagonistMaxStrategies          int
 	//AntagonistStrategyLength         int
-	ProtagonistMaxStrategies         int
+	ProtagonistMaxStrategies int
 	//ProtagonistStrategyLength        int
-	SurvivorPercentage               float32
+	SurvivorPercentage float32
 	// Strategies is a list of available strategies for each individual.
 	// These can be randomly allocated to individuals and duplicates are expected.
-	Strategies            []Strategy
+	//Strategies            []Strategy
 	DepthOfRandomNewTrees int
 	// StrategyLengthPenalty is the penalty given to strategies that exceed a given length
 	StrategyLengthPenalty float32
@@ -65,14 +65,13 @@ type EvolutionParams struct {
 	EvaluationMinThreshold float64
 	ParentSelection        int
 	StartIndividual        Program
-	Spec            Spec
-	SurvivorSelection int
+	Spec                   Spec
+	SurvivorSelection      int
 
 	ProtagonistAvailableStrategies []Strategy
 	AntagonistAvailableStrategies  []Strategy
 	SetEqualStrategyLength         bool
 	EqualStrategiesLength          int
-
 }
 
 const (
@@ -82,16 +81,16 @@ const (
 )
 
 type EvolutionEngine struct {
-	Parallelize bool
-	Generations []*Generation
-	StatisticsOutput  string
-	Parameters EvolutionParams
+	Parallelize      bool
+	Generations      []*Generation
+	StatisticsOutput string
+	Parameters       EvolutionParams
 }
 
-func (e *EvolutionEngine) Start() (*EvolutionResult, error) {
+func (e *EvolutionEngine) Start() (EvolutionResult, error) {
 	err := e.validate()
 	if err != nil {
-		return nil, err
+		return EvolutionResult{}, err
 	}
 
 	e.Generations = make([]*Generation, e.Parameters.Generations)
@@ -109,25 +108,55 @@ func (e *EvolutionEngine) Start() (*EvolutionResult, error) {
 
 	antagonists, err := e.Generations[0].GenerateRandomAntagonists("ANT")
 	if err != nil {
-		return nil, err
+		return EvolutionResult{}, err
 	}
 
 	protagonists, err := e.Generations[0].GenerateRandomProtagonists("PRO")
 	if err != nil {
-		return nil, err
+		return EvolutionResult{}, err
 	}
 
 	gen0.Protagonists = protagonists
 	gen0.Antagonists = antagonists
 
 	// cycle through generationCount
-	for i := 0; i < e.Parameters.Generations; i++ {
-		e.Generations[i], err = e.Generations[i].Start()
+	e.Generations[0] = &gen0
+	for i := 0; i < e.Parameters.Generations-1; i++ {
+		//if i != e.Parameters.Generations-2 {
+		protagonistsCleanse := CleansePopulation(e.Generations[i].Protagonists, *e.Parameters.StartIndividual.T)
+		antagonistsCleanse := CleansePopulation(e.Generations[i].Antagonists, *e.Parameters.StartIndividual.T)
+
+		e.Generations[i].Protagonists = protagonistsCleanse
+		e.Generations[i].Antagonists = antagonistsCleanse
+		//}
+		nextGeneration, err := e.Generations[i].Start()
 		if err != nil {
-			return nil, err
+			return EvolutionResult{}, err
 		}
+		e.Generations[i+1] = nextGeneration
 	}
-	return nil, nil
+
+	evolutionResult := EvolutionResult{}
+	_, err = evolutionResult.Analyze(e.Generations, 3)
+	if err != nil {
+		return EvolutionResult{}, err
+	}
+	fmt.Println("Top Protagonist Tree")
+	evolutionResult.TopProtagonist.result.Program.T.Print()
+	fmt.Printf("Protagonist Strategies: %#v\n", evolutionResult.TopProtagonist.result.strategy)
+	//log.Printf("Protagonist FitnessArr: %#v", evolutionResult.TopProtagonist.result.fitness)
+	fmt.Printf("Protagonist Total Fitnes: %d\n", evolutionResult.TopProtagonist.result.totalFitness)
+	fmt.Printf("Antagonist Fitness Average: %#v\n", evolutionResult.AntagonistAverageAcrossGenerations)
+
+	//topAntagonistTree := evolutionResult.TopAntagonist.tree
+	fmt.Println("Top Antagonist Tree")
+	evolutionResult.TopAntagonist.result.Program.T.Print()
+	fmt.Printf("Antagonist Strategies: %#v\n", evolutionResult.TopAntagonist.result.strategy)
+	//log.Printf("Antagonist FitnessArr: %#v", evolutionResult.TopAntagonist.result.fitness)
+	fmt.Printf("Antagonist Total Fitnes: %d\n", evolutionResult.TopAntagonist.result.totalFitness)
+	fmt.Printf("Antagonist Fitness Average: %#v\n", evolutionResult.AntagonistAverageAcrossGenerations)
+
+	return evolutionResult, nil
 }
 
 // Todo Implement EvolutionProcess validate

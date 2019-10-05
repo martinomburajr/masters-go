@@ -2,11 +2,9 @@ package evolution
 
 import (
 	"fmt"
-	"github.com/Knetic/govaluate"
+	"github.com/PaesslerAG/gval"
 	"github.com/martinomburajr/masters-go/utils"
 	"math/rand"
-	"strings"
-	"time"
 )
 
 const DeletionTypeMalicious = 1
@@ -44,7 +42,7 @@ func (p *Program) ApplyStrategy(strategy Strategy, terminals []SymbolicExpressio
 		err = p.T.DeleteSubTree(deletionStrategy)
 		break
 	case StrategyMutateNode:
-		rand.Seed(time.Now().UnixNano())
+
 		chanceOfMutation := rand.Float32()
 		if mutationProbability > chanceOfMutation {
 			if nonTerminalMutationProbability > chanceOfMutation {
@@ -84,21 +82,24 @@ func (p *Program) Eval(independentVar float32) (float32, error) {
 	if err != nil {
 		return -1, err
 	}
+	//
+	//indepStr := fmt.Sprintf("%f", independentVar)
+	//mathematicalExpression := strings.ReplaceAll(expressionString, "x", indepStr)
 
-	indepStr := fmt.Sprintf("%f", independentVar)
-	mathematicalExpression := strings.ReplaceAll(expressionString, "x", indepStr)
-
-	expression, err := govaluate.NewEvaluableExpression(mathematicalExpression)
+	expression, err := gval.Evaluate(expressionString,
+		map[string]float32{
+			"x": independentVar,
+		}) //govaluate.NewEvaluableExpression(
+	// mathematicalExpression)
 	if err != nil {
 		return -1, err
 	}
-
-	result, err := expression.Evaluate(nil)
-	if err != nil {
-		return -1, err
-	}
-
-	ans, err := utils.ConvertToFloat(result)
+	//result, err :=  expression.Evaluate(nil)
+	//if err != nil {
+	//	return -1, err
+	//}
+	//
+	ans, err := utils.ConvertToFloat(expression)
 	if err != nil {
 		return -1, err
 	}
@@ -114,6 +115,12 @@ func (p Program) Clone() (Program, error) {
 	p.T = &dualTree
 	p.ID = GenerateProgramID(0)
 	return p, nil
+}
+
+func (p Program) CloneWithTree(tree DualTree) Program {
+	p.T = &tree
+	p.ID = GenerateProgramID(0)
+	return p
 }
 
 type Bug *Program

@@ -25,6 +25,12 @@ var ProgTreeT_NT_T_0 = Program{
 }
 
 // ProgTreeT_NT_T_0
+var ProgTreeXby5 = Program{
+	T:  TreeXby5(),
+	ID: "TreeXby5",
+}
+
+// ProgTreeT_NT_T_0
 var ProgTreeT_NT_T_1 = Program{
 	T:  TreeT_NT_T_1(),
 	ID: "ProgTreeT_NT_T_0",
@@ -48,10 +54,10 @@ var ProgTreeT_NT_T_NT_T_NT_T_0 = Program{
 	ID: "ProgTreeT_NT_T_NT_T_NT_T_0",
 }
 
-// ProgTreeT_NT_T_NT_T_NT_T_NT_T_1 = x * x * x * x + 4
-var ProgTreeT_NT_T_NT_T_NT_T_NT_T_1 = Program{
+// ProgTreeXXXX4 = x * x * x * x + 4
+var ProgTreeXXXX4 = Program{
 	T:  TreeT_NT_T_NT_T_NT_T_NT_T_1(),
-	ID: "ProgTreeT_NT_T_NT_T_NT_T_NT_T_1",
+	ID: "ProgTreeXXXX4",
 }
 
 // ProgTreeTreeT_NT_T_NT_T_NT_T_2 = x * x * x * x

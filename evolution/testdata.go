@@ -59,6 +59,15 @@ var TreeT_NT_T_0 = func() *DualTree {
 	return &t
 }
 
+// TreeXby5 = x * 5
+var TreeXby5 = func() *DualTree {
+	t := DualTree{}
+	t.root = Mult.ToDualTreeNode("1fas")
+	t.root.left = X1.ToDualTreeNode("2ds")
+	t.root.right = Const5.ToDualTreeNode("3dd")
+	return &t
+}
+
 // TreeT_NT_T_5 = x - x
 var TreeT_NT_T_5 = func() *DualTree {
 	t := DualTree{}

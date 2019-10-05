@@ -3,7 +3,6 @@ package evolution
 import (
 	"fmt"
 	"math/rand"
-	"time"
 )
 
 /**
@@ -59,8 +58,6 @@ func TournamentSelection(population []*Individual, tournamentSize int) ([]*Indiv
 func getNRandom(population []*Individual, tournamentSize int) []*Individual {
 	newPop := make([]*Individual, tournamentSize)
 	for i := 0; i < tournamentSize; i++ {
-		rand.Seed(time.Now().UnixNano())
-
 		randIndex := rand.Intn(len(population))
 		newPop[i] = population[randIndex]
 	}

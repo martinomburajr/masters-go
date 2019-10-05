@@ -115,7 +115,7 @@ var IndividualProgTreeT_NT_T_NT_T_NT_T_0 = Individual{
 
 // IndividualProgTreeT_NT_T_NT_T_NT_T_NT_T_1
 var IndividualProgTreeT_NT_T_NT_T_NT_T_NT_T_1 = Individual{
-	Program:                  &ProgTreeT_NT_T_NT_T_NT_T_NT_T_1,
+	Program:                  &ProgTreeXXXX4,
 	kind:                     1,
 	id:                       "PROTAGONIST-",
 	age:                      0,

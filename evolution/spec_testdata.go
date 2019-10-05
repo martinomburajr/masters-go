@@ -26,6 +26,24 @@ var Spec2X = Spec{
 	EquationPairing{4, 8},
 }
 
+// SpecXX 2x = y
+var SpecXBy4 = Spec{
+	EquationPairing{0, 0},
+	EquationPairing{1, 4},
+	EquationPairing{2, 8},
+	EquationPairing{3, 12},
+	EquationPairing{4, 16},
+}
+
+// SpecXX 2x = y
+var SpecXBy5 = Spec{
+	EquationPairing{0, 0},
+	EquationPairing{1, 5},
+	EquationPairing{2, 10},
+	EquationPairing{3, 15},
+	EquationPairing{4, 20},
+}
+
 // SpecXX 2x+1 = y
 var Spec2XAdd1 = Spec{
 	EquationPairing{-2, -3},

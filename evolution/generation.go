@@ -3,7 +3,6 @@ package evolution
 import (
 	"fmt"
 	"math/rand"
-	"time"
 )
 
 type Generation struct {
@@ -33,22 +32,21 @@ func (g *Generation) Start() (*Generation, error) {
 
 	// Calculate the fitness for individuals in the generation
 	for i := range g.Protagonists {
-		fitness, err := AggregateFitness(*g.Protagonists[i])
+		protagonistFitness, err := AggregateFitness(*g.Protagonists[i])
 		if err != nil {
 			return nil, err
 		}
-		g.Protagonists[i].totalFitness = fitness
+		g.Protagonists[i].totalFitness = protagonistFitness
 		g.Protagonists[i].hasCalculatedFitness = true
-	}
+		g.Protagonists[i].age++
 
-	// Calculate the fitness for individuals in the generation
-	for i := range g.Antagonists {
-		fitness, err := AggregateFitness(*g.Antagonists[i])
+		antagonistFitness, err := AggregateFitness(*g.Antagonists[i])
 		if err != nil {
 			return nil, err
 		}
-		g.Antagonists[i].totalFitness = fitness
+		g.Antagonists[i].totalFitness = antagonistFitness
 		g.Antagonists[i].hasCalculatedFitness = true
+		g.Antagonists[i].age++
 	}
 
 	//protagonists := make([]Individual, len(g.Protagonists))
@@ -71,19 +69,8 @@ func (g *Generation) Start() (*Generation, error) {
 		return nil, err
 	}
 
-	//protagonists := make([]*Individual, len(nextGenProtagonists))
-	//for i := range nextGenProtagonists {
-	//	protagonists[i] = &nextGenProtagonists[i]
-	//}
-	//
-	//antagonists := make([]*Individual, len(nextGenAntagonists))
-	//for i := range nextGenAntagonists {
-	//	antagonists[i] = &nextGenAntagonists[i]
-	//}
-
 	nextGenID := GenerateGenerationID(g.count + 1)
-	//return new generation
-	return &Generation{
+	nextGen := &Generation{
 		Antagonists:                  nextGenAntagonists,
 		Protagonists:                 nextGenProtagonists,
 		engine:                       g.engine,
@@ -92,7 +79,9 @@ func (g *Generation) Start() (*Generation, error) {
 		isComplete:                   false,
 		hasParentSelectionHappened:   false,
 		count:                        g.count + 1,
-	}, nil
+	}
+	//return new generation
+	return nextGen, nil
 }
 
 func GenerateGenerationID(count int) string {
@@ -231,7 +220,6 @@ func (g *Generation) ApplySurvivorSelection() ([]*Individual, error) {
 	return nil, nil
 }
 
-
 // GenerateRandomAntagonists creates a a random set of antagonists based on the parameters passed into the
 // evolution engine. Antagonists are by default set with the StartIndividuals Program as their own program.
 func (g *Generation) GenerateRandomAntagonists(idTemplate string) ([]*Individual, error) {
@@ -241,9 +229,6 @@ func (g *Generation) GenerateRandomAntagonists(idTemplate string) ([]*Individual
 	}
 	if g.engine.Parameters.AntagonistMaxStrategies < 1 {
 		return nil, fmt.Errorf("maxNumberOfStrategies should at least be 1")
-	}
-	if g.engine.Parameters.Strategies == nil {
-		return nil, fmt.Errorf("availableStrategies cannot be nil")
 	}
 	if len(g.engine.Parameters.AntagonistAvailableStrategies) < 1 {
 		return nil, fmt.Errorf("availableStrategies should at least have one strategy")
@@ -255,9 +240,10 @@ func (g *Generation) GenerateRandomAntagonists(idTemplate string) ([]*Individual
 	individuals := make([]*Individual, g.engine.Parameters.EachPopulationSize)
 
 	for i := 0; i < g.engine.Parameters.EachPopulationSize; i++ {
-		rand.Seed(time.Now().UnixNano())
+
 		var numberOfStrategies int
 		var randomStrategies []Strategy
+		// TODO fix equal strategy length issue
 		if g.engine.Parameters.SetEqualStrategyLength {
 			numberOfStrategies = rand.Intn(g.engine.Parameters.EqualStrategiesLength)
 			randomStrategies = GenerateRandomStrategy(numberOfStrategies, g.engine.Parameters.EqualStrategiesLength,
@@ -299,9 +285,9 @@ func (g *Generation) GenerateRandomProtagonists(idTemplate string) ([]*Individua
 	if g.engine.Parameters.ProtagonistMaxStrategies < 1 {
 		return nil, fmt.Errorf("maxNumberOfStrategies should at least be 1")
 	}
-	if g.engine.Parameters.Strategies == nil {
-		return nil, fmt.Errorf("availableStrategies cannot be nil")
-	}
+	//if g.engine.Parameters.Strategies == nil {
+	//	return nil, fmt.Errorf("availableStrategies cannot be nil")
+	//}
 	if len(g.engine.Parameters.ProtagonistAvailableStrategies) < 1 {
 		return nil, fmt.Errorf("availableStrategies should at least have one strategy")
 	}
@@ -312,7 +298,7 @@ func (g *Generation) GenerateRandomProtagonists(idTemplate string) ([]*Individua
 	individuals := make([]*Individual, g.engine.Parameters.EachPopulationSize)
 
 	for i := 0; i < g.engine.Parameters.EachPopulationSize; i++ {
-		rand.Seed(time.Now().UnixNano())
+
 		var numberOfStrategies int
 		var randomStrategies []Strategy
 		if g.engine.Parameters.SetEqualStrategyLength {

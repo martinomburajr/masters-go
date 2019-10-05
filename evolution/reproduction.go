@@ -3,7 +3,6 @@ package evolution
 import (
 	"fmt"
 	"math/rand"
-	"time"
 )
 
 // CrossoverTree is a evolutionary technique used to take two parents swap their genetic material and form two new children.
@@ -167,11 +166,11 @@ func CrossoverTree(individual1 *Individual, individual2 *Individual, maxDepth in
 func getRandomDepthTargetLocation(individual1DepthRemainderFromMaX int, individual2DepthRemainderFromMax int) (int, int) {
 	var randDepthOfInd1FromRem, randDepthOfInd2FromRem int
 	if individual1DepthRemainderFromMaX != 0 {
-		rand.Seed(time.Now().UnixNano())
+
 		randDepthOfInd1FromRem = rand.Intn(individual1DepthRemainderFromMaX)
 	}
 	if individual2DepthRemainderFromMax != 0 {
-		rand.Seed(time.Now().UnixNano())
+
 		randDepthOfInd2FromRem = rand.Intn(individual2DepthRemainderFromMax)
 	}
 	return randDepthOfInd1FromRem, randDepthOfInd2FromRem
@@ -325,14 +324,14 @@ func depthPenaltyPenalization(individual1 *Individual, individual2 *Individual, 
 //	return Individual{}, Individual{}, err
 //}
 //
-//rand.Seed(time.Now().UnixNano())
+//
 //var nodesProg1RandomIndex, nodesProg2RandomIndex int
 //if len(nodesProg1) > 0 {
-//	rand.Seed(time.Now().UnixNano())
+//
 //	nodesProg1RandomIndex = rand.Intn(len(nodesProg1))
 //}
 //if len(nodesProg2) > 0 {
-//	rand.Seed(time.Now().UnixNano())
+//
 //	nodesProg2RandomIndex = rand.Intn(len(nodesProg2))
 //}
 //
