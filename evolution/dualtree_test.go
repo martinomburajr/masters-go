@@ -11,24 +11,24 @@ import (
 func TestDualTree_FromSymbolicExpressionSet(t *testing.T) {
 	tests := []struct {
 		name    string
-		fields  *DualTree
+		fields  DualTree
 		args    []SymbolicExpression
 		wantErr bool
 	}{
-		{"nil terminalSet", &DualTree{}, nil, true},
-		{"empty terminalSet", &DualTree{}, make([]SymbolicExpression, 0), true},
-		{"T", &DualTree{}, []SymbolicExpression{X1}, false},
-		{"NT", &DualTree{}, []SymbolicExpression{Mult}, true},
-		{"T-T", &DualTree{}, []SymbolicExpression{X1, Const4}, true},
-		{"NT-NT", &DualTree{}, []SymbolicExpression{Mult, Sub}, true},
-		{"T-NT(1)", &DualTree{}, []SymbolicExpression{X1, Sin}, false},
-		{"T-NT(2)", &DualTree{}, []SymbolicExpression{X1, Sub}, true},
-		{"T-NT(2)-T", &DualTree{}, []SymbolicExpression{X1, Add, Const4}, false},
-		{"T-NT(2)-T-NT(2)-T", &DualTree{}, []SymbolicExpression{X1, Add, Const8, Mult, Const4}, false},
-		{"T-NT(2)-T-NT(1)-T", &DualTree{}, []SymbolicExpression{X1, Add, Const4, Sin, Const4}, true},
-		{"T-NT(2)-T-NT(1)", &DualTree{}, []SymbolicExpression{X1, Mult, Const4, Sub, Const8, Sin}, false},
-		{"T-NT(1)-NT(1)-NT(1)-NT(1)", &DualTree{}, []SymbolicExpression{X1, Sin, Sin, Sin, Sin}, false},
-		{"T-NT(1)-NT(2)-T-NT(1)", &DualTree{}, []SymbolicExpression{X1, Sin, Add, Const8, Sin}, false},
+		{"nil terminalSet", DualTree{}, nil, true},
+		{"empty terminalSet", DualTree{}, make([]SymbolicExpression, 0), true},
+		{"T", DualTree{}, []SymbolicExpression{X1}, false},
+		{"NT", DualTree{}, []SymbolicExpression{Mult}, true},
+		{"T-T", DualTree{}, []SymbolicExpression{X1, Const4}, true},
+		{"NT-NT", DualTree{}, []SymbolicExpression{Mult, Sub}, true},
+		{"T-NT(1)", DualTree{}, []SymbolicExpression{X1, Sin}, false},
+		{"T-NT(2)", DualTree{}, []SymbolicExpression{X1, Sub}, true},
+		{"T-NT(2)-T", DualTree{}, []SymbolicExpression{X1, Add, Const4}, false},
+		{"T-NT(2)-T-NT(2)-T", DualTree{}, []SymbolicExpression{X1, Add, Const8, Mult, Const4}, false},
+		{"T-NT(2)-T-NT(1)-T", DualTree{}, []SymbolicExpression{X1, Add, Const4, Sin, Const4}, true},
+		{"T-NT(2)-T-NT(1)", DualTree{}, []SymbolicExpression{X1, Mult, Const4, Sub, Const8, Sin}, false},
+		{"T-NT(1)-NT(1)-NT(1)-NT(1)", DualTree{}, []SymbolicExpression{X1, Sin, Sin, Sin, Sin}, false},
+		{"T-NT(1)-NT(2)-T-NT(1)", DualTree{}, []SymbolicExpression{X1, Sin, Add, Const8, Sin}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -66,7 +66,7 @@ THIS DOES NOT TEST OR CORRECT FOR TRIG OPERATORS YET
 func TestDualTree_ToMathematicalString(t *testing.T) {
 	tests := []struct {
 		name    string
-		fields  *DualTree
+		fields  DualTree
 		want    string
 		wantErr bool
 	}{
@@ -96,7 +96,7 @@ func TestDualTree_ToMathematicalString(t *testing.T) {
 func TestDualTree_Validate(t *testing.T) {
 	tests := []struct {
 		name    string
-		tree    *DualTree
+		tree    DualTree
 		wantErr bool
 	}{
 		{"nil", TreeNil(), true},
@@ -127,7 +127,7 @@ func TestGenerateRandomTree(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *DualTree
+		want    DualTree
 		wantErr bool
 	}{
 		{"err-lowMaxDepth", args{-1, nil, nil}, nil, true},
@@ -211,7 +211,7 @@ func TestGenerateRandomSymbolicExpressionSet(t *testing.T) {
 func TestDualTree_Leafs(t *testing.T) {
 	tests := []struct {
 		name    string
-		tree    *DualTree
+		tree    DualTree
 		want    []*DualTreeNode
 		wantErr bool
 	}{
@@ -229,7 +229,7 @@ func TestDualTree_Leafs(t *testing.T) {
 				return
 			}
 			for i := range got {
-				if !got[i].IsValEqual(tt.want[i]) {
+				if !got[i].IsValEqual(*tt.want[i]) {
 					t.Errorf("DualTree.Leafs() = %v, isEqual %v", got[i].value, tt.want[i].value)
 				}
 			}
@@ -240,7 +240,7 @@ func TestDualTree_Leafs(t *testing.T) {
 func TestDualTree_Count(t *testing.T) {
 	tests := []struct {
 		name string
-		tree *DualTree
+		tree DualTree
 		want int
 	}{
 		{"nil", TreeNil(), 0},
@@ -260,7 +260,7 @@ func TestDualTree_Count(t *testing.T) {
 func TestDualTree_RandomLeaf(t *testing.T) {
 	tests := []struct {
 		name    string
-		tree    *DualTree
+		tree    DualTree
 		want    *DualTreeNode
 		wantErr bool
 	}{
@@ -293,7 +293,7 @@ func TestDualTree_RandomLeaf(t *testing.T) {
 func TestDualTree_Branches(t *testing.T) {
 	tests := []struct {
 		name    string
-		tree    *DualTree
+		tree    DualTree
 		want    []*DualTreeNode
 		wantErr bool
 	}{
@@ -311,7 +311,7 @@ func TestDualTree_Branches(t *testing.T) {
 				return
 			}
 			for i := range got {
-				if !got[i].IsValEqual(tt.want[i]) {
+				if !got[i].IsValEqual(*tt.want[i]) {
 					t.Errorf("DualTree.Leafs() = %v, isEqual %v", got[i].value, tt.want[i].value)
 				}
 			}
@@ -322,8 +322,8 @@ func TestDualTree_Branches(t *testing.T) {
 func TestDualTree_AddSubTree(t *testing.T) {
 	tests := []struct {
 		name    string
-		tree    *DualTree
-		subTree *DualTree
+		tree    DualTree
+		subTree DualTree
 		wantErr bool
 	}{
 		{"nil-subTree", TreeNil(), nil, true},
@@ -359,8 +359,8 @@ func TestDualTree_AddSubTree(t *testing.T) {
 func TestDualTree_Contains(t *testing.T) {
 	tests := []struct {
 		name    string
-		tree    *DualTree
-		subTree *DualTree
+		tree    DualTree
+		subTree DualTree
 		want    bool
 		wantErr bool
 	}{
@@ -394,7 +394,7 @@ func TestDualTree_Contains(t *testing.T) {
 func TestDualTree_RandomBranch(t *testing.T) {
 	tests := []struct {
 		name    string
-		tree    *DualTree
+		tree    DualTree
 		want    *DualTreeNode
 		wantErr bool
 	}{
@@ -427,7 +427,7 @@ func TestDualTree_RandomBranch(t *testing.T) {
 func TestDualTree_ContainsNode(t *testing.T) {
 	tests := []struct {
 		name     string
-		tree     *DualTree
+		tree     DualTree
 		treeNode *DualTreeNode
 		want     bool
 		wantErr  bool
@@ -461,7 +461,7 @@ func TestDualTree_ContainsNode(t *testing.T) {
 func TestDualTree_DeleteSubTree(t *testing.T) {
 	tests := []struct {
 		name             string
-		tree             *DualTree
+		tree             DualTree
 		deletionStrategy int
 		startingSize     int
 		wantErr          bool
@@ -529,8 +529,8 @@ func TestDualTree_SoftDeleteSubTree(t *testing.T) {
 func TestDualTree_MutateTerminal(t *testing.T) {
 	tests := []struct {
 		name    string
-		tree    *DualTree
-		oldTree *DualTree
+		tree    DualTree
+		oldTree DualTree
 		args    []SymbolicExpression
 		wantErr bool
 	}{
@@ -564,7 +564,7 @@ func TestDualTree_MutateTerminal(t *testing.T) {
 
 				diffCount := 0
 				for i := 0; i < len(oldTreeLeafs); i++ {
-					if !oldTreeLeafs[i].IsValEqual(newTreeLeafs[i]) {
+					if !oldTreeLeafs[i].IsValEqual(*newTreeLeafs[i]) {
 						diffCount++
 					}
 					if diffCount > 1 {
@@ -583,8 +583,8 @@ func TestDualTree_MutateTerminal(t *testing.T) {
 func TestDualTree_MutateNonTerminal(t *testing.T) {
 	tests := []struct {
 		name    string
-		tree    *DualTree
-		oldTree *DualTree
+		tree    DualTree
+		oldTree DualTree
 		args    []SymbolicExpression
 		wantErr bool
 	}{
@@ -631,7 +631,7 @@ func TestDualTree_MutateNonTerminal(t *testing.T) {
 
 				diffCount := 0
 				for i := 0; i < len(oldTreeNonTerminals); i++ {
-					if !oldTreeNonTerminals[i].IsValEqual(newTreeNonTerminals[i]) {
+					if !oldTreeNonTerminals[i].IsValEqual(*newTreeNonTerminals[i]) {
 						diffCount++
 					}
 					if diffCount > 1 {
@@ -650,7 +650,7 @@ func TestDualTree_MutateNonTerminal(t *testing.T) {
 func TestDualTree_HasDiverseNonTerminalSet(t *testing.T) {
 	tests := []struct {
 		name    string
-		tree    *DualTree
+		tree    DualTree
 		want    bool
 		wantErr bool
 	}{
@@ -724,7 +724,7 @@ func TestSplitter(t *testing.T) {
 				return
 			}
 			for e := range got {
-				got[e].IsValEqual(tt.want[e])
+				got[e].IsValEqual(*tt.want[e])
 			}
 		})
 	}
@@ -733,13 +733,13 @@ func TestSplitter(t *testing.T) {
 func TestDualTree_FromSymbolicExpressionSet2(t *testing.T) {
 	tests := []struct {
 		name        string
-		tree        *DualTree
+		tree        DualTree
 		terminalSet []SymbolicExpression
 		wantErr     bool
 	}{
-		{"nil-terminalset", &DualTree{}, nil, true},
-		{"err-terminalset<1", &DualTree{}, []SymbolicExpression{}, true},
-		{"err-terminalset-only-NT", &DualTree{}, []SymbolicExpression{Add}, true},
+		{"nil-terminalset", DualTree{}, nil, true},
+		{"err-terminalset<1", DualTree{}, []SymbolicExpression{}, true},
+		{"err-terminalset-only-NT", DualTree{}, []SymbolicExpression{Add}, true},
 		{"T", TreeT_0(), []SymbolicExpression{X1}, false},
 		{"T-NT-T", TreeT_NT_T_0(), []SymbolicExpression{X1, Mult, Const4}, false},
 		{"T-NT-T-NT-T", TreeT_NT_T_NT_T_0(), []SymbolicExpression{X1, Sub, X1, Mult, Const4}, false},
@@ -784,7 +784,7 @@ func TestDualTree_FromSymbolicExpressionSet2(t *testing.T) {
 func TestDualTree_ToSymbolicExpressionSet(t *testing.T) {
 	tests := []struct {
 		name   string
-		fields *DualTree
+		fields DualTree
 		want   []SymbolicExpression
 	}{
 		{"treeNode-nil", TreeNil(), []SymbolicExpression{}},
@@ -851,7 +851,7 @@ func Test_weaver(t *testing.T) {
 func TestDualTree_GetNode(t *testing.T) {
 	tests := []struct {
 		name       string
-		fields     *DualTree
+		fields     DualTree
 		value      string
 		wantNode   *DualTreeNode
 		wantParent *DualTreeNode
@@ -885,7 +885,7 @@ func TestDualTree_GetNode(t *testing.T) {
 func TestDualTree_Depth(t *testing.T) {
 	tests := []struct {
 		name    string
-		fields  *DualTree
+		fields  DualTree
 		want    int
 		wantErr bool
 	}{
@@ -925,7 +925,7 @@ func TestDualTree_DepthTo(t *testing.T) {
 	}
 	tests := []struct {
 		name    string
-		fields  *DualTree
+		fields  DualTree
 		depth   int
 		want    []*DualTreeNode
 		wantErr bool
@@ -985,7 +985,7 @@ func contains(a, b []*DualTreeNode) (bool, error) {
 	count := 0
 	for i := range a {
 		for j := range b {
-			if a[i].IsValEqual(b[j]) {
+			if a[i].IsValEqual(*b[j]) {
 				count++
 				break
 			}
@@ -998,7 +998,7 @@ func contains(a, b []*DualTreeNode) (bool, error) {
 func TestDualTree_GetRandomSubTreeAtDepth(t *testing.T) {
 	tests := []struct {
 		name    string
-		fields  *DualTree
+		fields  DualTree
 		depth   int
 		want    DualTree
 		wantErr bool
@@ -1022,7 +1022,7 @@ func TestDualTree_GetRandomSubTreeAtDepth(t *testing.T) {
 			if tt.wantErr {
 				return
 			}
-			b, err := tt.fields.ContainsSubTree(&got)
+			b, err := tt.fields.ContainsSubTree(got)
 			if err != nil {
 				t.Errorf("DualTree.GetRandomSubTreeAtDepth() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -1037,7 +1037,7 @@ func TestDualTree_GetRandomSubTreeAtDepth(t *testing.T) {
 func TestDualTree_DepthAt(t *testing.T) {
 	tests := []struct {
 		name    string
-		fields  *DualTree
+		fields  DualTree
 		depth   int
 		want    []*DualTreeNode
 		wantErr bool
@@ -1084,7 +1084,7 @@ func TestDualTree_DepthAt(t *testing.T) {
 func TestDualTree_Search(t *testing.T) {
 	tests := []struct {
 		name       string
-		fields     *DualTree
+		fields     DualTree
 		key        string
 		wantNode   *DualTreeNode
 		wantParent *DualTreeNode
@@ -1108,10 +1108,10 @@ func TestDualTree_Search(t *testing.T) {
 				t.Errorf("DualTree.Search() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !gotNode.IsEqual(tt.wantNode) {
+			if !gotNode.IsEqual(*tt.wantNode) {
 				t.Errorf("DualTree.Search() gotNode = %v, want %v", gotNode, tt.wantNode)
 			}
-			if !gotParent.IsEqual(tt.wantParent) {
+			if !gotParent.IsEqual(*tt.wantParent) {
 				t.Errorf("DualTree.Search() gotParent = %v, want %v", gotParent, tt.wantParent)
 			}
 		})
@@ -1130,7 +1130,7 @@ func TestDualTree_Replace(t *testing.T) {
 	}
 	tests := []struct {
 		name       string
-		fields     *DualTree
+		fields     DualTree
 		args       args
 		wantHobo   DualTreeNode
 		wantParent *DualTreeNode
@@ -1166,7 +1166,7 @@ func TestDualTree_Replace(t *testing.T) {
 				return
 			}
 			if !tt.wantErr {
-				equal := gotHobo.IsValEqual(tt.args.node)
+				equal := gotHobo.IsValEqual(*tt.args.node)
 				if !equal {
 					t.Errorf("DualTree.Replace() Hobo node doesnt have the same value is nil | goParentKey:  gotHobo"+
 						" = %v, want %v", gotParent,
@@ -1194,7 +1194,7 @@ func TestDualTree_Replace(t *testing.T) {
 func TestDualTree_RandomLeafAware(t *testing.T) {
 	tests := []struct {
 		name       string
-		fields     *DualTree
+		fields     DualTree
 		wantNode   *DualTreeNode
 		wantParent *DualTreeNode
 		wantErr    bool
@@ -1231,7 +1231,7 @@ func TestDualTree_Clone(t *testing.T) {
 	}
 	tests := []struct {
 		name   string
-		fields *DualTree
+		fields DualTree
 	}{
 		{"nil", TreeNil()},
 		{"T", TreeT_0()},
@@ -1257,7 +1257,7 @@ func TestDualTree_Clone(t *testing.T) {
 			if b {
 				t.Errorf("DualTree.Clone() They contain = %#v, want %#v", got, tt.fields)
 			}
-			if &got == tt.fields {
+			if got == tt.fields {
 				t.Errorf("DualTree.Clone() = %#v, want %#v", got, tt.fields)
 			}
 		})
@@ -1267,7 +1267,7 @@ func TestDualTree_Clone(t *testing.T) {
 func TestDualTree_GetShortestBranch(t *testing.T) {
 	tests := []struct {
 		name                   string
-		fields                 *DualTree
+		fields                 DualTree
 		minAcceptableDepth     int
 		wantShortestNode       *DualTreeNode
 		wantShortestNodeParent *DualTreeNode
@@ -1306,7 +1306,7 @@ func TestDualTree_GetShortestBranch(t *testing.T) {
 //func TestDualTree_InOrderTraverseDepthAware(t *testing.T) {
 //	tests := []struct {
 //		name   string
-//		fields *DualTree
+//		fields DualTree
 //		f func(node *DualTreeNode, parentNode *DualTreeNode, depth *int)
 //	}{
 //		{"nil", TreeNil(), },
@@ -1332,7 +1332,7 @@ func TestGenerateRandomTreeEnforceIndependentVariable(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *DualTree
+		want    DualTree
 		wantErr bool
 	}{
 		{"err-lowMaxDepth", args{-1, SymbolicExpression{}, nil, nil}, nil, true},

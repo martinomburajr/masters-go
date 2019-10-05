@@ -1,5 +1,10 @@
 package evolution
 
+import (
+	"math/rand"
+	"time"
+)
+
 // JudgementDay represents a moment where all individuals have completed their epoch phase and are waiting a decision
 // onto who proceeds to the next generation. Judgement day is a compound function or abstraction that includes the
 // following processes.
@@ -9,8 +14,8 @@ package evolution
 // 4. Survivor Selection
 // 5. Statistical Output
 // 6. FinalPopulation configuration (incrementing age, clearing fitness values for old worthy individuals)
-func JudgementDay(incomingPopulation []*Individual, opts EvolutionParams) ([]*Individual, error) {
-	survivors := make([]*Individual, len(incomingPopulation))
+func JudgementDay(incomingPopulation []Individual, opts EvolutionParams) ([]Individual, error) {
+	survivors := make([]Individual, len(incomingPopulation))
 	// Parent Selection
 	// Tournament Selection
 	outgoingParents, err := TournamentSelection(incomingPopulation, opts.TournamentSize)
@@ -22,7 +27,7 @@ func JudgementDay(incomingPopulation []*Individual, opts EvolutionParams) ([]*In
 	// CrossoverTree
 	children := make([]Individual, opts.EachPopulationSize)
 	for i := 0; i < len(outgoingParents); i += 2 {
-		child1, child2, err := Crossover(*outgoingParents[i], *outgoingParents[i+1], opts)
+		child1, child2, err := Crossover(outgoingParents[i], outgoingParents[i+1], opts)
 		if err != nil {
 			return nil, err
 		}
@@ -30,26 +35,49 @@ func JudgementDay(incomingPopulation []*Individual, opts EvolutionParams) ([]*In
 		children[i+1] = child2
 	}
 
-	// Reproduction
-	// Mutation
-
+	// Survivor Selection
 	parentPopulationSize := int(opts.SurvivorPercentage * float32(opts.EachPopulationSize))
 	childPopulationSize := opts.EachPopulationSize - parentPopulationSize
 
-	// CHANGE - This only selects the first N parents
+	// Reproduction
+	// Mutation
+	dualStrategies := append(opts.AntagonistAvailableStrategies, opts.ProtagonistAvailableStrategies...)
+	// parents
+	for i := 0; i < (len(outgoingParents)); i++ {
+		rand.Seed(time.Now().UnixNano())
+		probabilityOfMutation := rand.Float32()
+		if probabilityOfMutation < opts.ProbabilityOfMutation {
+			err := outgoingParents[i].Mutate(dualStrategies)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
 
+	// childs
+	for i := 0; i < (len(children)); i++ {
+		rand.Seed(time.Now().UnixNano())
+		probabilityOfMutation := rand.Float32()
+		if probabilityOfMutation < opts.ProbabilityOfMutation {
+			err := children[i].Mutate(dualStrategies)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	// CHANGE - This only selects the first N parents
 	for i := 0; i < parentPopulationSize; i++ {
 		survivors[i] = outgoingParents[i]
 	}
 	for i := parentPopulationSize; i < parentPopulationSize+childPopulationSize; i++ {
-		survivors[i] = outgoingParents[i]
+		survivors[i] = children[i]
 	}
-
-	// Survivor Selection
 
 	// Statistical Output
 
 	// Anointing Final Population and Return
+	survivors = CleansePopulation(survivors, opts.StartIndividual.T)
 
 	return survivors, nil
 }
@@ -57,11 +85,8 @@ func JudgementDay(incomingPopulation []*Individual, opts EvolutionParams) ([]*In
 //CleansePopulation removes the trees from the population and refits them with the starter tree.
 func CleansePopulation(individuals []Individual, treeReplacer DualTree) []Individual {
 	for i := range individuals {
-		individuals[i].Program.T = nil
+		individuals[i].Program.T = treeReplacer
 	}
+	return individuals
 }
 
-type JudementDayStatistics struct {
-	Top3Antagonists []Individual
-	Top3Protagonists []Individual
-}

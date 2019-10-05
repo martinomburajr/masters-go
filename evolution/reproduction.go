@@ -14,11 +14,8 @@ func CrossoverTree(individual1 *Individual, individual2 *Individual, maxDepth in
 	if individual1 == nil {
 		return Individual{}, Individual{}, fmt.Errorf("crossover: individual 1 cannot be nil")
 	}
-	if individual1.Program == nil {
-		return Individual{}, Individual{}, fmt.Errorf("crossover: individual1.Program != nil")
-	}
-	if individual1.Program.T == nil {
-		return Individual{}, Individual{}, fmt.Errorf("crossover: individual1.Program.T != nil")
+	if individual1.Program.T.root == nil {
+		return Individual{}, Individual{}, fmt.Errorf("crossover: individual1.Program.T.root != nil")
 	}
 	if individual1.Program.T.root == nil {
 		return Individual{}, Individual{}, fmt.Errorf("crossover: individual1.Program.T.root != nil")
@@ -26,11 +23,8 @@ func CrossoverTree(individual1 *Individual, individual2 *Individual, maxDepth in
 	if individual2 == nil {
 		return Individual{}, Individual{}, fmt.Errorf("crossover: individual2 cannot be nil")
 	}
-	if individual2.Program == nil {
-		return Individual{}, Individual{}, fmt.Errorf("crossover: individual2.Program != nil")
-	}
-	if individual2.Program.T == nil {
-		return Individual{}, Individual{}, fmt.Errorf("crossover: individual2.Program.T != nil")
+	if individual2.Program.T.root == nil {
+		return Individual{}, Individual{}, fmt.Errorf("crossover: individual2.Program.T.root != nil")
 	}
 	if individual2.Program.T.root == nil {
 		return Individual{}, Individual{}, fmt.Errorf("crossover: individual2.Program.T.root != nil")

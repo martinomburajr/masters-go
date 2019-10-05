@@ -31,7 +31,7 @@ const (
 
 // TournamentSelection is a process whereby a random set of individuals from the population are selected,
 // and the best in that sample succeed onto the next generation
-func TournamentSelection(population []*Individual, tournamentSize int) ([]*Individual, error) {
+func TournamentSelection(population []Individual, tournamentSize int) ([]Individual, error) {
 	if population == nil {
 		return nil, fmt.Errorf("tournament population cannot be nil")
 	}
@@ -43,7 +43,7 @@ func TournamentSelection(population []*Individual, tournamentSize int) ([]*Indiv
 	}
 
 	// do
-	newPop := make([]*Individual, len(population))
+	newPop := make([]Individual, len(population))
 
 	for i := 0; i < len(population); i++ {
 		randSelectedIndividuals := getNRandom(population, tournamentSize)
@@ -56,8 +56,8 @@ func TournamentSelection(population []*Individual, tournamentSize int) ([]*Indiv
 }
 
 // getNRandom selects  a random group of individiduals equivalent to the tournamentSize
-func getNRandom(population []*Individual, tournamentSize int) []*Individual {
-	newPop := make([]*Individual, tournamentSize)
+func getNRandom(population []Individual, tournamentSize int) []Individual {
+	newPop := make([]Individual, tournamentSize)
 	for i := 0; i < tournamentSize; i++ {
 		rand.Seed(time.Now().UnixNano())
 
@@ -69,7 +69,7 @@ func getNRandom(population []*Individual, tournamentSize int) []*Individual {
 }
 
 //tournamentSelect returns the fittest individual in a given tournament
-func tournamentSelect(selectedIndividuals []*Individual) *Individual {
+func tournamentSelect(selectedIndividuals []Individual) Individual {
 	fittest := selectedIndividuals[0]
 	for i := range selectedIndividuals {
 		if selectedIndividuals[i].totalFitness > fittest.totalFitness {
@@ -82,7 +82,7 @@ func tournamentSelect(selectedIndividuals []*Individual) *Individual {
 // Elitism is an evolutionary process where only the top (
 // n) individuals based on eliteCount are selected based on their fitness.
 // In essence it ranks the individuals based on fitness, then returns the top (n)
-func Elitism(population []*Individual, elitePercentage float32) ([]*Individual, error) {
+func Elitism(population []Individual, elitePercentage float32) ([]*Individual, error) {
 	return nil, nil
 }
 
@@ -90,6 +90,6 @@ func Elitism(population []*Individual, elitePercentage float32) ([]*Individual, 
 // In this every individual can become a parent with a probability which is proportional to its fitness.
 // Therefore, fitter individuals have a higher chance of mating and propagating their features to the next generation.
 // Therefore, such a selection strategy applies a selection pressure to the more fit individuals in the population, evolving better individuals over time.
-func FitnessProportionateSelection(population []*Individual) ([]*Individual, error) {
+func FitnessProportionateSelection(population []Individual) ([]*Individual, error) {
 	return nil, nil
 }

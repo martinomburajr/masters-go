@@ -22,136 +22,136 @@ var Sin = SymbolicExpression{kind: 1, value: "sin", arity: 1}
 // SAMPLE TREES
 
 // TreeNil = 0
-var TreeNil = func() *DualTree {
+var TreeNil = func() DualTree {
 	t := DualTree{}
-	return &t
+	return t
 }
 
 // TreeT_0 = x
-var TreeT_0 = func() *DualTree {
+var TreeT_0 = func() DualTree {
 	t := DualTree{}
 	t.root = X1.ToDualTreeNode("0")
-	return &t
+	return t
 }
 
 // TreeT_1 = 0
-var TreeT_1 = func() *DualTree {
+var TreeT_1 = func() DualTree {
 	t := DualTree{}
 	t.root = Const0.ToDualTreeNode("0")
-	return &t
+	return t
 }
 
 // TreeT_NT_T_4 = x * x
-var TreeT_NT_T_4 = func() *DualTree {
+var TreeT_NT_T_4 = func() DualTree {
 	t := DualTree{}
 	t.root = Mult.ToDualTreeNode(RandString(5))
 	t.root.left = X1.ToDualTreeNode(RandString(5))
 	t.root.right = X1.ToDualTreeNode(RandString(5))
-	return &t
+	return t
 }
 
 // TreeT_NT_T_0 = x * 4
-var TreeT_NT_T_0 = func() *DualTree {
+var TreeT_NT_T_0 = func() DualTree {
 	t := DualTree{}
 	t.root = Mult.ToDualTreeNode("1")
 	t.root.left = X1.ToDualTreeNode("2")
 	t.root.right = Const4.ToDualTreeNode("3")
-	return &t
+	return t
 }
 
 // TreeT_NT_T_5 = x - x
-var TreeT_NT_T_5 = func() *DualTree {
+var TreeT_NT_T_5 = func() DualTree {
 	t := DualTree{}
 	t.root = Sub.ToDualTreeNode("2")
 	t.root.left = X1.ToDualTreeNode("3")
 	t.root.right = X1.ToDualTreeNode("4")
-	return &t
+	return t
 }
 
 // TreeT_NT_T_1 = x + 8
-var TreeT_NT_T_1 = func() *DualTree {
+var TreeT_NT_T_1 = func() DualTree {
 	t := DualTree{}
 	t.root = Add.ToDualTreeNode("1234")
 	t.root.left = X1.ToDualTreeNode("12345")
 	t.root.right = Const8.ToDualTreeNode("456")
-	return &t
+	return t
 }
 
 // TreeT_NT_T_2 = 4 - 8
-var TreeT_NT_T_2 = func() *DualTree {
+var TreeT_NT_T_2 = func() DualTree {
 	t := DualTree{}
 	t.root = Sub.ToDualTreeNode(RandString(5))
 	t.root.left = Const4.ToDualTreeNode(RandString(5))
 	t.root.right = Const8.ToDualTreeNode(RandString(5))
-	return &t
+	return t
 }
 
 // TreeT_NT_T_3 = 8 * 8
-var TreeT_NT_T_3 = func() *DualTree {
+var TreeT_NT_T_3 = func() DualTree {
 	t := DualTree{}
 	t.root = Mult.ToDualTreeNode(RandString(5))
 	t.root.left = Const8.ToDualTreeNode(RandString(5))
 	t.root.right = Const8.ToDualTreeNode(RandString(5))
-	return &t
+	return t
 }
 
 // TreeT_NT_T_NT_T_0 = x - x * 4
-var TreeT_NT_T_NT_T_0 = func() *DualTree {
+var TreeT_NT_T_NT_T_0 = func() DualTree {
 	t := DualTree{}
 	t.root = Mult.ToDualTreeNode("0")
 	t.root.right = Const4.ToDualTreeNode("1")
 	t.root.left = Sub.ToDualTreeNode("2")
 	t.root.left.left = X1.ToDualTreeNode("3")
 	t.root.left.right = X1.ToDualTreeNode("4")
-	return &t
+	return t
 }
 
 // TreeT_NT_T_NT_T_1 = x + 8 * 4
-var TreeT_NT_T_NT_T_1 = func() *DualTree {
+var TreeT_NT_T_NT_T_1 = func() DualTree {
 	t := DualTree{}
 	t.root = Mult.ToDualTreeNode(RandString(5))
 	t.root.right = Const4.ToDualTreeNode(RandString(5))
 	t.root.left = Add.ToDualTreeNode(RandString(5))
 	t.root.left.left = X1.ToDualTreeNode(RandString(5))
 	t.root.left.right = Const8.ToDualTreeNode(RandString(5))
-	return &t
+	return t
 }
 
 // TreeT_NT_T_NT_T_2 = x - 0 * 4
-var TreeT_NT_T_NT_T_2 = func() *DualTree {
+var TreeT_NT_T_NT_T_2 = func() DualTree {
 	t := DualTree{}
 	t.root = Mult.ToDualTreeNode(RandString(5))
 	t.root.right = Const4.ToDualTreeNode(RandString(5))
 	t.root.left = Sub.ToDualTreeNode(RandString(5))
 	t.root.left.left = X1.ToDualTreeNode(RandString(5))
 	t.root.left.right = Const0.ToDualTreeNode(RandString(5))
-	return &t
+	return t
 }
 
 // TreeT_NT_T_NT_T_3 = x - 0 * 0
-var TreeT_NT_T_NT_T_3 = func() *DualTree {
+var TreeT_NT_T_NT_T_3 = func() DualTree {
 	t := DualTree{}
 	t.root = Mult.ToDualTreeNode("0")
 	t.root.right = Const0.ToDualTreeNode("2")
 	t.root.left = Sub.ToDualTreeNode("1")
 	t.root.left.left = X1.ToDualTreeNode("ll")
 	t.root.left.right = Const0.ToDualTreeNode("32")
-	return &t
+	return t
 }
 
 // TreeT_NT_T_NT_T_4 = 4 - 0 + 0
-var TreeT_NT_T_NT_T_4 = func() *DualTree {
+var TreeT_NT_T_NT_T_4 = func() DualTree {
 	t := DualTree{}
 	t.root = Add.ToDualTreeNode(RandString(5))
 	t.root.right = Const0.ToDualTreeNode(RandString(5))
 	t.root.left = Sub.ToDualTreeNode(RandString(5))
 	t.root.left.left = Const4.ToDualTreeNode(RandString(5))
 	t.root.left.right = Const0.ToDualTreeNode(RandString(5))
-	return &t
+	return t
 }
 
 // TreeT_NT_T_NT_T_NT_T_0 = 4 - 0 + 4 + 8
-var TreeT_NT_T_NT_T_NT_T_0 = func() *DualTree {
+var TreeT_NT_T_NT_T_NT_T_0 = func() DualTree {
 	t := DualTree{}
 	t.root = Add.ToDualTreeNode(RandString(5))
 	t.root.right = Add.ToDualTreeNode(RandString(5))
@@ -161,11 +161,11 @@ var TreeT_NT_T_NT_T_NT_T_0 = func() *DualTree {
 	t.root.left = Sub.ToDualTreeNode(RandString(5))
 	t.root.left.left = Const4.ToDualTreeNode(RandString(5))
 	t.root.left.right = Const0.ToDualTreeNode(RandString(5))
-	return &t
+	return t
 }
 
 // TreeT_NT_T_NT_T_NT_T_1 = x * x + 4 + 8
-var TreeT_NT_T_NT_T_NT_T_1 = func() *DualTree {
+var TreeT_NT_T_NT_T_NT_T_1 = func() DualTree {
 	t := DualTree{}
 	t.root = Add.ToDualTreeNode(RandString(5))
 	t.root.right = Add.ToDualTreeNode(RandString(5))
@@ -175,11 +175,11 @@ var TreeT_NT_T_NT_T_NT_T_1 = func() *DualTree {
 	t.root.left = Mult.ToDualTreeNode(RandString(5))
 	t.root.left.left = X1.ToDualTreeNode(RandString(5))
 	t.root.left.right = X1.ToDualTreeNode(RandString(5))
-	return &t
+	return t
 }
 
 // TreeT_NT_T_NT_T_NT_T_2 = x * x * x * x
-var TreeT_NT_T_NT_T_NT_T_2 = func() *DualTree {
+var TreeT_NT_T_NT_T_NT_T_2 = func() DualTree {
 	t := DualTree{}
 	t.root = Mult.ToDualTreeNode(RandString(5))
 	t.root.right = Mult.ToDualTreeNode(RandString(5))
@@ -189,11 +189,11 @@ var TreeT_NT_T_NT_T_NT_T_2 = func() *DualTree {
 	t.root.left = Mult.ToDualTreeNode(RandString(5))
 	t.root.left.left = X1.ToDualTreeNode(RandString(5))
 	t.root.left.right = X1.ToDualTreeNode(RandString(5))
-	return &t
+	return t
 }
 
 // TreeT_NT_T_NT_T_NT_T_0 = x * x * x * x * x
-var TreeT_NT_T_NT_T_NT_T_NT_T_0 = func() *DualTree {
+var TreeT_NT_T_NT_T_NT_T_NT_T_0 = func() DualTree {
 	t := DualTree{}
 	t.root = Mult.ToDualTreeNode(RandString(5))
 	t.root.right = Mult.ToDualTreeNode(RandString(5))
@@ -206,11 +206,11 @@ var TreeT_NT_T_NT_T_NT_T_NT_T_0 = func() *DualTree {
 	t.root.left.left = Mult.ToDualTreeNode(RandString(5))
 	t.root.left.left.left = X1.ToDualTreeNode(RandString(5))
 	t.root.left.left.right = X1.ToDualTreeNode(RandString(5))
-	return &t
+	return t
 }
 
 // TreeT_NT_T_NT_T_NT_T_NT_T_1 = x * x * x * x + 4
-var TreeT_NT_T_NT_T_NT_T_NT_T_1 = func() *DualTree {
+var TreeT_NT_T_NT_T_NT_T_NT_T_1 = func() DualTree {
 	t := DualTree{}
 	t.root = Mult.ToDualTreeNode(RandString(5))
 	t.root.right = Add.ToDualTreeNode(RandString(5))
@@ -223,11 +223,11 @@ var TreeT_NT_T_NT_T_NT_T_NT_T_1 = func() *DualTree {
 	t.root.left.left = Mult.ToDualTreeNode(RandString(5))
 	t.root.left.left.left = X1.ToDualTreeNode(RandString(5))
 	t.root.left.left.right = X1.ToDualTreeNode(RandString(5))
-	return &t
+	return t
 }
 
 // TreeT_NT_T_NT_T_NT_T_NT_T_NT_T_0 = 0 + 1 + 2 + 3 + 4 + 5
-var TreeT_NT_T_NT_T_NT_T_NT_T_NT_T_0 = func() *DualTree {
+var TreeT_NT_T_NT_T_NT_T_NT_T_NT_T_0 = func() DualTree {
 	t := DualTree{}
 	t.root = Add.ToDualTreeNode(RandString(5))
 
@@ -244,11 +244,11 @@ var TreeT_NT_T_NT_T_NT_T_NT_T_NT_T_0 = func() *DualTree {
 	t.root.right.left = Const4.ToDualTreeNode(RandString(5))
 	t.root.right.right = Const5.ToDualTreeNode(RandString(5))
 
-	return &t
+	return t
 }
 
 // TreeT_NT_T_NT_T_NT_T_NT_T_NT_T_NT_T_0 = 0 + 1 + 2 + 3 + 4 + 5 + 6
-var TreeT_NT_T_NT_T_NT_T_NT_T_NT_T_NT_T_0 = func() *DualTree {
+var TreeT_NT_T_NT_T_NT_T_NT_T_NT_T_NT_T_0 = func() DualTree {
 	t := DualTree{}
 	t.root = Add.ToDualTreeNode(RandString(5))
 
@@ -267,11 +267,11 @@ var TreeT_NT_T_NT_T_NT_T_NT_T_NT_T_NT_T_0 = func() *DualTree {
 	t.root.right.left = Add.ToDualTreeNode(RandString(5))
 	t.root.right.left.left = Const4.ToDualTreeNode(RandString(5))
 	t.root.right.left.right = Const5.ToDualTreeNode(RandString(5))
-	return &t
+	return t
 }
 
 // TreeT_NT_T_NT_T_NT_T_NT_T_NT_T_NT_T_NT_T_0 = 0 + 1 + 2 + 3 + 4 + 5 + 6 + 7
-var TreeT_NT_T_NT_T_NT_T_NT_T_NT_T_NT_T_NT_T_0 = func() *DualTree {
+var TreeT_NT_T_NT_T_NT_T_NT_T_NT_T_NT_T_NT_T_0 = func() DualTree {
 	t := DualTree{}
 	t.root = Add.ToDualTreeNode(RandString(5))
 
@@ -292,32 +292,32 @@ var TreeT_NT_T_NT_T_NT_T_NT_T_NT_T_NT_T_NT_T_0 = func() *DualTree {
 	t.root.right.left = Add.ToDualTreeNode(RandString(5))
 	t.root.right.left.left = Const4.ToDualTreeNode(RandString(5))
 	t.root.right.left.right = Const5.ToDualTreeNode(RandString(5))
-	return &t
+	return t
 }
 
 // TreeVine_D3 = sin(sin(sin(x)))
-var TreeVine_D3 = func() *DualTree {
+var TreeVine_D3 = func() DualTree {
 	t := DualTree{}
 	t.root = Sin.ToDualTreeNode(RandString(5))
 	t.root.left = Sin.ToDualTreeNode(RandString(5))
 	t.root.left.left = Sin.ToDualTreeNode(RandString(5))
 	t.root.left.left.left = X1.ToDualTreeNode(RandString(5))
-	return &t
+	return t
 }
 
 // TreeVine_D4 = sin(sin(sin(sin(x)))))
-var TreeVine_D4 = func() *DualTree {
+var TreeVine_D4 = func() DualTree {
 	t := DualTree{}
 	t.root = Sin.ToDualTreeNode(RandString(5))
 	t.root.left = Sin.ToDualTreeNode(RandString(5))
 	t.root.left.left = Sin.ToDualTreeNode(RandString(5))
 	t.root.left.left.left = Sin.ToDualTreeNode(RandString(5))
 	t.root.left.left.left.left = X1.ToDualTreeNode(RandString(5))
-	return &t
+	return t
 }
 
 // TreeVine_D5_R = It looks like  triangle with depth 5 on the right side.
-var TreeVine_D5_R = func() *DualTree {
+var TreeVine_D5_R = func() DualTree {
 	t := DualTree{}
 	t.root = Add.ToDualTreeNode(RandString(5))
 	t.root.left = Sin.ToDualTreeNode(RandString(5))
@@ -330,11 +330,11 @@ var TreeVine_D5_R = func() *DualTree {
 	t.root.right.right.right = Sin.ToDualTreeNode(RandString(5))
 	t.root.right.right.right.right = Sin.ToDualTreeNode(RandString(5))
 	t.root.right.right.right.right.right = X1.ToDualTreeNode(RandString(5))
-	return &t
+	return t
 }
 
 // TreeVine_D5_R = It looks like  triangle with depth 6 on the right side.
-var TreeVine_D6_R = func() *DualTree {
+var TreeVine_D6_R = func() DualTree {
 	t := DualTree{}
 	t.root = Add.ToDualTreeNode("0")
 	t.root.left = Sin.ToDualTreeNode("1")
@@ -348,54 +348,54 @@ var TreeVine_D6_R = func() *DualTree {
 	t.root.right.right.right.right = Sin.ToDualTreeNode("8")
 	t.root.right.right.right.right.right = Sin.ToDualTreeNode("9")
 	t.root.right.right.right.right.right.left = X1.ToDualTreeNode("10")
-	return &t
+	return t
 }
 
 // Tree3 = Sin(4 - x)
-var Tree3 = func() *DualTree {
+var Tree3 = func() DualTree {
 	t := DualTree{}
 	t.root = Sin.ToDualTreeNode(RandString(5))
 	t.root.left = Sub.ToDualTreeNode(RandString(5))
 	t.root.left.left = X1.ToDualTreeNode(RandString(5))
 	t.root.left.right = Const4.ToDualTreeNode(RandString(5))
-	return &t
+	return t
 }
 
 // Tree4 = Sin(x)
-var Tree4 = func() *DualTree {
+var Tree4 = func() DualTree {
 	t := DualTree{}
 	t.root = Sin.ToDualTreeNode(RandString(5))
 	t.root.left = X1.ToDualTreeNode(RandString(5))
-	return &t
+	return t
 }
 
 // Tree5 = Sin
-var Tree5 = func() *DualTree {
+var Tree5 = func() DualTree {
 	t := DualTree{}
 	t.root = Sin.ToDualTreeNode(RandString(5))
-	return &t
+	return t
 }
 
 // Tree6 = x +
-var Tree6 = func() *DualTree {
+var Tree6 = func() DualTree {
 	t := DualTree{}
 	t.root = Add.ToDualTreeNode(RandString(5))
 	t.root.left = X1.ToDualTreeNode(RandString(5))
-	return &t
+	return t
 }
 
 // Tree7 =  +
-var Tree7 = func() *DualTree {
+var Tree7 = func() DualTree {
 	t := DualTree{}
 	t.root = Add.ToDualTreeNode(RandString(5))
-	return &t
+	return t
 }
 
 // Tree8 =  x * x
-var Tree8 = func() *DualTree {
+var Tree8 = func() DualTree {
 	t := DualTree{}
 	t.root = Mult.ToDualTreeNode(RandString(5))
 	t.root.left = X1.ToDualTreeNode(RandString(5))
 	t.root.right = X1.ToDualTreeNode(RandString(5))
-	return &t
+	return t
 }

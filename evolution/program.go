@@ -15,7 +15,7 @@ const DeletionTypeSafe = 0
 // TODO generate AST treeNode from polynomial expression
 type Program struct {
 	ID string
-	T  *DualTree
+	T  DualTree
 }
 
 func GenerateProgramID(count int) string {
@@ -36,7 +36,7 @@ func (p *Program) ApplyStrategy(strategy Strategy, terminals []SymbolicExpressio
 
 	switch strategy {
 	case StrategyAddSubTree:
-		var tree *DualTree
+		var tree DualTree
 		tree, err = GenerateRandomTreeEnforceIndependentVariable(depth, terminals[0], terminals, nonTerminals)
 		err = p.T.AddSubTree(tree)
 		break
@@ -71,10 +71,9 @@ func Mutation(prog Program) (Program, error) {
 // Eval is a simple helper function that takes in an independent variable,
 // uses the programs treeNode to compute the resultant value
 func (p *Program) Eval(independentVar float32) (float32, error) {
-	if p.T == nil {
-		return -1, fmt.Errorf("program: %v -> treeNode is nil", p.ID)
+	if p.T.root == nil {
+		return -1, fmt.Errorf("program: %v -> treeNode.root is nil", p.ID)
 	}
-
 	err := p.T.Validate()
 	if err != nil {
 		return -1, err
@@ -111,7 +110,7 @@ func (p Program) Clone() (Program, error) {
 	if err != nil {
 		return Program{}, err
 	}
-	p.T = &dualTree
+	p.T = dualTree
 	p.ID = GenerateProgramID(0)
 	return p, nil
 }

@@ -17,11 +17,11 @@ func main() {
 
 	params := evolution.EvolutionParams{
 		Generations:        50,
-		EachPopulationSize: 6, // Must be an even number to prevent awkward ordering of children.
+		EachPopulationSize: 2, // Must be an even number to prevent awkward ordering of children.
 		// This will fail if odd.
-		AntagonistMaxStrategies:               4,
+		AntagonistMaxStrategies: 4,
 		//AntagonistStrategyLength:              3,
-		ProtagonistMaxStrategies:              4,
+		ProtagonistMaxStrategies: 4,
 		//ProtagonistStrategyLength:             3,
 		MaxDepth:                              4,
 		DepthPenaltyStrategyPenalization:      10,
@@ -30,7 +30,6 @@ func main() {
 		DepthOfRandomNewTrees:                 1,
 		DeletionType:                          evolution.DeletionTypeSafe,
 		EnforceIndependentVariable:            true,
-		Strategies:                            strategies,
 		ProtagonistAvailableStrategies:        strategies,
 		AntagonistAvailableStrategies:         strategies,
 		SetEqualStrategyLength:                false,
@@ -47,13 +46,13 @@ func main() {
 		TournamentSize:         3,
 		StrategyLengthLimit:    10,
 		SurvivorPercentage:     0.5,
-		StartIndividual: evolution.ProgTreeT_NT_T_0,
-		Spec:            spec,
-		ParentSelection: evolution.ParentSelectionTournament,
+		StartIndividual:        evolution.ProgTreeT_NT_T_0,
+		Spec:                   spec,
+		ParentSelection:        evolution.ParentSelectionTournament,
 	}
 
 	engine := evolution.EvolutionEngine{
-		Parameters:      params,
+		Parameters: params,
 	}
 
 	result, err := engine.Start()

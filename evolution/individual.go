@@ -22,7 +22,7 @@ type Individual struct {
 	kind                     int
 	age                      int
 	totalFitness             int
-	Program                  *Program
+	Program                  Program
 }
 
 func (i Individual) Clone() (Individual, error) {
@@ -32,8 +32,28 @@ func (i Individual) Clone() (Individual, error) {
 	if err != nil {
 		return Individual{}, err
 	}
-	i.Program = &programClone
+	i.Program = programClone
 	return i, nil
+}
+
+func (i *Individual) Mutate(availableStrategies []Strategy) error {
+	if availableStrategies == nil {
+		return fmt.Errorf("Mutate | availableStrategies param cannot be nil")
+	}
+	if i.strategy == nil {
+		return fmt.Errorf("Mutate | individual's strategies cannot be nil")
+	}
+	if len(i.strategy) < 1 {
+		return fmt.Errorf("Mutate | individual's strategies cannot empty")
+	}
+
+	rand.Seed(time.Now().UnixNano())
+	randIndexToMutate := rand.Intn(len(i.strategy))
+
+	rand.Seed(time.Now().UnixNano())
+	randIndexForStrategies := rand.Intn(len(availableStrategies))
+	i.strategy[randIndexToMutate] = availableStrategies[randIndexForStrategies]
+	return nil
 }
 
 type Antagonist Individual
@@ -58,11 +78,8 @@ func Crossover(individual Individual, individual2 Individual, params EvolutionPa
 	if individual.hasAppliedStrategy == false {
 		return Individual{}, Individual{}, fmt.Errorf("crossover | individual1 - hasAppliedStrategy should be true")
 	}
-	if individual.Program == nil {
-		return Individual{}, Individual{}, fmt.Errorf("crossover | individual1 - program cannot be nil")
-	}
-	if individual.Program.T == nil {
-		return Individual{}, Individual{}, fmt.Errorf("crossover | individual1 - program Tree cannot be nil")
+	if individual.Program.T.root == nil {
+		return Individual{}, Individual{}, fmt.Errorf("crossover | individual1 - program Tree root cannot be nil")
 	}
 	if individual2.id == "" {
 		return Individual{}, Individual{}, fmt.Errorf("crossover | individual2 - individual id cannot be empty")
@@ -79,10 +96,7 @@ func Crossover(individual Individual, individual2 Individual, params EvolutionPa
 	if individual2.hasAppliedStrategy == false {
 		return Individual{}, Individual{}, fmt.Errorf("crossover | individual2 - hasAppliedStrategy should be true")
 	}
-	if individual2.Program == nil {
-		return Individual{}, Individual{}, fmt.Errorf("crossover | individual2 - program cannot be nil")
-	}
-	if individual2.Program.T == nil {
+	if individual2.Program.T.root == nil {
 		return Individual{}, Individual{}, fmt.Errorf("crossover | individual2 - program Tree cannot be nil")
 	}
 	if params.StrategyLengthLimit < 1 {
@@ -381,16 +395,15 @@ func Mutate(individual Individual, params EvolutionParams) (Individual, error) {
 	if individual.hasAppliedStrategy == false {
 		return Individual{}, fmt.Errorf("crossover | individual1 - hasAppliedStrategy should be true")
 	}
-	if len(params.Strategies) < 1 {
-		return Individual{}, fmt.Errorf("crossover | params.Strategies cannot be length 0")
-	}
+
+	combinedStrategies := append(params.ProtagonistAvailableStrategies, params.AntagonistAvailableStrategies...)
 
 	rand.Seed(time.Now().UnixNano())
 	randIndex := rand.Intn(len(individual.strategy))
 
 	rand.Seed(time.Now().UnixNano())
-	randomStrategy := rand.Intn(len(params.Strategies))
-	individual.strategy[randIndex] = params.Strategies[randomStrategy]
+	randomStrategy := rand.Intn(len(combinedStrategies))
+	individual.strategy[randIndex] = combinedStrategies[randomStrategy]
 
 	return individual, nil
 }
@@ -401,7 +414,7 @@ func GenerateIndividualID(identifier string, individualKind int) string {
 
 func GenerateRandomIndividuals(number int, idTemplate string, kind int, strategyLength int,
 	maxNumberOfStrategies int, availableStrategies []Strategy, depth int, terminals SymbolicExpressionSet,
-	nonTerminals SymbolicExpressionSet, enforceIndependentVariable bool) ([]*Individual, error) {
+	nonTerminals SymbolicExpressionSet, enforceIndependentVariable bool) ([]Individual, error) {
 	if number < 1 {
 		return nil, fmt.Errorf("number should at least be 1")
 	}
@@ -424,7 +437,7 @@ func GenerateRandomIndividuals(number int, idTemplate string, kind int, strategy
 		return nil, fmt.Errorf("idTemplate cannot be empty")
 	}
 
-	individuals := make([]*Individual, number)
+	individuals := make([]Individual, number)
 
 	for i := 0; i < number; i++ {
 		rand.Seed(time.Now().UnixNano())
@@ -435,7 +448,7 @@ func GenerateRandomIndividuals(number int, idTemplate string, kind int, strategy
 		program := Program{}
 
 		programID := GenerateProgramID(i)
-		var tree *DualTree
+		var tree DualTree
 		var err error
 		var retry bool = true
 		if enforceIndependentVariable {
@@ -459,12 +472,12 @@ func GenerateRandomIndividuals(number int, idTemplate string, kind int, strategy
 		program.T = tree
 		program.ID = programID
 
-		individual := &Individual{
+		individual := Individual{
 			kind:     kind,
 			id:       id,
 			strategy: randomStrategies,
 			fitness:  make([]int, 0),
-			Program:  &program,
+			Program:  program,
 		}
 		individuals[i] = individual
 	}

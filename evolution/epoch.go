@@ -26,69 +26,18 @@ type Epoch struct {
 	hasProtagonistApplied            bool
 }
 
-// NewEpoch creates a new epoch. The id string can simply be the index from an iteration that creates multiple epochs
-func NewEpoch(id string, protagonist *Individual, antagonist *Individual, program Program, probabilityOfMutation float32, probabilityOfNonTerminalMutation float32, terminalSet []SymbolicExpression, nonTerminalSet []SymbolicExpression) *Epoch {
-	id = fmt.Sprintf("Epoch-%s-%s|%s", id, antagonist.id, protagonist.id)
-	return &Epoch{id: id, protagonist: protagonist, antagonist: antagonist, program: program, probabilityOfMutation: probabilityOfMutation, probabilityOfNonTerminalMutation: probabilityOfNonTerminalMutation, terminalSet: terminalSet, nonTerminalSet: nonTerminalSet}
-}
-
 // CreateEpochID generates a given epoch id with some useful information
 func CreateEpochID(count int, generationId, antagonistId, protagonistId string) string {
 	return fmt.Sprintf("EPOCH-%d-GEN-%s-ANTAGON-%s-PROTAGON-%s", count, generationId, antagonistId, protagonistId)
 }
 
-func (e *Epoch) GetProtagonistBegins() bool {
-	return e.protagonistBegins
-}
-
-// Program sets the program for the epoch
-func (e *Epoch) SetProgram(program Program) *Epoch {
-	e.program = program
-	return e
-}
-
-// ProtagonistBegins states whether the protagonist should start the epoch
-func (e *Epoch) SetProtagonistBegins(protagonistBegins bool) *Epoch {
-	e.protagonistBegins = protagonistBegins
-	return e
-}
-
-// Protagonist sets the protagonist for the epoch
-func (e *Epoch) SetProtagonist(protagonist *Individual) *Epoch {
-	e.protagonist = protagonist
-	return e
-}
-
-// Antagonist sets the antagonist for the epoch
-func (e *Epoch) SetAntagonist(antagonist *Individual) *Epoch {
-	e.antagonist = antagonist
-	return e
-}
-
-// SetProbabilityOfMutation sets the probability that the program will use a mutation strategy.
-// Otherwise it will be skipped
-func (e Epoch) SetProbabilityOfMutation(probability float32) Epoch {
-	e.probabilityOfMutation = probability
-	e.probabilityOfNonTerminalMutation = probability
-	return e
-}
-
-// SetProbabilityOfNonTerminalMutation sets the probability that the program will mutate the non-terminal after
-// mutation is deemed as the appropriate strategy. Otherwise it will mutate the terminal instead.
-func (e *Epoch) SetProbabilityOfNonTerminalMutation(probability float32) *Epoch {
-	e.probabilityOfNonTerminalMutation = probability
-	return e
-}
-
 // Start creates the Epoch process. This process applies the antagonist strategy first,
 // and then the protagonist strategy second.
 // It then appends the fitness values to each individual in the epoch.
+// Protagonists will by default have nil Trees as their trees depend on those of the Antagonists
 func (e *Epoch) Start() error {
-	if e.protagonist == nil {
-		return fmt.Errorf("epoch cannot have nil protagonist")
-	}
-	if e.antagonist == nil {
-		return fmt.Errorf("epoch cannot have nil antagonist")
+	if e.antagonist.Program.T.root == nil {
+		return fmt.Errorf("epoch cannot have nil antagonist tree root")
 	}
 
 	err := e.applyAntagonistStrategy()
@@ -145,18 +94,12 @@ func (e *Epoch) applyAntagonistStrategy() error {
 }
 
 // applyProtagonistStrategy Apply Protagonist strategies to program.
-func (e *Epoch) applyProtagonistStrategy(antagonistTree *DualTree) error {
-	if e.protagonist == nil {
-		return fmt.Errorf("protagonist cannot be nil")
-	}
+func (e *Epoch) applyProtagonistStrategy(antagonistTree DualTree) error {
 	if e.protagonist.strategy == nil {
 		return fmt.Errorf("protagonist stategy cannot be nil")
 	}
 	if len(e.protagonist.strategy) < 1 {
 		return fmt.Errorf("protagonist strategy cannot be empty")
-	}
-	if antagonistTree == nil {
-		return fmt.Errorf("applyProtagonistStrategy | antagonist supplied to protagonist is nil")
 	}
 	if antagonistTree.root == nil {
 		return fmt.Errorf("applyProtagonistStrategy | antagonist supplied to protagonist has a nill root tree")

@@ -14,10 +14,7 @@ type DualTreeNode struct {
 }
 
 // IsEqual checks to see if all aspects of a DualTreeNode are equivalent. This includes value as well as pointers
-func (b *DualTreeNode) IsEqual(t *DualTreeNode) bool {
-	if b == nil && t == nil {
-		return true
-	}
+func (b *DualTreeNode) IsEqual(t DualTreeNode) bool {
 	if b.key != t.key {
 		return false
 	}
@@ -31,7 +28,7 @@ func (b *DualTreeNode) IsEqual(t *DualTreeNode) bool {
 }
 
 // IsValEqual is a simple check to see if values of strings in the nodes are equal
-func (d *DualTreeNode) IsValEqual(t *DualTreeNode) bool {
+func (d *DualTreeNode) IsValEqual(t DualTreeNode) bool {
 	if d.value == t.value {
 		return true
 	}

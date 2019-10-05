@@ -2,7 +2,7 @@ package evolution
 
 // IndividualNilProgNil
 var IndividualNilProgNil = Individual{
-	Program:              &ProgNil,
+	Program:              ProgNil,
 	kind:                 0,
 	id:                   "ANTAGONIST-",
 	age:                  0,
@@ -11,7 +11,7 @@ var IndividualNilProgNil = Individual{
 
 // IndividualProg0-Kind-0
 var IndividualProg0Kind0 = Individual{
-	Program:                  &Prog0,
+	Program:                  Prog0,
 	kind:                     0,
 	id:                       "ANTAGONIST-",
 	age:                      0,
@@ -24,7 +24,7 @@ var IndividualProg0Kind0 = Individual{
 
 // IndividualProg0-Kind-1
 var IndividualProg0Kind1 = Individual{
-	Program:                  &Prog0,
+	Program:                  Prog0,
 	kind:                     1,
 	id:                       "PROTAGONIST-",
 	age:                      0,
@@ -37,7 +37,7 @@ var IndividualProg0Kind1 = Individual{
 
 // IndividualProg1Kind1
 var IndividualProg1Kind1 = Individual{
-	Program:                  &Prog1,
+	Program:                  Prog1,
 	kind:                     1,
 	id:                       "PROTAGONIST-",
 	age:                      0,
@@ -50,7 +50,7 @@ var IndividualProg1Kind1 = Individual{
 
 // IndividualProgTreeT_NT_T_0
 var IndividualProgTreeT_NT_T_0 = Individual{
-	Program:                  &ProgTreeT_NT_T_0,
+	Program:                  ProgTreeT_NT_T_0,
 	kind:                     1,
 	id:                       "PROTAGONIST-",
 	age:                      0,
@@ -63,7 +63,7 @@ var IndividualProgTreeT_NT_T_0 = Individual{
 
 // IndividualProgTreeT_NT_T_4
 var IndividualProgTreeT_NT_T_4 = Individual{
-	Program:                  &ProgTreeT_NT_T_4,
+	Program:                  ProgTreeT_NT_T_4,
 	kind:                     1,
 	id:                       "PROTAGONIST-",
 	age:                      0,
@@ -76,7 +76,7 @@ var IndividualProgTreeT_NT_T_4 = Individual{
 
 // IndividualProgTreeT_NT_T_4
 var IndividualProgTreeT_NT_T_1 = Individual{
-	Program:                  &ProgTreeT_NT_T_1,
+	Program:                  ProgTreeT_NT_T_1,
 	kind:                     1,
 	id:                       "PROTAGONIST-",
 	age:                      0,
@@ -89,7 +89,7 @@ var IndividualProgTreeT_NT_T_1 = Individual{
 
 // IndividualProgTreeT_NT_T_NT_T_0
 var IndividualProgTreeT_NT_T_NT_T_0 = Individual{
-	Program:                  &ProgTreeT_NT_T_NT_T_0,
+	Program:                  ProgTreeT_NT_T_NT_T_0,
 	kind:                     1,
 	id:                       "PROTAGONIST-",
 	age:                      0,
@@ -102,7 +102,7 @@ var IndividualProgTreeT_NT_T_NT_T_0 = Individual{
 
 // IndividualProgTreeT_NT_T_NT_T_NT_T_0
 var IndividualProgTreeT_NT_T_NT_T_NT_T_0 = Individual{
-	Program:                  &ProgTreeT_NT_T_NT_T_NT_T_0,
+	Program:                  ProgTreeT_NT_T_NT_T_NT_T_0,
 	kind:                     1,
 	id:                       "PROTAGONIST-",
 	age:                      0,
@@ -115,7 +115,7 @@ var IndividualProgTreeT_NT_T_NT_T_NT_T_0 = Individual{
 
 // IndividualProgTreeT_NT_T_NT_T_NT_T_NT_T_1
 var IndividualProgTreeT_NT_T_NT_T_NT_T_NT_T_1 = Individual{
-	Program:                  &ProgTreeT_NT_T_NT_T_NT_T_NT_T_1,
+	Program:                  ProgTreeT_NT_T_NT_T_NT_T_NT_T_1,
 	kind:                     1,
 	id:                       "PROTAGONIST-",
 	age:                      0,
@@ -128,7 +128,7 @@ var IndividualProgTreeT_NT_T_NT_T_NT_T_NT_T_1 = Individual{
 
 // IndividualProgTreeT_NT_T_NT_T_NT_T_NT_T_NT_T_NT_T_NT_T_0Kind0-Kind-1
 var IndividualProgTreeT_NT_T_NT_T_NT_T_NT_T_NT_T_NT_T_NT_T_0Kind0 = Individual{
-	Program:                  &ProgTreeT_NT_T_NT_T_NT_T_NT_T_NT_T_NT_T_NT_T_0,
+	Program:                  ProgTreeT_NT_T_NT_T_NT_T_NT_T_NT_T_NT_T_NT_T_0,
 	kind:                     0,
 	id:                       "ANTAGONIST-",
 	age:                      0,
@@ -141,7 +141,7 @@ var IndividualProgTreeT_NT_T_NT_T_NT_T_NT_T_NT_T_NT_T_NT_T_0Kind0 = Individual{
 
 // IndividualProg0-Kind-1
 var IndividualProgTreeT_NT_T_NT_T_NT_T_NT_T_NT_T_NT_T_NT_T_0Kind1 = Individual{
-	Program:                  &ProgTreeT_NT_T_NT_T_NT_T_NT_T_NT_T_NT_T_NT_T_0,
+	Program:                  ProgTreeT_NT_T_NT_T_NT_T_NT_T_NT_T_NT_T_NT_T_0,
 	kind:                     1,
 	id:                       "PROTAGONIST-",
 	age:                      0,
