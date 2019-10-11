@@ -115,6 +115,21 @@ var TreeT_NT_T_NT_T_0 = func() *DualTree {
 	return &t
 }
 
+// TreeT_NT_T_NT_T_0 = (((x + (x * 4)) - 9) * 0)
+var TreeXAddXMult4Sub9Mult0 = func() *DualTree {
+	t := DualTree{}
+	t.root = Mult.ToDualTreeNode("0")
+	t.root.right = Const0.ToDualTreeNode("1")
+	t.root.left = Sub.ToDualTreeNode("2")
+	t.root.left.right = Const9.ToDualTreeNode("4")
+	t.root.left.left = Add.ToDualTreeNode("43")
+	t.root.left.left.left = X1.ToDualTreeNode("3f3")
+	t.root.left.left.right = Mult.ToDualTreeNode("4sd3")
+	t.root.left.left.right.left = X1.ToDualTreeNode("4fd3")
+	t.root.left.left.right.right = Const4.ToDualTreeNode("4x3")
+	return &t
+}
+
 // TreeT_NT_T_NT_T_1 = x + 8 * 4
 var TreeT_NT_T_NT_T_1 = func() *DualTree {
 	t := DualTree{}

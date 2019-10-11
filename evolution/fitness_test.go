@@ -8,7 +8,7 @@ import (
 
 func TestProtagonistThresholdTally(t *testing.T) {
 	type args struct {
-		spec                             Spec
+		spec                             SpecMulti
 		protagonistAntagonistProgramPair *Program
 		threshold                        float64
 		minthreshold                     float64
@@ -66,7 +66,7 @@ func TestProtagonistThresholdTally(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, got1, err := ProtagonistThresholdTally(tt.args.spec,
-				tt.args.protagonistAntagonistProgramPair, tt.args.threshold, tt.args.minthreshold)
+				tt.args.protagonistAntagonistProgramPair, tt.args.threshold)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ProtagonistThresholdTally() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -88,11 +88,11 @@ func TestAggregateFitness(t *testing.T) {
 		want    int
 		wantErr bool
 	}{
-		{"nil fitness", &Individual{}, math.MaxInt8, true},
-		{"empty fitness", &Individual{fitness: []int{}}, math.MaxInt8, true},
-		{"input | 1,2", &Individual{fitness: []int{1, 2}}, 3, false},
-		{"input | 0", &Individual{fitness: []int{0}}, 0, false},
-		{"input | -1,1", &Individual{fitness: []int{-1, 1}}, 0, false},
+		{"nil Fitness", &Individual{}, math.MaxInt8, true},
+		{"empty Fitness", &Individual{Fitness: []int{}}, math.MaxInt8, true},
+		{"input | 1,2", &Individual{Fitness: []int{1, 2}}, 3, false},
+		{"input | 0", &Individual{Fitness: []int{0}}, 0, false},
+		{"input | -1,1", &Individual{Fitness: []int{-1, 1}}, 0, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

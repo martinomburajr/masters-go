@@ -2,14 +2,14 @@ package evolution
 
 import "testing"
 
-func BenchmarkDualTree_FromSymbolicExpressionSet_1(b *testing.B) {
-	b.ReportAllocs()
-	expressionSet1 := GenerateRandomSymbolicExpressionSet(1)
-	tree1 := DualTree{}
-	for i := 0; i < b.N; i++ {
-		tree1.FromSymbolicExpressionSet(expressionSet1)
-	}
-}
+//func BenchmarkDualTree_FromSymbolicExpressionSet_1(b *testing.B) {
+//	b.ReportAllocs()
+//	expressionSet1 := GenerateRandomSymbolicExpressionSet(1)
+//	tree1 := DualTree{}
+//	for i := 0; i < b.N; i++ {
+//		tree1.FromSymbolicExpressionSet(expressionSet1)
+//	}
+//}
 
 func BenchmarkDualTree_FromSymbolicExpressionSet2_1(b *testing.B) {
 	b.ReportAllocs()
@@ -20,14 +20,14 @@ func BenchmarkDualTree_FromSymbolicExpressionSet2_1(b *testing.B) {
 	}
 }
 
-func BenchmarkDualTree_FromSymbolicExpressionSet_10(b *testing.B) {
-	b.ReportAllocs()
-	expressionSet1 := GenerateRandomSymbolicExpressionSet(10)
-	tree1 := DualTree{}
-	for i := 0; i < b.N; i++ {
-		tree1.FromSymbolicExpressionSet(expressionSet1)
-	}
-}
+//func BenchmarkDualTree_FromSymbolicExpressionSet_10(b *testing.B) {
+//	b.ReportAllocs()
+//	expressionSet1 := GenerateRandomSymbolicExpressionSet(10)
+//	tree1 := DualTree{}
+//	for i := 0; i < b.N; i++ {
+//		tree1.FromSymbolicExpressionSet(expressionSet1)
+//	}
+//}
 
 func BenchmarkDualTree_FromSymbolicExpressionSet2_10(b *testing.B) {
 	b.ReportAllocs()
@@ -38,13 +38,13 @@ func BenchmarkDualTree_FromSymbolicExpressionSet2_10(b *testing.B) {
 	}
 }
 
-func BenchmarkDualTree_FromSymbolicExpressionSet_1000(b *testing.B) {
-	expressionSet1 := GenerateRandomSymbolicExpressionSet(1000)
-	tree1 := DualTree{}
-	for i := 0; i < b.N; i++ {
-		tree1.FromSymbolicExpressionSet(expressionSet1)
-	}
-}
+//func BenchmarkDualTree_FromSymbolicExpressionSet_1000(b *testing.B) {
+//	expressionSet1 := GenerateRandomSymbolicExpressionSet(1000)
+//	tree1 := DualTree{}
+//	for i := 0; i < b.N; i++ {
+//		tree1.FromSymbolicExpressionSet(expressionSet1)
+//	}
+//}
 
 func BenchmarkDualTree_FromSymbolicExpressionSet2_1000(b *testing.B) {
 	expressionSet1 := GenerateRandomSymbolicExpressionSet(1000)
@@ -54,13 +54,13 @@ func BenchmarkDualTree_FromSymbolicExpressionSet2_1000(b *testing.B) {
 	}
 }
 
-func BenchmarkDualTree_FromSymbolicExpressionSet_100000(b *testing.B) {
-	expressionSet1 := GenerateRandomSymbolicExpressionSet(100000)
-	tree100000 := DualTree{}
-	for i := 0; i < b.N; i++ {
-		tree100000.FromSymbolicExpressionSet(expressionSet1)
-	}
-}
+//func BenchmarkDualTree_FromSymbolicExpressionSet_100000(b *testing.B) {
+//	expressionSet1 := GenerateRandomSymbolicExpressionSet(100000)
+//	tree100000 := DualTree{}
+//	for i := 0; i < b.N; i++ {
+//		tree100000.FromSymbolicExpressionSet(expressionSet1)
+//	}
+//}
 
 func BenchmarkDualTree_FromSymbolicExpressionSet2_100000(b *testing.B) {
 	expressionSet1 := GenerateRandomSymbolicExpressionSet(100000)
@@ -70,13 +70,13 @@ func BenchmarkDualTree_FromSymbolicExpressionSet2_100000(b *testing.B) {
 	}
 }
 
-func BenchmarkDualTree_FromSymbolicExpressionSet_1000000(b *testing.B) {
-	expressionSet1 := GenerateRandomSymbolicExpressionSet(1000000)
-	tree1 := DualTree{}
-	for i := 0; i < b.N; i++ {
-		tree1.FromSymbolicExpressionSet(expressionSet1)
-	}
-}
+//func BenchmarkDualTree_FromSymbolicExpressionSet_1000000(b *testing.B) {
+//	expressionSet1 := GenerateRandomSymbolicExpressionSet(1000000)
+//	tree1 := DualTree{}
+//	for i := 0; i < b.N; i++ {
+//		tree1.FromSymbolicExpressionSet(expressionSet1)
+//	}
+//}
 
 func BenchmarkDualTree_FromSymbolicExpressionSet2_1000000(b *testing.B) {
 	expressionSet1 := GenerateRandomSymbolicExpressionSet(1000000)

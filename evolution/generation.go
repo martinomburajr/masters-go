@@ -7,8 +7,8 @@ import (
 
 type Generation struct {
 	GenerationID                 string
-	Protagonists                 []*Individual //Protagonists in a given generation
-	Antagonists                  []*Individual //Antagonists in a given generation
+	Protagonists                 []*Individual //Protagonists in a given Generation
+	Antagonists                  []*Individual //Antagonists in a given Generation
 	engine                       *EvolutionEngine
 	isComplete                   bool
 	hasParentSelectionHappened   bool
@@ -17,36 +17,36 @@ type Generation struct {
 }
 
 // Start begins the generational evolutionary cycle.
-// It creates a new generation that it links the {nextGeneration} field to. Similar to the way a LinkedList works
+// It creates a new Generation that it links the {nextGeneration} field to. Similar to the way a LinkedList works
 func (g *Generation) Start() (*Generation, error) {
 	setupEpochs, err := g.setupEpochs()
 	if err != nil {
 		return nil, err
 	}
 
-	// Runs the epochs and returns completed epochs that contain fitness information within each individual.
+	// Runs the epochs and returns completed epochs that contain Fitness information within each individual.
 	_, err = g.runEpochs(setupEpochs)
 	if err != nil {
 		return nil, err
 	}
 
-	// Calculate the fitness for individuals in the generation
+	// Calculate the Fitness for individuals in the Generation
 	for i := range g.Protagonists {
 		protagonistFitness, err := AggregateFitness(*g.Protagonists[i])
 		if err != nil {
 			return nil, err
 		}
-		g.Protagonists[i].totalFitness = protagonistFitness
-		g.Protagonists[i].hasCalculatedFitness = true
-		g.Protagonists[i].age++
+		g.Protagonists[i].TotalFitness = protagonistFitness
+		g.Protagonists[i].HasCalculatedFitness = true
+		g.Protagonists[i].Age++
 
 		antagonistFitness, err := AggregateFitness(*g.Antagonists[i])
 		if err != nil {
 			return nil, err
 		}
-		g.Antagonists[i].totalFitness = antagonistFitness
-		g.Antagonists[i].hasCalculatedFitness = true
-		g.Antagonists[i].age++
+		g.Antagonists[i].TotalFitness = antagonistFitness
+		g.Antagonists[i].HasCalculatedFitness = true
+		g.Antagonists[i].Age++
 	}
 
 	//protagonists := make([]Individual, len(g.Protagonists))
@@ -80,7 +80,7 @@ func (g *Generation) Start() (*Generation, error) {
 		hasParentSelectionHappened:   false,
 		count:                        g.count + 1,
 	}
-	//return new generation
+	//return new Generation
 	return nextGen, nil
 }
 
@@ -88,14 +88,14 @@ func GenerateGenerationID(count int) string {
 	return fmt.Sprintf("GEN-%d", count)
 }
 
-// setupEpochs takes in the generation individuals (
+// setupEpochs takes in the Generation individuals (
 // protagonists and antagonists) and creates a set of uninitialized epochs
 func (g *Generation) setupEpochs() ([]Epoch, error) {
 	if g.Antagonists == nil {
-		return nil, fmt.Errorf("antagonists cannot be nil in generation")
+		return nil, fmt.Errorf("antagonists cannot be nil in Generation")
 	}
 	if g.Protagonists == nil {
-		return nil, fmt.Errorf("protagonists cannot be nil in generation")
+		return nil, fmt.Errorf("protagonists cannot be nil in Generation")
 	}
 	if len(g.Antagonists) < 1 {
 		return nil, fmt.Errorf("antagonists cannot be empty")
@@ -121,7 +121,7 @@ func (g *Generation) setupEpochs() ([]Epoch, error) {
 				protagonist:                      protagonist,
 				generation:                       g,
 				program:                          g.engine.Parameters.StartIndividual,
-				id:                               CreateEpochID(count, g.GenerationID, antagonist.id, protagonist.id),
+				id:                               CreateEpochID(count, g.GenerationID, antagonist.Id, protagonist.Id),
 			}
 			count++
 		}
@@ -129,7 +129,7 @@ func (g *Generation) setupEpochs() ([]Epoch, error) {
 	return epochs, nil
 }
 
-// CurrentPopulation retrieves the current population of the given generation.
+// CurrentPopulation retrieves the current population of the given Generation.
 // Individuals may have competed or may have been altered in a variety of ways.
 // This will return a list of references Individuals
 func (g *Generation) CurrentPopulation() ([]*Individual, error) {
@@ -156,7 +156,7 @@ func (g *Generation) runEpochs(epochs []Epoch) ([]Epoch, error) {
 }
 
 // Compete gives protagonist and anatagonists the chance to compete. A competition involves an epoch,
-// that returns the result of the epoch.
+// that returns the Result of the epoch.
 func (g *Generation) Compete() error {
 	//for _, epoch := range g.Epochs {
 	//	err := epoch.Start()
@@ -173,13 +173,13 @@ func (g *Generation) Compete() error {
 	return nil
 }
 
-// ApplyParentSelection takes in a given generation and returns a set of individuals once the preselected parent
-// selection strategy has been applied to the generation.
-// These individuals are ready to be taken to either a new generation or preferably through survivor selection in the
+// ApplyParentSelection takes in a given Generation and returns a set of individuals once the preselected parent
+// selection Strategy has been applied to the Generation.
+// These individuals are ready to be taken to either a new Generation or preferably through survivor selection in the
 // case you do not isEqual the population to grow in size.
 func (g *Generation) ApplyParentSelection() ([]*Individual, error) {
 	if !g.isComplete {
-		return nil, fmt.Errorf("generation #id: %s has not competed, ", g.GenerationID)
+		return nil, fmt.Errorf("Generation #Id: %s has not competed, ", g.GenerationID)
 	}
 
 	currentPopulation, err := g.CurrentPopulation()
@@ -203,26 +203,31 @@ func (g *Generation) ApplyParentSelection() ([]*Individual, error) {
 		g.hasParentSelectionHappened = true
 		return selectedInvididuals, nil
 	default:
-		return nil, fmt.Errorf("no appropriate parent selection strategy selected. See parentselection." +
+		return nil, fmt.Errorf("no appropriate parent selection Strategy selected. See parentselection." +
 			"go file for information on integer values that represent different parent selection strategies")
 	}
 }
 
-// ApplySurvivorSelection applies the preselected survivor selection strategy.
+// ApplySurvivorSelection applies the preselected survivor selection Strategy.
 // It DOES NOT check to see if the parent selection has already been applied,
 // as in some cases evolutionary programs may choose to run without the parent selection phase.
 // The onus is on the evolutionary architect to keep this consideration in mind.
 func (g *Generation) ApplySurvivorSelection() ([]*Individual, error) {
 	if !g.isComplete {
-		return nil, fmt.Errorf("generation #id: %s has not competed, ", g.GenerationID)
+		return nil, fmt.Errorf("Generation #Id: %s has not competed, ", g.GenerationID)
 	}
 
 	return nil, nil
 }
 
-// GenerateRandomAntagonists creates a a random set of antagonists based on the parameters passed into the
-// evolution engine. Antagonists are by default set with the StartIndividuals Program as their own program.
-func (g *Generation) GenerateRandomAntagonists(idTemplate string) ([]*Individual, error) {
+// GenerateRandomAntagonists creates a a random set of individuals based on the parameters passed into the
+// evolution engine. To pass a tree to an individual pass it via the formal parameters and not through the evolution
+// engine
+// parameter section
+// Antagonists are by default
+// set with the StartIndividuals Program as their own
+// program.
+func (g *Generation) GenerateRandomIndividual(idTemplate string, prog Program) ([]*Individual, error) {
 	kind := IndividualAntagonist
 	if g.engine.Parameters.EachPopulationSize < 1 {
 		return nil, fmt.Errorf("number should at least be 1")
@@ -231,7 +236,7 @@ func (g *Generation) GenerateRandomAntagonists(idTemplate string) ([]*Individual
 		return nil, fmt.Errorf("maxNumberOfStrategies should at least be 1")
 	}
 	if len(g.engine.Parameters.AntagonistAvailableStrategies) < 1 {
-		return nil, fmt.Errorf("availableStrategies should at least have one strategy")
+		return nil, fmt.Errorf("availableStrategies should at least have one Strategy")
 	}
 	if idTemplate == "" {
 		return nil, fmt.Errorf("idTemplate cannot be empty")
@@ -243,84 +248,45 @@ func (g *Generation) GenerateRandomAntagonists(idTemplate string) ([]*Individual
 
 		var numberOfStrategies int
 		var randomStrategies []Strategy
-		// TODO fix equal strategy length issue
+
+		// TODO fix equal Strategy length issue
 		if g.engine.Parameters.SetEqualStrategyLength {
-			numberOfStrategies = rand.Intn(g.engine.Parameters.EqualStrategiesLength)
-			randomStrategies = GenerateRandomStrategy(numberOfStrategies, g.engine.Parameters.EqualStrategiesLength,
+			numberOfStrategies = g.engine.Parameters.EqualStrategiesLength
+			randomStrategies = GenerateRandomStrategy(g.engine.Parameters.EqualStrategiesLength,
 				g.engine.Parameters.AntagonistAvailableStrategies)
 		} else {
 			numberOfStrategies = rand.Intn(g.engine.Parameters.ProtagonistMaxStrategies)
-			randomStrategies = GenerateRandomStrategy(numberOfStrategies, numberOfStrategies, g.engine.Parameters.AntagonistAvailableStrategies)
+			randomStrategies = GenerateRandomStrategy(numberOfStrategies, g.engine.Parameters.AntagonistAvailableStrategies)
 		}
-		id := fmt.Sprintf("%s-%s-%d", KindToString(kind), "", i)
+		id := fmt.Sprintf("%s-%d", KindToString(kind), i)
 
-		program := g.engine.Parameters.StartIndividual
-		programID := GenerateProgramID(i)
-		program.ID = programID
-		clone, err := program.Clone()
+		var individual *Individual
 
-		if err != nil {
-			return nil, err
-		}
+		if prog.T == nil {
+			individual = &Individual{
+				Kind:     kind,
+				Id:       id,
+				Strategy: randomStrategies,
+				Fitness:  make([]float64, 0),
+				Program:  nil,
+			}
 
-		individual := &Individual{
-			kind:     kind,
-			id:       id,
-			strategy: randomStrategies,
-			fitness:  make([]int, 0),
-			Program:  &clone,
-		}
-		individuals[i] = individual
-	}
-	return individuals, nil
-}
-
-// GenerateRandomProtagonists creates a a random set of protagonists based on the parameters passed into the
-// evolution engine.
-func (g *Generation) GenerateRandomProtagonists(idTemplate string) ([]*Individual, error) {
-	kind := IndividualProtagonist
-	if g.engine.Parameters.EachPopulationSize < 1 {
-		return nil, fmt.Errorf("number should at least be 1")
-	}
-	if g.engine.Parameters.ProtagonistMaxStrategies < 1 {
-		return nil, fmt.Errorf("maxNumberOfStrategies should at least be 1")
-	}
-	//if g.engine.Parameters.Strategies == nil {
-	//	return nil, fmt.Errorf("availableStrategies cannot be nil")
-	//}
-	if len(g.engine.Parameters.ProtagonistAvailableStrategies) < 1 {
-		return nil, fmt.Errorf("availableStrategies should at least have one strategy")
-	}
-	if idTemplate == "" {
-		return nil, fmt.Errorf("idTemplate cannot be empty")
-	}
-
-	individuals := make([]*Individual, g.engine.Parameters.EachPopulationSize)
-
-	for i := 0; i < g.engine.Parameters.EachPopulationSize; i++ {
-
-		var numberOfStrategies int
-		var randomStrategies []Strategy
-		if g.engine.Parameters.SetEqualStrategyLength {
-			numberOfStrategies = rand.Intn(g.engine.Parameters.EqualStrategiesLength)
-			randomStrategies = GenerateRandomStrategy(numberOfStrategies, g.engine.Parameters.EqualStrategiesLength, g.engine.Parameters.ProtagonistAvailableStrategies)
 		} else {
-			numberOfStrategies = rand.Intn(g.engine.Parameters.ProtagonistMaxStrategies)
-			randomStrategies = GenerateRandomStrategy(numberOfStrategies, numberOfStrategies, g.engine.Parameters.ProtagonistAvailableStrategies)
-		}
-		id := fmt.Sprintf("%s-%s-%d", KindToString(kind), "", i)
+			prog.ID = GenerateProgramID(i)
 
-		program := Program{}
-		programID := GenerateProgramID(i)
-		program.ID = programID
-
-		individual := &Individual{
-			kind:     kind,
-			id:       id,
-			strategy: randomStrategies,
-			fitness:  make([]int, 0),
-			Program:  &program,
+			clone, err := prog.Clone()
+			if err != nil {
+				return nil, err
+			}
+			individual = &Individual{
+				Kind:     kind,
+				Id:       id,
+				Strategy: randomStrategies,
+				Fitness:  make([]float64, 0),
+				Program:  &clone,
+			}
 		}
+
 		individuals[i] = individual
 	}
 	return individuals, nil
@@ -331,7 +297,7 @@ type GenerationResult struct {
 }
 
 // RunNext takes in a current GenerationResult runs a set of parent and survivor selection mechanisms,
-// and returns the new generation
+// and returns the new Generation
 func (g *GenerationResult) RunNext() *GenerationResult {
 	return nil
 }

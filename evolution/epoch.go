@@ -8,7 +8,7 @@ import (
 // For example an epoch could represent a distinct interaction between two parties.
 // For instance a bug mutated program (antagonist) can be challenged a variety of times (
 // specified by {iterations}) by the tests (protagonist).
-// The test will use up the strategies it contains and attempt to chew away at the antagonists fitness,
+// The test will use up the strategies it contains and attempt to chew away at the antagonists Fitness,
 // to maximize its own
 type Epoch struct {
 	id                               string
@@ -18,21 +18,15 @@ type Epoch struct {
 	program                          Program
 	protagonistBegins                bool
 	isComplete                       bool
-	probabilityOfMutation            float32
-	probabilityOfNonTerminalMutation float32
+	probabilityOfMutation            float64
+	probabilityOfNonTerminalMutation float64
 	terminalSet                      []SymbolicExpression
 	nonTerminalSet                   []SymbolicExpression
 	hasAntagonistApplied             bool
 	hasProtagonistApplied            bool
 }
 
-// NewEpoch creates a new epoch. The id string can simply be the index from an iteration that creates multiple epochs
-func NewEpoch(id string, protagonist *Individual, antagonist *Individual, program Program, probabilityOfMutation float32, probabilityOfNonTerminalMutation float32, terminalSet []SymbolicExpression, nonTerminalSet []SymbolicExpression) *Epoch {
-	id = fmt.Sprintf("Epoch-%s-%s|%s", id, antagonist.id, protagonist.id)
-	return &Epoch{id: id, protagonist: protagonist, antagonist: antagonist, program: program, probabilityOfMutation: probabilityOfMutation, probabilityOfNonTerminalMutation: probabilityOfNonTerminalMutation, terminalSet: terminalSet, nonTerminalSet: nonTerminalSet}
-}
-
-// CreateEpochID generates a given epoch id with some useful information
+// CreateEpochID generates a given epoch Id with some useful information
 func CreateEpochID(count int, generationId, antagonistId, protagonistId string) string {
 	return fmt.Sprintf("EPOCH-%d-GEN-%s-ANTAGON-%s-PROTAGON-%s", count, generationId, antagonistId, protagonistId)
 }
@@ -65,24 +59,24 @@ func (e *Epoch) SetAntagonist(antagonist *Individual) *Epoch {
 	return e
 }
 
-// SetProbabilityOfMutation sets the probability that the program will use a mutation strategy.
+// SetProbabilityOfMutation sets the probability that the program will use a mutation Strategy.
 // Otherwise it will be skipped
-func (e Epoch) SetProbabilityOfMutation(probability float32) Epoch {
+func (e Epoch) SetProbabilityOfMutation(probability float64) Epoch {
 	e.probabilityOfMutation = probability
 	e.probabilityOfNonTerminalMutation = probability
 	return e
 }
 
 // SetProbabilityOfNonTerminalMutation sets the probability that the program will mutate the non-terminal after
-// mutation is deemed as the appropriate strategy. Otherwise it will mutate the terminal instead.
-func (e *Epoch) SetProbabilityOfNonTerminalMutation(probability float32) *Epoch {
+// mutation is deemed as the appropriate Strategy. Otherwise it will mutate the terminal instead.
+func (e *Epoch) SetProbabilityOfNonTerminalMutation(probability float64) *Epoch {
 	e.probabilityOfNonTerminalMutation = probability
 	return e
 }
 
-// Start creates the Epoch process. This process applies the antagonist strategy first,
-// and then the protagonist strategy second.
-// It then appends the fitness values to each individual in the epoch.
+// Start creates the Epoch process. This process applies the antagonist Strategy first,
+// and then the protagonist Strategy second.
+// It then appends the Fitness values to each individual in the epoch.
 func (e *Epoch) Start() error {
 	if e.protagonist == nil {
 		return fmt.Errorf("epoch cannot have nil protagonist")
@@ -95,38 +89,52 @@ func (e *Epoch) Start() error {
 	if err != nil {
 		return err
 	}
-	e.antagonist.hasAppliedStrategy = true
+	e.antagonist.HasAppliedStrategy = true
 
 	err = e.applyProtagonistStrategy(*e.antagonist.Program.T)
 	if err != nil {
 		return err
 	}
-	e.protagonist.hasAppliedStrategy = true
+	e.protagonist.HasAppliedStrategy = true
 
 	if !e.hasProtagonistApplied && !e.hasAntagonistApplied {
-		return fmt.Errorf("antagonist and protagonist havent applied strategy to program")
+		return fmt.Errorf("antagonist and protagonist havent applied Strategy to program")
 	}
 
-	antagonistFitness, protagonistFitness := 0, 0
+	antagonistFitness, protagonistFitness := 0.0, 0.0
 	switch e.generation.engine.Parameters.FitnessStrategy {
 	case FitnessProtagonistThresholdTally:
 		antagonistFitness, protagonistFitness, err = ProtagonistThresholdTally(e.generation.engine.Parameters.Spec,
-			e.protagonist.Program, e.generation.engine.Parameters.EvaluationThreshold,
-			e.generation.engine.Parameters.EvaluationMinThreshold)
+			e.protagonist.Program, e.generation.engine.Parameters.EvaluationThreshold)
+		if err != nil {
+			return err
+		}
+
+	case FitnessRatio:
+		antagonistFitness, protagonistFitness, err = RatioFitness(e.generation.engine.Parameters.Spec, e.antagonist.Program,
+			e.protagonist.Program)
+		if err != nil {
+			return err
+		}
+
+	case FitnessRatioThresholder:
+		antagonistFitness, protagonistFitness, err = RatioFitnessThresholded(e.generation.engine.Parameters.Spec,
+			e.generation.engine.Parameters.ThresholdMultiplier, e.antagonist.Program,
+			e.protagonist.Program)
 		if err != nil {
 			return err
 		}
 	}
 
-	e.antagonist.fitness = append(e.antagonist.fitness, antagonistFitness)
-	e.protagonist.fitness = append(e.protagonist.fitness, protagonistFitness)
+	e.antagonist.Fitness = append(e.antagonist.Fitness, antagonistFitness)
+	e.protagonist.Fitness = append(e.protagonist.Fitness, protagonistFitness)
 
 	return nil
 }
 
 // applyAntagonistStrategy applies the Antagonist strategies to program.
 func (e *Epoch) applyAntagonistStrategy() error {
-	for _, strategy := range e.antagonist.strategy {
+	for _, strategy := range e.antagonist.Strategy {
 		err := e.antagonist.Program.ApplyStrategy(strategy,
 			e.terminalSet,
 			e.nonTerminalSet,
@@ -147,17 +155,14 @@ func (e *Epoch) applyProtagonistStrategy(antagonistTree DualTree) error {
 	if e.protagonist == nil {
 		return fmt.Errorf("protagonist cannot be nil")
 	}
-	if e.protagonist.strategy == nil {
+	if e.protagonist.Strategy == nil {
 		return fmt.Errorf("protagonist stategy cannot be nil")
 	}
-	if len(e.protagonist.strategy) < 1 {
-		return fmt.Errorf("protagonist strategy cannot be empty")
+	if len(e.protagonist.Strategy) < 1 {
+		return fmt.Errorf("protagonist Strategy cannot be empty")
 	}
-	//if antagonistTree == nil {
-	//	return fmt.Errorf("applyProtagonistStrategy | antagonist supplied to protagonist is nil")
-	//}
 	if antagonistTree.root == nil {
-		return fmt.Errorf("applyProtagonistStrategy | antagonist supplied to protagonist has a nill root tree")
+		return fmt.Errorf("applyProtagonistStrategy | antagonist supplied to protagonist has a nill root Tree")
 	}
 	tree, err := antagonistTree.Clone()
 	if err != nil {
@@ -165,7 +170,7 @@ func (e *Epoch) applyProtagonistStrategy(antagonistTree DualTree) error {
 	}
 	e.protagonist.Program.T = &tree
 
-	for _, strategy := range e.protagonist.strategy {
+	for _, strategy := range e.protagonist.Strategy {
 		err := e.protagonist.Program.ApplyStrategy(strategy,
 			e.terminalSet,
 			e.nonTerminalSet,

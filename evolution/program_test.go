@@ -22,7 +22,17 @@ func TestProgram_Eval(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := tt.Program.Eval(tt.args)
+
+			expressionString, err := tt.Program.T.ToMathematicalString()
+			if tt.Program.T == nil && tt.wantErr {
+				t.Errorf("Program.Eval() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Program.Eval() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			got, err := tt.Program.Eval(tt.args, expressionString)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Program.Eval() error = %v, wantErr %v", err, tt.wantErr)
 				return

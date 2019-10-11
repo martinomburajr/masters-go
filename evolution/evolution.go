@@ -9,11 +9,11 @@ type EvolutionParams struct {
 	EnableParallelism                bool
 	survivorSelection                int
 	parentSelection                  int
-	ElitismPercentage                float32
-	ProgramEval                      func() float32
+	ElitismPercentage                float64
+	ProgramEval                      func() float64
 	MaxDepth                         int
 	DepthPenaltyStrategy             int
-	DepthPenaltyStrategyPenalization float32
+	DepthPenaltyStrategyPenalization float64
 	Threshold                        float64
 	MinThreshold                     float64
 	FitnessStrategy                  int
@@ -21,38 +21,45 @@ type EvolutionParams struct {
 	// EachPopulationSize represents the size of each protagonist or antagonist population.
 	// This value must be even otherwise pairwise operations such as crossover will fail
 	EachPopulationSize               int
-	ProbabilityOfRecombination       float32
-	ProbabilityOfMutation            float32
-	ProbabilityOfNonTerminalMutation float32
-	AntagonistMaxStrategies          int
+	ProbabilityOfRecombination       float64
+	ProbabilityOfMutation            float64
+	ProbabilityOfNonTerminalMutation float64
+
+	// ThresholdMultiplier is used when the FitnessRatioThreshold option is selected.
+	// It creates a threshold value based on the cumulative value of the dependent variable in the spec.
+	// It cannot be less than 1 as a value less than 1 would mean that the approximater functions would need to be
+	// better than the spec and that is not possible
+	ThresholdMultiplier float64
+
+	AntagonistMaxStrategies int
 	//AntagonistStrategyLength         int
 	ProtagonistMaxStrategies int
 	//ProtagonistStrategyLength        int
-	SurvivorPercentage float32
+	SurvivorPercentage float64
 	// Strategies is a list of available strategies for each individual.
 	// These can be randomly allocated to individuals and duplicates are expected.
 	//Strategies            []Strategy
 	DepthOfRandomNewTrees int
 	// StrategyLengthPenalty is the penalty given to strategies that exceed a given length
-	StrategyLengthPenalty float32
-	// StrategyLengthLimit is the maximum length a strategy can reach before being penalized
+	StrategyLengthPenalty float64
+	// StrategyLengthLimit is the maximum length a Strategy can reach before being penalized
 	StrategyLengthLimit int
 
-	// DeletionType pertains to the different kinds of deletion operations possible for a given tree.
+	// DeletionType pertains to the different kinds of deletion operations possible for a given Tree.
 	DeletionType int
 
-	// EnforceIndependentVariable ensures that during individual generation at the start of the evolution,
+	// EnforceIndependentVariable ensures that during individual Generation at the start of the evolution,
 	// independent variables are injected to the program meaning every program will at least have one independent
 	// variable e.g. X
 	EnforceIndependentVariable bool
 
 	// CrossoverPercentage pertains to the amount of genetic material crossed-over.
-	// This is a percentage represented as a float32. A value of 1 means all material is swapped.
+	// This is a percentage represented as a float64. A value of 1 means all material is swapped.
 	// A value of 0 means no material is swapped (which in effect are the same thing).
 	// Avoid 0 or 1 use values in between
-	CrossoverPercentage float32
+	CrossoverPercentage float64
 
-	//MaintainGeneTransferEquality pertains to a scenario where in the event of differing strategy lengths betweween
+	//MaintainGeneTransferEquality pertains to a scenario where in the event of differing Strategy lengths betweween
 	// two individuals, if N objects are to be swapped during crossover,
 	// then N objects will be swapped from both individuals.
 	// This prevents one individual receiving more genetic material from another individual and vice-versa
@@ -61,12 +68,11 @@ type EvolutionParams struct {
 	TerminalSet    SymbolicExpressionSet
 	NonTerminalSet SymbolicExpressionSet
 
-	EvaluationThreshold    float64
-	EvaluationMinThreshold float64
-	ParentSelection        int
-	StartIndividual        Program
-	Spec                   Spec
-	SurvivorSelection      int
+	EvaluationThreshold float64
+	ParentSelection     int
+	StartIndividual     Program
+	Spec                SpecMulti
+	SurvivorSelection   int
 
 	ProtagonistAvailableStrategies []Strategy
 	AntagonistAvailableStrategies  []Strategy
@@ -93,8 +99,6 @@ func (e *EvolutionEngine) Start() (EvolutionResult, error) {
 		return EvolutionResult{}, err
 	}
 
-	e.Generations = make([]*Generation, e.Parameters.Generations)
-
 	// Set First Generation - TODO Parallelize Individual Creation
 	genID := GenerateGenerationID(0)
 	gen0 := Generation{
@@ -106,12 +110,12 @@ func (e *EvolutionEngine) Start() (EvolutionResult, error) {
 	}
 	e.Generations[0] = &gen0
 
-	antagonists, err := e.Generations[0].GenerateRandomAntagonists("ANT")
+	antagonists, err := e.Generations[0].GenerateRandomIndividual("ANT", e.Parameters.StartIndividual)
 	if err != nil {
 		return EvolutionResult{}, err
 	}
 
-	protagonists, err := e.Generations[0].GenerateRandomProtagonists("PRO")
+	protagonists, err := e.Generations[0].GenerateRandomIndividual("PRO", e.Parameters.StartIndividual)
 	if err != nil {
 		return EvolutionResult{}, err
 	}
@@ -123,8 +127,14 @@ func (e *EvolutionEngine) Start() (EvolutionResult, error) {
 	e.Generations[0] = &gen0
 	for i := 0; i < e.Parameters.Generations-1; i++ {
 		//if i != e.Parameters.Generations-2 {
-		protagonistsCleanse := CleansePopulation(e.Generations[i].Protagonists, *e.Parameters.StartIndividual.T)
-		antagonistsCleanse := CleansePopulation(e.Generations[i].Antagonists, *e.Parameters.StartIndividual.T)
+		protagonistsCleanse, err := CleansePopulation(e.Generations[i].Protagonists, *e.Parameters.StartIndividual.T)
+		if err != nil {
+			return EvolutionResult{}, err
+		}
+		antagonistsCleanse, err := CleansePopulation(e.Generations[i].Antagonists, *e.Parameters.StartIndividual.T)
+		if err != nil {
+			return EvolutionResult{}, err
+		}
 
 		e.Generations[i].Protagonists = protagonistsCleanse
 		e.Generations[i].Antagonists = antagonistsCleanse
@@ -136,25 +146,17 @@ func (e *EvolutionEngine) Start() (EvolutionResult, error) {
 		e.Generations[i+1] = nextGeneration
 	}
 
+	// Sort individuals in all generations
+	for i := range e.Generations {
+		e.Generations[i].Protagonists = SortIndividuals(e.Generations[i].Protagonists)
+		e.Generations[i].Antagonists = SortIndividuals(e.Generations[i].Antagonists)
+	}
+
 	evolutionResult := EvolutionResult{}
 	_, err = evolutionResult.Analyze(e.Generations, 3)
 	if err != nil {
 		return EvolutionResult{}, err
 	}
-	fmt.Println("Top Protagonist Tree")
-	evolutionResult.TopProtagonist.result.Program.T.Print()
-	fmt.Printf("Protagonist Strategies: %#v\n", evolutionResult.TopProtagonist.result.strategy)
-	//log.Printf("Protagonist FitnessArr: %#v", evolutionResult.TopProtagonist.result.fitness)
-	fmt.Printf("Protagonist Total Fitnes: %d\n", evolutionResult.TopProtagonist.result.totalFitness)
-	fmt.Printf("Antagonist Fitness Average: %#v\n", evolutionResult.AntagonistAverageAcrossGenerations)
-
-	//topAntagonistTree := evolutionResult.TopAntagonist.tree
-	fmt.Println("Top Antagonist Tree")
-	evolutionResult.TopAntagonist.result.Program.T.Print()
-	fmt.Printf("Antagonist Strategies: %#v\n", evolutionResult.TopAntagonist.result.strategy)
-	//log.Printf("Antagonist FitnessArr: %#v", evolutionResult.TopAntagonist.result.fitness)
-	fmt.Printf("Antagonist Total Fitnes: %d\n", evolutionResult.TopAntagonist.result.totalFitness)
-	fmt.Printf("Antagonist Fitness Average: %#v\n", evolutionResult.AntagonistAverageAcrossGenerations)
 
 	return evolutionResult, nil
 }
@@ -171,13 +173,16 @@ func (e *EvolutionEngine) validate() error {
 		return fmt.Errorf("cannot SetEqualStrategyLength to true and EqualStrategiesLength less than 1")
 	}
 	if e.Parameters.StartIndividual.T == nil {
-		return fmt.Errorf("start individual cannot have a nil tree")
+		return fmt.Errorf("start individual cannot have a nil Tree")
 	}
 	if e.Parameters.Spec == nil {
 		return fmt.Errorf("spec cannot be nil")
 	}
 	if len(e.Parameters.Spec) < 1 {
 		return fmt.Errorf("spec cannot be empty")
+	}
+	if e.Parameters.FitnessStrategy == FitnessRatioThresholder && e.Parameters.ThresholdMultiplier < 1 {
+		return fmt.Errorf("ThresholdMultiplier cannot be less than 1")
 	}
 	//err := e.StartIndividual.Validate()
 	//if err != nil {

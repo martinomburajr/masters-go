@@ -12,31 +12,34 @@ const (
 )
 
 type Individual struct {
-	id                       string
-	strategy                 []Strategy
-	fitness                  []int
-	hasAppliedStrategy       bool
-	hasCalculatedFitness     bool
-	fitnessCalculationMethod int
-	kind                     int
-	age                      int
-	totalFitness             int
-	Program                  *Program
+	Id                       string
+	Strategy                 []Strategy
+	Fitness                  []float64
+	HasAppliedStrategy       bool
+	HasCalculatedFitness     bool
+	FitnessCalculationMethod int
+	Kind                     int
+	Age                      int
+	TotalFitness             float64
+	// BirthGen represents the generation where this individual was spawned
+	BirthGen int
+	Program  *Program
 }
 
 func (i Individual) Clone() (Individual, error) {
-	i.id = GenerateIndividualID("", i.kind)
-
-	programClone, err := i.Program.Clone()
-	if err != nil {
-		return Individual{}, err
+	i.Id = GenerateIndividualID("", i.Kind)
+	if i.Program != nil {
+		programClone, err := i.Program.Clone()
+		if err != nil {
+			return Individual{}, err
+		}
+		i.Program = &programClone
 	}
-	i.Program = &programClone
 	return i, nil
 }
 
 func (i Individual) CloneWithTree(tree DualTree) Individual {
-	i.id = GenerateIndividualID("", i.kind)
+	i.Id = GenerateIndividualID("", i.Kind)
 
 	programClone := i.Program.CloneWithTree(tree)
 	i.Program = &programClone
@@ -50,20 +53,20 @@ type Protagonist Individual
 func Crossover(individual Individual, individual2 Individual, params EvolutionParams) (Individual, Individual,
 	error) {
 
-	if individual.id == "" {
-		return Individual{}, Individual{}, fmt.Errorf("crossover | individual1 - individual id cannot be empty")
+	if individual.Id == "" {
+		return Individual{}, Individual{}, fmt.Errorf("crossover | individual1 - individual Id cannot be empty")
 	}
-	if individual.strategy == nil {
-		return Individual{}, Individual{}, fmt.Errorf("crossover | individual1 - strategy array cannot be nil")
+	if individual.Strategy == nil {
+		return Individual{}, Individual{}, fmt.Errorf("crossover | individual1 - Strategy array cannot be nil")
 	}
-	if len(individual.strategy) == 0 {
-		return Individual{}, Individual{}, fmt.Errorf("crossover | individual1 - strategy array cannot be empty")
+	if len(individual.Strategy) == 0 {
+		return Individual{}, Individual{}, fmt.Errorf("crossover | individual1 - Strategy array cannot be empty")
 	}
-	if individual.hasCalculatedFitness == false {
-		return Individual{}, Individual{}, fmt.Errorf("crossover | individual1 - hasCalculatedFitness should be true")
+	if individual.HasCalculatedFitness == false {
+		return Individual{}, Individual{}, fmt.Errorf("crossover | individual1 - HasCalculatedFitness should be true")
 	}
-	if individual.hasAppliedStrategy == false {
-		return Individual{}, Individual{}, fmt.Errorf("crossover | individual1 - hasAppliedStrategy should be true")
+	if individual.HasAppliedStrategy == false {
+		return Individual{}, Individual{}, fmt.Errorf("crossover | individual1 - HasAppliedStrategy should be true")
 	}
 	if individual.Program == nil {
 		return Individual{}, Individual{}, fmt.Errorf("crossover | individual1 - program cannot be nil")
@@ -71,20 +74,20 @@ func Crossover(individual Individual, individual2 Individual, params EvolutionPa
 	if individual.Program.T == nil {
 		return Individual{}, Individual{}, fmt.Errorf("crossover | individual1 - program Tree cannot be nil")
 	}
-	if individual2.id == "" {
-		return Individual{}, Individual{}, fmt.Errorf("crossover | individual2 - individual id cannot be empty")
+	if individual2.Id == "" {
+		return Individual{}, Individual{}, fmt.Errorf("crossover | individual2 - individual Id cannot be empty")
 	}
-	if individual2.strategy == nil {
-		return Individual{}, Individual{}, fmt.Errorf("crossover | individual2 - strategy array cannot be nil")
+	if individual2.Strategy == nil {
+		return Individual{}, Individual{}, fmt.Errorf("crossover | individual2 - Strategy array cannot be nil")
 	}
-	if len(individual2.strategy) == 0 {
-		return Individual{}, Individual{}, fmt.Errorf("crossover | individual2 - strategy array cannot be empty")
+	if len(individual2.Strategy) == 0 {
+		return Individual{}, Individual{}, fmt.Errorf("crossover | individual2 - Strategy array cannot be empty")
 	}
-	if individual2.hasCalculatedFitness == false {
-		return Individual{}, Individual{}, fmt.Errorf("crossover | individual2 - hasCalculatedFitness should be true")
+	if individual2.HasCalculatedFitness == false {
+		return Individual{}, Individual{}, fmt.Errorf("crossover | individual2 - HasCalculatedFitness should be true")
 	}
-	if individual2.hasAppliedStrategy == false {
-		return Individual{}, Individual{}, fmt.Errorf("crossover | individual2 - hasAppliedStrategy should be true")
+	if individual2.HasAppliedStrategy == false {
+		return Individual{}, Individual{}, fmt.Errorf("crossover | individual2 - HasAppliedStrategy should be true")
 	}
 	if individual2.Program == nil {
 		return Individual{}, Individual{}, fmt.Errorf("crossover | individual2 - program cannot be nil")
@@ -96,8 +99,8 @@ func Crossover(individual Individual, individual2 Individual, params EvolutionPa
 		return Individual{}, Individual{}, fmt.Errorf("crossover | params.StrategyLengthLimit must be greater than 0")
 	}
 
-	individual1Len := len(individual.strategy)
-	individual2Len := len(individual2.strategy)
+	individual1Len := len(individual.Strategy)
+	individual2Len := len(individual2.Strategy)
 
 	child1, err := individual.Clone()
 	if err != nil {
@@ -117,42 +120,44 @@ func Crossover(individual Individual, individual2 Individual, params EvolutionPa
 	}
 
 	individual1ChunkSize := int(math.Ceil(float64(individual1Len) * float64(crossoverPercentage)))
-	individual2ChunkSize := int(float32(individual2Len) * crossoverPercentage)
+	individual2ChunkSize := int(float64(individual2Len) * crossoverPercentage)
 
-	if individual1ChunkSize >= individual1ChunkSize {
-		//if params.MaintainCrossoverGeneTransferEquality {
-
-		var ind1StartIndex int
-		if individual1Len == individual1ChunkSize {
-			ind1StartIndex = 0
+	if individual1ChunkSize >= individual2ChunkSize {
+		if params.MaintainCrossoverGeneTransferEquality {
+			var ind1StartIndex int
+			if individual1Len == individual1ChunkSize {
+				ind1StartIndex = 0
+			} else {
+				ind1StartIndex = rand.Intn((individual1Len + 1) - individual1ChunkSize)
+			}
+			c1, c2 := StrategySwapper(individual.Strategy, individual2.Strategy, individual1ChunkSize, ind1StartIndex)
+			child1.Strategy = c1
+			child2.Strategy = c2
+			return child1, child2, nil
 		} else {
-			ind1StartIndex = rand.Intn(individual1Len + 1 - individual1ChunkSize)
+
 		}
-		c1, c2 := StrategySwapper(individual.strategy, individual2.strategy, individual1ChunkSize, ind1StartIndex)
-		child1.strategy = c1
-		child2.strategy = c2
-		return child1, child2, nil
-		//} else {
-		//
-		//}
 	} else {
-
-		var ind2StartIndex int
-		if individual2Len == individual2ChunkSize {
-			ind2StartIndex = 0
+		if params.MaintainCrossoverGeneTransferEquality {
+			var ind2StartIndex int
+			if individual2Len == individual2ChunkSize {
+				ind2StartIndex = 0
+			} else {
+				ind2StartIndex = rand.Intn(individual1Len + 1 - individual1ChunkSize)
+			}
+			c1, c2 := StrategySwapper(individual.Strategy, individual2.Strategy, individual1ChunkSize, ind2StartIndex)
+			child1.Strategy = c1
+			child2.Strategy = c2
+			return child1, child2, nil
 		} else {
-			ind2StartIndex = rand.Intn(individual1Len + 1 - individual1ChunkSize)
+
 		}
-		c1, c2 := StrategySwapper(individual.strategy, individual2.strategy, individual1ChunkSize, ind2StartIndex)
-		child1.strategy = c1
-		child2.strategy = c2
-		return child1, child2, nil
 	}
 
 	//ind1Copy := make([]Strategy, individual1Len)
-	//copy(ind1Copy, individual.strategy)
+	//copy(ind1Copy, individual.Strategy)
 	//ind2Copy := make([]Strategy, individual2Len)
-	//copy(ind2Copy, individual2.strategy)
+	//copy(ind2Copy, individual2.Strategy)
 	//
 	//if individual1Len <= individual2Len {
 	//	individual1ChunkSize := int(math.Ceil(float64(individual1Len) * float64(crossoverPercentage)))
@@ -168,8 +173,8 @@ func Crossover(individual Individual, individual2 Individual, params EvolutionPa
 	//		ind2StartIndex := rand.Intn(individual2Len+1 - individual1ChunkSize)
 	//
 	//		for i := 0; i < individual1ChunkSize; i++ {
-	//			child2.strategy[ind2StartIndex+i] = ind1Copy[ind1StartIndex+i]
-	//			child1.strategy[ind1StartIndex+i] = ind2Copy[ind2StartIndex+i]
+	//			child2.Strategy[ind2StartIndex+i] = ind1Copy[ind1StartIndex+i]
+	//			child1.Strategy[ind1StartIndex+i] = ind2Copy[ind2StartIndex+i]
 	//		}
 	//	} else {
 	//		individual2ChunkSize := int(float32(individual2Len) * crossoverPercentage)
@@ -182,19 +187,19 @@ func Crossover(individual Individual, individual2 Individual, params EvolutionPa
 	//		ind1Chunk := make([]Strategy, individual1ChunkSize)
 	//		ind2Chunk := make([]Strategy, individual2ChunkSize)
 	//		for i := 0; i < individual1ChunkSize; i++ {
-	//			ind1Chunk[i] = child1.strategy[ind1StartIndex+i]
+	//			ind1Chunk[i] = child1.Strategy[ind1StartIndex+i]
 	//		}
-	//		child1.strategy = append(child1.strategy[:ind1StartIndex],
-	//			child1.strategy[:ind1EndIndex]...) // REMOVE ITEMS COPIED TO CHUNK
+	//		child1.Strategy = append(child1.Strategy[:ind1StartIndex],
+	//			child1.Strategy[:ind1EndIndex]...) // REMOVE ITEMS COPIED TO CHUNK
 	//		for i := 0; i < individual2ChunkSize; i++ {
-	//			ind2Chunk[i] = child2.strategy[ind2StartIndex+i]
+	//			ind2Chunk[i] = child2.Strategy[ind2StartIndex+i]
 	//		}
-	//		child2.strategy = append(child2.strategy[:ind2StartIndex], child2.strategy[:ind2EndIndex]...) // REMOVE ITEMS COPIED TO CHUNK
+	//		child2.Strategy = append(child2.Strategy[:ind2StartIndex], child2.Strategy[:ind2EndIndex]...) // REMOVE ITEMS COPIED TO CHUNK
 	//
-	//		child1.strategy = append(child1.strategy[:ind1StartIndex], append(child2.strategy,
-	//			child1.strategy[ind1StartIndex:]...)...) // INSERT TO CHILD1
-	//		child2.strategy = append(child2.strategy[:ind2StartIndex], append(child1.strategy,
-	//			child2.strategy[ind2StartIndex:]...)...)
+	//		child1.Strategy = append(child1.Strategy[:ind1StartIndex], append(child2.Strategy,
+	//			child1.Strategy[ind1StartIndex:]...)...) // INSERT TO CHILD1
+	//		child2.Strategy = append(child2.Strategy[:ind2StartIndex], append(child1.Strategy,
+	//			child2.Strategy[ind2StartIndex:]...)...)
 	//		log.Print()
 	//	}
 	//} else {
@@ -211,8 +216,8 @@ func Crossover(individual Individual, individual2 Individual, params EvolutionPa
 	//		ind1StartIndex := rand.Intn(individual1Len+1 - individual2ChunkSize)
 	//
 	//		for i := 0; i < individual2ChunkSize; i++ {
-	//			child1.strategy[ind1StartIndex+i] = ind1Copy[ind2StartIndex+i]
-	//			child2.strategy[ind2StartIndex+i] = ind2Copy[ind1StartIndex+i]
+	//			child1.Strategy[ind1StartIndex+i] = ind1Copy[ind2StartIndex+i]
+	//			child2.Strategy[ind2StartIndex+i] = ind2Copy[ind1StartIndex+i]
 	//		}
 	//	} else {
 	//		individual1ChunkSize := int(float32(individual1Len) * crossoverPercentage)
@@ -225,20 +230,20 @@ func Crossover(individual Individual, individual2 Individual, params EvolutionPa
 	//		ind2Chunk := make([]Strategy, individual2ChunkSize)
 	//		ind1Chunk := make([]Strategy, individual1ChunkSize)
 	//		for i := 0; i < individual2ChunkSize; i++ {
-	//			ind2Chunk[i] = child2.strategy[ind2StartIndex+i]
+	//			ind2Chunk[i] = child2.Strategy[ind2StartIndex+i]
 	//		}
-	//		child2.strategy = append(child2.strategy[:ind2StartIndex],
-	//			child2.strategy[:ind2EndIndex]...) // REMOVE ITEMS COPIED TO CHUNK
+	//		child2.Strategy = append(child2.Strategy[:ind2StartIndex],
+	//			child2.Strategy[:ind2EndIndex]...) // REMOVE ITEMS COPIED TO CHUNK
 	//		for i := 0; i < individual1ChunkSize; i++ {
-	//			ind1Chunk[i] = child1.strategy[ind1StartIndex+i]
+	//			ind1Chunk[i] = child1.Strategy[ind1StartIndex+i]
 	//		}
-	//		child1.strategy = append(child1.strategy[:ind1StartIndex],
-	//			child1.strategy[:ind1EndIndex]...) // REMOVE ITEMS COPIED TO CHUNK
+	//		child1.Strategy = append(child1.Strategy[:ind1StartIndex],
+	//			child1.Strategy[:ind1EndIndex]...) // REMOVE ITEMS COPIED TO CHUNK
 	//
-	//		child2.strategy = append(child2.strategy[:ind2StartIndex], append(child1.strategy,
-	//			child2.strategy[ind2StartIndex:]...)...) // INSERT TO CHILD1
-	//		child1.strategy = append(child1.strategy[:ind1StartIndex], append(child2.strategy,
-	//			child1.strategy[ind1StartIndex:]...)...)
+	//		child2.Strategy = append(child2.Strategy[:ind2StartIndex], append(child1.Strategy,
+	//			child2.Strategy[ind2StartIndex:]...)...) // INSERT TO CHILD1
+	//		child1.Strategy = append(child1.Strategy[:ind1StartIndex], append(child2.Strategy,
+	//			child1.Strategy[ind1StartIndex:]...)...)
 	//	}
 	//}
 	return child1, child2, err
@@ -371,22 +376,22 @@ func StrategySwapperIgnorant(a []Strategy, b []Strategy, swapLength int, startIn
 	return aCopy, bCopy
 }
 
-// Mutate will mutate the strategy in a given individual
+// Mutate will mutate the Strategy in a given individual
 func (i *Individual) Mutate(availableStrategies []Strategy) error {
 	if availableStrategies == nil {
 		return fmt.Errorf("Mutate | availableStrategies param cannot be nil")
 	}
-	if i.strategy == nil {
+	if i.Strategy == nil {
 		return fmt.Errorf("Mutate | individual's strategies cannot be nil")
 	}
-	if len(i.strategy) < 1 {
+	if len(i.Strategy) < 1 {
 		return fmt.Errorf("Mutate | individual's strategies cannot empty")
 	}
 
-	randIndexToMutate := rand.Intn(len(i.strategy))
+	randIndexToMutate := rand.Intn(len(i.Strategy))
 
 	randIndexForStrategies := rand.Intn(len(availableStrategies))
-	i.strategy[randIndexToMutate] = availableStrategies[randIndexForStrategies]
+	i.Strategy[randIndexToMutate] = availableStrategies[randIndexForStrategies]
 	return nil
 }
 
@@ -394,86 +399,11 @@ func GenerateIndividualID(identifier string, individualKind int) string {
 	return fmt.Sprintf("%s-%s-%s%s", "individual", KindToString(individualKind), RandString(3), identifier)
 }
 
-func GenerateRandomIndividuals(number int, idTemplate string, kind int, strategyLength int,
-	maxNumberOfStrategies int, availableStrategies []Strategy, depth int, terminals SymbolicExpressionSet,
-	nonTerminals SymbolicExpressionSet, enforceIndependentVariable bool) ([]*Individual, error) {
-	if number < 1 {
-		return nil, fmt.Errorf("number should at least be 1")
-	}
-	if kind < 0 || kind > 1 {
-		return nil, fmt.Errorf("kind should be in bounds of [0,2)")
-	}
-	if strategyLength < 1 {
-		return nil, fmt.Errorf("strategyLength should at least be 1")
-	}
-	if maxNumberOfStrategies < 1 {
-		return nil, fmt.Errorf("maxNumberOfStrategies should at least be 1")
-	}
-	if availableStrategies == nil {
-		return nil, fmt.Errorf("availableStrategies cannot be nil")
-	}
-	if len(availableStrategies) < 1 {
-		return nil, fmt.Errorf("availableStrategies should at least have one strategy")
-	}
-	if idTemplate == "" {
-		return nil, fmt.Errorf("idTemplate cannot be empty")
-	}
-
-	individuals := make([]*Individual, number)
-
-	for i := 0; i < number; i++ {
-
-		numberOfStrategies := rand.Intn(maxNumberOfStrategies)
-		randomStrategies := GenerateRandomStrategy(numberOfStrategies, strategyLength, availableStrategies)
-		id := fmt.Sprintf("%s-%s-%d", KindToString(kind), "", i)
-
-		program := Program{}
-
-		programID := GenerateProgramID(i)
-		var tree *DualTree
-		var err error
-		var retry bool = true
-		if enforceIndependentVariable {
-			for retry {
-				tree, err = GenerateRandomTreeEnforceIndependentVariable(depth, terminals[0], terminals, nonTerminals)
-				if err != nil {
-
-				}
-				retry = false
-			}
-
-		} else {
-			for retry {
-				tree, err = GenerateRandomTree(depth, terminals, nonTerminals)
-				if err != nil {
-				}
-				retry = false
-			}
-		}
-
-		program.T = tree
-		program.ID = programID
-
-		individual := &Individual{
-			kind:     kind,
-			id:       id,
-			strategy: randomStrategies,
-			fitness:  make([]int, 0),
-			Program:  &program,
-		}
-		individuals[i] = individual
-	}
-	return individuals, nil
-}
-
-// GenerateRandomStrategy creates a random strategy list that contains some or all of the availableStrategies.
+// GenerateRandomStrategy creates a random Strategy list that contains some or all of the availableStrategies.
 // They are randomly selected and populated.
-func GenerateRandomStrategy(number int, strategyLength int, availableStrategies []Strategy) []Strategy {
+func GenerateRandomStrategy(number int, availableStrategies []Strategy) []Strategy {
 	if number < 1 {
 		number = 1
-	}
-	if strategyLength < 1 {
-		strategyLength = 1
 	}
 	if availableStrategies == nil || len(availableStrategies) < 1 {
 		return []Strategy{}
@@ -482,17 +412,14 @@ func GenerateRandomStrategy(number int, strategyLength int, availableStrategies 
 	strategies := make([]Strategy, number)
 
 	for i := 0; i < number; i++ {
-		for j := 0; j < strategyLength; j++ {
-
-			strategyIndex := rand.Intn(len(availableStrategies))
-			strategies[i] = availableStrategies[strategyIndex]
-		}
+		strategyIndex := rand.Intn(len(availableStrategies))
+		strategies[i] = availableStrategies[strategyIndex]
 	}
 
 	return strategies
 }
 
-// KindToString checks the kind and returns the appropriate string representation
+// KindToString checks the Kind and returns the appropriate string representation
 func KindToString(kind int) string {
 	switch kind {
 	case IndividualAntagonist:

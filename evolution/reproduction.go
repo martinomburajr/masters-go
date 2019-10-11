@@ -63,7 +63,7 @@ func CrossoverTree(individual1 *Individual, individual2 *Individual, maxDepth in
 
 	// Check Depths for Swap
 
-	// 1. If depths < 1 in case it is just a tree with only a root
+	// 1. If depths < 1 in case it is just a Tree with only a root
 	if cloneADepth < 1 {
 		nodeB, _, err := cloneBTree.RandomLeafAware()
 		if err != nil {
@@ -109,20 +109,20 @@ func CrossoverTree(individual1 *Individual, individual2 *Individual, maxDepth in
 		if shortestDepthA >= maxDepth {
 			// Penalize Parent
 			penalty := int(params.DepthPenaltyStrategyPenalization) * (shortestDepthA / maxDepth)
-			if individual1.hasCalculatedFitness {
-				return Individual{}, Individual{}, fmt.Errorf("cannot be penalized | fitness uncalculated")
+			if individual1.HasCalculatedFitness {
+				return Individual{}, Individual{}, fmt.Errorf("cannot be penalized | Fitness uncalculated")
 			}
-			individual1.totalFitness = individual1.totalFitness + int(penalty)
+			individual1.TotalFitness = individual1.TotalFitness + int(penalty)
 		}
 	}
 	if cloneBDepth > maxDepth {
 		if shortestDepthB >= maxDepth {
 			// Penalize Parent
 			penalty := int(params.DepthPenaltyStrategyPenalization) * (shortestDepthB / maxDepth)
-			if individual2.hasCalculatedFitness {
-				return Individual{}, Individual{}, fmt.Errorf("cannot be penalized | fitness uncalculated")
+			if individual2.HasCalculatedFitness {
+				return Individual{}, Individual{}, fmt.Errorf("cannot be penalized | Fitness uncalculated")
 			}
-			individual2.totalFitness = individual2.totalFitness + int(penalty)
+			individual2.TotalFitness = individual2.TotalFitness + int(penalty)
 		}
 	}
 
@@ -222,31 +222,31 @@ func depthPenaltyIgnore(maxDepth int, individual1Depth int, individual2Depth int
 }
 
 // depthPenaltyPenalization applies a penalty to an individual whose depth exceeds maxDepth.
-// Ensure that the individual has calculated its fitness
+// Ensure that the individual has calculated its Fitness
 func depthPenaltyPenalization(individual1 *Individual, individual2 *Individual, individual1Depth int,
 	individual2Depth int, maxDepth int,
-	penalization float32) (int, int, error) {
+	penalization float64) (int, int, error) {
 	if maxDepth < 0 {
 		maxDepth = 0
 	}
 	var individual1DepthRemainderFromMaX, individual2DepthRemainderFromMax int
 	if individual1Depth >= maxDepth {
-		if individual1.hasCalculatedFitness {
-			individual1.totalFitness = individual1.totalFitness + int(penalization)
+		if individual1.HasCalculatedFitness {
+			individual1.TotalFitness = individual1.TotalFitness + int(penalization)
 		} else {
-			return -1, -1, fmt.Errorf("crossover | depthPenalty | fitness of individual %s has not been calculated"+
-				" before crossover", individual1.id)
+			return -1, -1, fmt.Errorf("crossover | depthPenalty | Fitness of individual %s has not been calculated"+
+				" before crossover", individual1.Id)
 		}
 	} else {
 		individual1DepthRemainderFromMaX = maxDepth - individual1Depth
 	}
 
 	if individual2Depth >= maxDepth {
-		if individual2.hasCalculatedFitness {
-			individual2.totalFitness = individual2.totalFitness + int(penalization)
+		if individual2.HasCalculatedFitness {
+			individual2.TotalFitness = individual2.TotalFitness + int(penalization)
 		} else {
-			return -1, -1, fmt.Errorf("crossover | depthPenalty | fitness of individual %s has not been calculated"+
-				" before crossover", individual1.id)
+			return -1, -1, fmt.Errorf("crossover | depthPenalty | Fitness of individual %s has not been calculated"+
+				" before crossover", individual1.Id)
 		}
 	} else {
 		individual2DepthRemainderFromMax = maxDepth - individual2Depth
@@ -256,28 +256,28 @@ func depthPenaltyPenalization(individual1 *Individual, individual2 *Individual, 
 
 //func depthPenaltyTrim(individual1 *Individual, individual2 *Individual, individual1Depth int,
 //	individual2Depth int, maxDepth int,
-//	penalization float32)(int, int, error) {
+//	penalization float64)(int, int, error) {
 //	if maxDepth < 0 {
 //		maxDepth = 0
 //	}
 //	var individual1DepthRemainderFromMaX, individual2DepthRemainderFromMax int
 //	if individual1Depth >= maxDepth {
-//		if individual1.hasCalculatedFitness {
+//		if individual1.HasCalculatedFitness {
 //			individual1.
 //		}else {
-//			return -1, -1, fmt.Errorf("crossover | depthPenalty | fitness of individual %s has not been calculated" +
-//				" before crossover", individual1.id)
+//			return -1, -1, fmt.Errorf("crossover | depthPenalty | Fitness of individual %s has not been calculated" +
+//				" before crossover", individual1.Id)
 //		}
 //	}else {
 //		individual1DepthRemainderFromMaX = maxDepth - individual1Depth
 //	}
 //
 //	if individual2Depth >= maxDepth {
-//		if individual2.hasCalculatedFitness {
-//			individual2.totalFitness = individual2.totalFitness + int(penalization)
+//		if individual2.HasCalculatedFitness {
+//			individual2.TotalFitness = individual2.TotalFitness + int(penalization)
 //		}else {
-//			return -1, -1, fmt.Errorf("crossover | depthPenalty | fitness of individual %s has not been calculated" +
-//				" before crossover", individual1.id)
+//			return -1, -1, fmt.Errorf("crossover | depthPenalty | Fitness of individual %s has not been calculated" +
+//				" before crossover", individual1.Id)
 //		}
 //	}else {
 //		individual2DepthRemainderFromMax = maxDepth - individual2Depth
@@ -353,7 +353,7 @@ func depthPenaltyPenalization(individual1 *Individual, individual2 *Individual, 
 //	return Individual{}, Individual{}, err
 //}
 //if node == nil {
-//	return Individual{}, Individual{}, fmt.Errorf("crossover | failed to locate node in the tree it came from..." +
+//	return Individual{}, Individual{}, fmt.Errorf("crossover | failed to locate node in the Tree it came from..." +
 //		" weird error")
 //}
 //if parent == nil {
@@ -371,11 +371,11 @@ func depthPenaltyPenalization(individual1 *Individual, individual2 *Individual, 
 //	return Individual{}, Individual{}, err
 //}
 //if node2 == nil {
-//	return Individual{}, Individual{}, fmt.Errorf("crossover | failed to locate node in the tree it came from..." +
+//	return Individual{}, Individual{}, fmt.Errorf("crossover | failed to locate node in the Tree it came from..." +
 //		" weird error")
 //}
 //if parent2 == nil {
-//	return Individual{}, Individual{}, fmt.Errorf("crossover | failed to locate parent in the tree it came from.." +
+//	return Individual{}, Individual{}, fmt.Errorf("crossover | failed to locate parent in the Tree it came from.." +
 //		"." +
 //		" weird error")
 //}

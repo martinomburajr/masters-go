@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"math"
 	"sort"
+	"strconv"
+	"strings"
 )
 
 type EvolutionResult struct {
@@ -20,29 +22,26 @@ type EvolutionResult struct {
 	ProtagonistAverageAcrossGenerations []ResultInfo1DAveragesPerGeneration
 	AntagonistAverageAcrossGenerations  []ResultInfo1DAveragesPerGeneration
 
+	ProtagonistCumAcrossGenerations []ResultInfo1DAveragesPerGeneration
+	AntagonistCumAcrossGenerations  []ResultInfo1DAveragesPerGeneration
+
 	SortedProtagonistsPerGeneration ResultInfo2DPerGeneration
 	SortedAntagonistsPerGeneration  ResultInfo2DPerGeneration
 }
 
 type ResultInfo2DPerGeneration struct {
-	generation *Generation
-	result     []*Individual
+	Generation *Generation
+	Result     []*Individual
 }
 
 type ResultInfo1DPerGeneration struct {
-	generation *Generation
-	result     []*Individual
-}
-
-type ResultTopIndividuals struct {
-	generation *Generation
-	result     *Individual
-	tree       string
+	Generation *Generation
+	Result     []*Individual
 }
 
 type ResultInfo1DAveragesPerGeneration struct {
-	generation *Generation
-	result     float64
+	Generation *Generation
+	Result     float64
 }
 
 func CalcTopIndividual(individuals []*Individual) (*Individual, error) {
@@ -53,12 +52,12 @@ func CalcTopIndividual(individuals []*Individual) (*Individual, error) {
 		return nil, fmt.Errorf("CalcTopIndividual | Individuals cannot be empty")
 	}
 
-	fitness := math.MaxInt64
-	individual := &Individual{}
+	individual := &Individual{TotalFitness: math.MaxInt64}
 	for i := range individuals {
-		if individuals[i].totalFitness < fitness {
+		if individuals[i].TotalFitness <= individual.TotalFitness {
 			individual = individuals[i]
 		}
+
 	}
 	return individual, nil
 }
@@ -79,9 +78,8 @@ func CalcTopIndividualAllGenerations(generations []*Generation, individualKind i
 	}
 
 	topIndividual := ResultTopIndividuals{
-		generation: nil,
-		tree:       "",
-		result:     &Individual{totalFitness: math.MaxInt64},
+		Generation: nil,
+		Result:     &Individual{TotalFitness: math.MaxInt64},
 	}
 
 	if individualKind == IndividualAntagonist {
@@ -90,10 +88,10 @@ func CalcTopIndividualAllGenerations(generations []*Generation, individualKind i
 			if err != nil {
 				return ResultTopIndividuals{}, err
 			}
-			if individual.totalFitness < topIndividual.result.totalFitness {
-				topIndividual.result = individual
-				topIndividual.generation = generations[i]
-				topIndividual.tree = topIndividual.result.Program.T.ToString()
+			if individual.TotalFitness < topIndividual.Result.TotalFitness {
+				topIndividual.Result = individual
+				topIndividual.Generation = generations[i]
+				//topIndividual.Tree = topIndividual.Result.Program.T.ToString()
 			}
 		}
 
@@ -103,10 +101,10 @@ func CalcTopIndividualAllGenerations(generations []*Generation, individualKind i
 			if err != nil {
 				return ResultTopIndividuals{}, err
 			}
-			if individual.totalFitness < topIndividual.result.totalFitness {
-				topIndividual.result = individual
-				topIndividual.generation = generations[i]
-				topIndividual.tree = topIndividual.result.Program.T.ToString()
+			if individual.TotalFitness <= topIndividual.Result.TotalFitness {
+				topIndividual.Result = individual
+				topIndividual.Generation = generations[i]
+				//topIndividual.Tree = topIndividual.Result.Program.T.ToString()
 			}
 		}
 	}
@@ -117,10 +115,10 @@ func CalcTopIndividualAllGenerations(generations []*Generation, individualKind i
 func CalcGenerationalFitnessAverage(generations []*Generation,
 	individualKind int) ([]ResultInfo1DAveragesPerGeneration, error) {
 	if generations == nil {
-		return nil, fmt.Errorf("CalcTopIndividualAllGenerations | Generation cannot be nil")
+		return nil, fmt.Errorf("CalcGenerationalFitnessAverage | Generation cannot be nil")
 	}
 	if len(generations) < 1 {
-		return nil, fmt.Errorf("CalcTopIndividualAllGenerations | Generation cannot be empty")
+		return nil, fmt.Errorf("CalcGenerationalFitnessAverage | Generation cannot be empty")
 	}
 	if individualKind < 0 {
 		individualKind = 0
@@ -134,8 +132,8 @@ func CalcGenerationalFitnessAverage(generations []*Generation,
 		for i := range generations {
 			average := CalculateAverage(generations[i].Antagonists)
 			result[i] = ResultInfo1DAveragesPerGeneration{
-				result: average,
-				generation: generations[i],
+				Result:     average,
+				Generation: generations[i],
 			}
 		}
 
@@ -143,14 +141,50 @@ func CalcGenerationalFitnessAverage(generations []*Generation,
 		for i := range generations {
 			average := CalculateAverage(generations[i].Protagonists)
 			result[i] = ResultInfo1DAveragesPerGeneration{
-				result: average,
-				generation: generations[i],
+				Result:     average,
+				Generation: generations[i],
 			}
 		}
 	}
 	return result, nil
 }
 
+func CalcGenerationalFitnessCum(generations []*Generation,
+	individualKind int) ([]ResultInfo1DAveragesPerGeneration, error) {
+	if generations == nil {
+		return nil, fmt.Errorf("CalcGenerationalFitnessCum | Generation cannot be nil")
+	}
+	if len(generations) < 1 {
+		return nil, fmt.Errorf("CalcGenerationalFitnessCum | Generation cannot be empty")
+	}
+	if individualKind < 0 {
+		individualKind = 0
+	}
+	if individualKind > 1 {
+		individualKind = 1
+	}
+
+	result := make([]ResultInfo1DAveragesPerGeneration, len(generations))
+	if individualKind == IndividualAntagonist {
+		for i := range generations {
+			cum := CalculateCum(generations[i].Antagonists)
+			result[i] = ResultInfo1DAveragesPerGeneration{
+				Result:     cum,
+				Generation: generations[i],
+			}
+		}
+
+	} else {
+		for i := range generations {
+			cum := CalculateCum(generations[i].Protagonists)
+			result[i] = ResultInfo1DAveragesPerGeneration{
+				Result:     cum,
+				Generation: generations[i],
+			}
+		}
+	}
+	return result, nil
+}
 
 func CalcTopNIndividualAllGenerations(generations []*Generation, individualKind int,
 	topN int) ([]ResultInfo2DPerGeneration,
@@ -180,14 +214,14 @@ func CalcTopNIndividualAllGenerations(generations []*Generation, individualKind 
 	if individualKind == IndividualAntagonist {
 		for i := range generations {
 			sortIndividuals := SortIndividuals(generations[i].Antagonists)
-			resultInfo2DPerGenerations[i].generation = generations[i]
-			resultInfo2DPerGenerations[i].result = sortIndividuals[:topN]
+			resultInfo2DPerGenerations[i].Generation = generations[i]
+			resultInfo2DPerGenerations[i].Result = sortIndividuals[:topN]
 		}
 	} else {
 		for i := range generations {
 			sortIndividuals := SortIndividuals(generations[i].Protagonists)
-			resultInfo2DPerGenerations[i].generation = generations[i]
-			resultInfo2DPerGenerations[i].result = sortIndividuals[:topN]
+			resultInfo2DPerGenerations[i].Generation = generations[i]
+			resultInfo2DPerGenerations[i].Result = sortIndividuals[:topN]
 		}
 	}
 
@@ -196,10 +230,11 @@ func CalcTopNIndividualAllGenerations(generations []*Generation, individualKind 
 
 // SortIndividuals returns the Top N-1 individuals. In this application less is more,
 // so they are sorted in ascending order, with smaller indices representing better individuals.
-// It is for the user to specify the kind of individual to pass in be it antagonist or protagonist.
+// It is for the user to specify the Kind of individual to pass in be it antagonist or protagonist.
+// TODO CHECK NULL
 func SortIndividuals(individuals []*Individual) []*Individual {
 	sort.Slice(individuals, func(i, j int) bool {
-		return individuals[i].totalFitness < individuals[j].totalFitness
+		return individuals[i].TotalFitness < individuals[j].TotalFitness
 	})
 	return individuals
 }
@@ -207,12 +242,45 @@ func SortIndividuals(individuals []*Individual) []*Individual {
 func CalculateAverage(individuals []*Individual) float64 {
 	sum := 0
 	for i := range individuals {
-		sum += individuals[i].totalFitness
+		sum += individuals[i].TotalFitness
 	}
 	return float64(sum / len(individuals))
 }
 
+func CalculateCum(individuals []*Individual) float64 {
+	sum := 0
+	for i := range individuals {
+		sum += individuals[i].TotalFitness
+	}
+	return float64(sum)
+}
+
 func (e *EvolutionResult) Analyze(generations []*Generation, topN int) (EvolutionSummary, error) {
+
+	topAntagonistAllGenerations, err := CalcTopIndividualAllGenerations(generations, IndividualAntagonist)
+	if err != nil {
+		return EvolutionSummary{}, nil
+	}
+	e.TopAntagonist = topAntagonistAllGenerations
+
+	topProtagonistAllGenerations, err := CalcTopIndividualAllGenerations(generations, IndividualProtagonist)
+	if err != nil {
+		return EvolutionSummary{}, nil
+	}
+	e.TopProtagonist = topProtagonistAllGenerations
+
+	generationalAntagonistFitnessCum, err := CalcGenerationalFitnessCum(generations, IndividualAntagonist)
+	if err != nil {
+		return EvolutionSummary{}, nil
+	}
+	e.AntagonistCumAcrossGenerations = generationalAntagonistFitnessCum
+
+	generationalProtagonistFitnessCum, err := CalcGenerationalFitnessCum(generations, IndividualProtagonist)
+	if err != nil {
+		return EvolutionSummary{}, nil
+	}
+	e.ProtagonistCumAcrossGenerations = generationalProtagonistFitnessCum
+
 	averageAntagonists, err := CalcGenerationalFitnessAverage(generations, IndividualAntagonist)
 	if err != nil {
 		return EvolutionSummary{}, nil
@@ -236,129 +304,162 @@ func (e *EvolutionResult) Analyze(generations []*Generation, topN int) (Evolutio
 	}
 	e.TopNProtagonistsPerGeneration = topNProtagonistsAllGenerations
 
-	topAntagonistAllGenerations, err := CalcTopIndividualAllGenerations(generations, IndividualAntagonist)
-	if err != nil {
-		return EvolutionSummary{}, nil
-	}
-	e.TopAntagonist = topAntagonistAllGenerations
-
-	topProtagonistAllGenerations, err := CalcTopIndividualAllGenerations(generations, IndividualProtagonist)
-	if err != nil {
-		return EvolutionSummary{}, nil
-	}
-	e.TopProtagonist = topProtagonistAllGenerations
-
-	//if generations == nil {
-	//	return EvolutionSummary{}, fmt.Errorf("generations cannot be nil")
-	//}
-	//if len(generations) < 1 {
-	//	return EvolutionSummary{}, fmt.Errorf("generations cannot be empty")
-	//}
-	//
-	//e.TopAntagonist = ResultTopIndividuals{result: &Individual{totalFitness: math.MaxInt64}}
-	//e.TopProtagonist = ResultTopIndividuals{result: &Individual{totalFitness: math.MaxInt64}}
-	//
-	//e.TopAntagonistPerGeneration = ResultInfo1DPerGeneration{result: make([]*Individual, 0)}
-	//e.TopProtagonistsPerGeneration = ResultInfo1DPerGeneration{result: make([]*Individual, 0)}
-	//
-	//e.SortedAntagonistsPerGeneration = ResultInfo2DPerGeneration{result: make([][]*Individual, len(generations))}
-	//e.SortedProtagonistsPerGeneration = ResultInfo2DPerGeneration{result: make([][]*Individual, len(generations))}
-	//
-	//e.TopNAntagonistsPerGeneration = ResultInfo2DPerGeneration{result: make([][]*Individual, len(generations))}
-	//e.TopNProtagonistsPerGeneration = ResultInfo2DPerGeneration{result: make([][]*Individual, len(generations))}
-	//
-	//e.AntagonistAverageAcrossGenerations = ResultInfo1DAveragesPerGeneration{result: make([]float64, 0)}
-	//e.ProtagonistAverageAcrossGenerations = ResultInfo1DAveragesPerGeneration{result: make([]float64, 0)}
-	//
-	////wg := sync.WaitGroup{}
-	////wg.Add(2)
-	////go func() {
-	////	defer wg.Done()
-	//
-	//for i := range generations {
-	//	sortedAntagonistsInGeneration := SortIndividuals(generations[i].Antagonists)
-	//	averageAntagonists := CalculateAverage(generations[i].Antagonists)
-	//
-	//	// Handle Top Individual
-	//	if sortedAntagonistsInGeneration[0].totalFitness < e.TopAntagonist.result.totalFitness {
-	//		e.TopAntagonist.result = sortedAntagonistsInGeneration[0]
-	//		e.TopAntagonist.generation = generations[i]
-	//	}
-	//
-	//	// Handle Averages
-	//	e.AntagonistAverageAcrossGenerations.generation = generations[i]
-	//	e.AntagonistAverageAcrossGenerations.result = append(e.AntagonistAverageAcrossGenerations.result, averageAntagonists)
-	//
-	//	// Handle Top Individual in Generation
-	//	e.TopAntagonistPerGeneration.result = append(e.TopAntagonistPerGeneration.result, sortedAntagonistsInGeneration[0])
-	//	e.TopAntagonistPerGeneration.generation = generations[i]
-	//
-	//	// Handle Top N
-	//	if topN < 1 {
-	//		topN = 1
-	//	} else if topN > len(sortedAntagonistsInGeneration) {
-	//		topN = len(sortedAntagonistsInGeneration)
-	//	}
-	//
-	//	e.TopNAntagonistsPerGeneration.result[i] = make([]*Individual, 0)
-	//	e.TopNAntagonistsPerGeneration.result[i] = append(e.TopNAntagonistsPerGeneration.result[i],
-	//		sortedAntagonistsInGeneration[:topN]...)
-	//	e.TopNAntagonistsPerGeneration.generation = generations[i]
-	//
-	//	// Handle Sorted Individuals
-	//	//e.SortedAntagonistsPerGeneration.generation = generations[i]
-	//	//e.SortedAntagonistsPerGeneration.result[i] = make([]*Individual, len(generations[i].Antagonists))
-	//	//var individuals = e.SortedAntagonistsPerGeneration.result[i]
-	//	//e.SortedAntagonistsPerGeneration.result[i] = append(individuals, sortedAntagonistsInGeneration...)
-	//}
-	//e.TopAntagonist.tree = e.TopAntagonist.result.Program.T.ToString()
-	////}()
-	//
-	////go func() {
-	////	defer wg.Done()
-	//for i := range generations {
-	//	sortedProtagonistsInGeneration := SortIndividuals(generations[i].Protagonists)
-	//	averageProtagonists := CalculateAverage(generations[i].Protagonists)
-	//
-	//	// Handle Top Individual
-	//	if sortedProtagonistsInGeneration[0].totalFitness < e.TopProtagonist.result.totalFitness {
-	//		e.TopProtagonist.result = sortedProtagonistsInGeneration[0]
-	//		e.TopProtagonist.generation = generations[i]
-	//	}
-	//
-	//	// Handle Averages
-	//	e.ProtagonistAverageAcrossGenerations.generation = generations[i]
-	//	e.ProtagonistAverageAcrossGenerations.result = append(e.ProtagonistAverageAcrossGenerations.result, averageProtagonists)
-	//
-	//	// Handle Top Individual in Generation
-	//	e.TopProtagonistsPerGeneration.result = append(e.TopProtagonistsPerGeneration.result, sortedProtagonistsInGeneration[0])
-	//	e.TopProtagonistsPerGeneration.generation = generations[i]
-	//
-	//	// Handle Top N
-	//	if topN < 1 {
-	//		topN = 1
-	//	} else if topN > len(sortedProtagonistsInGeneration) {
-	//		topN = len(sortedProtagonistsInGeneration)
-	//	}
-	//	e.TopNProtagonistsPerGeneration.result[i] = make([]*Individual, 0)
-	//	e.TopNProtagonistsPerGeneration.result[i] = append(e.TopNProtagonistsPerGeneration.result[i],
-	//		sortedProtagonistsInGeneration[:topN]...)
-	//	e.TopNProtagonistsPerGeneration.generation = generations[i]
-	//
-	//	// Handle Sorted Individuals
-	//	//e.SortedProtagonistsPerGeneration.generation = generations[i]
-	//	//e.SortedProtagonistsPerGeneration.result[i] = make([]*Individual, len(generations[i].Protagonists))
-	//	//var individuals = e.SortedAntagonistsPerGeneration.result[i]
-	//	//e.SortedProtagonistsPerGeneration.result[i] = append(individuals, sortedProtagonistsInGeneration...)
-	//}
-	//e.TopProtagonist.tree = e.TopProtagonist.result.Program.T.ToString()
-	//}()
-	//wg.Done()
 	return EvolutionSummary{}, nil
 }
 
 type EvolutionSummary struct{}
 
-func (e *EvolutionSummary) PrintSummary() *Program {
-	return nil
+func (e *EvolutionResult) PrintAverageGenerationSummary() (strings.Builder, error) {
+	if e.ProtagonistAverageAcrossGenerations == nil {
+		return strings.Builder{},
+			fmt.Errorf("PrintAverageGenerationSummary | cannot format as protagonist average field is nil | Run" +
+				" analyze")
+	}
+	if e.AntagonistAverageAcrossGenerations == nil {
+		return strings.Builder{},
+			fmt.Errorf("PrintAverageGenerationSummary | cannot format as antagonist average field is nil | Run" +
+				" analyze")
+	}
+
+	sb := strings.Builder{}
+	sb.WriteString(fmt.Sprintf("" +
+		"####################################### AVERAGE ANTAGONISTS VS PROTAGONISTS PER GENERATION" +
+		" #####################################################\n\n"))
+	sb.WriteString("ANT | PRO\n")
+	for i := range e.AntagonistAverageAcrossGenerations {
+		res := e.AntagonistAverageAcrossGenerations[i].Result
+		resPro := e.ProtagonistAverageAcrossGenerations[i].Result
+		float := strconv.FormatFloat(res, 'g', 03, 64)
+		floatPro := strconv.FormatFloat(resPro, 'g', 03, 64)
+
+		gen := strconv.Itoa(i)
+		sb.WriteString("gen" + gen + ": " + float + " | " + floatPro + "\n")
+	}
+	sb.WriteString("\n")
+	return sb, nil
 }
+
+func (e *EvolutionResult) PrintCumGenerationSummary() (strings.Builder, error) {
+	if e.ProtagonistCumAcrossGenerations == nil {
+		return strings.Builder{},
+			fmt.Errorf("PrintCumGenerationSummary | cannot format as protagonist average field is nil | Run" +
+				" analyze")
+	}
+	if e.AntagonistCumAcrossGenerations == nil {
+		return strings.Builder{},
+			fmt.Errorf("PrintCumGenerationSummary | cannot format as antagonist average field is nil | Run" +
+				" analyze")
+	}
+
+	sb := strings.Builder{}
+	sb.WriteString(fmt.Sprintf("" +
+		"####################################### CUMULATIVE ANTAGONISTS VS PROTAGONISTS PER GENERATION" +
+		" #####################################################\n\n"))
+	sb.WriteString("ANT | PRO\n")
+	for i := range e.AntagonistCumAcrossGenerations {
+		res := e.AntagonistCumAcrossGenerations[i].Result
+		resPro := e.ProtagonistCumAcrossGenerations[i].Result
+		float := strconv.FormatFloat(res, 'g', 03, 64)
+		floatPro := strconv.FormatFloat(resPro, 'g', 03, 64)
+
+		gen := strconv.Itoa(i)
+		sb.WriteString("gen" + gen + ": " + float + " | " + floatPro + "\n")
+	}
+	sb.WriteString("\n")
+	return sb, nil
+}
+
+type ResultTopIndividuals struct {
+	Generation *Generation
+	Result     *Individual
+	Tree       string
+}
+
+func (e *EvolutionResult) PrintTopIndividualSummary(kind int) (strings.Builder, error) {
+	sb := strings.Builder{}
+	var name string
+	if kind == IndividualProtagonist {
+		if e.TopProtagonist.Result == nil {
+			return strings.Builder{},
+				fmt.Errorf("PrintTopIndividualSummary | cannot format as field is nil | Run analyze")
+		}
+		name = "PROTAGONIST"
+		sb.WriteString(fmt.Sprintf("################################# TOP %s IN ALL GENERATIONS"+
+			" #################################\n", name))
+		sb.WriteString(fmt.Sprintf("ID: %s\n", e.TopProtagonist.Result.Id))
+		sb.WriteString(fmt.Sprintf("GENERATION:  %s\n", e.TopProtagonist.Generation.GenerationID))
+		sb.WriteString(fmt.Sprintf("AGE:  %d\n", e.TopProtagonist.Result.Age))
+		sb.WriteString(fmt.Sprintf("FITNESS:  %d\n", e.TopProtagonist.Result.TotalFitness))
+
+		strategiesSummary := FormatStrategiesTotal(e.TopProtagonist.Result.Strategy)
+		sb.WriteString(fmt.Sprintf("Strategy Summary:\n%s\n", strategiesSummary.String()))
+
+		sb.WriteString("Tree Shape:\n")
+		treeBuilder := e.TopProtagonist.Result.Program.T.ToString()
+		sb.WriteString(treeBuilder.String())
+
+		mathematicalString, err := e.TopProtagonist.Result.Program.T.ToMathematicalString()
+		if err != nil {
+			return strings.Builder{}, err
+		}
+		sb.WriteString(fmt.Sprintf("Mathematical Expression: %s\n", mathematicalString))
+
+		strategiesList := FormatStrategiesList(e.TopProtagonist.Result.Strategy)
+		sb.WriteString(fmt.Sprintf("Strategy Summary:\n  %s\n", strategiesList.String()))
+	} else if kind == IndividualAntagonist {
+		if e.TopAntagonist.Result == nil {
+			return strings.Builder{},
+				fmt.Errorf("PrintTopIndividualSummary | cannot format as field is nil | Run analyze")
+		}
+		name = "ANTAGONIST"
+		sb.WriteString(fmt.Sprintf("################################# TOP %s IN ALL GENERATIONS"+
+			" #################################\n", name))
+		sb.WriteString(fmt.Sprintf("ID: %s\n", e.TopAntagonist.Result.Id))
+		sb.WriteString(fmt.Sprintf("GENERATION:  %s\n", e.TopAntagonist.Generation.GenerationID))
+		sb.WriteString(fmt.Sprintf("AGE:  %d\n", e.TopAntagonist.Result.Age))
+		sb.WriteString(fmt.Sprintf("FITNESS:  %d\n", e.TopAntagonist.Result.TotalFitness))
+
+		strategiesSummary := FormatStrategiesTotal(e.TopAntagonist.Result.Strategy)
+		sb.WriteString(fmt.Sprintf("Strategy Summary:\n%s\n", strategiesSummary.String()))
+
+		sb.WriteString("Tree Shape:\n")
+		treeBuilder := e.TopAntagonist.Result.Program.T.ToString()
+		sb.WriteString(treeBuilder.String())
+
+		mathematicalString, err := e.TopAntagonist.Result.Program.T.ToMathematicalString()
+		if err != nil {
+			return strings.Builder{}, err
+		}
+		sb.WriteString(fmt.Sprintf("Mathematical Expression: %s\n", mathematicalString))
+
+		strategiesList := FormatStrategiesList(e.TopAntagonist.Result.Strategy)
+		sb.WriteString(fmt.Sprintf("Strategy Summary:\n%s\n", strategiesList.String()))
+	}
+	return sb, nil
+}
+
+//func (e *EvolutionResult) PrintTopNIndividualSummary(kind int) (strings.Builder, error) {
+//	sb := strings.Builder{}
+//
+//	if kind == IndividualProtagonist {
+//		sb.WriteString("TopN Protagonists\n\n")
+//		for i, topNIndividual := range e.TopNProtagonistsPerGeneration {
+//			topIndividualSummary, err := e.PrintTopIndividualSummary(kind)
+//			if err != nil {
+//				return strings.Builder{}, fmt.Errorf("PrintTopIndividualSummary | %s", err.Error())
+//			}
+//			s := topIndividualSummary.String()
+//			sb.WriteString(fmt.Sprintf("Individual %d\n%s", i+1,s))
+//		}
+//	} else if kind == IndividualAntagonist {
+//		sb.WriteString("TopN Antagonists\n\n")
+//		for i, topNIndividual := range e.TopNAntagonistsPerGeneration {
+//			topIndividualSummary, err := topNIndividual  e.PrintTopIndividualSummary(kind)
+//			if err != nil {
+//				return strings.Builder{}, fmt.Errorf("PrintTopIndividualSummary | %s", err.Error())
+//			}
+//			s := topIndividualSummary.String()
+//			sb.WriteString(fmt.Sprintf("Individual %d\n%s", i+1,s))
+//		}
+//	}
+//}
