@@ -76,6 +76,7 @@ func Evolution1() {
 	// TODO Should threshold increase given spec
 	// TODO Should we pick most recent individual even if fitness is the same?
 	params := evolution.EvolutionParams{
+		VariableTerminals: variableTerminals,
 		Generations:                           50,
 		EachPopulationSize:                    4, // Must be an even number to prevent awkward ordering of children.
 		AntagonistMaxStrategies:               4,

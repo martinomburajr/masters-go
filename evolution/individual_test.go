@@ -553,13 +553,13 @@ func TestIndividual_CloneWithTree(t *testing.T) {
 	type fields struct {
 		Id                       string
 		Strategy                 []Strategy
-		Fitness                  []int
+		Fitness                  []float64
 		HasAppliedStrategy       bool
 		HasCalculatedFitness     bool
 		FitnessCalculationMethod int
 		Kind                     int
 		Age                      int
-		TotalFitness             int
+		TotalFitness             float64
 		Program                  *Program
 	}
 	type args struct {

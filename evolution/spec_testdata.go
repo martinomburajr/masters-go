@@ -2,11 +2,11 @@ package evolution
 
 // Spec0 x * 0 = y
 var Spec0 = SpecMulti{
-	EquationPairings{Independents:IndependentVariableMap{"x": 0}, Dependent:0},
-	EquationPairings{Independents:IndependentVariableMap{"x": 1}, Dependent:0},
-	EquationPairings{Independents:IndependentVariableMap{"x": 2}, Dependent:0},
-	EquationPairings{Independents:IndependentVariableMap{"x": 3}, Dependent:0},
-	EquationPairings{Independents:IndependentVariableMap{"x": 4}, Dependent:0},
+	EquationPairings{Independents: IndependentVariableMap{"x": 0}, Dependent: 0},
+	EquationPairings{Independents: IndependentVariableMap{"x": 1}, Dependent: 0},
+	EquationPairings{Independents: IndependentVariableMap{"x": 2}, Dependent: 0},
+	EquationPairings{Independents: IndependentVariableMap{"x": 3}, Dependent: 0},
+	EquationPairings{Independents: IndependentVariableMap{"x": 4}, Dependent: 0},
 }
 
 //// SpecX x = y

@@ -108,21 +108,21 @@ func CrossoverTree(individual1 *Individual, individual2 *Individual, maxDepth in
 	if cloneADepth > maxDepth {
 		if shortestDepthA >= maxDepth {
 			// Penalize Parent
-			penalty := int(params.DepthPenaltyStrategyPenalization) * (shortestDepthA / maxDepth)
+			penalty := float64(params.DepthPenaltyStrategyPenalization) * float64(shortestDepthA/maxDepth)
 			if individual1.HasCalculatedFitness {
 				return Individual{}, Individual{}, fmt.Errorf("cannot be penalized | Fitness uncalculated")
 			}
-			individual1.TotalFitness = individual1.TotalFitness + int(penalty)
+			individual1.TotalFitness = individual1.TotalFitness + penalty
 		}
 	}
 	if cloneBDepth > maxDepth {
 		if shortestDepthB >= maxDepth {
 			// Penalize Parent
-			penalty := int(params.DepthPenaltyStrategyPenalization) * (shortestDepthB / maxDepth)
+			penalty := float64(params.DepthPenaltyStrategyPenalization) * float64(shortestDepthB/maxDepth)
 			if individual2.HasCalculatedFitness {
 				return Individual{}, Individual{}, fmt.Errorf("cannot be penalized | Fitness uncalculated")
 			}
-			individual2.TotalFitness = individual2.TotalFitness + int(penalty)
+			individual2.TotalFitness = individual2.TotalFitness + penalty
 		}
 	}
 
@@ -178,30 +178,30 @@ func getRandomDepthTargetLocation(individual1DepthRemainderFromMaX int, individu
 
 // calculateRemainderDepths returns the remainders. It does no checking to ensure individuals are correct.
 // This has to be done by the user.
-func calculateRemainderDepths(individual1 *Individual, individual2 *Individual, maxDepth int,
-	params EvolutionParams) (int, int, error) {
-
-	individual1Depth, err := individual1.Program.T.Depth()
-	if err != nil {
-		return -1, -1, err
-	}
-
-	individual2Depth, err := individual2.Program.T.Depth()
-	if err != nil {
-		return -1, -1, err
-	}
-
-	if params.DepthPenaltyStrategy == DepthPenaltyStrategyIgnore {
-		i, i2 := depthPenaltyIgnore(maxDepth, individual1Depth, individual2Depth)
-		return i, i2, nil
-	}
-	if params.DepthPenaltyStrategy == DepthPenaltyStrategyPenalize {
-		return depthPenaltyPenalization(individual1, individual2, individual1Depth, individual2Depth, maxDepth,
-			params.DepthPenaltyStrategyPenalization)
-	}
-	i, i2 := depthPenaltyIgnore(maxDepth, individual1Depth, individual2Depth)
-	return i, i2, nil
-}
+//func calculateRemainderDepths(individual1 *Individual, individual2 *Individual, maxDepth int,
+//	params EvolutionParams) (int, int, error) {
+//
+//	individual1Depth, err := individual1.Program.T.Depth()
+//	if err != nil {
+//		return -1, -1, err
+//	}
+//
+//	individual2Depth, err := individual2.Program.T.Depth()
+//	if err != nil {
+//		return -1, -1, err
+//	}
+//
+//	if params.DepthPenaltyStrategy == DepthPenaltyStrategyIgnore {
+//		i, i2 := depthPenaltyIgnore(maxDepth, individual1Depth, individual2Depth)
+//		return i, i2, nil
+//	}
+//	if params.DepthPenaltyStrategy == DepthPenaltyStrategyPenalize {
+//		return depthPenaltyPenalization(individual1, individual2, individual1Depth, individual2Depth, maxDepth,
+//			params.DepthPenaltyStrategyPenalization)
+//	}
+//	i, i2 := depthPenaltyIgnore(maxDepth, individual1Depth, individual2Depth)
+//	return i, i2, nil
+//}
 
 func depthPenaltyIgnore(maxDepth int, individual1Depth int, individual2Depth int) (int, int) {
 	if maxDepth < 0 {
@@ -223,36 +223,36 @@ func depthPenaltyIgnore(maxDepth int, individual1Depth int, individual2Depth int
 
 // depthPenaltyPenalization applies a penalty to an individual whose depth exceeds maxDepth.
 // Ensure that the individual has calculated its Fitness
-func depthPenaltyPenalization(individual1 *Individual, individual2 *Individual, individual1Depth int,
-	individual2Depth int, maxDepth int,
-	penalization float64) (int, int, error) {
-	if maxDepth < 0 {
-		maxDepth = 0
-	}
-	var individual1DepthRemainderFromMaX, individual2DepthRemainderFromMax int
-	if individual1Depth >= maxDepth {
-		if individual1.HasCalculatedFitness {
-			individual1.TotalFitness = individual1.TotalFitness + int(penalization)
-		} else {
-			return -1, -1, fmt.Errorf("crossover | depthPenalty | Fitness of individual %s has not been calculated"+
-				" before crossover", individual1.Id)
-		}
-	} else {
-		individual1DepthRemainderFromMaX = maxDepth - individual1Depth
-	}
-
-	if individual2Depth >= maxDepth {
-		if individual2.HasCalculatedFitness {
-			individual2.TotalFitness = individual2.TotalFitness + int(penalization)
-		} else {
-			return -1, -1, fmt.Errorf("crossover | depthPenalty | Fitness of individual %s has not been calculated"+
-				" before crossover", individual1.Id)
-		}
-	} else {
-		individual2DepthRemainderFromMax = maxDepth - individual2Depth
-	}
-	return individual1DepthRemainderFromMaX, individual2DepthRemainderFromMax, nil
-}
+//func depthPenaltyPenalization(individual1 *Individual, individual2 *Individual, individual1Depth int,
+//	individual2Depth int, maxDepth int,
+//	penalization float64) (float64, float64, error) {
+//	if maxDepth < 0 {
+//		maxDepth = 0
+//	}
+//	var individual1DepthRemainderFromMaX, individual2DepthRemainderFromMax int
+//	if individual1Depth >= maxDepth {
+//		if individual1.HasCalculatedFitness {
+//			individual1.TotalFitness = individual1.TotalFitness + penalization
+//		} else {
+//			return -1, -1, fmt.Errorf("crossover | depthPenalty | Fitness of individual %s has not been calculated"+
+//				" before crossover", individual1.Id)
+//		}
+//	} else {
+//		individual1DepthRemainderFromMaX = maxDepth - individual1Depth
+//	}
+//
+//	if individual2Depth >= maxDepth {
+//		if individual2.HasCalculatedFitness {
+//			individual2.TotalFitness = individual2.TotalFitness + penalization
+//		} else {
+//			return -1, -1, fmt.Errorf("crossover | depthPenalty | Fitness of individual %s has not been calculated"+
+//				" before crossover", individual1.Id)
+//		}
+//	} else {
+//		individual2DepthRemainderFromMax = maxDepth - individual2Depth
+//	}
+//	return individual1DepthRemainderFromMaX, individual2DepthRemainderFromMax, nil
+//}
 
 //func depthPenaltyTrim(individual1 *Individual, individual2 *Individual, individual1Depth int,
 //	individual2Depth int, maxDepth int,

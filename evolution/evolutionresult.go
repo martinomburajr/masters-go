@@ -240,15 +240,15 @@ func SortIndividuals(individuals []*Individual) []*Individual {
 }
 
 func CalculateAverage(individuals []*Individual) float64 {
-	sum := 0
+	sum := 0.0
 	for i := range individuals {
 		sum += individuals[i].TotalFitness
 	}
-	return float64(sum / len(individuals))
+	return float64(sum / float64(len(individuals)))
 }
 
 func CalculateCum(individuals []*Individual) float64 {
-	sum := 0
+	sum := 0.0
 	for i := range individuals {
 		sum += individuals[i].TotalFitness
 	}
@@ -389,7 +389,7 @@ func (e *EvolutionResult) PrintTopIndividualSummary(kind int) (strings.Builder, 
 		sb.WriteString(fmt.Sprintf("ID: %s\n", e.TopProtagonist.Result.Id))
 		sb.WriteString(fmt.Sprintf("GENERATION:  %s\n", e.TopProtagonist.Generation.GenerationID))
 		sb.WriteString(fmt.Sprintf("AGE:  %d\n", e.TopProtagonist.Result.Age))
-		sb.WriteString(fmt.Sprintf("FITNESS:  %d\n", e.TopProtagonist.Result.TotalFitness))
+		sb.WriteString(fmt.Sprintf("FITNESS:  %f\n", e.TopProtagonist.Result.TotalFitness))
 
 		strategiesSummary := FormatStrategiesTotal(e.TopProtagonist.Result.Strategy)
 		sb.WriteString(fmt.Sprintf("Strategy Summary:\n%s\n", strategiesSummary.String()))
@@ -417,7 +417,7 @@ func (e *EvolutionResult) PrintTopIndividualSummary(kind int) (strings.Builder, 
 		sb.WriteString(fmt.Sprintf("ID: %s\n", e.TopAntagonist.Result.Id))
 		sb.WriteString(fmt.Sprintf("GENERATION:  %s\n", e.TopAntagonist.Generation.GenerationID))
 		sb.WriteString(fmt.Sprintf("AGE:  %d\n", e.TopAntagonist.Result.Age))
-		sb.WriteString(fmt.Sprintf("FITNESS:  %d\n", e.TopAntagonist.Result.TotalFitness))
+		sb.WriteString(fmt.Sprintf("FITNESS:  %f\n", e.TopAntagonist.Result.TotalFitness))
 
 		strategiesSummary := FormatStrategiesTotal(e.TopAntagonist.Result.Strategy)
 		sb.WriteString(fmt.Sprintf("Strategy Summary:\n%s\n", strategiesSummary.String()))
