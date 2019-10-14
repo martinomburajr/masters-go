@@ -2,6 +2,7 @@ package evolution
 
 import (
 	"fmt"
+	"github.com/martinomburajr/masters-go/utils"
 	"math"
 	"strings"
 )
@@ -31,107 +32,107 @@ type SpecMulti []EquationPairings
 // Example 2: ( x ) => x
 // Example 3: ( x ) * ( x ) => x ^ 2
 // Example 4: ( x ) + ( 2 ) => x + 2
+// This function should also work for multivariable elements. e.g. x+y+a+b=i where y,x,a,
+// b are all independent variables i.e non-constants)
 
-func GenerateSpec(mathematicalExpression string, count int, initialSeed int) (SpecMulti,
+// CAN ONLY DO TWO DIFFERENT VARIABLES
+
+func GenerateSpec(mathematicalExpression string, independentVars []string, count int, initialSeed int) (SpecMulti,
 	error) {
+
 	if mathematicalExpression == "" {
 		return nil, fmt.Errorf("GenerateSpec | cannot containe empty mathematical expression")
 	}
 	if count < 1 {
 		return nil, fmt.Errorf("GenerateSpec | count cannot be less than 0")
 	}
+	if count >= 5 {
+		count = 3
+	}
 	spec := make([]EquationPairings, count)
-	terminals, _, _, err := ParseStringLiberal(mathematicalExpression)
-	if err != nil {
-		return nil, err
-	}
 
-	for i := 0; i < count; i++ {
-		for j, s := range spec {
-			var x = map[string]float64{}
-			for _, terminal := range terminals {
-				x[terminal.value] = float64(initialSeed + i + j)
-				s.Independents = x
-				dependentVariable, err := EvaluateMathematicalExpression(mathematicalExpression, s.Independents)
-				if err != nil {
-					return nil, err
-				}
-				s.Dependent = dependentVariable
+	//1. Determine number of unique independent variables and kings of independent variables e.g. x, y
+	// pass in unique independent variables as a slice of strings? [OK]
+
+	// determine the number permutationsCount we can create count^independentVars.len
+
+	numVars := len(independentVars)
+	if independentVars == nil || numVars < 1 {
+		for i, _ := range spec {
+			dependentVariable, err := EvaluateMathematicalExpression(mathematicalExpression, nil)
+			if err != nil {
+				return nil, err
 			}
+			spec[i].Dependent = dependentVariable
 		}
+		return spec, nil
 	}
 
+	if numVars < 2 {
+		for i := range spec {
+			spec[i].Independents = map[string]float64{}
+			//for j := 0; j < count; j++ {
+			spec[i].Independents[independentVars[0]] = float64(i + initialSeed)
+			//}
+			dependentVariable, err := EvaluateMathematicalExpression(mathematicalExpression,
+				spec[i].Independents)
+			if err != nil {
+				return nil, err
+			}
+			spec[i].Dependent = dependentVariable
+		}
+		return spec, nil
+	}
+
+	g := make([]int, 0)
+	for i := 0; i < count; i++ {
+		g = append(g, i+initialSeed)
+	}
+
+	permutationsCount := int(math.Pow(float64(count), float64(numVars)))
+	spec = make([]EquationPairings, permutationsCount)
+	permutationsWithRepetitions := utils.PermutationsWithRepetitions(g)
+
+	for i := range spec {
+		spec[i].Independents = map[string]float64{}
+		for j := range independentVars {
+			spec[i].Independents[independentVars[j]] = float64(permutationsWithRepetitions[i][j])
+		}
+		dependentVariable, err := EvaluateMathematicalExpression(mathematicalExpression,
+			spec[i].Independents)
+		if err != nil {
+			return nil, err
+		}
+		spec[i].Dependent = dependentVariable
+	}
 	return spec, nil
 }
 
-// fillMap takes in a set of terminals and runs through various permutations to ensure each independent variable is
-// populated with an item. A count of 0 or 1 will simply initialize the return value to ensure all the independent
-// variables start off at the seed
-func fillMap(terminals []SymbolicExpression, count int, seed float64) ([]map[string]float64, error) {
-	// require
-	if terminals == nil {
-		return nil, fmt.Errorf("terminals cannot be nil")
+// GenerateSpecSimple assumes a single independent variable x with an unlimited count.
+func GenerateSpecSimple(mathematicalExpression string, count int, initialSeed int) (SpecMulti,
+	error) {
+
+	if mathematicalExpression == "" {
+		return nil, fmt.Errorf("GenerateSpec | cannot containe empty mathematical expression")
 	}
-	if len(terminals) < 1 {
-		return nil, fmt.Errorf("terminals cannot be empty")
-	}
-	if count < 0 {
-		count = 0
-	}
-	if count > 5 {
-		count = 5
+	if count < 1 {
+		return nil, fmt.Errorf("GenerateSpec | count cannot be less than 0")
 	}
 
-	// do
-	x := map[string]float64{}
+	spec := make([]EquationPairings, count)
 
-	// initialize
-	for i := range terminals {
-		x[terminals[i].value] = seed
-	}
-
-	combinations := int(math.Pow(float64(count), float64(len(terminals))))
-	response := make([]map[string]float64, combinations)
-
-	if count == 0 {
-		response = append(response,  x)
-		return response, nil
-	}
-
-	noOfPerms := permutation(rangeSlice(int(seed), int(seed) + count))
-	return response, nil
-}
-
-
-func rangeSlice(start, stop int) []map[string]float64 {
-	if start > stop {
-		panic("Slice ends before it started")
-	}
-	xs := make([]int, stop-start)
-	for i := 0; i < len(xs); i++ {
-		xs[i] = i + 1 + start
-	}
-	return xs
-}
-
-func permutation(xs []int) (permuts [][]int) {
-	var rc func([]int, int)
-	rc = func(a []int, k int) {
-		if k == len(a) {
-			permuts = append(permuts, append([]int{}, a...))
-		} else {
-			for i := k; i < len(xs); i++ {
-				a[k], a[i] = a[i], a[k]
-				rc(a, k+1)
-				a[k], a[i] = a[i], a[k]
-			}
+	for i := range spec {
+		spec[i].Independents = map[string]float64{}
+		spec[i].Independents["x"] = float64(i + initialSeed)
+		dependentVariable, err := EvaluateMathematicalExpression(mathematicalExpression,
+			spec[i].Independents)
+		if err != nil {
+			return nil, err
 		}
+		spec[i].Dependent = dependentVariable
 	}
-	rc(xs, 0)
-
-	return permuts
+	return spec, nil
 }
-
 
 func (spec SpecMulti) ToString() string {
 	sb := strings.Builder{}

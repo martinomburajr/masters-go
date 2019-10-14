@@ -74,261 +74,261 @@ func TestGenerateRandomStrategy(t *testing.T) {
 //	}
 //}
 
-func TestCrossover(t *testing.T) {
-	type args struct {
-		individual  Individual
-		individual2 Individual
-		params      EvolutionParams
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    Individual
-		want1   Individual
-		wantErr bool
-	}{
-		//{"individual Id = empty", args{individual:Individual{}, individual2:Individual{}, params:EvolutionParams{}},
-		//	Individual{}, Individual{}, true},
-		//{"individual Strategy nil", args{individual:Individual{Id: GenerateProgramID(0)}, individual2:Individual{},
-		//	params:EvolutionParams{}},
-		//	Individual{}, Individual{}, true},
-		//{"individual Strategy empty", args{individual:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{}},
-		//	individual2:Individual{},
-		//	params:EvolutionParams{}},
-		//	Individual{}, Individual{}, true},
-		//{"individual has not calculated Fitness", args{individual:Individual{Id: GenerateProgramID(0),
-		//	Strategy: []Strategy{StrategyAddSubTree}}, individual2:Individual{},
-		//	params:EvolutionParams{}},
-		//	Individual{}, Individual{}, true},
-		//{"individual has not applied Strategy", args{individual:Individual{Id: GenerateProgramID(0),
-		//	Strategy: []Strategy{StrategyAddSubTree}, HasCalculatedFitness: true}, individual2:Individual{},
-		//	params:EvolutionParams{}},
-		//	Individual{}, Individual{}, true},
-		//{"individual has not applied Strategy", args{individual:Individual{Id: GenerateProgramID(0),
-		//	Strategy: []Strategy{StrategyAddSubTree}, HasCalculatedFitness: true, HasAppliedStrategy:true}, individual2:Individual{},
-		//	params:EvolutionParams{}},
-		//	Individual{}, Individual{}, true},
-		//{"individual nil PRogram", args{individual:Individual{Id: GenerateProgramID(0),
-		//	Strategy: []Strategy{StrategyAddSubTree}, HasCalculatedFitness: true, HasAppliedStrategy:true, Program:nil},
-		//	individual2:Individual{},
-		//	params:EvolutionParams{}},
-		//	Individual{}, Individual{}, true},
-		//{"individual nil Tree", args{individual:Individual{Id: GenerateProgramID(0),
-		//	Strategy: []Strategy{StrategyAddSubTree}, HasCalculatedFitness: true, HasAppliedStrategy:true,
-		//	Program:&ProgNil},
-		//	individual2:Individual{},
-		//	params:EvolutionParams{}},
-		//	Individual{}, Individual{}, true},
-		//
-		//{"individual2 Id = empty", args{individual:Individual{Id: GenerateProgramID(0),
-		//	Strategy: []Strategy{StrategyAddSubTree}, HasCalculatedFitness: true, HasAppliedStrategy:true,
-		//	Program:&Prog0}, individual2:Individual{},
-		//	params:EvolutionParams{}},
-		//	Individual{}, Individual{}, true},
-		//{"individual2 starategy = nil", args{individual:Individual{Id: GenerateProgramID(0),
-		//	Strategy: []Strategy{StrategyAddSubTree}, HasCalculatedFitness: true, HasAppliedStrategy:true,
-		//	Program:&Prog0},
-		//	individual2:Individual{Id: GenerateProgramID(0)},
-		//	params:EvolutionParams{}},
-		//	Individual{}, Individual{}, true},
-		//{"individual2 Strategy=empty", args{individual:Individual{Id: GenerateProgramID(0),
-		//	Strategy: []Strategy{StrategyAddSubTree}, HasCalculatedFitness: true, HasAppliedStrategy:true,
-		//	Program:&Prog0},
-		//	individual2:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{}},
-		//	params:EvolutionParams{}},
-		//	Individual{}, Individual{}, true},
-		//{"individual2 Strategy=empty", args{individual:Individual{Id: GenerateProgramID(0),
-		//	Strategy: []Strategy{StrategyAddSubTree}, HasCalculatedFitness: true, HasAppliedStrategy:true,
-		//	Program:&Prog0},
-		//	individual2:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyAddSubTree}},
-		//	params:EvolutionParams{}},
-		//	Individual{}, Individual{}, true},
-		//{"individual2 has not calculated Fitness", args{individual:Individual{Id: GenerateProgramID(0),
-		//	Strategy: []Strategy{StrategyAddSubTree}, HasCalculatedFitness: true, HasAppliedStrategy:true,
-		//	Program:&Prog0},
-		//	individual2:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyAddSubTree}},
-		//	params:EvolutionParams{}},
-		//	Individual{}, Individual{}, true},
-		//{"individual2 has not applied Strategy", args{individual:Individual{Id: GenerateProgramID(0),
-		//	Strategy: []Strategy{StrategyAddSubTree}, HasCalculatedFitness: true, HasAppliedStrategy:true,
-		//	Program:&Prog0},
-		//	individual2:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyAddSubTree},
-		//		HasCalculatedFitness:true},
-		//	params:EvolutionParams{}},
-		//	Individual{}, Individual{}, true},
-		//{"individual2 has not applied Strategy", args{individual:Individual{Id: GenerateProgramID(0),
-		//	Strategy: []Strategy{StrategyAddSubTree}, HasCalculatedFitness: true, HasAppliedStrategy:true,
-		//	Program:&Prog0},
-		//	individual2:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyAddSubTree},
-		//		HasCalculatedFitness:true},
-		//	params:EvolutionParams{}},
-		//	Individual{}, Individual{}, true},
-		//{"individual2 has not applied Strategy", args{individual:Individual{Id: GenerateProgramID(0),
-		//	Strategy: []Strategy{StrategyAddSubTree}, HasCalculatedFitness: true, HasAppliedStrategy:true,
-		//	Program:&Prog0},
-		//	individual2:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyAddSubTree},
-		//		HasCalculatedFitness:true},
-		//	params:EvolutionParams{}},
-		//	Individual{}, Individual{}, true},
-		//{"individual2 nil Program", args{individual:Individual{Id: GenerateProgramID(0),
-		//	Strategy: []Strategy{StrategyAddSubTree}, HasCalculatedFitness: true, HasAppliedStrategy:true,
-		//	Program:&Prog0},
-		//	individual2:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyAddSubTree},
-		//		HasCalculatedFitness:true, Program:&ProgNil},
-		//	params:EvolutionParams{}},
-		//	Individual{}, Individual{}, true},
-		//{"individual2 nil Tree", args{individual:Individual{Id: GenerateProgramID(0),
-		//	Strategy: []Strategy{StrategyAddSubTree}, HasCalculatedFitness: true, HasAppliedStrategy:true,
-		//	Program:&Prog0},
-		//	individual2:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyAddSubTree},
-		//		HasCalculatedFitness:true, Program:&Prog0},
-		//	params:EvolutionParams{}},
-		//	Individual{}, Individual{}, true},
-		//{"params Strategy length limit", args{individual:Individual{Id: GenerateProgramID(0),
-		//	Strategy: []Strategy{StrategyAddSubTree}, HasCalculatedFitness: true, HasAppliedStrategy:true,
-		//	Program:&Prog0},
-		//	individual2:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyAddSubTree},
-		//		HasCalculatedFitness:true, HasAppliedStrategy:true, Program:&Prog0},
-		//	params:EvolutionParams{StrategyLengthLimit: 0}},
-		//	Individual{}, Individual{}, true},
-
-		//	WORKING
-		//{"params Strategy length limit20", args{
-		//	individual:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyAddSubTree}, HasCalculatedFitness: true, HasAppliedStrategy:true,
-		//		Program:&Prog0},
-		//	individual2:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyDeleteSubTree}, HasCalculatedFitness:true,
-		//		HasAppliedStrategy:true, Program:&Prog0},
-		//	params:EvolutionParams{StrategyLengthLimit: 20}},
-		//	Individual{}, Individual{}, false},
-		//{"params Strategy length crossover% = 1", args{
-		//	individual:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyAddSubTree}, HasCalculatedFitness: true, HasAppliedStrategy:true,
-		//		Program:&Prog0},
-		//	individual2:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyDeleteSubTree}, HasCalculatedFitness:true,
-		//		HasAppliedStrategy:true, Program:&Prog0},
-		//	params:EvolutionParams{StrategyLengthLimit: 20, CrossoverPercentage:1}},
-		//	Individual{}, Individual{}, false},
-
-		//{"params Strategy length crossover% = 0.5", args{
-		//	individual:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyAddSubTree}, HasCalculatedFitness: true, HasAppliedStrategy:true,
-		//		Program:&Prog0},
-		//	individual2:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyDeleteSubTree}, HasCalculatedFitness:true,
-		//		HasAppliedStrategy:true, Program:&Prog0},
-		//	params:EvolutionParams{StrategyLengthLimit: 20, CrossoverPercentage:0.5,
-		//		MaintainCrossoverGeneTransferEquality:true}},
-		//	Individual{}, Individual{}, false},
-		//
-		//{"params Strategy length crossover% = 0.5", args{
-		//	individual:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyAddSubTree}, HasCalculatedFitness: true, HasAppliedStrategy:true,
-		//		Program:&Prog0},
-		//	individual2:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyDeleteSubTree, StrategyMutateNode},
-		//		HasCalculatedFitness:true,
-		//		HasAppliedStrategy:true, Program:&Prog0},
-		//	params:EvolutionParams{StrategyLengthLimit: 20, CrossoverPercentage:0.5,
-		//		MaintainCrossoverGeneTransferEquality:true}},
-		//	Individual{}, Individual{}, false},
-		//
-		//{"params Strategy length crossover% = 0.5", args{
-		//	individual:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyAddSubTree}, HasCalculatedFitness: true, HasAppliedStrategy:true,
-		//		Program:&Prog0},
-		//	individual2:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyDeleteSubTree,
-		//		StrategyMutateNode, StrategyDeleteMalicious, StrategySwapSubTree},
-		//		HasCalculatedFitness:true,
-		//		HasAppliedStrategy:true, Program:&Prog0},
-		//	params:EvolutionParams{StrategyLengthLimit: 20, CrossoverPercentage:0.5,
-		//		MaintainCrossoverGeneTransferEquality:true}},
-		//	Individual{}, Individual{}, false},
-		//
-		//
-		//{"params Strategy length crossover% = 0.5", args{
-		//	individual:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyAddSubTree, StrategySoftDeleteSubTree},
-		//		HasCalculatedFitness: true, HasAppliedStrategy:true,
-		//		Program:&Prog0},
-		//	individual2:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyDeleteSubTree,
-		//		StrategyMutateNode, StrategyDeleteMalicious, StrategySwapSubTree},
-		//		HasCalculatedFitness:true,
-		//		HasAppliedStrategy:true, Program:&Prog0},
-		//	params:EvolutionParams{StrategyLengthLimit: 20, CrossoverPercentage:0.5,
-		//		MaintainCrossoverGeneTransferEquality:true}},
-		//	Individual{}, Individual{}, false},
-
-		//{"params Strategy length crossover% = 0.5 | No Maintain Crossover Equality", args{
-		//	individual:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyAddSubTree, StrategySoftDeleteSubTree},
-		//		HasCalculatedFitness: true, HasAppliedStrategy:true,
-		//		Program:&Prog0},
-		//	individual2:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyDeleteSubTree,
-		//		StrategyMutateNode, StrategyDeleteMalicious, StrategySwapSubTree},
-		//		HasCalculatedFitness:true,
-		//		HasAppliedStrategy:true, Program:&Prog0},
-		//	params:EvolutionParams{StrategyLengthLimit: 20, CrossoverPercentage:0.5,
-		//		MaintainCrossoverGeneTransferEquality:false}},
-		//	Individual{}, Individual{}, false},
-		//
-		//{"params Strategy length crossover% = 0.5 | No Maintain Crossover Equality", args{
-		//	individual:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyAddSubTree,
-		//		StrategySoftDeleteSubTree, StrategyDeleteMalicious, StrategySwapSubTree},
-		//		HasCalculatedFitness: true, HasAppliedStrategy:true,
-		//		Program:&Prog0},
-		//	individual2:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyDeleteSubTree,
-		//		StrategyMutateNode},
-		//		HasCalculatedFitness:true,
-		//		HasAppliedStrategy:true, Program:&Prog0},
-		//	params:EvolutionParams{StrategyLengthLimit: 20, CrossoverPercentage:0.5,
-		//		MaintainCrossoverGeneTransferEquality:true}},
-		//	Individual{}, Individual{}, false},
-		//{"params Strategy length crossover% = 0.5 | No Maintain Crossover Equality", args{
-		//	individual:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyAddSubTree,
-		//		StrategySoftDeleteSubTree, StrategyDeleteMalicious, StrategySwapSubTree},
-		//		HasCalculatedFitness: true, HasAppliedStrategy:true,
-		//		Program:&Prog0},
-		//	individual2:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyDeleteSubTree},
-		//		HasCalculatedFitness:true,
-		//		HasAppliedStrategy:true, Program:&Prog0},
-		//	params:EvolutionParams{StrategyLengthLimit: 20, CrossoverPercentage:0.5,
-		//		MaintainCrossoverGeneTransferEquality:true}},
-		//	Individual{}, Individual{}, false},
-		//{"params Strategy length crossover% = 0.5 | No Maintain Crossover Equality", args{
-		//	individual:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyAddSubTree,
-		//		StrategySoftDeleteSubTree, StrategyDeleteMalicious, StrategySwapSubTree},
-		//		HasCalculatedFitness: true, HasAppliedStrategy:true,
-		//		Program:&Prog0},
-		//	individual2:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyDeleteSubTree,
-		//		StrategyMutateNode},
-		//		HasCalculatedFitness:true,
-		//		HasAppliedStrategy:true, Program:&Prog0},
-		//	params:EvolutionParams{StrategyLengthLimit: 20, CrossoverPercentage:0.5,
-		//		MaintainCrossoverGeneTransferEquality:false}},
-		//	Individual{}, Individual{}, false},
-		{"params Strategy length crossover% = 0.5 | No Maintain Crossover Equality", args{
-			individual: Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyAddSubTree,
-				StrategySoftDeleteSubTree, StrategyDeleteMalicious, StrategySwapSubTree},
-				HasCalculatedFitness: true, HasAppliedStrategy: true,
-				Program: &Prog0},
-			individual2: Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyDeleteSubTree,
-				StrategyMutateNode, StrategyDeleteMalicious, StrategySwapSubTree},
-				HasCalculatedFitness: true,
-				HasAppliedStrategy:   true, Program: &Prog0},
-			params: EvolutionParams{StrategyLengthLimit: 20, CrossoverPercentage: 0.5,
-				MaintainCrossoverGeneTransferEquality: false}},
-			Individual{}, Individual{}, false},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, got1, err := Crossover(tt.args.individual, tt.args.individual2, tt.args.params)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Crossover() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			got.Program.Fitness()
-			got1.Program.Fitness()
-			//if !reflect.DeepEqual(got, tt.want) {
-			//	t.Errorf("Crossover() got = %v, want %v", got, tt.want)
-			//}
-			//if !reflect.DeepEqual(got1, tt.want1) {
-			//	t.Errorf("Crossover() got1 = %v, want %v", got1, tt.want1)
-			//}
-		})
-	}
-}
+//func TestCrossover(t *testing.T) {
+//	type args struct {
+//		individual  Individual
+//		individual2 Individual
+//		params      EvolutionParams
+//	}
+//	tests := []struct {
+//		name    string
+//		args    args
+//		want    Individual
+//		want1   Individual
+//		wantErr bool
+//	}{
+//		//{"individual Id = empty", args{individual:Individual{}, individual2:Individual{}, params:EvolutionParams{}},
+//		//	Individual{}, Individual{}, true},
+//		//{"individual Strategy nil", args{individual:Individual{Id: GenerateProgramID(0)}, individual2:Individual{},
+//		//	params:EvolutionParams{}},
+//		//	Individual{}, Individual{}, true},
+//		//{"individual Strategy empty", args{individual:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{}},
+//		//	individual2:Individual{},
+//		//	params:EvolutionParams{}},
+//		//	Individual{}, Individual{}, true},
+//		//{"individual has not calculated Fitness", args{individual:Individual{Id: GenerateProgramID(0),
+//		//	Strategy: []Strategy{StrategyAddSubTree}}, individual2:Individual{},
+//		//	params:EvolutionParams{}},
+//		//	Individual{}, Individual{}, true},
+//		//{"individual has not applied Strategy", args{individual:Individual{Id: GenerateProgramID(0),
+//		//	Strategy: []Strategy{StrategyAddSubTree}, HasCalculatedFitness: true}, individual2:Individual{},
+//		//	params:EvolutionParams{}},
+//		//	Individual{}, Individual{}, true},
+//		//{"individual has not applied Strategy", args{individual:Individual{Id: GenerateProgramID(0),
+//		//	Strategy: []Strategy{StrategyAddSubTree}, HasCalculatedFitness: true, HasAppliedStrategy:true}, individual2:Individual{},
+//		//	params:EvolutionParams{}},
+//		//	Individual{}, Individual{}, true},
+//		//{"individual nil PRogram", args{individual:Individual{Id: GenerateProgramID(0),
+//		//	Strategy: []Strategy{StrategyAddSubTree}, HasCalculatedFitness: true, HasAppliedStrategy:true, Program:nil},
+//		//	individual2:Individual{},
+//		//	params:EvolutionParams{}},
+//		//	Individual{}, Individual{}, true},
+//		//{"individual nil Tree", args{individual:Individual{Id: GenerateProgramID(0),
+//		//	Strategy: []Strategy{StrategyAddSubTree}, HasCalculatedFitness: true, HasAppliedStrategy:true,
+//		//	Program:&ProgNil},
+//		//	individual2:Individual{},
+//		//	params:EvolutionParams{}},
+//		//	Individual{}, Individual{}, true},
+//		//
+//		//{"individual2 Id = empty", args{individual:Individual{Id: GenerateProgramID(0),
+//		//	Strategy: []Strategy{StrategyAddSubTree}, HasCalculatedFitness: true, HasAppliedStrategy:true,
+//		//	Program:&Prog0}, individual2:Individual{},
+//		//	params:EvolutionParams{}},
+//		//	Individual{}, Individual{}, true},
+//		//{"individual2 starategy = nil", args{individual:Individual{Id: GenerateProgramID(0),
+//		//	Strategy: []Strategy{StrategyAddSubTree}, HasCalculatedFitness: true, HasAppliedStrategy:true,
+//		//	Program:&Prog0},
+//		//	individual2:Individual{Id: GenerateProgramID(0)},
+//		//	params:EvolutionParams{}},
+//		//	Individual{}, Individual{}, true},
+//		//{"individual2 Strategy=empty", args{individual:Individual{Id: GenerateProgramID(0),
+//		//	Strategy: []Strategy{StrategyAddSubTree}, HasCalculatedFitness: true, HasAppliedStrategy:true,
+//		//	Program:&Prog0},
+//		//	individual2:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{}},
+//		//	params:EvolutionParams{}},
+//		//	Individual{}, Individual{}, true},
+//		//{"individual2 Strategy=empty", args{individual:Individual{Id: GenerateProgramID(0),
+//		//	Strategy: []Strategy{StrategyAddSubTree}, HasCalculatedFitness: true, HasAppliedStrategy:true,
+//		//	Program:&Prog0},
+//		//	individual2:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyAddSubTree}},
+//		//	params:EvolutionParams{}},
+//		//	Individual{}, Individual{}, true},
+//		//{"individual2 has not calculated Fitness", args{individual:Individual{Id: GenerateProgramID(0),
+//		//	Strategy: []Strategy{StrategyAddSubTree}, HasCalculatedFitness: true, HasAppliedStrategy:true,
+//		//	Program:&Prog0},
+//		//	individual2:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyAddSubTree}},
+//		//	params:EvolutionParams{}},
+//		//	Individual{}, Individual{}, true},
+//		//{"individual2 has not applied Strategy", args{individual:Individual{Id: GenerateProgramID(0),
+//		//	Strategy: []Strategy{StrategyAddSubTree}, HasCalculatedFitness: true, HasAppliedStrategy:true,
+//		//	Program:&Prog0},
+//		//	individual2:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyAddSubTree},
+//		//		HasCalculatedFitness:true},
+//		//	params:EvolutionParams{}},
+//		//	Individual{}, Individual{}, true},
+//		//{"individual2 has not applied Strategy", args{individual:Individual{Id: GenerateProgramID(0),
+//		//	Strategy: []Strategy{StrategyAddSubTree}, HasCalculatedFitness: true, HasAppliedStrategy:true,
+//		//	Program:&Prog0},
+//		//	individual2:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyAddSubTree},
+//		//		HasCalculatedFitness:true},
+//		//	params:EvolutionParams{}},
+//		//	Individual{}, Individual{}, true},
+//		//{"individual2 has not applied Strategy", args{individual:Individual{Id: GenerateProgramID(0),
+//		//	Strategy: []Strategy{StrategyAddSubTree}, HasCalculatedFitness: true, HasAppliedStrategy:true,
+//		//	Program:&Prog0},
+//		//	individual2:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyAddSubTree},
+//		//		HasCalculatedFitness:true},
+//		//	params:EvolutionParams{}},
+//		//	Individual{}, Individual{}, true},
+//		//{"individual2 nil Program", args{individual:Individual{Id: GenerateProgramID(0),
+//		//	Strategy: []Strategy{StrategyAddSubTree}, HasCalculatedFitness: true, HasAppliedStrategy:true,
+//		//	Program:&Prog0},
+//		//	individual2:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyAddSubTree},
+//		//		HasCalculatedFitness:true, Program:&ProgNil},
+//		//	params:EvolutionParams{}},
+//		//	Individual{}, Individual{}, true},
+//		//{"individual2 nil Tree", args{individual:Individual{Id: GenerateProgramID(0),
+//		//	Strategy: []Strategy{StrategyAddSubTree}, HasCalculatedFitness: true, HasAppliedStrategy:true,
+//		//	Program:&Prog0},
+//		//	individual2:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyAddSubTree},
+//		//		HasCalculatedFitness:true, Program:&Prog0},
+//		//	params:EvolutionParams{}},
+//		//	Individual{}, Individual{}, true},
+//		//{"params Strategy length limit", args{individual:Individual{Id: GenerateProgramID(0),
+//		//	Strategy: []Strategy{StrategyAddSubTree}, HasCalculatedFitness: true, HasAppliedStrategy:true,
+//		//	Program:&Prog0},
+//		//	individual2:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyAddSubTree},
+//		//		HasCalculatedFitness:true, HasAppliedStrategy:true, Program:&Prog0},
+//		//	params:EvolutionParams{StrategyLengthLimit: 0}},
+//		//	Individual{}, Individual{}, true},
+//
+//		//	WORKING
+//		//{"params Strategy length limit20", args{
+//		//	individual:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyAddSubTree}, HasCalculatedFitness: true, HasAppliedStrategy:true,
+//		//		Program:&Prog0},
+//		//	individual2:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyDeleteSubTree}, HasCalculatedFitness:true,
+//		//		HasAppliedStrategy:true, Program:&Prog0},
+//		//	params:EvolutionParams{StrategyLengthLimit: 20}},
+//		//	Individual{}, Individual{}, false},
+//		//{"params Strategy length crossover% = 1", args{
+//		//	individual:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyAddSubTree}, HasCalculatedFitness: true, HasAppliedStrategy:true,
+//		//		Program:&Prog0},
+//		//	individual2:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyDeleteSubTree}, HasCalculatedFitness:true,
+//		//		HasAppliedStrategy:true, Program:&Prog0},
+//		//	params:EvolutionParams{StrategyLengthLimit: 20, CrossoverPercentage:1}},
+//		//	Individual{}, Individual{}, false},
+//
+//		//{"params Strategy length crossover% = 0.5", args{
+//		//	individual:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyAddSubTree}, HasCalculatedFitness: true, HasAppliedStrategy:true,
+//		//		Program:&Prog0},
+//		//	individual2:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyDeleteSubTree}, HasCalculatedFitness:true,
+//		//		HasAppliedStrategy:true, Program:&Prog0},
+//		//	params:EvolutionParams{StrategyLengthLimit: 20, CrossoverPercentage:0.5,
+//		//		MaintainCrossoverGeneTransferEquality:true}},
+//		//	Individual{}, Individual{}, false},
+//		//
+//		//{"params Strategy length crossover% = 0.5", args{
+//		//	individual:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyAddSubTree}, HasCalculatedFitness: true, HasAppliedStrategy:true,
+//		//		Program:&Prog0},
+//		//	individual2:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyDeleteSubTree, StrategyMutateNode},
+//		//		HasCalculatedFitness:true,
+//		//		HasAppliedStrategy:true, Program:&Prog0},
+//		//	params:EvolutionParams{StrategyLengthLimit: 20, CrossoverPercentage:0.5,
+//		//		MaintainCrossoverGeneTransferEquality:true}},
+//		//	Individual{}, Individual{}, false},
+//		//
+//		//{"params Strategy length crossover% = 0.5", args{
+//		//	individual:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyAddSubTree}, HasCalculatedFitness: true, HasAppliedStrategy:true,
+//		//		Program:&Prog0},
+//		//	individual2:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyDeleteSubTree,
+//		//		StrategyMutateNode, StrategyDeleteMalicious, StrategySwapSubTree},
+//		//		HasCalculatedFitness:true,
+//		//		HasAppliedStrategy:true, Program:&Prog0},
+//		//	params:EvolutionParams{StrategyLengthLimit: 20, CrossoverPercentage:0.5,
+//		//		MaintainCrossoverGeneTransferEquality:true}},
+//		//	Individual{}, Individual{}, false},
+//		//
+//		//
+//		//{"params Strategy length crossover% = 0.5", args{
+//		//	individual:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyAddSubTree, StrategySoftDeleteSubTree},
+//		//		HasCalculatedFitness: true, HasAppliedStrategy:true,
+//		//		Program:&Prog0},
+//		//	individual2:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyDeleteSubTree,
+//		//		StrategyMutateNode, StrategyDeleteMalicious, StrategySwapSubTree},
+//		//		HasCalculatedFitness:true,
+//		//		HasAppliedStrategy:true, Program:&Prog0},
+//		//	params:EvolutionParams{StrategyLengthLimit: 20, CrossoverPercentage:0.5,
+//		//		MaintainCrossoverGeneTransferEquality:true}},
+//		//	Individual{}, Individual{}, false},
+//
+//		//{"params Strategy length crossover% = 0.5 | No Maintain Crossover Equality", args{
+//		//	individual:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyAddSubTree, StrategySoftDeleteSubTree},
+//		//		HasCalculatedFitness: true, HasAppliedStrategy:true,
+//		//		Program:&Prog0},
+//		//	individual2:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyDeleteSubTree,
+//		//		StrategyMutateNode, StrategyDeleteMalicious, StrategySwapSubTree},
+//		//		HasCalculatedFitness:true,
+//		//		HasAppliedStrategy:true, Program:&Prog0},
+//		//	params:EvolutionParams{StrategyLengthLimit: 20, CrossoverPercentage:0.5,
+//		//		MaintainCrossoverGeneTransferEquality:false}},
+//		//	Individual{}, Individual{}, false},
+//		//
+//		//{"params Strategy length crossover% = 0.5 | No Maintain Crossover Equality", args{
+//		//	individual:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyAddSubTree,
+//		//		StrategySoftDeleteSubTree, StrategyDeleteMalicious, StrategySwapSubTree},
+//		//		HasCalculatedFitness: true, HasAppliedStrategy:true,
+//		//		Program:&Prog0},
+//		//	individual2:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyDeleteSubTree,
+//		//		StrategyMutateNode},
+//		//		HasCalculatedFitness:true,
+//		//		HasAppliedStrategy:true, Program:&Prog0},
+//		//	params:EvolutionParams{StrategyLengthLimit: 20, CrossoverPercentage:0.5,
+//		//		MaintainCrossoverGeneTransferEquality:true}},
+//		//	Individual{}, Individual{}, false},
+//		//{"params Strategy length crossover% = 0.5 | No Maintain Crossover Equality", args{
+//		//	individual:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyAddSubTree,
+//		//		StrategySoftDeleteSubTree, StrategyDeleteMalicious, StrategySwapSubTree},
+//		//		HasCalculatedFitness: true, HasAppliedStrategy:true,
+//		//		Program:&Prog0},
+//		//	individual2:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyDeleteSubTree},
+//		//		HasCalculatedFitness:true,
+//		//		HasAppliedStrategy:true, Program:&Prog0},
+//		//	params:EvolutionParams{StrategyLengthLimit: 20, CrossoverPercentage:0.5,
+//		//		MaintainCrossoverGeneTransferEquality:true}},
+//		//	Individual{}, Individual{}, false},
+//		//{"params Strategy length crossover% = 0.5 | No Maintain Crossover Equality", args{
+//		//	individual:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyAddSubTree,
+//		//		StrategySoftDeleteSubTree, StrategyDeleteMalicious, StrategySwapSubTree},
+//		//		HasCalculatedFitness: true, HasAppliedStrategy:true,
+//		//		Program:&Prog0},
+//		//	individual2:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyDeleteSubTree,
+//		//		StrategyMutateNode},
+//		//		HasCalculatedFitness:true,
+//		//		HasAppliedStrategy:true, Program:&Prog0},
+//		//	params:EvolutionParams{StrategyLengthLimit: 20, CrossoverPercentage:0.5,
+//		//		MaintainCrossoverGeneTransferEquality:false}},
+//		//	Individual{}, Individual{}, false},
+//		{"params Strategy length crossover% = 0.5 | No Maintain Crossover Equality", args{
+//			individual: Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyAddSubTree,
+//				StrategySoftDeleteSubTree, StrategyDeleteMalicious, StrategySwapSubTree},
+//				HasCalculatedFitness: true, HasAppliedStrategy: true,
+//				Program: &Prog0},
+//			individual2: Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyDeleteSubTree,
+//				StrategyMutateNode, StrategyDeleteMalicious, StrategySwapSubTree},
+//				HasCalculatedFitness: true,
+//				HasAppliedStrategy:   true, Program: &Prog0},
+//			params: EvolutionParams{StrategyLengthLimit: 20, CrossoverPercentage: 0.5,
+//				MaintainCrossoverGeneTransferEquality: false}},
+//			Individual{}, Individual{}, false},
+//	}
+//	for _, tt := range tests {
+//		t.Run(tt.name, func(t *testing.T) {
+//			got, got1, err := Crossover(tt.args.individual, tt.args.individual2, tt.args.params)
+//			if (err != nil) != tt.wantErr {
+//				t.Errorf("Crossover() error = %v, wantErr %v", err, tt.wantErr)
+//				return
+//			}
+//			got.Program.Fitness()
+//			got1.Program.Fitness()
+//			//if !reflect.DeepEqual(got, tt.want) {
+//			//	t.Errorf("Crossover() got = %v, want %v", got, tt.want)
+//			//}
+//			//if !reflect.DeepEqual(got1, tt.want1) {
+//			//	t.Errorf("Crossover() got1 = %v, want %v", got1, tt.want1)
+//			//}
+//		})
+//	}
+//}
 
 func TestStrategySwapper(t *testing.T) {
 	type args struct {

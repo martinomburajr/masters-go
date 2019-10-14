@@ -1,5 +1,7 @@
 package evolution
 
+import "testing"
+
 //func TestProgram_Eval(t *testing.T) {
 //	tests := []struct {
 //		name    string
@@ -39,3 +41,50 @@ package evolution
 //		})
 //	}
 //}
+
+func TestEvaluateMathematicalExpression(t *testing.T) {
+	type args struct {
+		expressionString     string
+		independentVariables IndependentVariableMap
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    float64
+		wantErr bool
+	}{
+		{"nil", args{"", nil}, -1, true},
+		{"empty map", args{"x", map[string]float64{}}, -1, true},
+		{"x -> 0", args{"x", map[string]float64{"x": 0}}, 0, false},
+		{"x -> 0 | y -> 1", args{"x + y", map[string]float64{"x": 0, "y": 1}}, 1, false},
+		{"x -> 2 | y -> 3", args{"(x * y) * y", map[string]float64{"x": 2, "y": 3}}, 18, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := EvaluateMathematicalExpression(tt.args.expressionString, tt.args.independentVariables)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("EvaluateMathematicalExpression() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("EvaluateMathematicalExpression() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+var mathematicalExpression float64
+
+func BenchmarkEvaluateMathematicalExpression(b *testing.B) {
+	expression := "x*x+5*x+10"
+	varMap := map[string]float64{"x": 0}
+
+	for i := 0; i < b.N; i++ {
+		mathematicalExpression1, err := EvaluateMathematicalExpression(expression, varMap)
+		if err != nil {
+			b.Error(err)
+		}
+		mathematicalExpression = mathematicalExpression1
+	}
+	b.Log(mathematicalExpression)
+}

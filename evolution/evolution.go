@@ -82,7 +82,7 @@ type EvolutionParams struct {
 	// VariableTerminals represent all the potential variables that may appear.
 	// An effort is made to differentiate them from constants so that constants do not get overwritten as variables
 	// would when calculating the spec.
-	VariableTerminals              []SymbolicExpression
+	VariableTerminals []SymbolicExpression
 }
 
 const (

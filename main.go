@@ -25,8 +25,8 @@ func Evolution1() {
 	//starterTreeExpression := "( x ) * ( 5 )"
 	//expressionSet := []evolution.SymbolicExpression{evolution.X1, evolution.Mult, evolution.Const5}
 	//expressionSet := []evolution.SymbolicExpression{evolution.X1}
-	constants := []string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"}
-	variables := []string{"x", "y", "a", "b", "c", "d"}
+	constants := []string{"1", "2", "3", "4", "5", "6", "7", "8", "9"}
+	variables := []string{"x"}
 	operators := []string{"*", "+", "-"}
 
 	constantTerminals, err := evolution.GenerateTerminals(3, constants)
@@ -43,9 +43,17 @@ func Evolution1() {
 	}
 	terminals := append(variableTerminals, constantTerminals...)
 
-	_, _, mathematicalExpression, err := evolution.ParseString("x * 5", operators)
+	expression := "x * 5"
+
+	_, _, mathematicalExpression, err := evolution.ParseString(expression, operators, variables)
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	mathematicalExpression = []evolution.SymbolicExpression{
+		evolution.CreateTerminal("x"),
+		evolution.CreateBinaryNonTerminal("*"),
+		evolution.CreateTerminal("5"),
 	}
 
 	starterTree := evolution.DualTree{}
@@ -61,7 +69,7 @@ func Evolution1() {
 	startProgram := evolution.Program{
 		T: &starterTree,
 	}
-	spec, err := evolution.GenerateSpec(starterTreeAsMathematicalExpression, 10, 0)
+	spec, err := evolution.GenerateSpecSimple(expression, 10, 0)
 	if err != nil {
 		log.Fatalf("MAIN | failed to create a valid spec | %s", err.Error())
 	}
@@ -76,9 +84,9 @@ func Evolution1() {
 	// TODO Should threshold increase given spec
 	// TODO Should we pick most recent individual even if fitness is the same?
 	params := evolution.EvolutionParams{
-		VariableTerminals: variableTerminals,
+		VariableTerminals:                     variableTerminals,
 		Generations:                           50,
-		EachPopulationSize:                    4, // Must be an even number to prevent awkward ordering of children.
+		EachPopulationSize:                    50, // Must be an even number to prevent awkward ordering of children.
 		AntagonistMaxStrategies:               4,
 		ProtagonistMaxStrategies:              4,
 		DepthPenaltyStrategyPenalization:      10,
@@ -117,7 +125,7 @@ func Evolution1() {
 		log.Fatal(err)
 	}
 
-	// ########################### OUPUT STATISTICS  #######################################################3
+	// ########################### OUTPUT STATISTICS  #######################################################3
 	fmt.Printf("Generation Count: %d\n", engine.Parameters.Generations)
 	fmt.Printf("Each Individual Count: %d\n", engine.Parameters.EachPopulationSize)
 	fmt.Println()

@@ -56,14 +56,14 @@ func (p *Program) ApplyStrategy(strategy Strategy, terminals []SymbolicExpressio
 	return err
 }
 
-func (p *Program) Fitness() (float64, error) {
-	return -1, fmt.Errorf("")
-}
+//func (p *Program) Fitness() (float64, error) {
+//	return -1, fmt.Errorf("")
+//}
 
 // Mutation is an evolutionary technique used to randomly change parts of a Program.
-func Mutation(prog Program) (Program, error) {
-	return Program{}, nil
-}
+//func Mutation(prog Program) (Program, error) {
+//	return Program{}, nil
+//}
 
 // Eval is a simple helper function that takes in an independent variable,
 // uses the programs treeNode to compute the resultant value
@@ -87,8 +87,14 @@ func (p *Program) EvalMulti(independentVariables IndependentVariableMap, express
 
 // EvaluateMathematicalExpression evaluates a valid expression using the given independentVar
 func EvaluateMathematicalExpression(expressionString string, independentVariables IndependentVariableMap) (float64, error) {
-	expression, err := gval.Evaluate(expressionString, independentVariables)
+	if expressionString == "" {
+		return -1, fmt.Errorf("EvaluateMathematicalExpression | expressionString cannot be empty")
+	}
+	//if independentVariables == nil {
+	//	return -1, fmt.Errorf("EvaluateMathematicalExpression | independentVariablesMap cannot be nil")
+	//}
 
+	expression, err := gval.Evaluate(expressionString, independentVariables)
 	if err != nil {
 		return -1, err
 	}

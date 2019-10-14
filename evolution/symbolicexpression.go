@@ -15,6 +15,7 @@ type SymbolicExpression struct {
 	arity int
 	value string
 	kind  int //0 terminal >0 non-terminal
+	//isVariable bool
 }
 
 func (n *SymbolicExpression) CreateNonTerminal(arity int, value string) {
@@ -23,10 +24,40 @@ func (n *SymbolicExpression) CreateNonTerminal(arity int, value string) {
 	n.kind = 1
 }
 
-func (n *SymbolicExpression) CreateTerminal(arity int, value string) {
-	n.arity = arity
+func (n *SymbolicExpression) CreateBinaryNonTerminal(value string) {
+	n.arity = 2
+	n.value = value
+	n.kind = 1
+}
+
+func (n *SymbolicExpression) CreateTerminal(value string) {
+	n.arity = 0
 	n.value = value
 	n.kind = 0
+}
+
+func CreateTerminal(value string) SymbolicExpression {
+	return SymbolicExpression{
+		0,
+		value,
+		0,
+	}
+}
+
+func CreateBinaryNonTerminal(value string) SymbolicExpression {
+	return SymbolicExpression{
+		2,
+		value,
+		1,
+	}
+}
+
+func CreateNonTerminal(arity int, value string) SymbolicExpression {
+	return SymbolicExpression{
+		arity,
+		value,
+		1,
+	}
 }
 
 func (n *SymbolicExpression) ToDualTreeNode(key string) *DualTreeNode {
@@ -98,7 +129,8 @@ func GenerateNonTerminals(count int, symbolList []string) ([]SymbolicExpression,
 // ParseString parses a given mathematical expression into a set of terminals and nonTerminals within the string.
 // It assumes mathematical expressions in particular non-terminals have an arity of two and take in two arguments e.
 // g. * / - + are some examples
-func ParseString(expression string, validNonTerminals []string) (terminals, nonTerminals,
+// Todo: NEEDS MORE WORK
+func ParseString(expression string, validNonTerminals []string, validVariables []string) (terminals, nonTerminals,
 	mathematicalExpression []SymbolicExpression,
 	err error) {
 	if expression == "" {
@@ -115,10 +147,10 @@ func ParseString(expression string, validNonTerminals []string) (terminals, nonT
 			" " +
 			"| nil")
 	}
-	if len(expression) > 0 && validNonTerminals == nil {
+	if len(expression) > 1 && validNonTerminals == nil {
 		return nil, nil, nil, fmt.Errorf("ParseKind | at least one kind of validNonTerminal is required | nil")
 	}
-	if len(expression) > 0 && len(validNonTerminals) < 1 {
+	if len(expression) > 1 && len(validNonTerminals) < 1 {
 		return nil, nil, nil, fmt.Errorf("ParseKind | at least one kind of validNonTerminal is required | empty")
 	}
 	if len(expression) == 1 {
