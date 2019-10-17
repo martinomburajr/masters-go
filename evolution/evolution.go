@@ -35,6 +35,10 @@ type EvolutionParams struct {
 	//AntagonistStrategyLength         int
 	ProtagonistMaxStrategies int
 	//ProtagonistStrategyLength        int
+
+	// SurvivorPercentage represents how many individulas in the parent vs child population should continue.
+	// 1 means all parents move on. 0 means only children move on. Any number in betwee is a percentage value.
+	// It cannot be greater than 1 or less than 0.
 	SurvivorPercentage float64
 	// Strategies is a list of available strategies for each individual.
 	// These can be randomly allocated to individuals and duplicates are expected.
@@ -115,12 +119,14 @@ func (e *EvolutionEngine) Start() (EvolutionResult, error) {
 	}
 	e.Generations[0] = &gen0
 
-	antagonists, err := e.Generations[0].GenerateRandomIndividual("ANT", e.Parameters.StartIndividual)
+	antagonists, err := e.Generations[0].GenerateRandomIndividual(IndividualAntagonist,
+		e.Parameters.StartIndividual)
 	if err != nil {
 		return EvolutionResult{}, err
 	}
 
-	protagonists, err := e.Generations[0].GenerateRandomIndividual("PRO", e.Parameters.StartIndividual)
+	protagonists, err := e.Generations[0].GenerateRandomIndividual(IndividualProtagonist,
+		Program{})
 	if err != nil {
 		return EvolutionResult{}, err
 	}
@@ -131,7 +137,6 @@ func (e *EvolutionEngine) Start() (EvolutionResult, error) {
 	// cycle through generationCount
 	e.Generations[0] = &gen0
 	for i := 0; i < e.Parameters.Generations-1; i++ {
-		//if i != e.Parameters.Generations-2 {
 		protagonistsCleanse, err := CleansePopulation(e.Generations[i].Protagonists, *e.Parameters.StartIndividual.T)
 		if err != nil {
 			return EvolutionResult{}, err
@@ -143,22 +148,15 @@ func (e *EvolutionEngine) Start() (EvolutionResult, error) {
 
 		e.Generations[i].Protagonists = protagonistsCleanse
 		e.Generations[i].Antagonists = antagonistsCleanse
-		//}
-		nextGeneration, err := e.Generations[i].Start()
+		nextGeneration, err := e.Generations[i].Start(i)
 		if err != nil {
 			return EvolutionResult{}, err
 		}
 		e.Generations[i+1] = nextGeneration
 	}
 
-	// Sort individuals in all generations
-	for i := range e.Generations {
-		e.Generations[i].Protagonists = SortIndividuals(e.Generations[i].Protagonists)
-		e.Generations[i].Antagonists = SortIndividuals(e.Generations[i].Antagonists)
-	}
-
 	evolutionResult := EvolutionResult{}
-	_, err = evolutionResult.Analyze(e.Generations, 3)
+	_, err = evolutionResult.Analyze(e.Generations, e.Parameters.FitnessStrategy, 3)
 	if err != nil {
 		return EvolutionResult{}, err
 	}
@@ -188,6 +186,9 @@ func (e *EvolutionEngine) validate() error {
 	}
 	if e.Parameters.FitnessStrategy == FitnessRatioThresholder && e.Parameters.ThresholdMultiplier < 1 {
 		return fmt.Errorf("ThresholdMultiplier cannot be less than 1")
+	}
+	if e.Parameters.SurvivorPercentage > 1 || e.Parameters.SurvivorPercentage < 0 {
+		return fmt.Errorf("SurvivorPercentage cannot be less than 0 or greater than 1. It is a percent value")
 	}
 	//err := e.StartIndividual.Validate()
 	//if err != nil {

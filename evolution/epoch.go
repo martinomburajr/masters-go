@@ -90,12 +90,16 @@ func (e *Epoch) Start() error {
 		return err
 	}
 	e.antagonist.HasAppliedStrategy = true
+	antString := e.antagonist.ToString()
+	fmt.Println(antString.String())
 
 	err = e.applyProtagonistStrategy(*e.antagonist.Program.T)
 	if err != nil {
 		return err
 	}
 	e.protagonist.HasAppliedStrategy = true
+	proString := e.protagonist.ToString()
+	fmt.Println(proString.String())
 
 	if !e.hasProtagonistApplied && !e.hasAntagonistApplied {
 		return fmt.Errorf("antagonist and protagonist havent applied Strategy to program")

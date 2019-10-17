@@ -2,9 +2,8 @@ package evolution
 
 import (
 	"fmt"
-	"github.com/PaesslerAG/gval"
+	"github.com/martinomburajr/masters-go/eval"
 	"github.com/martinomburajr/masters-go/utils"
-	"math/rand"
 )
 
 const DeletionTypeMalicious = 1
@@ -33,47 +32,73 @@ func (p *Program) ApplyStrategy(strategy Strategy, terminals []SymbolicExpressio
 	depth int, deletionStrategy int) (err error) {
 
 	switch strategy {
+	case StrategyDeleteNonTerminal: // CHANGE TO DeleteNonTerminal
+		err = p.T.DeleteSubTree(deletionStrategy)
+		break
+
+	case StrategyDeleteMalicious:
+		err = p.T.DeleteMalicious()
+		break
+
+	case StrategyFellTree:
+		err = p.T.FellTree()
+		break
+
+	case StrategyDeleteTerminal:
+		err = p.T.DeleteTerminal()
+		break
+
+	case StrategyMutateNonTerminal:
+		err = p.T.MutateNonTerminal(nonTerminals)
+		break
+
+	case StrategyMutateTerminal:
+		err = p.T.MutateTerminal(terminals)
+		break
+
+	case StrategyReplaceBranch:
+		var tree *DualTree
+		tree, err = GenerateRandomTreeEnforceIndependentVariable(depth, terminals[0], terminals, nonTerminals)
+		err = p.T.ReplaceBranch(*tree)
+		break
+
 	case StrategyAddSubTree:
 		var tree *DualTree
 		tree, err = GenerateRandomTreeEnforceIndependentVariable(depth, terminals[0], terminals, nonTerminals)
 		err = p.T.AddSubTree(tree)
 		break
-	case StrategyDeleteSubTree:
-		err = p.T.DeleteSubTree(deletionStrategy)
+
+	case StrategyAddToLeaf:
+		var tree *DualTree
+		tree, err = GenerateRandomTreeEnforceIndependentVariable(depth, terminals[0], terminals, nonTerminals)
+		err = p.T.AddToLeaf(*tree)
 		break
-	case StrategyMutateNode:
-		chanceOfMutation := rand.Float64()
-		if mutationProbability > chanceOfMutation {
-			if nonTerminalMutationProbability > chanceOfMutation {
-				err = p.T.MutateNonTerminal(nonTerminals)
-			}
-			err = p.T.MutateTerminal(terminals)
-		}
+
+	case StrategyAddMult:
+		var tree *DualTree
+		tree, err = GenerateRandomTreeEnforceIndependentVariable(depth, terminals[0], terminals,
+			[]SymbolicExpression{{arity:2, value:"*", kind:1}})
+		err = p.T.AddToLeaf(*tree)
+		break
+
+	case StrategyAddSub:
+		var tree *DualTree
+		tree, err = GenerateRandomTreeEnforceIndependentVariable(depth, terminals[0], terminals,
+			[]SymbolicExpression{{arity:2, value:"-", kind:1}})
+		err = p.T.AddToLeaf(*tree)
+		break
+
+	case StrategyAddAdd:
+		var tree *DualTree
+		tree, err = GenerateRandomTreeEnforceIndependentVariable(depth, terminals[0], terminals,
+			[]SymbolicExpression{{arity:2, value:"+", kind:1}})
+		err = p.T.AddToLeaf(*tree)
 		break
 	default:
 		break
 	}
 	return err
 }
-
-//func (p *Program) Fitness() (float64, error) {
-//	return -1, fmt.Errorf("")
-//}
-
-// Mutation is an evolutionary technique used to randomly change parts of a Program.
-//func Mutation(prog Program) (Program, error) {
-//	return Program{}, nil
-//}
-
-// Eval is a simple helper function that takes in an independent variable,
-// uses the programs treeNode to compute the resultant value
-//func (p *Program) Eval(independentVar float64, expressionString string) (float64, error) {
-//	if p.T == nil {
-//		return -1, fmt.Errorf("program: %v -> treeNode is nil", p.ID)
-//	}
-//
-//	return EvaluateMathematicalExpression(expressionString, independentVar)
-//}
 
 // Eval is a simple helper function that takes in an independent variable,
 // uses the programs treeNode to compute the resultant value
@@ -90,11 +115,14 @@ func EvaluateMathematicalExpression(expressionString string, independentVariable
 	if expressionString == "" {
 		return -1, fmt.Errorf("EvaluateMathematicalExpression | expressionString cannot be empty")
 	}
-	//if independentVariables == nil {
-	//	return -1, fmt.Errorf("EvaluateMathematicalExpression | independentVariablesMap cannot be nil")
+	//
+	//expression, err := gval.Evaluate(expressionString, independentVariables)
+	//if err != nil {
+	//	return -1, err
 	//}
 
-	expression, err := gval.Evaluate(expressionString, independentVariables)
+
+	expression, err :=  eval.CalculateWithVar(expressionString, independentVariables)
 	if err != nil {
 		return -1, err
 	}

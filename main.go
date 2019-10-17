@@ -16,20 +16,29 @@ func Evolution1() {
 	rand.Seed(time.Now().UTC().UnixNano()) //Set seed
 
 	strategies := []evolution.Strategy{
+		evolution.StrategyDeleteNonTerminal,
+		evolution.StrategyDeleteMalicious,
+		evolution.StrategyDeleteTerminal,
+		evolution.StrategyMutateNonTerminal,
+		evolution.StrategyMutateTerminal,
+		evolution.StrategyReplaceBranch,
 		evolution.StrategyAddSubTree,
-		evolution.StrategyDeleteSubTree,
-		//evolution.StrategyMutateSubTree,
-		evolution.StrategyMutateNode,
+		evolution.StrategyAddToLeaf,
+		evolution.StrategyAddMult,
+		evolution.StrategyAddSub,
+		evolution.StrategyAddAdd,
+		evolution.StrategyFellTree,
+
 	}
 
-	//starterTreeExpression := "( x ) * ( 5 )"
-	//expressionSet := []evolution.SymbolicExpression{evolution.X1, evolution.Mult, evolution.Const5}
-	//expressionSet := []evolution.SymbolicExpression{evolution.X1}
-	constants := []string{"1", "2", "3", "4", "5", "6", "7", "8", "9"}
+	expression := "x * x"
+	specCount := 100
+
+	constants := []string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"}
 	variables := []string{"x"}
 	operators := []string{"*", "+", "-"}
 
-	constantTerminals, err := evolution.GenerateTerminals(3, constants)
+	constantTerminals, err := evolution.GenerateTerminals(6, constants)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -43,17 +52,9 @@ func Evolution1() {
 	}
 	terminals := append(variableTerminals, constantTerminals...)
 
-	expression := "x * 5"
-
 	_, _, mathematicalExpression, err := evolution.ParseString(expression, operators, variables)
 	if err != nil {
 		log.Fatal(err)
-	}
-
-	mathematicalExpression = []evolution.SymbolicExpression{
-		evolution.CreateTerminal("x"),
-		evolution.CreateBinaryNonTerminal("*"),
-		evolution.CreateTerminal("5"),
 	}
 
 	starterTree := evolution.DualTree{}
@@ -69,14 +70,15 @@ func Evolution1() {
 	startProgram := evolution.Program{
 		T: &starterTree,
 	}
-	spec, err := evolution.GenerateSpecSimple(expression, 10, 0)
+	spec, err := evolution.GenerateSpecSimple(expression, specCount, -1 * (specCount/2))
 	if err != nil {
 		log.Fatalf("MAIN | failed to create a valid spec | %s", err.Error())
 	}
 
-	fmt.Printf("Protagonist vs Antagonist Competitive Coevolution:\nMathematical Expression: %s\nSpec: %s\n",
+	fmt.Printf("Protagonist vs Antagonist Competitive Coevolution:\nMathematical Expression: %s\nSpec:\n",
 		starterTreeAsMathematicalExpression,
-		spec.ToString())
+		//spec.ToString()
+	)
 
 	// TODO only perform parent selection on loser
 	// TODO Do children undergo tournament selection
@@ -85,10 +87,10 @@ func Evolution1() {
 	// TODO Should we pick most recent individual even if fitness is the same?
 	params := evolution.EvolutionParams{
 		VariableTerminals:                     variableTerminals,
-		Generations:                           50,
-		EachPopulationSize:                    50, // Must be an even number to prevent awkward ordering of children.
-		AntagonistMaxStrategies:               4,
-		ProtagonistMaxStrategies:              4,
+		Generations:                           2,
+		EachPopulationSize:                    2, // Must be an even number to prevent awkward ordering of children.
+		AntagonistMaxStrategies:               10,
+		ProtagonistMaxStrategies:              10,
 		DepthPenaltyStrategyPenalization:      10,
 		ProbabilityOfMutation:                 0.1,
 		ProbabilityOfNonTerminalMutation:      0.1,
@@ -98,7 +100,7 @@ func Evolution1() {
 		ProtagonistAvailableStrategies:        strategies,
 		AntagonistAvailableStrategies:         strategies,
 		SetEqualStrategyLength:                true,
-		CrossoverPercentage:                   0.3,
+		CrossoverPercentage:                   0.2,
 		MaintainCrossoverGeneTransferEquality: true,
 		NonTerminalSet:                        nonTerminals,
 		TerminalSet:                           terminals,
@@ -110,7 +112,7 @@ func Evolution1() {
 		StartIndividual:                       startProgram,
 		Spec:                                  spec,
 		ParentSelection:                       evolution.ParentSelectionTournament,
-		EqualStrategiesLength:                 2,
+		EqualStrategiesLength:                 10,
 		ThresholdMultiplier:                   1.5,
 	}
 
@@ -128,9 +130,30 @@ func Evolution1() {
 	// ########################### OUTPUT STATISTICS  #######################################################3
 	fmt.Printf("Generation Count: %d\n", engine.Parameters.Generations)
 	fmt.Printf("Each Individual Count: %d\n", engine.Parameters.EachPopulationSize)
+
+	switch engine.Parameters.FitnessStrategy {
+	case evolution.FitnessAbsolute:
+		fmt.Printf("Fitness Strategy: %s\n", "FitnessAbsolute")
+		break
+	case evolution.FitnessRatio:
+		fmt.Printf("Fitness Strategy: %s\n", "FitnessRatio")
+		break
+	case evolution.FitnessRatioThresholder:
+		fmt.Printf("Fitness Strategy: %s\n", "FitnessRatioThresholder")
+		break
+	case evolution.FitnessProtagonistThresholdTally:
+		fmt.Printf("Fitness Strategy: %s\n", "FitnessProtagonistThresholdTally")
+		break
+	case evolution.FitnessImproverTally:
+		fmt.Printf("Fitness Strategy: %s\n", "FitnessImproverTally")
+		break
+	default:
+		log.Printf("Fitness Strategy: %s\n", "Unknown")
+	}
+	fmt.Printf("Fitness Straegy: %d\n", engine.Parameters.FitnessStrategy)
 	fmt.Println()
 
-	_, _ = evolutionResult.Analyze(engine.Generations, 3)
+	_, _ = evolutionResult.Analyze(engine.Generations, engine.Parameters.FitnessStrategy, 3)
 	antagonistSummary, err := evolutionResult.PrintTopIndividualSummary(evolution.IndividualAntagonist)
 	if err != nil {
 		log.Fatal(err)
@@ -149,11 +172,11 @@ func Evolution1() {
 	}
 	fmt.Println(averageGenerationSummary.String())
 
-	cumGenerationSummary, err := evolutionResult.PrintCumGenerationSummary()
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println(cumGenerationSummary.String())
+	//cumGenerationSummary, err := evolutionResult.PrintCumGenerationSummary()
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+	//fmt.Println(cumGenerationSummary.String())
 
 	fmt.Println()
 	//fmt.Print(result)

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
+	"strings"
 )
 
 const (
@@ -395,8 +396,35 @@ func (i *Individual) Mutate(availableStrategies []Strategy) error {
 	return nil
 }
 
+func (i *Individual) ToString() strings.Builder {
+	sb := strings.Builder{}
+
+	sb.WriteString(fmt.Sprintf("####   %s   ####\n", i.Id))
+	sb.WriteString(fmt.Sprintf("AGE:  %d\n", i.Age))
+	sb.WriteString(fmt.Sprintf("FITNESS:  %f\n", i.TotalFitness))
+	sb.WriteString(fmt.Sprintf("BIRTH GEN:  %d\n", i.BirthGen))
+	strategiesSummary := FormatStrategiesTotal(i.Strategy)
+	sb.WriteString(fmt.Sprintf("Strategy Summary:\n%s\n", strategiesSummary.String()))
+	strategiesList := FormatStrategiesList(i.Strategy)
+	sb.WriteString(fmt.Sprintf("Strategy Summary:%s\n", strategiesList.String()))
+	if i.Program != nil {
+		dualTree := i.Program.T
+		if dualTree != nil {
+			toString := dualTree.ToString()
+			sb.WriteString(fmt.Sprintf("TREE:  \n%s", toString.String()))
+			mathematicalString, err := dualTree.ToMathematicalString()
+			if err != nil {
+
+			} else {
+				sb.WriteString(fmt.Sprintf("Mathematical Expression: %s\n", mathematicalString))
+			}
+		}
+	}
+	return sb
+}
+
 func GenerateIndividualID(identifier string, individualKind int) string {
-	return fmt.Sprintf("%s-%s-%s%s", "individual", KindToString(individualKind), RandString(3), identifier)
+	return fmt.Sprintf("%s-%s%s", KindToString(individualKind), RandString(3), identifier)
 }
 
 // GenerateRandomStrategy creates a random Strategy list that contains some or all of the availableStrategies.

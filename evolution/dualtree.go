@@ -16,8 +16,8 @@ type DualTree struct {
 	lock sync.RWMutex
 }
 
-// RandomLeaf locates a random leaf within a treeNode and returns the ref to the node.
-func (bst *DualTree) RandomLeaf() (*DualTreeNode, error) {
+// RandomTerminal locates a random leaf within a treeNode and returns the ref to the node.
+func (bst *DualTree) RandomTerminal() (*DualTreeNode, error) {
 	if bst.root == nil {
 		return nil, fmt.Errorf("root cannot be nil")
 	}
@@ -26,7 +26,7 @@ func (bst *DualTree) RandomLeaf() (*DualTreeNode, error) {
 		return node, nil
 	}
 
-	nodes, err := bst.Leafs()
+	nodes, err := bst.Terminals()
 	if err != nil {
 		return nil, err
 	}
@@ -35,49 +35,48 @@ func (bst *DualTree) RandomLeaf() (*DualTreeNode, error) {
 	return nodes[randIndex], nil
 }
 
-// RandomLeafAware returns a random leaf along with their parent. If the Tree is of depth 0 -> Parent is always nil.
+// RandomTerminalAware returns a random leaf along with their parent. If the Tree is of depth 0 -> Parent is always nil.
 // It is the clients responsibility to check for this.
-func (bst *DualTree) RandomLeafAware() (node *DualTreeNode, parent *DualTreeNode, err error) {
+// The node value can never be nil on a valid tree if the error is nil
+func (bst *DualTree) RandomTerminalAware() (node *DualTreeNode, parent *DualTreeNode, err error) {
 	if bst.root == nil {
 		return nil, nil, fmt.Errorf("root cannot be nil")
 	}
-	size := bst.Size()
 
-	max := rand.Intn(size)
-	count := 0
-
-	bst.InOrderTraverseAware(func(n *DualTreeNode, parentNode *DualTreeNode) {
-		if count <= max {
-			if n.IsLeaf() {
-				if parentNode != nil {
-					if parentNode.IsEqual(bst.root) {
-						node = n
-						parent = nil
-						return
-					} else {
-						node = n
-						parent = parentNode
-						return
-					}
-				} else {
-					node = n
-					parent = nil
-					return
-				}
-			}
-		}
-		count++
-	})
-
-	if node == nil {
-		return nil, nil, fmt.Errorf("node is nil")
+	trees, err := bst.GetTerminalsAware()
+	if err != nil {
+		return nil, nil, err
 	}
+
+	randIndex := rand.Intn(len(trees))
+	node = trees[randIndex].node
+	parent = trees[randIndex].parent
 
 	return node, parent, nil
 }
 
-// RandomBranch locates a random branch within a treeNode and returns the ref to the node.
-func (bst *DualTree) RandomBranch() (*DualTreeNode, error) {
+// GetTerminalsAware returns a slice of AwareTrees.
+// The AwareTree will always have at least one value if no error is returned.
+func (bst *DualTree) GetTerminalsAware() ([]AwareTree, error) {
+	if bst.root == nil {
+		return nil,  fmt.Errorf("GetNonTerminalsAware | root cannot be nil")
+	}
+	awareTrees := make([]AwareTree, 0)
+	if bst.root.left == nil && bst.root.right == nil {
+		awareTrees = append(awareTrees, AwareTree{ node: bst.root, parent: nil})
+		return awareTrees, nil
+	}
+
+	bst.InOrderTraverseAware(func(n *DualTreeNode, parentNode *DualTreeNode) {
+		if n.IsLeaf() {
+			awareTrees = append(awareTrees, AwareTree{node: n, parent: parentNode})
+		}
+	})
+	return awareTrees, nil
+}
+
+// RandomNonTerminal locates a random non-terminal within a tree and returns the ref to the node.
+func (bst *DualTree) RandomNonTerminal() (*DualTreeNode, error) {
 	if bst.root == nil {
 		return nil, fmt.Errorf("root cannot be nil")
 	}
@@ -86,7 +85,7 @@ func (bst *DualTree) RandomBranch() (*DualTreeNode, error) {
 		return nil, fmt.Errorf("invalid treeNode, cannot only contain non-terminal")
 	}
 
-	nodes, err := bst.Branches()
+	nodes, err := bst.NonTerminals()
 	if err != nil {
 		return nil, err
 	}
@@ -95,8 +94,59 @@ func (bst *DualTree) RandomBranch() (*DualTreeNode, error) {
 	return nodes[randIndex], nil
 }
 
-// Leafs returns all the leaves in a given treeNode
-func (d *DualTree) Leafs() ([]*DualTreeNode, error) {
+// RandomNonTerminalAware returns a random leaf along with their parent. If the Tree is of depth 0 -> Parent is always nil.
+// It is the RandomNonTerminalAware responsibility to check for this.
+func (bst *DualTree) RandomNonTerminalAware() (node *DualTreeNode, parent *DualTreeNode, err error) {
+	if bst.root == nil {
+		return nil, nil, fmt.Errorf("RandomNonTerminalAware | root cannot be nil")
+	}
+
+	trees, err := bst.GetNonTerminalsAware()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if len(trees) > 0 {
+		randIndex := rand.Intn(len(trees))
+		node = trees[randIndex].node
+		parent = trees[randIndex].parent
+	}
+
+	return node, parent, nil
+}
+
+// GetNonTerminalsAware is a utility function that returns a set of non-terminal nodes.
+// In the event that the tree contains a lone terminal as its root. It will return an empty awareTree array.
+// It is for the caller to understand that an empty awareTree array means there are no non-terminals within the tree
+// and act appropriately
+func (bst *DualTree) GetNonTerminalsAware() ([]AwareTree, error) {
+	if bst.root == nil {
+		return nil,  fmt.Errorf("GetNonTerminalsAware | root cannot be nil")
+	}
+	awareTrees := make([]AwareTree, 0)
+	if bst.root.left == nil && bst.root.right == nil {
+		return awareTrees, nil
+	}
+
+	bst.InOrderTraverseAware(func(n *DualTreeNode, parentNode *DualTreeNode) {
+		if !n.IsLeaf() {
+			if n.IsEqual(bst.root) {
+				awareTrees = append(awareTrees, AwareTree{node: n, parent: nil})
+			} else {
+				awareTrees = append(awareTrees, AwareTree{node: n, parent: parentNode})
+			}
+		}
+	})
+	return awareTrees, nil
+}
+
+type AwareTree struct{
+	node *DualTreeNode
+	parent *DualTreeNode
+}
+
+// Terminals returns all the leaves in a given tree
+func (d *DualTree) Terminals() ([]*DualTreeNode, error) {
 	nodes := make([]*DualTreeNode, 0)
 	if d.root == nil {
 		return nil, fmt.Errorf("treeNode root cannot be nil")
@@ -125,8 +175,8 @@ func leaf(node *DualTreeNode, nodes *[]*DualTreeNode) {
 	}
 }
 
-// Branches returns a list of non-terminal nodes
-func (d *DualTree) Branches() ([]*DualTreeNode, error) {
+// NonTerminals returns a list of non-terminal nodes
+func (d *DualTree) NonTerminals() ([]*DualTreeNode, error) {
 	nodes := make([]*DualTreeNode, 0)
 	if d.root == nil {
 		return nil, fmt.Errorf("treeNode root cannot be nil")
@@ -150,42 +200,6 @@ func branch(node *DualTreeNode, nodes *[]*DualTreeNode) {
 	}
 
 	return
-}
-
-// StrategyAddSubTree adds a given subtree to a treeNode.
-func (bst *DualTree) AddSubTree(subTree *DualTree) error {
-	if subTree == nil {
-		return fmt.Errorf("cannot add a nil subTree")
-	}
-	if subTree.root == nil {
-		return fmt.Errorf("cannot add a subTree with a nil root")
-	}
-	if subTree.root.left == nil && subTree.root.right == nil {
-		return fmt.Errorf("subTree cannot be composed of a single terminal - no operation to add it to the treeNode.")
-	}
-
-	if bst.root == nil {
-		return fmt.Errorf("treeNode you are adding to has nil root")
-	}
-	if bst.root.left == nil && bst.root.right == nil {
-		err := bst.AddEmptyToTreeRoot(subTree)
-		return err
-	}
-
-	node, err := bst.RandomBranch()
-	if err != nil {
-		return err
-	}
-
-	// Can check for arity
-	intn := rand.Intn(2)
-	if intn == 0 {
-		node.right = subTree.root
-	} else {
-		node.left = subTree.root
-	}
-
-	return nil
 }
 
 // AddEmptyToTree is a conservative means of performing add and delete operations on trees that end up as single
@@ -255,7 +269,7 @@ func (bst *DualTree) DeleteSubTree(deletionStrategy int) error {
 			return err
 		}
 		if depth < 2 {
-			node, err := bst.RandomLeaf()
+			node, err := bst.RandomTerminal()
 			if err != nil {
 				return err
 			}
@@ -267,7 +281,7 @@ func (bst *DualTree) DeleteSubTree(deletionStrategy int) error {
 
 	// Malicious Delete may turn the whole Tree to zero if it selects the root as a viable place to initiate the
 	// delete. If not, it will convert a subtree to 0.
-	node, err := bst.RandomBranch()
+	node, err := bst.RandomNonTerminal()
 	if err != nil {
 		return err
 	}
@@ -307,7 +321,7 @@ func (bst *DualTree) SwapSubTrees() error {
 		return fmt.Errorf("treeNode you are swapping to is a lone terminal")
 	}
 
-	nodes, err := bst.Branches()
+	nodes, err := bst.NonTerminals()
 	if err != nil {
 		return err
 	}
@@ -447,48 +461,7 @@ func (bst *DualTree) ReplaceStrict(node *DualTreeNode, replacer DualTreeNode) (h
 	return node.Clone(), parent, nil
 }
 
-// MutateTerminal will mutate a terminal to another valid terminal. If the terminalSet only contains a single item,
-// that is already in the treeNode and that treeNode element is of size 1 (root only).
-// If both these elements are identical no change will occur
-func (bst *DualTree) MutateTerminal(terminalSet []SymbolicExpression) error {
-	if bst.root == nil {
-		return fmt.Errorf("treeNode you are swapping to has nil root")
-	}
-	if terminalSet == nil {
-		return fmt.Errorf("terminal set cannot be nil")
-	}
-	if len(terminalSet) < 1 {
-		return fmt.Errorf("terminal set cannot be empty")
-	}
 
-	nodes, err := bst.Leafs()
-	if err != nil {
-		return err
-	}
-
-	nodeValue := ""
-	itemFromSet := ""
-
-	for nodeValue == itemFromSet {
-
-		nonTerminalIndex0 := rand.Intn(len(nodes))
-
-		itemFromTSet := terminalSet[rand.Intn(len(terminalSet))]
-		nodeValue = nodes[nonTerminalIndex0].value
-		itemFromSet = itemFromTSet.value
-
-		if nodeValue == itemFromSet {
-			if len(terminalSet) < 2 {
-				return nil
-			}
-			continue
-		} else {
-			nodes[nonTerminalIndex0].value = itemFromSet
-		}
-	}
-
-	return nil
-}
 
 // Search will use a node Id and linearly traverse the Tree using Inorder Depth First Search until it comes across
 // the correct node. It will also return the parent of the given node.
@@ -525,58 +498,6 @@ func (bst *DualTree) Search(key string) (node *DualTreeNode, parent *DualTreeNod
 	return node, parent, nil
 }
 
-// MutateNonTerminal will mutate a terminal to another valid nonTerminal. Ensure set is nonTerminal set only,
-// otherwise arities will break
-// NOTE ensure nonTerminalSet contains no duplicates
-func (bst *DualTree) MutateNonTerminal(nonTerminalSet []SymbolicExpression) error {
-	if bst.root == nil {
-		return fmt.Errorf("treeNode you are swapping to has nil root")
-	}
-	if bst.root.left == nil && bst.root.right == nil {
-		return fmt.Errorf("treeNode you are swapping to is a lone terminal")
-	}
-	if nonTerminalSet == nil {
-		return fmt.Errorf("nonTerminalSet set cannot be nil")
-	}
-	if len(nonTerminalSet) < 1 {
-		return fmt.Errorf("nonTerminalSet set cannot be empty")
-	}
-
-	nodes, err := bst.Branches()
-	if err != nil {
-		return err
-	}
-
-	nodeValue := ""
-	fromSetValue := ""
-	counterLimit := 10
-
-	counter := 0
-	for nodeValue == fromSetValue && len(nonTerminalSet) >= 1 && counter < counterLimit { //pray for no duplicates.
-		// Counter is a failsafe to prevent infinite looping
-
-		nonTerminalIndex := rand.Intn(len(nodes))
-		nonTerminalSetIndex := rand.Intn(len(nonTerminalSet))
-
-		nodeValue = nodes[nonTerminalIndex].value
-		fromSetValue = nonTerminalSet[nonTerminalSetIndex].value
-
-		if nodeValue == fromSetValue {
-			if counter == counterLimit-1 {
-				break
-			}
-			if len(nonTerminalSet) > 1 {
-				continue
-			}
-		} else {
-			nodes[nonTerminalIndex].value = fromSetValue
-			return nil
-		}
-		counter++
-	}
-
-	return nil
-}
 
 func (bst *DualTree) GetRandomSubTree() (*DualTree, error) {
 	if bst.root == nil {
@@ -585,7 +506,7 @@ func (bst *DualTree) GetRandomSubTree() (*DualTree, error) {
 	if bst.root.left == nil && bst.root.right == nil {
 		return nil, fmt.Errorf("treeNode you are adding to is a lone terminal")
 	}
-	//node, err := bst.RandomBranch()
+	//node, err := bst.RandomNonTerminal()
 	//if err != nil {
 	//	return nil, err
 	//}
@@ -1079,13 +1000,11 @@ func (d *DualTree) ToMathematicalString() (string, error) {
 	var err error = nil
 
 	sb := &strings.Builder{}
-	sb.WriteString("( ")
-
+	sb.WriteString("(")
 	MathPreorder(d.root, sb)
+	sb.WriteString(")")
 
-	sb.WriteString(" )")
-
-	return strings.Trim(sb.String(), " "), err
+	return sb.String(), err
 }
 
 func MathPreorder(node *DualTreeNode, sb *strings.Builder) {
@@ -1095,15 +1014,15 @@ func MathPreorder(node *DualTreeNode, sb *strings.Builder) {
 	}
 
 	if node.right != nil && node.left != nil {
-		sb.WriteString("( ")
+		sb.WriteString("(")
 		MathPreorder(node.left, sb)
-		sb.WriteString(" ) ")
+		sb.WriteString(")")
 
 		sb.WriteString(node.value)
 
-		sb.WriteString(" ( ")
+		sb.WriteString("(")
 		MathPreorder(node.right, sb)
-		sb.WriteString(" )")
+		sb.WriteString(")")
 		return
 	}
 	sb.WriteString(node.value)
@@ -1227,7 +1146,6 @@ func GenerateRandomTreeEnforceIndependentVariable(depth int, independentVar Symb
 		return nil, fmt.Errorf("non terminal expression set cannot be empty if depth > 0")
 	}
 	if len(nonTerminals) < 1 {
-
 		tree := &DualTree{}
 		tree.root = independentVar.ToDualTreeNode(RandString(5))
 		return tree, nil
@@ -1298,7 +1216,7 @@ func weaver(terminals, nonTerminals []SymbolicExpression) []SymbolicExpression {
 }
 
 func (bst *DualTree) hasDiverseNonTerminalSet() (bool, error) {
-	branches, err := bst.Branches()
+	branches, err := bst.NonTerminals()
 	if err != nil {
 		return false, err
 	}
@@ -1430,3 +1348,302 @@ func (bst *DualTree) GetShortestBranch(minAcceptableDepth int) (shortestNode *Du
 //	c1 DualTree, c2 DualTree) {
 //
 //}
+
+
+/**
+	STRATEGY IMPLEMENTORS
+ */
+
+
+// DeleteNonTerminal will select a non-root non-terminal element from a given tree and delete it by
+// setting it to 0. If the tree only contains a root it will ignore it.
+func (bst *DualTree) DeleteNonTerminal() error {
+	if bst.root == nil {
+		return fmt.Errorf(" DeleteNonTerminal | treeNode you are swapping to has nil root")
+	}
+
+	branches, err := bst.NonTerminals()
+	if err != nil {
+		return err
+	}
+
+	if len(branches) > 0 {
+		randIndex := rand.Intn(len(branches))
+		randomLeaf := branches[randIndex]
+
+		randomLeaf.value = "0"
+		randomLeaf.arity = 0
+		randomLeaf.right = nil
+		randomLeaf.left = nil
+	}
+	// Ignore if tree only contains terminal at root
+	return nil
+}
+
+// DeleteMalicious selects any element of a tree (
+// including the root) and convert it to a value of 0 potentially deleting all
+// genetic material.
+func (bst *DualTree) DeleteMalicious() (error) {
+	if bst.root == nil {
+		return fmt.Errorf(" DeleteMalicious | treeNode you are swapping to has nil root")
+	}
+	leafs, err := bst.Terminals()
+	if err != nil {
+		return err
+	}
+
+	randIndex := rand.Intn(len(leafs))
+	randomLeaf := leafs[randIndex]
+
+	randomLeaf.value = "0"
+	randomLeaf.arity = 0
+	randomLeaf.right = nil
+	randomLeaf.left = nil
+
+	return nil
+}
+
+// FellTree destroys the tree and sets its root to 0 and kills it all.
+func (bst *DualTree) FellTree() (error) {
+	if bst.root == nil {
+		return fmt.Errorf(" DeleteMalicious | treeNode you are swapping to has nil root")
+	}
+
+	bst.root.value = "0"
+	bst.root.arity = 0
+	bst.root.right = nil
+	bst.root.left = nil
+
+	return nil
+}
+
+// DeleteTerminal will select a non-root non-terminal element from a given tree and delete it by
+// setting it to 0. If the tree only contains a root it will ignore it.
+func (bst *DualTree) DeleteTerminal() (error) {
+	if bst.root == nil {
+		return fmt.Errorf(" DeleteTerminal | treeNode you are swapping to has nil root")
+	}
+	if bst.root.right == nil && bst.root.left == nil {
+		// Skip root
+		return nil
+	}
+
+	leafs, err := bst.Terminals()
+	if err != nil {
+		return err
+	}
+	// ensures that at least another terminal is chosen other than the root. Hence > 1
+	if len(leafs) > 1 {
+		randIndex := rand.Intn(len(leafs))
+		if randIndex == 0 {
+			randIndex = 1
+		}
+
+
+		randomLeaf := leafs[randIndex]
+		randomLeaf.value = "0"
+		randomLeaf.arity = 0
+		randomLeaf.right = nil
+		randomLeaf.left = nil
+	}
+	return nil
+}
+
+// MutateTerminal will mutate a terminal to another valid terminal if the terminalSet only contains a single item
+// that is already in the treeNode and that treeNode element is of size 1 (root only).
+// If both these elements are identical no change will occur
+func (bst *DualTree) MutateTerminal(terminalSet []SymbolicExpression) error {
+	if bst.root == nil {
+		return fmt.Errorf("treeNode you are swapping to has nil root")
+	}
+	if terminalSet == nil {
+		return fmt.Errorf("terminal set cannot be nil")
+	}
+	if len(terminalSet) < 1 {
+		return fmt.Errorf("terminal set cannot be empty")
+	}
+
+	nodes, err := bst.Terminals()
+	if err != nil {
+		return err
+	}
+
+	nodeValue := ""
+	itemFromSet := ""
+
+	for nodeValue == itemFromSet {
+
+		nonTerminalIndex0 := rand.Intn(len(nodes))
+
+		itemFromTSet := terminalSet[rand.Intn(len(terminalSet))]
+		nodeValue = nodes[nonTerminalIndex0].value
+		itemFromSet = itemFromTSet.value
+
+		if nodeValue == itemFromSet {
+			if len(terminalSet) < 2 {
+				return nil
+			}
+			continue
+		} else {
+			nodes[nonTerminalIndex0].value = itemFromSet
+		}
+	}
+
+	return nil
+}
+
+
+// MutateNonTerminal will mutate a terminal to another valid nonTerminal.
+// Ensure set is nonTerminal set only otherwise arities will break. If the tree is a lone terminal at the root,
+// it will be ignored and the program will exit
+// NOTE ensure nonTerminalSet contains no duplicates
+func (bst *DualTree) MutateNonTerminal(nonTerminalSet []SymbolicExpression) error {
+	if bst.root == nil {
+		return fmt.Errorf("MutateNonTerminal | treeNode you are swapping to has nil root")
+	}
+	if bst.root.left == nil && bst.root.right == nil {
+		//log.Printf("MutateNonTerminal | treeNode you are swapping to is a lone terminal not a non-terminal")
+		return nil
+	}
+	if nonTerminalSet == nil {
+		return fmt.Errorf("MutateNonTerminal | nonTerminalSet set cannot be nil")
+	}
+	if len(nonTerminalSet) < 1 {
+		return fmt.Errorf("MutateNonTerminal | nonTerminalSet set cannot be empty")
+	}
+
+	nodes, err := bst.NonTerminals()
+	if err != nil {
+		return err
+	}
+
+	nodeValue := ""
+	fromSetValue := ""
+	counterLimit := 10
+
+	counter := 0
+	for nodeValue == fromSetValue && len(nonTerminalSet) >= 1 && counter < counterLimit { //pray for no duplicates.
+		// Counter is a failsafe to prevent infinite looping
+
+		nonTerminalIndex := rand.Intn(len(nodes))
+		nonTerminalSetIndex := rand.Intn(len(nonTerminalSet))
+
+		nodeValue = nodes[nonTerminalIndex].value
+		fromSetValue = nonTerminalSet[nonTerminalSetIndex].value
+
+		if nodeValue == fromSetValue {
+			if counter == counterLimit-1 {
+				break
+			}
+			if len(nonTerminalSet) > 1 {
+				continue
+			}
+		} else {
+			nodes[nonTerminalIndex].value = fromSetValue
+			return nil
+		}
+		counter++
+	}
+
+	return nil
+}
+
+// ReplaceBranch takes a given tree and randomly selects a branch i.
+// e non-terminal and will swap it with a randomly generated tree of variable depth. This includes the root
+func (bst *DualTree) ReplaceBranch(tree DualTree) (error) {
+	if bst.root == nil {
+		return fmt.Errorf(" ReplaceBranch | treeNode you are swapping to has nil root")
+	}
+	if tree.root == nil {
+		return fmt.Errorf(" ReplaceBranch | treeNode you are swapping with has nil root")
+	}
+
+	node, parent, err := bst.RandomNonTerminalAware()
+	if err != nil {
+		return err
+	}
+	if node == nil { // If the tree is a lone terminal. Swap it out with the incoming tree
+		bst.root = tree.root
+	}
+	if parent == nil { // If the tree is a terminal
+		bst.root = tree.root
+	} else {
+		if parent.left.key == node.key {
+			parent.left = tree.root
+		} else if parent.right.key == node.key {
+			parent.right = tree.root
+		} else {
+			return fmt.Errorf("ReplaceBranch | Parent is not a parent of the node %#v", node)
+		}
+	}
+
+	return nil
+}
+
+// AddToLeaf is similar to AddSubTree, however the SubTree will only be placed on a randomly selected leaf. It will not replace a non-terminal
+func (bst *DualTree) AddToLeaf(tree DualTree) (error) {
+	if bst.root == nil {
+		return fmt.Errorf(" AddToLeaf | treeNode you are swapping to has nil root")
+	}
+	if tree.root == nil {
+		return fmt.Errorf(" AddToLeaf | treeNode you are swapping with has nil root")
+	}
+	if tree.root.left == nil && tree.root.right == nil {
+		return fmt.Errorf(" AddToLeaf | subTree cannot be composed of a single terminal - no operation to add it to" +
+			" the treeNode.")
+	}
+
+	node, parent, err := bst.RandomTerminalAware()
+	if err != nil {
+		return err
+	}
+	if parent == nil { // If the tree is a lone terminal
+		bst.root = tree.root
+	} else {
+		if parent.left.key == node.key {
+			parent.left = tree.root
+		} else if parent.right.key == node.key {
+			parent.right = tree.root
+		} else {
+			return fmt.Errorf("AddToLeaf | Parent is not a parent of the node %#v", node)
+		}
+	}
+
+	return nil
+}
+
+// StrategyAddSubTree adds a given subtree to a treeNode.
+func (bst *DualTree) AddSubTree(subTree *DualTree) error {
+	if subTree == nil {
+		return fmt.Errorf("cannot add a nil subTree")
+	}
+	if subTree.root == nil {
+		return fmt.Errorf("cannot add a subTree with a nil root")
+	}
+	if subTree.root.left == nil && subTree.root.right == nil {
+		return fmt.Errorf("subTree cannot be composed of a single terminal - no operation to add it to the treeNode.")
+	}
+
+	if bst.root == nil {
+		return fmt.Errorf("treeNode you are adding to has nil root")
+	}
+	if bst.root.left == nil && bst.root.right == nil {
+		err := bst.AddEmptyToTreeRoot(subTree)
+		return err
+	}
+
+	node, err := bst.RandomNonTerminal()
+	if err != nil {
+		return err
+	}
+
+	// Can check for arity
+	intn := rand.Intn(2)
+	if intn == 0 {
+		node.right = subTree.root
+	} else {
+		node.left = subTree.root
+	}
+
+	return nil
+}

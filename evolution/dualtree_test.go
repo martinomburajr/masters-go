@@ -71,15 +71,15 @@ func TestDualTree_ToMathematicalString(t *testing.T) {
 		wantErr bool
 	}{
 		{"nil", TreeNil(), "", true},
-		{"T", TreeT_0(), "( x )", false},
-		{"T-NT-T", TreeT_NT_T_0(), fmt.Sprintf("( ( %s ) %s ( %s ) )", X1.value, Mult.value, Const4.value),
+		{"T", TreeT_0(), "(x)", false},
+		{"T-NT-T", TreeT_NT_T_0(), fmt.Sprintf("((%s)%s(%s))", X1.value, Mult.value, Const4.value),
 			false},
 		{"T-NT-T-NT-T", TreeT_NT_T_NT_T_0(),
-			fmt.Sprintf("( ( ( %s ) %s ( %s ) ) %s ( %s ) )", X1.value, Sub.value, X1.value, Mult.value,
+			fmt.Sprintf("(((%s)%s(%s))%s(%s))", X1.value, Sub.value, X1.value, Mult.value,
 				Const4.value), false},
 
 		{"T-NT-T-NT-T", TreeXAddXMult4Sub9Mult0(),
-			fmt.Sprintf("( ( ( ( %s ) %s ( ( %s ) %s ( %s ) ) ) %s ( %s ) ) %s ( %s ) )", X1.value, Add.value,
+			fmt.Sprintf("((((%s)%s((%s)%s(%s)))%s(%s))%s(%s))", X1.value, Add.value,
 				X1.value,
 				Mult.value, Const4.value, Sub.value, Const9.value, Mult.value, Const0.value), false},
 
@@ -232,14 +232,14 @@ func TestDualTree_Leafs(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := tt.tree.Leafs()
+			got, err := tt.tree.Terminals()
 			if (err != nil) != tt.wantErr {
-				t.Errorf("DualTree.Leafs() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("DualTree.Terminals() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			for i := range got {
 				if !got[i].IsValEqual(tt.want[i]) {
-					t.Errorf("DualTree.Leafs() = %v, isEqual %v", got[i].value, tt.want[i].value)
+					t.Errorf("DualTree.Terminals() = %v, isEqual %v", got[i].value, tt.want[i].value)
 				}
 			}
 		})
@@ -280,12 +280,12 @@ func TestDualTree_RandomLeaf(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := tt.tree.RandomLeaf()
+			got, err := tt.tree.RandomTerminal()
 			if (err != nil) != tt.wantErr {
-				t.Errorf("DualTree.RandomLeaf() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("DualTree.RandomTerminal() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			nodes, err := tt.tree.Leafs()
+			nodes, err := tt.tree.Terminals()
 			if err != nil && tt.wantErr {
 				return
 			}
@@ -314,14 +314,14 @@ func TestDualTree_Branches(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := tt.tree.Branches()
+			got, err := tt.tree.NonTerminals()
 			if (err != nil) != tt.wantErr {
-				t.Errorf("DualTree.Branches() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("DualTree.NonTerminals() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			for i := range got {
 				if !got[i].IsValEqual(tt.want[i]) {
-					t.Errorf("DualTree.Leafs() = %v, isEqual %v", got[i].value, tt.want[i].value)
+					t.Errorf("DualTree.Terminals() = %v, isEqual %v", got[i].value, tt.want[i].value)
 				}
 			}
 		})
@@ -415,9 +415,9 @@ func TestDualTree_RandomBranch(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := tt.tree.RandomBranch()
+			got, err := tt.tree.RandomNonTerminal()
 			if (err != nil) != tt.wantErr {
-				t.Errorf("DualTree.RandomBranch() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("DualTree.RandomNonTerminal() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if err == nil {
@@ -559,11 +559,11 @@ func TestDualTree_MutateTerminal(t *testing.T) {
 				t.Errorf("DualTree.MutateTerminal() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			if err == nil {
-				oldTreeLeafs, err := tt.oldTree.Leafs()
+				oldTreeLeafs, err := tt.oldTree.Terminals()
 				if err != nil {
 					t.Error(err)
 				}
-				newTreeLeafs, err := tt.tree.Leafs()
+				newTreeLeafs, err := tt.tree.Terminals()
 				if err != nil {
 					t.Error(err)
 				}
@@ -626,11 +626,11 @@ func TestDualTree_MutateNonTerminal(t *testing.T) {
 				t.Errorf("DualTree.MutateNonTerminal() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			if err == nil {
-				oldTreeNonTerminals, err := tt.oldTree.Branches()
+				oldTreeNonTerminals, err := tt.oldTree.NonTerminals()
 				if err != nil {
 					t.Error(err)
 				}
-				newTreeNonTerminals, err := tt.tree.Branches()
+				newTreeNonTerminals, err := tt.tree.NonTerminals()
 				if err != nil {
 					t.Error(err)
 				}
@@ -1218,16 +1218,16 @@ func TestDualTree_RandomLeafAware(t *testing.T) {
 				root: tt.fields.root,
 				lock: tt.fields.lock,
 			}
-			gotNode, gotParent, err := bst.RandomLeafAware()
+			gotNode, gotParent, err := bst.RandomTerminalAware()
 			if (err != nil) != tt.wantErr {
-				t.Errorf("DualTree.RandomLeafAware() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("DualTree.RandomTerminalAware() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(gotNode, tt.wantNode) {
-				t.Errorf("DualTree.RandomLeafAware() gotNode = %v, want %v", gotNode, tt.wantNode)
+				t.Errorf("DualTree.RandomTerminalAware() gotNode = %v, want %v", gotNode, tt.wantNode)
 			}
 			if !reflect.DeepEqual(gotParent, tt.wantParent) {
-				t.Errorf("DualTree.RandomLeafAware() gotParent = %v, want %v", gotParent, tt.wantParent)
+				t.Errorf("DualTree.RandomTerminalAware() gotParent = %v, want %v", gotParent, tt.wantParent)
 			}
 		})
 	}
@@ -1403,6 +1403,229 @@ func TestGenerateRandomTreeEnforceIndependentVariable(t *testing.T) {
 					t.Errorf("Does not contain independent variable = %v, "+
 						"wantErr %v", gotExpressionSet,
 						wantExpressionSet)
+				}
+			}
+		})
+	}
+}
+
+func TestDualTree_DeleteNonTerminal(t *testing.T) {
+	tests := []struct {
+		name    string
+		fields  *DualTree
+		wantErr bool
+	}{
+		{"nil", TreeNil(), true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			bst := &DualTree{
+				root: tt.fields.root,
+				lock: tt.fields.lock,
+			}
+			if err := bst.DeleteNonTerminal(); (err != nil) != tt.wantErr {
+				t.Errorf("DualTree.DeleteNonTerminal() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestDualTree_RandomBranchAware(t *testing.T) {
+	type fields struct {
+		root *DualTreeNode
+		lock sync.RWMutex
+	}
+	tests := []struct {
+		name       string
+		fields     fields
+		wantNode   *DualTreeNode
+		wantParent *DualTreeNode
+		wantErr    bool
+	}{
+		{},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			bst := &DualTree{
+				root: tt.fields.root,
+				lock: tt.fields.lock,
+			}
+			gotNode, gotParent, err := bst.RandomNonTerminalAware()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("DualTree.RandomNonTerminalAware() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(gotNode, tt.wantNode) {
+				t.Errorf("DualTree.RandomNonTerminalAware() gotNode = %v, want %v", gotNode, tt.wantNode)
+			}
+			if !reflect.DeepEqual(gotParent, tt.wantParent) {
+				t.Errorf("DualTree.RandomNonTerminalAware() gotParent = %v, want %v", gotParent, tt.wantParent)
+			}
+		})
+	}
+}
+
+func TestDualTree_GetBranchesAware(t *testing.T) {
+	tests := []struct {
+		name    string
+		fields  *DualTree
+		want    []AwareTree
+		wantErr bool
+	}{
+		{"nil", TreeNil(), nil, true},
+		{"T", TreeT_0(), []AwareTree{}, false},
+		{"T-NT-T", TreeT_NT_T_0(), []AwareTree{{parent: nil, node: Mult.ToDualTreeNode("1")}}, false},
+		{"T-NT-T-NT-T", TreeT_NT_T_NT_T_0(), []AwareTree{
+			{parent: Mult.ToDualTreeNode("0"), node: Sub.ToDualTreeNode("2")},
+			{parent: nil, node: Mult.ToDualTreeNode("0")}},
+			false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			bst := &DualTree{
+				root: tt.fields.root,
+				lock: tt.fields.lock,
+			}
+			got, err := bst.GetNonTerminalsAware()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("DualTree.GetNonTerminalsAware() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr {
+				for o := range got {
+					if !got[o].node.IsEqual(tt.want[o].node) {
+						t.Errorf("DualTree.GetNonTerminalsAware() = %v, want %v", got[o].node, tt.want[o].node)
+					}
+					if got[o].parent == nil && tt.want[o].parent != nil {
+						t.Errorf("DualTree.GetNonTerminalsAware() = %v, want %v", got[o].parent, tt.want[o].parent)
+					}
+					if got[o].parent != nil && tt.want[o].parent == nil {
+						t.Errorf("DualTree.GetNonTerminalsAware() = %v, want %v", got[o].parent, tt.want[o].parent)
+					}
+					if got[o].parent != nil && tt.want[o].parent != nil {
+						if !got[o].parent.IsEqual(tt.want[o].parent) || !got[o].parent.IsEqual(tt.want[o].
+							parent) {
+							t.Errorf("DualTree.GetNonTerminalsAware() = %v, want %v", got[o].parent, tt.want[o].parent)
+						}
+					}
+				}
+			}
+		})
+	}
+}
+
+func TestDualTree_InOrderTraverseAware(t *testing.T) {
+	type args struct {
+		f func(node *DualTreeNode, parentNode *DualTreeNode)
+	}
+	tests := []struct {
+		name   string
+		fields *DualTree
+		args   args
+	}{
+		{},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			bst := &DualTree{
+				root: tt.fields.root,
+				lock: tt.fields.lock,
+			}
+			bst.InOrderTraverseAware(tt.args.f)
+		})
+	}
+}
+
+func Test_inOrderTraverseAwareDepth(t *testing.T) {
+	type args struct {
+		n            *DualTreeNode
+		parent       *DualTreeNode
+		depth        *int
+		shouldReturn *bool
+		f            func(node *DualTreeNode, parentNode *DualTreeNode, depth *int, shouldReturn *bool)
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			inOrderTraverseAwareDepth(tt.args.n, tt.args.parent, tt.args.depth, tt.args.shouldReturn, tt.args.f)
+		})
+	}
+}
+
+func Test_inOrderTraverseAware(t *testing.T) {
+	type args struct {
+		n      *DualTreeNode
+		parent *DualTreeNode
+		f      func(node *DualTreeNode, parentNode *DualTreeNode)
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			inOrderTraverseAware(tt.args.n, tt.args.parent, tt.args.f)
+		})
+	}
+}
+
+func TestDualTree_GetLeafsAware(t *testing.T) {
+	tests := []struct {
+		name    string
+		fields  *DualTree
+		want    []AwareTree
+		wantErr bool
+	}{
+		{"nil", TreeNil(), nil, true},
+		{"T", TreeT_0(), []AwareTree{{node:X1.ToDualTreeNode("0"), parent: nil}}, false},
+		{"T-NT-T", TreeT_NT_T_0(), []AwareTree{
+			{node:X1.ToDualTreeNode("2"), parent: Mult.ToDualTreeNode("1")},
+			{node:Const4.ToDualTreeNode("3"), parent: Mult.ToDualTreeNode("1")},
+		}, false},
+		{"T-NT-T", TreeT_NT_T_NT_T_0(), []AwareTree{
+			{node:X1.ToDualTreeNode("3"), parent: Sub.ToDualTreeNode("2")},
+			{node:X1.ToDualTreeNode("4"), parent: Sub.ToDualTreeNode("2")},
+			{node:Const4.ToDualTreeNode("1"), parent: Mult.ToDualTreeNode("0")},
+		}, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			bst := &DualTree{
+				root: tt.fields.root,
+				lock: tt.fields.lock,
+			}
+			got, err := bst.GetTerminalsAware()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("DualTree.GetTerminalsAware() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr {
+				for o := range got {
+					if !got[o].node.IsEqual(tt.want[o].node) {
+						t.Errorf("DualTree.GetNonTerminalsAware() = %v, want %v", got[o].node, tt.want[o].node)
+					}
+					if got[o].parent == nil && tt.want[o].parent != nil {
+						t.Errorf("DualTree.GetNonTerminalsAware() = %v, want %v", got[o].parent, tt.want[o].parent)
+					}
+					if got[o].parent != nil && tt.want[o].parent == nil {
+						t.Errorf("DualTree.GetNonTerminalsAware() = %v, want %v", got[o].parent, tt.want[o].parent)
+					}
+					if got[o].parent != nil && tt.want[o].parent != nil {
+						if !got[o].parent.IsEqual(tt.want[o].parent) || !got[o].parent.IsEqual(tt.want[o].
+							parent) {
+							t.Errorf("DualTree.GetNonTerminalsAware() = %v, want %v", got[o].parent, tt.want[o].parent)
+						}
+					}
+				}
+				if len(got) < 1 {
+					t.Errorf("DualTree.GetNonTerminalsAware() = %v, want %v", got, tt.want)
 				}
 			}
 		})

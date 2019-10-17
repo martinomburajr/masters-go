@@ -70,18 +70,21 @@ func (n *SymbolicExpression) ToDualTreeNode(key string) *DualTreeNode {
 	}
 }
 
+// GenerateTerminals returns a set of count terminals from the symbol list.
+// A count value less than 0 will return all symbols as terminals.
+// Similarly a number greater than the length of the symbolList will return all the terminals.
 func GenerateTerminals(count int, symbolList []string) ([]SymbolicExpression, error) {
-	if count > len(symbolList) {
-		count = len(symbolList)
-	}
-	if count < 0 {
-		count = 0
-	}
 	if symbolList == nil {
 		return nil, fmt.Errorf("symbol list cannot be nil")
 	}
 	if len(symbolList) < 1 {
 		return nil, fmt.Errorf("symbol list cannot be empty")
+	}
+	if count > len(symbolList) {
+		count = len(symbolList)
+	}
+	if count < 0 {
+		count = len(symbolList)
 	}
 	se := make([]SymbolicExpression, count)
 

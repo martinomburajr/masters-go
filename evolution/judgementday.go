@@ -13,7 +13,7 @@ import (
 // 4. Survivor Selection
 // 5. Statistical Output
 // 6. FinalPopulation configuration (incrementing Age, clearing Fitness values for old worthy individuals)
-func JudgementDay(incomingPopulation []*Individual, opts EvolutionParams) ([]*Individual, error) {
+func JudgementDay(incomingPopulation []*Individual, generationCount int, opts EvolutionParams) ([]*Individual, error) {
 	survivors := make([]*Individual, len(incomingPopulation))
 	// Parent Selection
 	// Tournament Selection
@@ -30,6 +30,8 @@ func JudgementDay(incomingPopulation []*Individual, opts EvolutionParams) ([]*In
 		if err != nil {
 			return nil, err
 		}
+		child1.BirthGen = generationCount
+		child2.BirthGen = generationCount
 		children[i] = &child1
 		children[i+1] = &child2
 	}
@@ -45,7 +47,6 @@ func JudgementDay(incomingPopulation []*Individual, opts EvolutionParams) ([]*In
 	dualStrategies := append(opts.AntagonistAvailableStrategies, opts.ProtagonistAvailableStrategies...)
 	// parents
 	for i := 0; i < (len(outgoingParents)); i++ {
-
 		probabilityOfMutation := rand.Float64()
 		if probabilityOfMutation < opts.ProbabilityOfMutation {
 			err := outgoingParents[i].Mutate(dualStrategies)
@@ -57,7 +58,6 @@ func JudgementDay(incomingPopulation []*Individual, opts EvolutionParams) ([]*In
 
 	// childs
 	for i := 0; i < (len(children)); i++ {
-
 		probabilityOfMutation := rand.Float64()
 		if probabilityOfMutation < opts.ProbabilityOfMutation {
 			err := children[i].Mutate(dualStrategies)
@@ -103,6 +103,7 @@ func CleansePopulation(individuals []*Individual, treeReplacer DualTree) ([]*Ind
 			newIndividual.HasAppliedStrategy = false
 			newIndividual.TotalFitness = 0
 			newIndividual.Program.T = &tree
+			newIndividual.Strategy = individuals[i].Strategy
 			individuals[i] = &newIndividual
 		} else {
 			newIndividual, err := individuals[i].Clone()
@@ -113,8 +114,9 @@ func CleansePopulation(individuals []*Individual, treeReplacer DualTree) ([]*Ind
 			newIndividual.HasCalculatedFitness = false
 			newIndividual.HasAppliedStrategy = false
 			newIndividual.TotalFitness = 0
+			newIndividual.Strategy = individuals[i].Strategy
 			individuals[i] = &newIndividual
-			individuals[i].Program.T = nil
+			individuals[i].Program = &Program{}
 		}
 	}
 	return individuals, nil

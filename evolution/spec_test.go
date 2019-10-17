@@ -165,22 +165,22 @@ func TestGenerateSpecSimple(t *testing.T) {
 		want    SpecMulti
 		wantErr bool
 	}{
-		{"nil", args{mathematicalExpression:"", count: -1, initialSeed: -1}, nil, true},
-		{"invalid symbol", args{mathematicalExpression:"#", count: -1, initialSeed: -1}, nil, true},
-		{"count < 1", args{mathematicalExpression:"1", count: -1, initialSeed: -1}, nil, true},
-		{"bad symbol", args{mathematicalExpression:"$", count: 0, initialSeed: -1}, nil, true},
-		{"1 count = 0", args{mathematicalExpression:"1", count: 0, initialSeed: -1}, nil, true},
-		{"1 count = 0", args{mathematicalExpression:"1", count: 1, initialSeed: -1}, SpecMulti{
+		{"nil", args{mathematicalExpression: "", count: -1, initialSeed: -1}, nil, true},
+		{"invalid symbol", args{mathematicalExpression: "#", count: -1, initialSeed: -1}, nil, true},
+		{"count < 1", args{mathematicalExpression: "1", count: -1, initialSeed: -1}, nil, true},
+		{"bad symbol", args{mathematicalExpression: "$", count: 0, initialSeed: -1}, nil, true},
+		{"1 count = 0", args{mathematicalExpression: "1", count: 0, initialSeed: -1}, nil, true},
+		{"1 count = 0", args{mathematicalExpression: "1", count: 1, initialSeed: -1}, SpecMulti{
 			EquationPairings{Independents: map[string]float64{"x": -1}, Dependent: 1},
 		}, false},
-		{"1 count = 0", args{mathematicalExpression:"x", count: 1, initialSeed: -1}, SpecMulti{
+		{"1 count = 0", args{mathematicalExpression: "x", count: 1, initialSeed: -1}, SpecMulti{
 			EquationPairings{Independents: map[string]float64{"x": -1}, Dependent: -1},
 		}, false},
-		{"1 count = 0", args{mathematicalExpression:"x", count: 2, initialSeed: -1}, SpecMulti{
+		{"1 count = 0", args{mathematicalExpression: "x", count: 2, initialSeed: -1}, SpecMulti{
 			EquationPairings{Independents: map[string]float64{"x": -1}, Dependent: -1},
 			EquationPairings{Independents: map[string]float64{"x": 0}, Dependent: -0},
 		}, false},
-		{"1 count = 0", args{mathematicalExpression:"x * x", count: 3, initialSeed: -1}, SpecMulti{
+		{"1 count = 0", args{mathematicalExpression: "x * x", count: 3, initialSeed: -1}, SpecMulti{
 			EquationPairings{Independents: map[string]float64{"x": -1}, Dependent: 1},
 			EquationPairings{Independents: map[string]float64{"x": 0}, Dependent: 0},
 			EquationPairings{Independents: map[string]float64{"x": 1}, Dependent: 1},

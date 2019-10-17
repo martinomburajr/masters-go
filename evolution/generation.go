@@ -18,7 +18,7 @@ type Generation struct {
 
 // Start begins the generational evolutionary cycle.
 // It creates a new Generation that it links the {nextGeneration} field to. Similar to the way a LinkedList works
-func (g *Generation) Start() (*Generation, error) {
+func (g *Generation) Start(generationCount int) (*Generation, error) {
 	setupEpochs, err := g.setupEpochs()
 	if err != nil {
 		return nil, err
@@ -36,7 +36,7 @@ func (g *Generation) Start() (*Generation, error) {
 		if err != nil {
 			return nil, err
 		}
-		g.Protagonists[i].TotalFitness = protagonistFitness
+		g.Protagonists[i].TotalFitness = float64(protagonistFitness / float64(len(g.Protagonists[i].Fitness)))
 		g.Protagonists[i].HasCalculatedFitness = true
 		g.Protagonists[i].Age++
 
@@ -44,30 +44,31 @@ func (g *Generation) Start() (*Generation, error) {
 		if err != nil {
 			return nil, err
 		}
-		g.Antagonists[i].TotalFitness = antagonistFitness
+		g.Antagonists[i].TotalFitness = float64(antagonistFitness / float64(len(g.Antagonists[i].Fitness)))
 		g.Antagonists[i].HasCalculatedFitness = true
 		g.Antagonists[i].Age++
 	}
 
-	//protagonists := make([]Individual, len(g.Protagonists))
-	//for i := range g.Protagonists {
-	//	protagonists[i] = *g.Protagonists[i]
-	//}
-	//
-	//antagonists := make([]Individual, len(g.Antagonists))
-	//for i := range g.Antagonists {
-	//	antagonists[i] = *g.Antagonists[i]
-	//}
-
-	nextGenAntagonists, err := JudgementDay(g.Antagonists, g.engine.Parameters)
+	nextGenAntagonists, err := JudgementDay(g.Antagonists, generationCount, g.engine.Parameters)
 	if err != nil {
 		return nil, err
 	}
 
-	nextGenProtagonists, err := JudgementDay(g.Protagonists, g.engine.Parameters)
+	nextGenProtagonists, err := JudgementDay(g.Protagonists, generationCount, g.engine.Parameters)
 	if err != nil {
 		return nil, err
 	}
+
+	//fmt.Printf("#################### GEN: %d ANTAGONISTS ####################### \n", generationCount)
+	//for _, g := range nextGenAntagonists {
+	//	ss := g.ToString()
+	//	fmt.Println(ss.String())
+	//}
+	//fmt.Printf("#################### GEN: %d PROTAGONISTS ####################### \n", generationCount)
+	//for _, g := range nextGenProtagonists {
+	//	ss := g.ToString()
+	//	fmt.Println(ss.String())
+	//}
 
 	nextGenID := GenerateGenerationID(g.count + 1)
 	nextGen := &Generation{
@@ -106,8 +107,8 @@ func (g *Generation) setupEpochs() ([]Epoch, error) {
 
 	epochs := make([]Epoch, len(g.Antagonists)*len(g.Protagonists))
 	count := 0
-	for _, antagonist := range g.Antagonists {
-		for _, protagonist := range g.Protagonists {
+	for i, _ := range g.Antagonists {
+		for j, _ := range g.Protagonists {
 			epochs[count] = Epoch{
 				isComplete:                       false,
 				protagonistBegins:                false,
@@ -117,11 +118,12 @@ func (g *Generation) setupEpochs() ([]Epoch, error) {
 				hasProtagonistApplied:            false,
 				probabilityOfMutation:            g.engine.Parameters.ProbabilityOfMutation,
 				probabilityOfNonTerminalMutation: g.engine.Parameters.ProbabilityOfNonTerminalMutation,
-				antagonist:                       antagonist,
-				protagonist:                      protagonist,
+				antagonist:                       g.Antagonists[i],
+				protagonist:                      g.Protagonists[j],
 				generation:                       g,
 				program:                          g.engine.Parameters.StartIndividual,
-				id:                               CreateEpochID(count, g.GenerationID, antagonist.Id, protagonist.Id),
+				id:                               CreateEpochID(count, g.GenerationID, g.Antagonists[i].Id,
+					g.Protagonists[j].Id),
 			}
 			count++
 		}
@@ -220,26 +222,33 @@ func (g *Generation) ApplySurvivorSelection() ([]*Individual, error) {
 	return nil, nil
 }
 
-// GenerateRandomAntagonists creates a a random set of individuals based on the parameters passed into the
+// GenerateRandomIndividual creates a a random set of individuals based on the parameters passed into the
 // evolution engine. To pass a tree to an individual pass it via the formal parameters and not through the evolution
 // engine
 // parameter section
 // Antagonists are by default
 // set with the StartIndividuals Program as their own
 // program.
-func (g *Generation) GenerateRandomIndividual(idTemplate string, prog Program) ([]*Individual, error) {
-	kind := IndividualAntagonist
+func (g *Generation) GenerateRandomIndividual(kind int, prog Program) ([]*Individual, error) {
 	if g.engine.Parameters.EachPopulationSize < 1 {
 		return nil, fmt.Errorf("number should at least be 1")
 	}
-	if g.engine.Parameters.AntagonistMaxStrategies < 1 {
-		return nil, fmt.Errorf("maxNumberOfStrategies should at least be 1")
-	}
-	if len(g.engine.Parameters.AntagonistAvailableStrategies) < 1 {
-		return nil, fmt.Errorf("availableStrategies should at least have one Strategy")
-	}
-	if idTemplate == "" {
-		return nil, fmt.Errorf("idTemplate cannot be empty")
+	if kind == IndividualAntagonist {
+		if g.engine.Parameters.AntagonistMaxStrategies < 1 {
+			return nil, fmt.Errorf("antagonist maxNumberOfStrategies should at least be 1")
+		}
+		if len(g.engine.Parameters.AntagonistAvailableStrategies) < 1 {
+			return nil, fmt.Errorf("antagonist availableStrategies should at least have one Strategy")
+		}
+	} else if kind == IndividualProtagonist {
+		if g.engine.Parameters.ProtagonistMaxStrategies < 1 {
+			return nil, fmt.Errorf("protagonist maxNumberOfStrategies should at least be 1")
+		}
+		if len(g.engine.Parameters.ProtagonistAvailableStrategies) < 1 {
+			return nil, fmt.Errorf("protagonist availableStrategies should at least have one Strategy")
+		}
+	} else {
+		return nil, fmt.Errorf("unknown individual kind")
 	}
 
 	individuals := make([]*Individual, g.engine.Parameters.EachPopulationSize)
@@ -249,17 +258,29 @@ func (g *Generation) GenerateRandomIndividual(idTemplate string, prog Program) (
 		var numberOfStrategies int
 		var randomStrategies []Strategy
 
-		// TODO fix equal Strategy length issue
-		if g.engine.Parameters.SetEqualStrategyLength {
-			numberOfStrategies = g.engine.Parameters.EqualStrategiesLength
-			randomStrategies = GenerateRandomStrategy(g.engine.Parameters.EqualStrategiesLength,
-				g.engine.Parameters.AntagonistAvailableStrategies)
-		} else {
-			numberOfStrategies = rand.Intn(g.engine.Parameters.ProtagonistMaxStrategies)
-			randomStrategies = GenerateRandomStrategy(numberOfStrategies, g.engine.Parameters.AntagonistAvailableStrategies)
+		if kind == IndividualAntagonist {
+			// TODO fix equal Strategy length issue
+			if g.engine.Parameters.SetEqualStrategyLength {
+				numberOfStrategies = g.engine.Parameters.EqualStrategiesLength
+				randomStrategies = GenerateRandomStrategy(g.engine.Parameters.EqualStrategiesLength,
+					g.engine.Parameters.AntagonistAvailableStrategies)
+			} else {
+				numberOfStrategies = rand.Intn(g.engine.Parameters.AntagonistMaxStrategies)
+				randomStrategies = GenerateRandomStrategy(numberOfStrategies, g.engine.Parameters.AntagonistAvailableStrategies)
+			}
+		} else if kind == IndividualProtagonist {
+			// TODO fix equal Strategy length issue
+			if g.engine.Parameters.SetEqualStrategyLength {
+				numberOfStrategies = g.engine.Parameters.EqualStrategiesLength
+				randomStrategies = GenerateRandomStrategy(g.engine.Parameters.EqualStrategiesLength,
+					g.engine.Parameters.ProtagonistAvailableStrategies)
+			} else {
+				numberOfStrategies = rand.Intn(g.engine.Parameters.ProtagonistMaxStrategies)
+				randomStrategies = GenerateRandomStrategy(numberOfStrategies, g.engine.Parameters.ProtagonistAvailableStrategies)
+			}
 		}
-		id := fmt.Sprintf("%s-%d", KindToString(kind), i)
 
+		id := fmt.Sprintf("%s-%d", KindToString(kind), i)
 		var individual *Individual
 
 		if prog.T == nil {
@@ -269,8 +290,8 @@ func (g *Generation) GenerateRandomIndividual(idTemplate string, prog Program) (
 				Strategy: randomStrategies,
 				Fitness:  make([]float64, 0),
 				Program:  nil,
+				BirthGen: 0,
 			}
-
 		} else {
 			prog.ID = GenerateProgramID(i)
 

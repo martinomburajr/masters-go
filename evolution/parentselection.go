@@ -46,8 +46,10 @@ func TournamentSelection(population []*Individual, tournamentSize int) ([]*Indiv
 
 	for i := 0; i < len(population); i++ {
 		randSelectedIndividuals := getNRandom(population, tournamentSize)
-		fittest := tournamentSelect(randSelectedIndividuals)
-
+		fittest, err := tournamentSelect(randSelectedIndividuals)
+		if err != nil {
+			return nil, err
+		}
 		newPop[i] = fittest
 	}
 
@@ -66,14 +68,18 @@ func getNRandom(population []*Individual, tournamentSize int) []*Individual {
 }
 
 //tournamentSelect returns the fittest individual in a given tournament
-func tournamentSelect(selectedIndividuals []*Individual) *Individual {
+func tournamentSelect(selectedIndividuals []*Individual) (*Individual, error) {
 	fittest := selectedIndividuals[0]
 	for i := range selectedIndividuals {
 		if selectedIndividuals[i].TotalFitness > fittest.TotalFitness {
-			fittest = selectedIndividuals[i]
+			individual, err := selectedIndividuals[i].Clone()
+			if err != nil {
+				return nil, err
+			}
+			fittest = &individual
 		}
 	}
-	return fittest
+	return fittest, nil
 }
 
 // Elitism is an evolutionary process where only the top (

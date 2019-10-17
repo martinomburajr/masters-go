@@ -65,7 +65,7 @@ func CrossoverTree(individual1 *Individual, individual2 *Individual, maxDepth in
 
 	// 1. If depths < 1 in case it is just a Tree with only a root
 	if cloneADepth < 1 {
-		nodeB, _, err := cloneBTree.RandomLeafAware()
+		nodeB, _, err := cloneBTree.RandomTerminalAware()
 		if err != nil {
 			return Individual{}, Individual{}, err
 		}
@@ -81,7 +81,7 @@ func CrossoverTree(individual1 *Individual, individual2 *Individual, maxDepth in
 	}
 
 	if cloneBDepth < 1 {
-		nodeA, _, err := cloneATree.RandomLeafAware()
+		nodeA, _, err := cloneATree.RandomTerminalAware()
 		if err != nil {
 			return Individual{}, Individual{}, err
 		}

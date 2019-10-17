@@ -312,10 +312,10 @@ func ratioFitness(spec SpecMulti, antagonistExpression, protagonistExpression st
 	}
 
 	if deltaProtagonist >= deltaAntagonist {
-		return 0, 1, nil
+		return 0.01, 0.99, nil
 	}
 	if deltaProtagonist == 0 {
-		return 1, 0, nil
+		return 0.99, 0.01, nil
 	}
 
 	progFitness := 1 - ((deltaProtagonist) / deltaAntagonist)
