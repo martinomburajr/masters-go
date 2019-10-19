@@ -90,16 +90,12 @@ func (e *Epoch) Start() error {
 		return err
 	}
 	e.antagonist.HasAppliedStrategy = true
-	antString := e.antagonist.ToString()
-	fmt.Println(antString.String())
 
 	err = e.applyProtagonistStrategy(*e.antagonist.Program.T)
 	if err != nil {
 		return err
 	}
 	e.protagonist.HasAppliedStrategy = true
-	proString := e.protagonist.ToString()
-	fmt.Println(proString.String())
 
 	if !e.hasProtagonistApplied && !e.hasAntagonistApplied {
 		return fmt.Errorf("antagonist and protagonist havent applied Strategy to program")
@@ -113,13 +109,14 @@ func (e *Epoch) Start() error {
 		if err != nil {
 			return err
 		}
-
+		break
 	case FitnessRatio:
 		antagonistFitness, protagonistFitness, err = RatioFitness(e.generation.engine.Parameters.Spec, e.antagonist.Program,
 			e.protagonist.Program)
 		if err != nil {
 			return err
 		}
+		break
 
 	case FitnessRatioThresholder:
 		antagonistFitness, protagonistFitness, err = RatioFitnessThresholded(e.generation.engine.Parameters.Spec,
@@ -128,16 +125,49 @@ func (e *Epoch) Start() error {
 		if err != nil {
 			return err
 		}
+		break
+	case FitnessDualThresholdedRatioFitness:
+		antagonistFitness, protagonistFitness, err = ThresholdedRatioFitness(e.generation.engine.Parameters.Spec, e.antagonist.Program,
+			e.protagonist.Program)
+		if err != nil {
+			return err
+		}
+		break
+	case FitnessMonoThresholdedRatioFitness:
+		antagonistFitness, protagonistFitness, err = ThresholdedRatioFitness(e.generation.engine.Parameters.Spec, e.antagonist.Program,
+			e.protagonist.Program)
+		if err != nil {
+			return err
+		}
+		break
+	default:
+		err = fmt.Errorf("Unknown Fitness Strategy selected")
 	}
 
 	e.antagonist.Fitness = append(e.antagonist.Fitness, antagonistFitness)
 	e.protagonist.Fitness = append(e.protagonist.Fitness, protagonistFitness)
 
+	//antString := e.antagonist.ToString()
+	//fmt.Println(antString.String())
+	//proString := e.protagonist.ToString()
+	//fmt.Println(proString.String())
+
+	//program, err := e.generation.engine.Parameters.StartIndividual.Clone()
+	//if err != nil {
+	//	return err
+	//}
+	//e.antagonist.Program = &program
+	//e.protagonist.Program = &Program{}
 	return nil
 }
 
 // applyAntagonistStrategy applies the Antagonist strategies to program.
 func (e *Epoch) applyAntagonistStrategy() error {
+	program, err := e.generation.engine.Parameters.StartIndividual.Clone()
+	if err != nil {
+		return err
+	}
+	e.antagonist.Program = &program
 	for _, strategy := range e.antagonist.Strategy {
 		err := e.antagonist.Program.ApplyStrategy(strategy,
 			e.terminalSet,

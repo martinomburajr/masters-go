@@ -138,7 +138,7 @@ func TestDualTreeNode_ToDualTree(t *testing.T) {
 		want    DualTree
 		wantErr bool
 	}{
-		{"T", TreeT_0().root, *TreeT_0(), false},
+		{"T", TreeT_X().root, *TreeT_X(), false},
 		{"T-NT-T", TreeT_NT_T_0().root, *TreeT_NT_T_0(), false},
 		{"T-NT-T-NT-T", TreeT_NT_T_NT_T_0().root.left, *TreeT_NT_T_5(), false},
 	}

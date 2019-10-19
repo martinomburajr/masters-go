@@ -3,7 +3,6 @@ package evolution
 import (
 	"fmt"
 	"github.com/martinomburajr/masters-go/eval"
-	"github.com/martinomburajr/masters-go/utils"
 )
 
 const DeletionTypeMalicious = 1
@@ -77,21 +76,21 @@ func (p *Program) ApplyStrategy(strategy Strategy, terminals []SymbolicExpressio
 	case StrategyAddMult:
 		var tree *DualTree
 		tree, err = GenerateRandomTreeEnforceIndependentVariable(depth, terminals[0], terminals,
-			[]SymbolicExpression{{arity:2, value:"*", kind:1}})
+			[]SymbolicExpression{{arity: 2, value: "*", kind: 1}})
 		err = p.T.AddToLeaf(*tree)
 		break
 
 	case StrategyAddSub:
 		var tree *DualTree
 		tree, err = GenerateRandomTreeEnforceIndependentVariable(depth, terminals[0], terminals,
-			[]SymbolicExpression{{arity:2, value:"-", kind:1}})
+			[]SymbolicExpression{{arity: 2, value: "-", kind: 1}})
 		err = p.T.AddToLeaf(*tree)
 		break
 
 	case StrategyAddAdd:
 		var tree *DualTree
 		tree, err = GenerateRandomTreeEnforceIndependentVariable(depth, terminals[0], terminals,
-			[]SymbolicExpression{{arity:2, value:"+", kind:1}})
+			[]SymbolicExpression{{arity: 2, value: "+", kind: 1}})
 		err = p.T.AddToLeaf(*tree)
 		break
 	default:
@@ -121,18 +120,17 @@ func EvaluateMathematicalExpression(expressionString string, independentVariable
 	//	return -1, err
 	//}
 
-
-	expression, err :=  eval.CalculateWithVar(expressionString, independentVariables)
+	expression, err := eval.CalculateWithVar(expressionString, independentVariables)
 	if err != nil {
 		return -1, err
 	}
 
-	ans, err := utils.ConvertToFloat64(expression)
-	if err != nil {
-		return -1, err
-	}
+	//ans, err := utils.ConvertToFloat64(expression)
+	//if err != nil {
+	//	return -1, err
+	//}
 
-	return ans, nil
+	return expression, nil
 }
 
 func (p Program) Clone() (Program, error) {

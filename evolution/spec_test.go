@@ -7,10 +7,12 @@ import (
 
 func TestGenerateSpec(t *testing.T) {
 	type args struct {
-		mathematicalExpression string
-		independentVars        []string
-		count                  int
-		initialSeed            int
+		mathematicalExpression        string
+		independentVars               []string
+		count                         int
+		initialSeed                   int
+		antagonistTresholdMultiplier  float64
+		protagonistTresholdMultiplier float64
 	}
 	tests := []struct {
 		name    string
@@ -23,12 +25,12 @@ func TestGenerateSpec(t *testing.T) {
 		//{"0 countt", args{mathematicalExpression: "1", count: 0, initialSeed: 0}, nil, true},
 		//{"bad string", args{mathematicalExpression: "$", count: 1, initialSeed: 0}, nil, true},
 		//{"1", args{mathematicalExpression: "1", count: 1, initialSeed: 0}, SpecMulti{
-		//	EquationPairings{
+		//	EquationPairing{
 		//		Independents:nil,
 		//		Dependent: 1}},
 		//false},
 		//{"1", args{mathematicalExpression: "1", count: 1, initialSeed: 1}, SpecMulti{
-		//	EquationPairings{
+		//	EquationPairing{
 		//		Independents:nil,
 		//		Dependent: 1}},
 		//	false},
@@ -40,42 +42,42 @@ func TestGenerateSpec(t *testing.T) {
 		//
 		//	{"x | indp", args{mathematicalExpression: "x", independentVars:[]string{"x"}, count: 1, initialSeed: 0},
 		//		SpecMulti{
-		//			EquationPairings{
+		//			EquationPairing{
 		//				Independents:IndependentVariableMap{"x": 0},
 		//				Dependent: 0}},
 		//false},
 		//	{"x | indp", args{mathematicalExpression: "x", independentVars:[]string{"x"}, count: 2, initialSeed: 0},
 		//		SpecMulti{
-		//			EquationPairings{Independents:IndependentVariableMap{"x": 0}, Dependent: 0},
-		//			EquationPairings{Independents:IndependentVariableMap{"x": 1}, Dependent: 1},
+		//			EquationPairing{Independents:IndependentVariableMap{"x": 0}, Dependent: 0},
+		//			EquationPairing{Independents:IndependentVariableMap{"x": 1}, Dependent: 1},
 		//		},
 		//		false},
 
-		{"x + y | count 1", args{mathematicalExpression: "x + y", independentVars: []string{"x", "y"}, count: 1,
-			initialSeed: 0},
-			SpecMulti{
-				EquationPairings{Independents: IndependentVariableMap{"x": 0, "y": 0}, Dependent: 0},
-				//EquationPairings{Independents:IndependentVariableMap{"x": 1}, Dependent: 1},
-			},
-			false},
+		//{"x + y | count 1", args{mathematicalExpression: "x + y", independentVars: []string{"x", "y"}, count: 1,
+		//	initialSeed: 0},
+		//	SpecMulti{
+		//		EquationPairing{Independents: IndependentVariableMap{"x": 0, "y": 0}, Dependent: 0},
+		//		//EquationPairing{Independents:IndependentVariableMap{"x": 1}, Dependent: 1},
+		//	},
+		//	false},
 
 		//{"x + y | count 2", args{mathematicalExpression: "x + y", independentVars: []string{"x", "y"}, count: 2,
 		//	initialSeed: 0},
 		//	SpecMulti{
-		//		EquationPairings{Independents: IndependentVariableMap{"x": 0, "y": 0}, Dependent: 0},
-		//		EquationPairings{Independents: IndependentVariableMap{"x": 1, "y": 0}, Dependent: 1},
-		//		EquationPairings{Independents: IndependentVariableMap{"x": 0, "y": 1}, Dependent: 1},
-		//		EquationPairings{Independents: IndependentVariableMap{"x": 1, "y": 1}, Dependent: 2},
+		//		EquationPairing{Independents: IndependentVariableMap{"x": 0, "y": 0}, Dependent: 0},
+		//		EquationPairing{Independents: IndependentVariableMap{"x": 1, "y": 0}, Dependent: 1},
+		//		EquationPairing{Independents: IndependentVariableMap{"x": 0, "y": 1}, Dependent: 1},
+		//		EquationPairing{Independents: IndependentVariableMap{"x": 1, "y": 1}, Dependent: 2},
 		//	},
 		//	false},
 		//
 		//{"x + y | count 2", args{mathematicalExpression: "x + y + 1", independentVars: []string{"x", "y"}, count: 2,
 		//	initialSeed: 0},
 		//	SpecMulti{
-		//		EquationPairings{Independents: IndependentVariableMap{"x": 0, "y": 0}, Dependent: 1},
-		//		EquationPairings{Independents: IndependentVariableMap{"x": 1, "y": 0}, Dependent: 2},
-		//		EquationPairings{Independents: IndependentVariableMap{"x": 0, "y": 1}, Dependent: 2},
-		//		EquationPairings{Independents: IndependentVariableMap{"x": 1, "y": 1}, Dependent: 3},
+		//		EquationPairing{Independents: IndependentVariableMap{"x": 0, "y": 0}, Dependent: 1},
+		//		EquationPairing{Independents: IndependentVariableMap{"x": 1, "y": 0}, Dependent: 2},
+		//		EquationPairing{Independents: IndependentVariableMap{"x": 0, "y": 1}, Dependent: 2},
+		//		EquationPairing{Independents: IndependentVariableMap{"x": 1, "y": 1}, Dependent: 3},
 		//	},
 		//	false},
 		//
@@ -83,17 +85,17 @@ func TestGenerateSpec(t *testing.T) {
 		//	count: 2,
 		//	initialSeed: 0},
 		//	SpecMulti{
-		//		EquationPairings{Independents: IndependentVariableMap{"x": 0, "y": 0}, Dependent: 0},
-		//		EquationPairings{Independents: IndependentVariableMap{"x": 1, "y": 0}, Dependent: 1},
-		//		EquationPairings{Independents: IndependentVariableMap{"x": 0, "y": 1}, Dependent: 1},
-		//		EquationPairings{Independents: IndependentVariableMap{"x": 1, "y": 1}, Dependent: 2},
+		//		EquationPairing{Independents: IndependentVariableMap{"x": 0, "y": 0}, Dependent: 0},
+		//		EquationPairing{Independents: IndependentVariableMap{"x": 1, "y": 0}, Dependent: 1},
+		//		EquationPairing{Independents: IndependentVariableMap{"x": 0, "y": 1}, Dependent: 1},
+		//		EquationPairing{Independents: IndependentVariableMap{"x": 1, "y": 1}, Dependent: 2},
 		//	},
 		//	false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := GenerateSpec(tt.args.mathematicalExpression, tt.args.independentVars, tt.args.count,
-				tt.args.initialSeed)
+				tt.args.initialSeed, tt.args.antagonistTresholdMultiplier, tt.args.protagonistTresholdMultiplier)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GenerateSpec() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -155,9 +157,11 @@ func TestGenerateSpec(t *testing.T) {
 
 func TestGenerateSpecSimple(t *testing.T) {
 	type args struct {
-		mathematicalExpression string
-		count                  int
-		initialSeed            int
+		mathematicalExpression        string
+		count                         int
+		initialSeed                   int
+		antagonistTresholdMultiplier  float64
+		protagonistTresholdMultiplier float64
 	}
 	tests := []struct {
 		name    string
@@ -171,24 +175,25 @@ func TestGenerateSpecSimple(t *testing.T) {
 		{"bad symbol", args{mathematicalExpression: "$", count: 0, initialSeed: -1}, nil, true},
 		{"1 count = 0", args{mathematicalExpression: "1", count: 0, initialSeed: -1}, nil, true},
 		{"1 count = 0", args{mathematicalExpression: "1", count: 1, initialSeed: -1}, SpecMulti{
-			EquationPairings{Independents: map[string]float64{"x": -1}, Dependent: 1},
+			EquationPairing{Independents: map[string]float64{"x": -1}, Dependent: 1},
 		}, false},
 		{"1 count = 0", args{mathematicalExpression: "x", count: 1, initialSeed: -1}, SpecMulti{
-			EquationPairings{Independents: map[string]float64{"x": -1}, Dependent: -1},
+			EquationPairing{Independents: map[string]float64{"x": -1}, Dependent: -1},
 		}, false},
 		{"1 count = 0", args{mathematicalExpression: "x", count: 2, initialSeed: -1}, SpecMulti{
-			EquationPairings{Independents: map[string]float64{"x": -1}, Dependent: -1},
-			EquationPairings{Independents: map[string]float64{"x": 0}, Dependent: -0},
+			EquationPairing{Independents: map[string]float64{"x": -1}, Dependent: -1},
+			EquationPairing{Independents: map[string]float64{"x": 0}, Dependent: -0},
 		}, false},
 		{"1 count = 0", args{mathematicalExpression: "x * x", count: 3, initialSeed: -1}, SpecMulti{
-			EquationPairings{Independents: map[string]float64{"x": -1}, Dependent: 1},
-			EquationPairings{Independents: map[string]float64{"x": 0}, Dependent: 0},
-			EquationPairings{Independents: map[string]float64{"x": 1}, Dependent: 1},
+			EquationPairing{Independents: map[string]float64{"x": -1}, Dependent: 1},
+			EquationPairing{Independents: map[string]float64{"x": 0}, Dependent: 0},
+			EquationPairing{Independents: map[string]float64{"x": 1}, Dependent: 1},
 		}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := GenerateSpecSimple(tt.args.mathematicalExpression, tt.args.count, tt.args.initialSeed)
+			got, err := GenerateSpecSimple(tt.args.mathematicalExpression, tt.args.count, tt.args.initialSeed,
+				tt.args.antagonistTresholdMultiplier, tt.args.protagonistTresholdMultiplier)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GenerateSpecSimple() error = %v, wantErr %v", err, tt.wantErr)
 				return

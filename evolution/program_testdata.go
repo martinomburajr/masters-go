@@ -6,10 +6,15 @@ var ProgNil = Program{
 	ID: "ProgNil",
 }
 
-// Prog0-TreeNil
-var Prog0 = Program{
-	T:  TreeT_0(),
-	ID: "Prog0",
+var ProgBadTree = Program{
+	T:  TreeBad(),
+	ID: "BadTree",
+}
+
+// ProgX-TreeNil
+var ProgX = Program{
+	T:  TreeT_X(),
+	ID: "ProgX",
 }
 
 // Prog1-TreeT_1
@@ -18,19 +23,19 @@ var Prog1 = Program{
 	ID: "Prog1",
 }
 
-// ProgTreeT_NT_T_0
+// ProgTreeT_NT_T_0 | x*4
 var ProgTreeT_NT_T_0 = Program{
 	T:  TreeT_NT_T_0(),
 	ID: "ProgTreeT_NT_T_0",
 }
 
-// ProgTreeT_NT_T_0
+// ProgTreeT_NT_T_0 | x*5
 var ProgTreeXby5 = Program{
 	T:  TreeXby5(),
 	ID: "TreeXby5",
 }
 
-// ProgTreeT_NT_T_0
+// ProgTreeT_NT_T_0 + x+8
 var ProgTreeT_NT_T_1 = Program{
 	T:  TreeT_NT_T_1(),
 	ID: "ProgTreeT_NT_T_0",
@@ -42,13 +47,13 @@ var ProgTreeT_NT_T_4 = Program{
 	ID: "ProgTreeT_NT_T_4",
 }
 
-// ProgTreeT_NT_T_NT_T_0
+// ProgTreeT_NT_T_NT_T_0 | x - x * 4
 var ProgTreeT_NT_T_NT_T_0 = Program{
 	T:  TreeT_NT_T_NT_T_0(),
 	ID: "ProgTreeT_NT_T_NT_T_0",
 }
 
-// ProgTreeT_NT_T_NT_T_NT_T_0
+// ProgTreeT_NT_T_NT_T_NT_T_0 | 4 - 0 + 4 + 8
 var ProgTreeT_NT_T_NT_T_NT_T_0 = Program{
 	T:  TreeT_NT_T_NT_T_NT_T_0(),
 	ID: "ProgTreeT_NT_T_NT_T_NT_T_0",
@@ -60,9 +65,9 @@ var ProgTreeXXXX4 = Program{
 	ID: "ProgTreeXXXX4",
 }
 
-// ProgTreeTreeT_NT_T_NT_T_NT_T_2 = x * x * x * x
-var ProgTreeTreeT_NT_T_NT_T_NT_T_2 = Program{
-	T:  TreeT_NT_T_NT_T_NT_T_2(),
+// ProgXXXX = x * x * x * x
+var ProgXXXX = Program{
+	T:  TreeXXXX(),
 	ID: "ProgTreeT_NT_T_NT_T_NT_T_2",
 }
 

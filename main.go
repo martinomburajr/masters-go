@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/martinomburajr/masters-go/eval"
 	"github.com/martinomburajr/masters-go/evolution"
 	"log"
 	"math/rand"
@@ -27,12 +28,42 @@ func Evolution1() {
 		evolution.StrategyAddMult,
 		evolution.StrategyAddSub,
 		evolution.StrategyAddAdd,
-		evolution.StrategyFellTree,
+		//evolution.StrategyFellTree,
 
 	}
 
+	// TODO Include terminals and non terminals as part of strategy?
+	params := evolution.EvolutionParams{
+		Generations:                           50,
+		EachPopulationSize:                    100, // Must be an even number to prevent awkward ordering of children.
+		AntagonistMaxStrategies:               20,
+		ProtagonistMaxStrategies:              20,
+		DepthPenaltyStrategyPenalization:      10,
+		ProbabilityOfMutation:                 0.1,
+		ProbabilityOfNonTerminalMutation:      0.1,
+		DepthOfRandomNewTrees:                 1,
+		DeletionType:                          evolution.DeletionTypeSafe,
+		EnforceIndependentVariable:            true,
+		ProtagonistAvailableStrategies:        strategies,
+		AntagonistAvailableStrategies:         strategies,
+		SetEqualStrategyLength:                true,
+		CrossoverPercentage:                   0.2,
+		MaintainCrossoverGeneTransferEquality: true,
+		FitnessStrategy:                       evolution.FitnessDualThresholdedRatioFitness,
+		EvaluationThreshold:                   12,
+		TournamentSize:                        3,
+		StrategyLengthLimit:                   10,
+		SurvivorPercentage:                    0.5,
+		ParentSelection:                       evolution.FitnessDualThresholdedRatioFitness,
+		EqualStrategiesLength:                 10,
+		ThresholdMultiplier:                   1.5,
+		AntagonistThresholdMultiplier:         5.0,
+		ProtagonistThresholdMultiplier:        2.0,
+	}
+
 	expression := "x * x"
-	specCount := 100
+	expression = eval.MartinsReplace(expression, " ", "")
+	specCount := 10
 
 	constants := []string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"}
 	variables := []string{"x"}
@@ -70,51 +101,40 @@ func Evolution1() {
 	startProgram := evolution.Program{
 		T: &starterTree,
 	}
-	spec, err := evolution.GenerateSpecSimple(expression, specCount, -1 * (specCount/2))
-	if err != nil {
-		log.Fatalf("MAIN | failed to create a valid spec | %s", err.Error())
+	var spec evolution.SpecMulti
+
+	switch params.FitnessStrategy {
+	case evolution.FitnessMonoThresholdedRatioFitness:
+		spec, err = evolution.GenerateSpecSimple(expression, specCount, -1*(specCount/2),
+			params.ProtagonistThresholdMultiplier, params.ProtagonistThresholdMultiplier)
+		if err != nil {
+			log.Fatalf("MAIN | failed to create a valid spec | %s", err.Error())
+		}
+	case evolution.FitnessDualThresholdedRatioFitness:
+		spec, err = evolution.GenerateSpecSimple(expression, specCount, -1*(specCount/2),
+			params.AntagonistThresholdMultiplier, params.ProtagonistThresholdMultiplier)
+		if err != nil {
+			log.Fatalf("MAIN | failed to create a valid spec | %s", err.Error())
+		}
+	default:
+		spec, err = evolution.GenerateSpecSimple(expression, specCount, -1*(specCount/2),
+			params.ProtagonistThresholdMultiplier, params.ProtagonistThresholdMultiplier)
+		if err != nil {
+			log.Fatalf("MAIN | failed to create a valid spec | %s", err.Error())
+		}
 	}
 
-	fmt.Printf("Protagonist vs Antagonist Competitive Coevolution:\nMathematical Expression: %s\nSpec:\n",
+	fmt.Printf("Protagonist vs Antagonist Competitive Coevolution:\nMathematical Expression: %s\nSpec:%s\n",
 		starterTreeAsMathematicalExpression,
-		//spec.ToString()
+		spec.ToString(),
 	)
 
-	// TODO only perform parent selection on loser
-	// TODO Do children undergo tournament selection
-	// TODO Include terminals and non terminals as part of strategy?
-	// TODO Should threshold increase given spec
-	// TODO Should we pick most recent individual even if fitness is the same?
-	params := evolution.EvolutionParams{
-		VariableTerminals:                     variableTerminals,
-		Generations:                           2,
-		EachPopulationSize:                    2, // Must be an even number to prevent awkward ordering of children.
-		AntagonistMaxStrategies:               10,
-		ProtagonistMaxStrategies:              10,
-		DepthPenaltyStrategyPenalization:      10,
-		ProbabilityOfMutation:                 0.1,
-		ProbabilityOfNonTerminalMutation:      0.1,
-		DepthOfRandomNewTrees:                 1,
-		DeletionType:                          evolution.DeletionTypeSafe,
-		EnforceIndependentVariable:            true,
-		ProtagonistAvailableStrategies:        strategies,
-		AntagonistAvailableStrategies:         strategies,
-		SetEqualStrategyLength:                true,
-		CrossoverPercentage:                   0.2,
-		MaintainCrossoverGeneTransferEquality: true,
-		NonTerminalSet:                        nonTerminals,
-		TerminalSet:                           terminals,
-		FitnessStrategy:                       evolution.FitnessRatio,
-		EvaluationThreshold:                   12,
-		TournamentSize:                        3,
-		StrategyLengthLimit:                   10,
-		SurvivorPercentage:                    0.5,
-		StartIndividual:                       startProgram,
-		Spec:                                  spec,
-		ParentSelection:                       evolution.ParentSelectionTournament,
-		EqualStrategiesLength:                 10,
-		ThresholdMultiplier:                   1.5,
-	}
+	// Set extra params
+	params.Spec = spec
+	params.TerminalSet = terminals
+	params.NonTerminalSet = nonTerminals
+	params.StartIndividual = startProgram
+	params.VariableTerminals = variableTerminals
 
 	engine := evolution.EvolutionEngine{
 		Parameters:  params,

@@ -13,7 +13,7 @@ var imin1 = &Individual{TotalFitness: -1, Id: "iMin1"}
 
 func TestCalcTopIndividual(t *testing.T) {
 	type args struct {
-		individuals []*Individual
+		individuals       []*Individual
 		fitnessComparator int
 	}
 	tests := []struct {
@@ -54,8 +54,8 @@ var g3 = &Generation{GenerationID: "g3", Protagonists: []*Individual{imin1, iMax
 
 func TestCalcTopIndividualAllGenerations(t *testing.T) {
 	type args struct {
-		generations    []*Generation
-		individualKind int
+		generations       []*Generation
+		individualKind    int
 		fitnessComparator int
 	}
 	tests := []struct {
@@ -87,7 +87,7 @@ func TestCalcTopIndividualAllGenerations(t *testing.T) {
 
 func TestSortIndividuals(t *testing.T) {
 	type args struct {
-		individuals []*Individual
+		individuals       []*Individual
 		fitnessComparator int
 	}
 	tests := []struct {

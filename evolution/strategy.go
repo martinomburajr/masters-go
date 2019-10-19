@@ -9,10 +9,7 @@ type Strategable interface{ Apply(t *DualTree) }
 
 type Strategy string
 
-
-
 const (
-
 
 	// #############################  Delete Strategies ############################################
 	// All delete operations will still allow the tree to remain in a valid state.
@@ -20,13 +17,13 @@ const (
 
 	// StrategyDeleteNonTerminal will select a non-root non-terminal element from a given tree and delete it by
 	// setting it to 0
-	StrategyDeleteNonTerminal     = "StrategyDeleteNonTerminal"
+	StrategyDeleteNonTerminal = "StrategyDeleteNonTerminal"
 	// StrategyDeleteMalicious selects any element of a tree (
 	// including the root) and convert it to a value of 0 potentially deleting all
 	// genetic material.
-	StrategyDeleteMalicious   = "StrategyDeleteMalicious"
+	StrategyDeleteMalicious = "StrategyDeleteMalicious"
 	// StrategyDeleteTerminal will convert a terminal node to 0.
-	StrategyDeleteTerminal = "StrategySoftDeleteSubTree"
+	StrategyDeleteTerminal = "StrategyDeleteTerminal"
 
 	// StrategyFellTree destroys the tree and sets its root to 0 and kills it all.
 	StrategyFellTree = "StrategyFellTree"
@@ -36,7 +33,7 @@ const (
 	// StrategyMutateNode randomly selects a non-terminal in a tree and changes its value to one of the available
 	// nonterminals in the parameter list.
 	// If the tree only contains a root that is a terminal it will ignore it.
-	StrategyMutateNonTerminal       = "StrategyMutateNonTerminal"
+	StrategyMutateNonTerminal = "StrategyMutateNonTerminal"
 
 	// StrategyMutateTerminal randomly selects a terminal in a tree and changes its value to one of the available
 	// terminals in the parameter list.
@@ -53,7 +50,7 @@ const (
 	// If an add strategy encounters a 0 at the root, it will replace the 0.
 
 	//StrategyAddSubTree is a generic strategy that adds a randomly generated subtree anywhere on a given tree
-	StrategyAddSubTree        = "StrategyAddSubTree"
+	StrategyAddSubTree = "StrategyAddSubTree"
 	// StrategyAddToLeaf is similar to AddSubTree,
 	// however the SubTree will only be placed on a randomly selected leaf. It will not replace a non-terminal.
 	// It can replace a root
@@ -64,5 +61,4 @@ const (
 	StrategyAddSub = "StrategyAddSub"
 	// StrategyAddMult will add a subTree with a root of add to a given leaf node
 	StrategyAddAdd = "StrategyAddAdd"
-
 )

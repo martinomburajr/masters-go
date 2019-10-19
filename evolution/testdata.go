@@ -21,14 +21,20 @@ var Sin = SymbolicExpression{kind: 1, value: "sin", arity: 1}
 
 // SAMPLE TREES
 
+var TreeBad = func() *DualTree {
+	t := DualTree{}
+	t.root = Mult.ToDualTreeNode(RandString(5))
+	return &t
+}
+
 // TreeNil = 0
 var TreeNil = func() *DualTree {
 	t := DualTree{}
 	return &t
 }
 
-// TreeT_0 = x
-var TreeT_0 = func() *DualTree {
+// TreeT_X = x
+var TreeT_X = func() *DualTree {
 	t := DualTree{}
 	t.root = X1.ToDualTreeNode("0")
 	return &t
@@ -202,8 +208,8 @@ var TreeT_NT_T_NT_T_NT_T_1 = func() *DualTree {
 	return &t
 }
 
-// TreeT_NT_T_NT_T_NT_T_2 = x * x * x * x
-var TreeT_NT_T_NT_T_NT_T_2 = func() *DualTree {
+// TreeXXXX = x * x * x * x
+var TreeXXXX = func() *DualTree {
 	t := DualTree{}
 	t.root = Mult.ToDualTreeNode(RandString(5))
 	t.root.right = Mult.ToDualTreeNode(RandString(5))

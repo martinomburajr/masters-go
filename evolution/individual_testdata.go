@@ -11,7 +11,7 @@ var IndividualNilProgNil = Individual{
 
 // IndividualProg0-Kind-0
 var IndividualProg0Kind0 = Individual{
-	Program:                  &Prog0,
+	Program:                  &ProgX,
 	Kind:                     0,
 	Id:                       "ANTAGONIST-",
 	Age:                      0,
@@ -24,7 +24,7 @@ var IndividualProg0Kind0 = Individual{
 
 // IndividualProg0-Kind-1
 var IndividualProg0Kind1 = Individual{
-	Program:                  &Prog0,
+	Program:                  &ProgX,
 	Kind:                     1,
 	Id:                       "PROTAGONIST-",
 	Age:                      0,

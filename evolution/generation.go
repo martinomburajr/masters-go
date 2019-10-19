@@ -122,7 +122,7 @@ func (g *Generation) setupEpochs() ([]Epoch, error) {
 				protagonist:                      g.Protagonists[j],
 				generation:                       g,
 				program:                          g.engine.Parameters.StartIndividual,
-				id:                               CreateEpochID(count, g.GenerationID, g.Antagonists[i].Id,
+				id: CreateEpochID(count, g.GenerationID, g.Antagonists[i].Id,
 					g.Protagonists[j].Id),
 			}
 			count++

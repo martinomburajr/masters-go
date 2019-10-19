@@ -4,7 +4,7 @@ var EpochNil = Epoch{}
 
 var Epoch0 = Epoch{
 	id:                               "epoch0",
-	program:                          Prog0,
+	program:                          ProgX,
 	generation:                       &Generation{},
 	protagonist:                      &IndividualProg0Kind1,
 	antagonist:                       &IndividualProg0Kind0,

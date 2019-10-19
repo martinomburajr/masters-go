@@ -10,18 +10,21 @@ import (
 // EquationPairing refers to a set dependent and independent values for a given equation.
 // For example the equation x^2 + 1 has an equation pairing of {1, 0}, {2, 1}, {5,
 // 2} for dependent and independent pairs respectively
-type EquationPairings struct {
-	Independents IndependentVariableMap
-	Dependent    float64
+type EquationPairing struct {
+	Independents         IndependentVariableMap
+	Dependent            float64
+	ProtagonistThreshold float64
+	AntagonistThreshold  float64
 }
 
 type IndependentVariableMap map[string]float64
 
-func (e *EquationPairings) ToString() string {
+func (e *EquationPairing) ToString() string {
 	return fmt.Sprintf("  %#v  |  %.2f  \n", e.Independents, e.Dependent)
 }
 
-type SpecMulti []EquationPairings
+// SpecMulti is the underlying datascrutuctre that contains the spec as well as threshold information
+type SpecMulti []EquationPairing
 
 // GenerateSpec will create a spec given a valid mathematical expression.
 // It is advised the mathematical expression contain an independent variable e.g. x. or multiple x + a = y
@@ -33,11 +36,14 @@ type SpecMulti []EquationPairings
 // Example 3: ( x ) * ( x ) => x ^ 2
 // Example 4: ( x ) + ( 2 ) => x + 2
 // This function should also work for multivariable elements. e.g. x+y+a+b=i where y,x,a,
-// b are all independent variables i.e non-constants)
-
+// b are all independent variables i.e non-constants).
+// antagonistThresholdMultiplier the threshold multipliers are important when using
+// ControolledThresholdedAbsoluteRatioFitness.
+// Esnure the antagonistThreshold is greater than that of the protagonist to demand antagonists drastically mutate
+// trees to give more disparate values. For monoThresholding, you have to set both values to the same number
 // CAN ONLY DO TWO DIFFERENT VARIABLES
-
-func GenerateSpec(mathematicalExpression string, independentVars []string, count int, initialSeed int) (SpecMulti,
+func GenerateSpec(mathematicalExpression string, independentVars []string, count int, initialSeed int,
+	antagonistThresholdMultiplier, protagonistThresholdMultiplier float64) (SpecMulti,
 	error) {
 
 	if mathematicalExpression == "" {
@@ -49,13 +55,18 @@ func GenerateSpec(mathematicalExpression string, independentVars []string, count
 	if count >= 5 {
 		count = 3
 	}
-	spec := make([]EquationPairings, count)
+	if antagonistThresholdMultiplier < 1 {
+		antagonistThresholdMultiplier = 1
+	}
+	if protagonistThresholdMultiplier < 1 {
+		protagonistThresholdMultiplier = 1
+	}
+	spec := make([]EquationPairing, count)
 
 	//1. Determine number of unique independent variables and kings of independent variables e.g. x, y
 	// pass in unique independent variables as a slice of strings? [OK]
 
 	// determine the number permutationsCount we can create count^independentVars.len
-
 	numVars := len(independentVars)
 	if independentVars == nil || numVars < 1 {
 		for i, _ := range spec {
@@ -64,6 +75,8 @@ func GenerateSpec(mathematicalExpression string, independentVars []string, count
 				return nil, err
 			}
 			spec[i].Dependent = dependentVariable
+			spec[i].AntagonistThreshold = dependentVariable * antagonistThresholdMultiplier
+			spec[i].ProtagonistThreshold = dependentVariable * protagonistThresholdMultiplier
 		}
 		return spec, nil
 	}
@@ -90,7 +103,7 @@ func GenerateSpec(mathematicalExpression string, independentVars []string, count
 	}
 
 	permutationsCount := int(math.Pow(float64(count), float64(numVars)))
-	spec = make([]EquationPairings, permutationsCount)
+	spec = make([]EquationPairing, permutationsCount)
 	permutationsWithRepetitions := utils.PermutationsWithRepetitions(g)
 
 	for i := range spec {
@@ -109,7 +122,8 @@ func GenerateSpec(mathematicalExpression string, independentVars []string, count
 }
 
 // GenerateSpecSimple assumes a single independent variable x with an unlimited count.
-func GenerateSpecSimple(mathematicalExpression string, count int, initialSeed int) (SpecMulti,
+func GenerateSpecSimple(mathematicalExpression string, count int, initialSeed int,
+	antagonistThresholdMultiplier, protagonistThresholdMultiplier float64) (SpecMulti,
 	error) {
 
 	if mathematicalExpression == "" {
@@ -118,8 +132,14 @@ func GenerateSpecSimple(mathematicalExpression string, count int, initialSeed in
 	if count < 1 {
 		return nil, fmt.Errorf("GenerateSpec | count cannot be less than 0")
 	}
+	if antagonistThresholdMultiplier < 1 {
+		antagonistThresholdMultiplier = 1
+	}
+	if protagonistThresholdMultiplier < 1 {
+		protagonistThresholdMultiplier = 1
+	}
 
-	spec := make([]EquationPairings, count)
+	spec := make([]EquationPairing, count)
 
 	for i := range spec {
 		spec[i].Independents = map[string]float64{}
@@ -130,6 +150,8 @@ func GenerateSpecSimple(mathematicalExpression string, count int, initialSeed in
 			return nil, err
 		}
 		spec[i].Dependent = dependentVariable
+		spec[i].AntagonistThreshold = dependentVariable * antagonistThresholdMultiplier
+		spec[i].ProtagonistThreshold = dependentVariable * protagonistThresholdMultiplier
 	}
 	return spec, nil
 }

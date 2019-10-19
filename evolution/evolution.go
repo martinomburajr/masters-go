@@ -87,6 +87,19 @@ type EvolutionParams struct {
 	// An effort is made to differentiate them from constants so that constants do not get overwritten as variables
 	// would when calculating the spec.
 	VariableTerminals []SymbolicExpression
+	// AntagonistThresholdMultiplier is the multiplier applied to the antagonist delta when calculating fitness.
+	// A large value means that antagonists have to attain a greater delta from the spec in order to gain adequate
+	// fitness, conversely a smaller value gives the antagonists more slack to not manipulate the program excessively.
+	// For good results set it to a value greater than that of the protagonist delta.
+	// This value is only used when using DualThresholdedRatioFitness.
+	AntagonistThresholdMultiplier float64
+
+	// ProtagonistThresholdMultiplier is the multiplier applied to the protagonist delta when calculating fitness.
+	// A large value means that protagonist can be less precise and gain adequate fitness,
+	// conversely a smaller value gives the protagonist little room for mistake between its delta and that of the spec.
+	// this value is used in both DualThresholdedRatioFitness and ThresholdedRatioFitness as a fitness value for
+	// both antagonist and protagonists thresholds.
+	ProtagonistThresholdMultiplier float64
 }
 
 const (

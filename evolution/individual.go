@@ -69,12 +69,12 @@ func Crossover(individual Individual, individual2 Individual, params EvolutionPa
 	if individual.HasAppliedStrategy == false {
 		return Individual{}, Individual{}, fmt.Errorf("crossover | individual1 - HasAppliedStrategy should be true")
 	}
-	if individual.Program == nil {
-		return Individual{}, Individual{}, fmt.Errorf("crossover | individual1 - program cannot be nil")
-	}
-	if individual.Program.T == nil {
-		return Individual{}, Individual{}, fmt.Errorf("crossover | individual1 - program Tree cannot be nil")
-	}
+	//if individual.Program == nil {
+	//	return Individual{}, Individual{}, fmt.Errorf("crossover | individual1 - program cannot be nil")
+	//}
+	//if individual.Program.T == nil {
+	//	return Individual{}, Individual{}, fmt.Errorf("crossover | individual1 - program Tree cannot be nil")
+	//}
 	if individual2.Id == "" {
 		return Individual{}, Individual{}, fmt.Errorf("crossover | individual2 - individual Id cannot be empty")
 	}
@@ -90,12 +90,12 @@ func Crossover(individual Individual, individual2 Individual, params EvolutionPa
 	if individual2.HasAppliedStrategy == false {
 		return Individual{}, Individual{}, fmt.Errorf("crossover | individual2 - HasAppliedStrategy should be true")
 	}
-	if individual2.Program == nil {
-		return Individual{}, Individual{}, fmt.Errorf("crossover | individual2 - program cannot be nil")
-	}
-	if individual2.Program.T == nil {
-		return Individual{}, Individual{}, fmt.Errorf("crossover | individual2 - program Tree cannot be nil")
-	}
+	//if individual2.Program == nil {
+	//	return Individual{}, Individual{}, fmt.Errorf("crossover | individual2 - program cannot be nil")
+	//}
+	//if individual2.Program.T == nil {
+	//	return Individual{}, Individual{}, fmt.Errorf("crossover | individual2 - program Tree cannot be nil")
+	//}
 	if params.StrategyLengthLimit < 1 {
 		return Individual{}, Individual{}, fmt.Errorf("crossover | params.StrategyLengthLimit must be greater than 0")
 	}
@@ -402,6 +402,7 @@ func (i *Individual) ToString() strings.Builder {
 	sb.WriteString(fmt.Sprintf("####   %s   ####\n", i.Id))
 	sb.WriteString(fmt.Sprintf("AGE:  %d\n", i.Age))
 	sb.WriteString(fmt.Sprintf("FITNESS:  %f\n", i.TotalFitness))
+	sb.WriteString(fmt.Sprintf("FITNESS-ARR:  %v\n", i.Fitness))
 	sb.WriteString(fmt.Sprintf("BIRTH GEN:  %d\n", i.BirthGen))
 	strategiesSummary := FormatStrategiesTotal(i.Strategy)
 	sb.WriteString(fmt.Sprintf("Strategy Summary:\n%s\n", strategiesSummary.String()))

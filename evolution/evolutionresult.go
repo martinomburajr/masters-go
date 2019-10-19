@@ -343,6 +343,20 @@ func (e *EvolutionResult) Analyze(generations []*Generation, fitnessStrategy int
 			return EvolutionSummary{}, err
 		}
 		break
+
+	case FitnessMonoThresholdedRatioFitness:
+		err := e.CalculateTop(generations, FitnessMoreIsBetter, topN)
+		if err != nil {
+			return EvolutionSummary{}, err
+		}
+		break
+
+	case FitnessDualThresholdedRatioFitness:
+		err := e.CalculateTop(generations, FitnessMoreIsBetter, topN)
+		if err != nil {
+			return EvolutionSummary{}, err
+		}
+		break
 	default:
 		log.Print("Unknown Fitness Strategy")
 	}
@@ -471,65 +485,24 @@ type ResultTopIndividuals struct {
 func (e *EvolutionResult) PrintTopIndividualSummary(kind int) (strings.Builder, error) {
 	sb := strings.Builder{}
 	var name string
-
-	if kind == IndividualProtagonist {
-		if e.TopProtagonist.Result == nil {
-			return strings.Builder{},
-				fmt.Errorf("PrintTopIndividualSummary | cannot format as field is nil | Run analyze")
-		}
-
-		name = "PROTAGONIST"
-		sb.WriteString(fmt.Sprintf("############### TOP %s IN ALL GENERATIONS"+" #######################\n", name))
-		sb.WriteString(fmt.Sprintf("ID: %s\n", e.TopProtagonist.Result.Id))
-		sb.WriteString(fmt.Sprintf("GENERATION:  %s\n", e.TopProtagonist.Generation.GenerationID))
-		sb.WriteString(fmt.Sprintf("AGE:  %d\n", e.TopProtagonist.Result.Age))
-		sb.WriteString(fmt.Sprintf("FITNESS:  %f\n", e.TopProtagonist.Result.TotalFitness))
-		sb.WriteString(fmt.Sprintf("BIRTH GEN:  %d\n", e.TopProtagonist.Result.BirthGen))
-
-		strategiesSummary := FormatStrategiesTotal(e.TopProtagonist.Result.Strategy)
-		sb.WriteString(fmt.Sprintf("Strategy Summary:\n%s\n", strategiesSummary.String()))
-
-		sb.WriteString("Tree Shape:\n")
-		treeBuilder := e.TopProtagonist.Result.Program.T.ToString()
-		sb.WriteString(treeBuilder.String())
-
-		mathematicalString, err := e.TopProtagonist.Result.Program.T.ToMathematicalString()
-		if err != nil {
-			return strings.Builder{}, err
-		}
-		sb.WriteString(fmt.Sprintf("Mathematical Expression: %s\n", mathematicalString))
-
-		strategiesList := FormatStrategiesList(e.TopProtagonist.Result.Strategy)
-		sb.WriteString(fmt.Sprintf("Strategy Summary:\n  %s\n", strategiesList.String()))
-	} else if kind == IndividualAntagonist {
+	if kind == IndividualAntagonist {
 		if e.TopAntagonist.Result == nil {
 			return strings.Builder{},
 				fmt.Errorf("PrintTopIndividualSummary | cannot format as field is nil | Run analyze")
 		}
-
 		name = "ANTAGONIST"
 		sb.WriteString(fmt.Sprintf("############### TOP %s IN ALL GENERATIONS"+" #######################\n", name))
-		sb.WriteString(fmt.Sprintf("ID: %s\n", e.TopAntagonist.Result.Id))
-		sb.WriteString(fmt.Sprintf("GENERATION:  %s\n", e.TopAntagonist.Generation.GenerationID))
-		sb.WriteString(fmt.Sprintf("AGE:  %d\n", e.TopAntagonist.Result.Age))
-		sb.WriteString(fmt.Sprintf("FITNESS:  %f\n", e.TopAntagonist.Result.TotalFitness))
-		sb.WriteString(fmt.Sprintf("BIRTH GEN:  %d\n", e.TopAntagonist.Result.BirthGen))
-
-		strategiesSummary := FormatStrategiesTotal(e.TopAntagonist.Result.Strategy)
-		sb.WriteString(fmt.Sprintf("Strategy Summary:\n%s\n", strategiesSummary.String()))
-
-		sb.WriteString("Tree Shape:\n")
-		treeBuilder := e.TopAntagonist.Result.Program.T.ToString()
-		sb.WriteString(treeBuilder.String())
-
-		mathematicalString, err := e.TopAntagonist.Result.Program.T.ToMathematicalString()
-		if err != nil {
-			return strings.Builder{}, err
+		toString := e.TopAntagonist.Result.ToString()
+		sb.WriteString(toString.String())
+	} else if kind == IndividualProtagonist {
+		if e.TopProtagonist.Result == nil {
+			return strings.Builder{},
+				fmt.Errorf("PrintTopIndividualSummary | cannot format as field is nil | Run analyze")
 		}
-		sb.WriteString(fmt.Sprintf("Mathematical Expression: %s\n", mathematicalString))
-
-		strategiesList := FormatStrategiesList(e.TopAntagonist.Result.Strategy)
-		sb.WriteString(fmt.Sprintf("Strategy Summary:\n%s\n", strategiesList.String()))
+		name = "PROTAGONIST"
+		sb.WriteString(fmt.Sprintf("############### TOP %s IN ALL GENERATIONS"+" #######################\n", name))
+		toString := e.TopProtagonist.Result.ToString()
+		sb.WriteString(toString.String())
 	}
 	return sb, nil
 }
