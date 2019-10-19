@@ -28,14 +28,13 @@ func Evolution1() {
 		evolution.StrategyAddMult,
 		evolution.StrategyAddSub,
 		evolution.StrategyAddAdd,
-		//evolution.StrategyFellTree,
-
+		evolution.StrategyFellTree,
 	}
 
 	// TODO Include terminals and non terminals as part of strategy?
 	params := evolution.EvolutionParams{
 		Generations:                           50,
-		EachPopulationSize:                    100, // Must be an even number to prevent awkward ordering of children.
+		EachPopulationSize:                    200, // Must be an even number to prevent awkward ordering of children.
 		AntagonistMaxStrategies:               20,
 		ProtagonistMaxStrategies:              20,
 		DepthPenaltyStrategyPenalization:      10,
@@ -53,27 +52,27 @@ func Evolution1() {
 		EvaluationThreshold:                   12,
 		TournamentSize:                        3,
 		StrategyLengthLimit:                   10,
-		SurvivorPercentage:                    0.5,
+		SurvivorPercentage:                    0.2,
 		ParentSelection:                       evolution.FitnessDualThresholdedRatioFitness,
-		EqualStrategiesLength:                 10,
+		EqualStrategiesLength:                 20,
 		ThresholdMultiplier:                   1.5,
-		AntagonistThresholdMultiplier:         5.0,
-		ProtagonistThresholdMultiplier:        2.0,
+		AntagonistThresholdMultiplier:         16,
+		ProtagonistThresholdMultiplier:        1.2,
 	}
 
-	expression := "x * x"
+	expression := "x*x*x"
 	expression = eval.MartinsReplace(expression, " ", "")
-	specCount := 10
+	specCount := 20
 
 	constants := []string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"}
 	variables := []string{"x"}
 	operators := []string{"*", "+", "-"}
 
-	constantTerminals, err := evolution.GenerateTerminals(6, constants)
+	constantTerminals, err := evolution.GenerateTerminals(10, constants)
 	if err != nil {
 		log.Fatal(err)
 	}
-	variableTerminals, err := evolution.GenerateTerminals(3, variables)
+	variableTerminals, err := evolution.GenerateTerminals(10, variables)
 	if err != nil {
 		log.Fatal(err)
 	}

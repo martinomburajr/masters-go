@@ -358,7 +358,7 @@ func (e *EvolutionResult) Analyze(generations []*Generation, fitnessStrategy int
 		}
 		break
 	default:
-		log.Print("Unknown Fitness Strategy")
+		log.Fatalf("Unknown Fitness Strategy")
 	}
 
 	generationalAntagonistFitnessCum, err := CalcGenerationalFitnessCum(generations, IndividualAntagonist)
