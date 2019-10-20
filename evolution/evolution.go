@@ -113,6 +113,7 @@ type EvolutionEngine struct {
 	Generations      []*Generation
 	StatisticsOutput string
 	Parameters       EvolutionParams
+	IsMoreFitnessBetter bool
 }
 
 func (e *EvolutionEngine) Start() (EvolutionResult, error) {
@@ -169,7 +170,7 @@ func (e *EvolutionEngine) Start() (EvolutionResult, error) {
 	}
 
 	evolutionResult := EvolutionResult{}
-	_, err = evolutionResult.Analyze(e.Generations, e.Parameters.FitnessStrategy, 3)
+	err = evolutionResult.Analyze(e.Generations, e.IsMoreFitnessBetter)
 	if err != nil {
 		return EvolutionResult{}, err
 	}

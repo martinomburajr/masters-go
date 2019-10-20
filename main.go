@@ -14,6 +14,7 @@ func main() {
 }
 
 func Evolution1() {
+	shouldRunInteractiveTerminal := true
 	rand.Seed(time.Now().UTC().UnixNano()) //Set seed
 
 	strategies := []evolution.Strategy{
@@ -34,7 +35,7 @@ func Evolution1() {
 	// TODO Include terminals and non terminals as part of strategy?
 	params := evolution.EvolutionParams{
 		Generations:                           50,
-		EachPopulationSize:                    200, // Must be an even number to prevent awkward ordering of children.
+		EachPopulationSize:                    20, // Must be an even number to prevent awkward ordering of children.
 		AntagonistMaxStrategies:               20,
 		ProtagonistMaxStrategies:              20,
 		DepthPenaltyStrategyPenalization:      10,
@@ -140,54 +141,56 @@ func Evolution1() {
 		Generations: make([]*evolution.Generation, params.Generations),
 	}
 
+
+
+	// ########################### OUTPUT STATISTICS  #######################################################3
+	fmt.Printf("Generation Count: %d\n", engine.Parameters.Generations)
+	fmt.Printf("Each Individual Count: %d\n", engine.Parameters.EachPopulationSize)
+
+	switch engine.Parameters.FitnessStrategy {
+	case evolution.FitnessAbsolute:
+		engine.IsMoreFitnessBetter = true
+		fmt.Printf("Fitness Strategy: %s\n", "FitnessAbsolute")
+		break
+	case evolution.FitnessRatio:
+		engine.IsMoreFitnessBetter = true
+		fmt.Printf("Fitness Strategy: %s\n", "FitnessRatio")
+		break
+	case evolution.FitnessRatioThresholder:
+		engine.IsMoreFitnessBetter = true
+		fmt.Printf("Fitness Strategy: %s\n", "FitnessRatioThresholder")
+		break
+	case evolution.FitnessProtagonistThresholdTally:
+		fmt.Printf("Fitness Strategy: %s\n", "FitnessProtagonistThresholdTally")
+		engine.IsMoreFitnessBetter = false
+		break
+	case evolution.FitnessImproverTally:
+		engine.IsMoreFitnessBetter = true
+		fmt.Printf("Fitness Strategy: %s\n", "FitnessImproverTally")
+		break
+	case evolution.FitnessMonoThresholdedRatioFitness:
+		engine.IsMoreFitnessBetter = true
+		fmt.Printf("Fitness Strategy: %s\n", "FitnessMonoThresholdedRatioFitness")
+		break
+	case evolution.FitnessDualThresholdedRatioFitness:
+		engine.IsMoreFitnessBetter = true
+		fmt.Printf("Fitness Strategy: %s\n", "FitnessDualThresholdedRatioFitness")
+		break
+	default:
+		engine.IsMoreFitnessBetter = true
+		log.Printf("Fitness Strategy: %s\n", "Unknown")
+	}
+	fmt.Printf("Fitness Strategy: %d\n", engine.Parameters.FitnessStrategy)
+	fmt.Printf("Is More Fitness Better: %t\n", engine.IsMoreFitnessBetter)
+	fmt.Println()
+
 	// ########################### START THE EVOLUTION PROCESS ##################################################3
 	evolutionResult, err := engine.Start()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// ########################### OUTPUT STATISTICS  #######################################################3
-	fmt.Printf("Generation Count: %d\n", engine.Parameters.Generations)
-	fmt.Printf("Each Individual Count: %d\n", engine.Parameters.EachPopulationSize)
-	isMoreFitnessBetter := true
-
-	switch engine.Parameters.FitnessStrategy {
-	case evolution.FitnessAbsolute:
-		isMoreFitnessBetter = true
-		fmt.Printf("Fitness Strategy: %s\n", "FitnessAbsolute")
-		break
-	case evolution.FitnessRatio:
-		isMoreFitnessBetter = true
-		fmt.Printf("Fitness Strategy: %s\n", "FitnessRatio")
-		break
-	case evolution.FitnessRatioThresholder:
-		isMoreFitnessBetter = true
-		fmt.Printf("Fitness Strategy: %s\n", "FitnessRatioThresholder")
-		break
-	case evolution.FitnessProtagonistThresholdTally:
-		fmt.Printf("Fitness Strategy: %s\n", "FitnessProtagonistThresholdTally")
-		isMoreFitnessBetter = false
-		break
-	case evolution.FitnessImproverTally:
-		isMoreFitnessBetter = true
-		fmt.Printf("Fitness Strategy: %s\n", "FitnessImproverTally")
-		break
-	case evolution.FitnessMonoThresholdedRatioFitness:
-		isMoreFitnessBetter = true
-		fmt.Printf("Fitness Strategy: %s\n", "FitnessMonoThresholdedRatioFitness")
-		break
-	case evolution.FitnessDualThresholdedRatioFitness:
-		isMoreFitnessBetter = true
-		fmt.Printf("Fitness Strategy: %s\n", "FitnessDualThresholdedRatioFitness")
-		break
-	default:
-		isMoreFitnessBetter = true
-		log.Printf("Fitness Strategy: %s\n", "Unknown")
-	}
-	fmt.Printf("Fitness Straegy: %d\n", engine.Parameters.FitnessStrategy)
-	fmt.Println()
-
-	err = evolutionResult.Analyze(engine.Generations, isMoreFitnessBetter, 3)
+	err = evolutionResult.Analyze(engine.Generations, engine.IsMoreFitnessBetter)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -209,7 +212,9 @@ func Evolution1() {
 	}
 	fmt.Println(averageGenerationSummary.String())
 
-	fmt.Println()
-}
+	if (shouldRunInteractiveTerminal) {
+		err = evolutionResult.StartInteractiveTerminal()
+		log.Fatal(err)
+	}
 
-func GenerateMathExpression() {}
+}

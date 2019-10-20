@@ -74,50 +74,6 @@ func GetGenerationalFitnessAverage(sortedGenerations []*Generation) ([]generatio
 	return result, nil
 }
 
-// GetGenerationalFitnessCum returns the cumulative for a given kind of individual for each generation
-func GetGenerationalFitnessCum(generations []*Generation,
-	individualKind int) ([]generationalCoevolutionaryAverages, error) {
-	if generations == nil {
-		return nil, fmt.Errorf("GetGenerationalFitnessCum | Generation cannot be nil")
-	}
-	if len(generations) < 1 {
-		return nil, fmt.Errorf("GetGenerationalFitnessCum | Generation cannot be empty")
-	}
-	if individualKind < 0 {
-		individualKind = 0
-	}
-	if individualKind > 1 {
-		individualKind = 1
-	}
-
-	result := make([]generationalCoevolutionaryAverages, len(generations))
-	if individualKind == IndividualAntagonist {
-		for i := range generations {
-			cum, err := CalculateCumulative(generations[i].Antagonists)
-			if err != nil {
-				return nil, err
-			}
-			result[i] = generationalCoevolutionaryAverages{
-				AntagonistResult: cum,
-				Generation:       generations[i],
-			}
-		}
-
-	} else {
-		for i := range generations {
-			cum, err := CalculateCumulative(generations[i].Protagonists)
-			if err != nil {
-				return nil, err
-			}
-			result[i] = generationalCoevolutionaryAverages{
-				AntagonistResult: cum,
-				Generation:       generations[i],
-			}
-		}
-	}
-	return result, nil
-}
-
 // GetTopNIndividualsPerGeneration returns the top n individuals in each generation
 func GetTopNIndividualsPerGeneration(sortedGenerations []*Generation, individualKind int, topN int) ([]multiIndividualsPerGeneration,
 	error) {
