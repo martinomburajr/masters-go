@@ -149,30 +149,48 @@ func Evolution1() {
 	// ########################### OUTPUT STATISTICS  #######################################################3
 	fmt.Printf("Generation Count: %d\n", engine.Parameters.Generations)
 	fmt.Printf("Each Individual Count: %d\n", engine.Parameters.EachPopulationSize)
+	isMoreFitnessBetter := true
 
 	switch engine.Parameters.FitnessStrategy {
 	case evolution.FitnessAbsolute:
+		isMoreFitnessBetter = true
 		fmt.Printf("Fitness Strategy: %s\n", "FitnessAbsolute")
 		break
 	case evolution.FitnessRatio:
+		isMoreFitnessBetter = true
 		fmt.Printf("Fitness Strategy: %s\n", "FitnessRatio")
 		break
 	case evolution.FitnessRatioThresholder:
+		isMoreFitnessBetter = true
 		fmt.Printf("Fitness Strategy: %s\n", "FitnessRatioThresholder")
 		break
 	case evolution.FitnessProtagonistThresholdTally:
 		fmt.Printf("Fitness Strategy: %s\n", "FitnessProtagonistThresholdTally")
+		isMoreFitnessBetter = false
 		break
 	case evolution.FitnessImproverTally:
+		isMoreFitnessBetter = true
 		fmt.Printf("Fitness Strategy: %s\n", "FitnessImproverTally")
 		break
+	case evolution.FitnessMonoThresholdedRatioFitness:
+		isMoreFitnessBetter = true
+		fmt.Printf("Fitness Strategy: %s\n", "FitnessMonoThresholdedRatioFitness")
+		break
+	case evolution.FitnessDualThresholdedRatioFitness:
+		isMoreFitnessBetter = true
+		fmt.Printf("Fitness Strategy: %s\n", "FitnessDualThresholdedRatioFitness")
+		break
 	default:
+		isMoreFitnessBetter = true
 		log.Printf("Fitness Strategy: %s\n", "Unknown")
 	}
 	fmt.Printf("Fitness Straegy: %d\n", engine.Parameters.FitnessStrategy)
 	fmt.Println()
 
-	_, _ = evolutionResult.Analyze(engine.Generations, engine.Parameters.FitnessStrategy, 3)
+	err = evolutionResult.Analyze(engine.Generations, isMoreFitnessBetter, 3)
+	if err != nil {
+		log.Fatal(err)
+	}
 	antagonistSummary, err := evolutionResult.PrintTopIndividualSummary(evolution.IndividualAntagonist)
 	if err != nil {
 		log.Fatal(err)
@@ -191,14 +209,7 @@ func Evolution1() {
 	}
 	fmt.Println(averageGenerationSummary.String())
 
-	//cumGenerationSummary, err := evolutionResult.PrintCumGenerationSummary()
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
-	//fmt.Println(cumGenerationSummary.String())
-
 	fmt.Println()
-	//fmt.Print(result)
 }
 
 func GenerateMathExpression() {}

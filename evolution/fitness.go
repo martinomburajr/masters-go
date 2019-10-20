@@ -456,7 +456,7 @@ func evaluateFitnessThresholded(spec SpecMulti, antagonist, protagonist *Program
 	if deltaProtagonist <= deltaProtagonistThreshold {
 		protagonistFitness = (deltaProtagonistThreshold - deltaProtagonist) / deltaProtagonistThreshold
 	} else {
-		protagonistFitness = -1 *  ((deltaProtagonist - deltaProtagonistThreshold) / deltaProtagonist)
+		protagonistFitness = -1 * ((deltaProtagonist - deltaProtagonistThreshold) / deltaProtagonist)
 	}
 
 	return antagonistFitness, protagonistFitness, nil

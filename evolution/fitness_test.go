@@ -226,7 +226,7 @@ func Test_evaluateFitnessThresholded(t *testing.T) {
 				t.Errorf("evaluateFitnessThresholded() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if floatEquals(gotAntagonistFitness,tt.wantAntagonistFitness) {
+			if floatEquals(gotAntagonistFitness, tt.wantAntagonistFitness) {
 				t.Errorf("evaluateFitnessThresholded() gotAntagonistFitness = %v, want %v", gotAntagonistFitness, tt.wantAntagonistFitness)
 			}
 			if floatEquals(gotProtagonistFitness, tt.wantProtagonistFitness) {
@@ -237,8 +237,9 @@ func Test_evaluateFitnessThresholded(t *testing.T) {
 }
 
 var EPSILON float64 = 0.00000001
+
 func floatEquals(a, b float64) bool {
-	if ((a - b) < EPSILON && (b - a) < EPSILON) {
+	if (a-b) < EPSILON && (b-a) < EPSILON {
 		return true
 	}
 	return false

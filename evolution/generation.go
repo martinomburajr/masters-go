@@ -158,7 +158,7 @@ func (g *Generation) runEpochs(epochs []Epoch) ([]Epoch, error) {
 }
 
 // Compete gives protagonist and anatagonists the chance to compete. A competition involves an epoch,
-// that returns the Result of the epoch.
+// that returns the Individuals of the epoch.
 func (g *Generation) Compete() error {
 	//for _, epoch := range g.Epochs {
 	//	err := epoch.Start()

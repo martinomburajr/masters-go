@@ -32,14 +32,14 @@ func TestCalcTopIndividual(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := CalcTopIndividual(tt.args.individuals, tt.args.fitnessComparator)
+			got, err := GetNthPlaceIndividual(tt.args.individuals, tt.args.fitnessComparator)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("CalcTopIndividual() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("GetNthPlaceIndividual() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !tt.wantErr {
 				if !reflect.DeepEqual(got.TotalFitness, tt.want.TotalFitness) {
-					t.Errorf("CalcTopIndividual() = %v, want %v", got.TotalFitness, tt.want.TotalFitness)
+					t.Errorf("GetNthPlaceIndividual() = %v, want %v", got.TotalFitness, tt.want.TotalFitness)
 				}
 			}
 		})
@@ -66,20 +66,20 @@ func TestCalcTopIndividualAllGenerations(t *testing.T) {
 	}{
 		{"nil", args{nil, 1, 0}, ResultTopIndividuals{}, true},
 		{"empty", args{[]*Generation{}, 1, 0}, ResultTopIndividuals{}, true},
-		{"1", args{[]*Generation{g0}, 1, 0}, ResultTopIndividuals{Result: i1, Generation: g0, Tree: ""}, false},
-		{"2", args{[]*Generation{g0, g1}, 1, 0}, ResultTopIndividuals{Result: i1, Generation: g1, Tree: ""}, false},
-		{"3", args{[]*Generation{g0, g1, g2}, 1, 0}, ResultTopIndividuals{Result: i1, Generation: g2, Tree: ""}, false},
-		{"3", args{[]*Generation{g0, g1, g2, g3}, 1, 0}, ResultTopIndividuals{Result: imin1, Generation: g3, Tree: ""}, false},
+		{"1", args{[]*Generation{g0}, 1, 0}, ResultTopIndividuals{Individual: i1, Generation: g0, Tree: ""}, false},
+		{"2", args{[]*Generation{g0, g1}, 1, 0}, ResultTopIndividuals{Individual: i1, Generation: g1, Tree: ""}, false},
+		{"3", args{[]*Generation{g0, g1, g2}, 1, 0}, ResultTopIndividuals{Individual: i1, Generation: g2, Tree: ""}, false},
+		{"3", args{[]*Generation{g0, g1, g2, g3}, 1, 0}, ResultTopIndividuals{Individual: imin1, Generation: g3, Tree: ""}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := CalcTopIndividualAllGenerations(tt.args.generations, tt.args.individualKind, tt.args.fitnessComparator)
+			got, err := CalcNthPlaceIndividualAllGenerations(tt.args.generations, tt.args.individualKind, tt.args.fitnessComparator)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("CalcTopIndividualAllGenerations() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("CalcNthPlaceIndividualAllGenerations() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("CalcTopIndividualAllGenerations() = %v, want %v", got, tt.want)
+				t.Errorf("CalcNthPlaceIndividualAllGenerations() = %v, want %v", got, tt.want)
 			}
 		})
 	}
