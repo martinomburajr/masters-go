@@ -5,10 +5,10 @@ import (
 )
 
 type EvolutionParams struct {
-	Generations                      int
+	GenerationsCount                 int `json:"generationCount"`
 	EnableParallelism                bool
 	survivorSelection                int
-	parentSelection                  int
+	parentSelection                  int `json:"parentSelection"`
 	ElitismPercentage                float64
 	ProgramEval                      func() float64
 	MaxDepth                         int
@@ -109,11 +109,11 @@ const (
 )
 
 type EvolutionEngine struct {
-	Parallelize      bool
+	Parallelize      bool `json:"parallelize"`
 	Generations      []*Generation
-	StatisticsOutput string
-	Parameters       EvolutionParams
-	IsMoreFitnessBetter bool
+	StatisticsOutput string `json:"statisticsOutput"`
+	Parameters       EvolutionParams `json:"parameters"`
+	IsMoreFitnessBetter bool `json:"isMoreFitnessBetter"`
 }
 
 func (e *EvolutionEngine) Start() (EvolutionResult, error) {
@@ -150,7 +150,7 @@ func (e *EvolutionEngine) Start() (EvolutionResult, error) {
 
 	// cycle through generationCount
 	e.Generations[0] = &gen0
-	for i := 0; i < e.Parameters.Generations-1; i++ {
+	for i := 0; i < e.Parameters.GenerationsCount-1; i++ {
 		protagonistsCleanse, err := CleansePopulation(e.Generations[i].Protagonists, *e.Parameters.StartIndividual.T)
 		if err != nil {
 			return EvolutionResult{}, err
@@ -180,8 +180,8 @@ func (e *EvolutionEngine) Start() (EvolutionResult, error) {
 
 // Todo Implement EvolutionProcess validate
 func (e *EvolutionEngine) validate() error {
-	if e.Parameters.Generations < 1 {
-		return fmt.Errorf("set number of generationCount by calling e.Generations(x)")
+	if e.Parameters.GenerationsCount < 1 {
+		return fmt.Errorf("set number of generationCount by calling e.GenerationsCount(x)")
 	}
 	if e.Parameters.EachPopulationSize%2 != 0 {
 		return fmt.Errorf("set number of EachPopulationSize to an Even number")

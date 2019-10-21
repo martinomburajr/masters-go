@@ -29,21 +29,21 @@ func Evolution1() {
 		evolution.StrategyAddMult,
 		evolution.StrategyAddSub,
 		evolution.StrategyAddAdd,
-		evolution.StrategyFellTree,
+		//evolution.StrategyFellTree,
 	}
 
 	// TODO Include terminals and non terminals as part of strategy?
 	params := evolution.EvolutionParams{
-		Generations:                           50,
-		EachPopulationSize:                    20, // Must be an even number to prevent awkward ordering of children.
-		AntagonistMaxStrategies:               20,
-		ProtagonistMaxStrategies:              20,
-		DepthPenaltyStrategyPenalization:      10,
-		ProbabilityOfMutation:                 0.1,
-		ProbabilityOfNonTerminalMutation:      0.1,
-		DepthOfRandomNewTrees:                 1,
-		DeletionType:                          evolution.DeletionTypeSafe,
-		EnforceIndependentVariable:            true,
+		GenerationsCount:                 50,
+		EachPopulationSize:               10, // Must be an even number to prevent awkward ordering of children.
+		AntagonistMaxStrategies:          20,
+		ProtagonistMaxStrategies:         20,
+		DepthPenaltyStrategyPenalization: 10,
+		ProbabilityOfMutation:            0.1,
+		ProbabilityOfNonTerminalMutation: 0.1,
+		DepthOfRandomNewTrees:            1,
+		DeletionType:                     evolution.DeletionTypeSafe,
+		EnforceIndependentVariable:       true,
 		ProtagonistAvailableStrategies:        strategies,
 		AntagonistAvailableStrategies:         strategies,
 		SetEqualStrategyLength:                true,
@@ -58,10 +58,10 @@ func Evolution1() {
 		EqualStrategiesLength:                 20,
 		ThresholdMultiplier:                   1.5,
 		AntagonistThresholdMultiplier:         16,
-		ProtagonistThresholdMultiplier:        1.2,
+		ProtagonistThresholdMultiplier:        1.8,
 	}
 
-	expression := "x*x*x"
+	expression := "x*x"
 	expression = eval.MartinsReplace(expression, " ", "")
 	specCount := 20
 
@@ -138,13 +138,12 @@ func Evolution1() {
 
 	engine := evolution.EvolutionEngine{
 		Parameters:  params,
-		Generations: make([]*evolution.Generation, params.Generations),
+		Generations: make([]*evolution.Generation, params.GenerationsCount),
 	}
 
 
-
 	// ########################### OUTPUT STATISTICS  #######################################################3
-	fmt.Printf("Generation Count: %d\n", engine.Parameters.Generations)
+	fmt.Printf("Generation Count: %d\n", engine.Parameters.GenerationsCount)
 	fmt.Printf("Each Individual Count: %d\n", engine.Parameters.EachPopulationSize)
 
 	switch engine.Parameters.FitnessStrategy {
@@ -214,7 +213,8 @@ func Evolution1() {
 
 	if (shouldRunInteractiveTerminal) {
 		err = evolutionResult.StartInteractiveTerminal()
-		log.Fatal(err)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
-
 }

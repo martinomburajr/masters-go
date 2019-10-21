@@ -46,71 +46,94 @@ func TestCalcTopIndividual(t *testing.T) {
 	}
 }
 
-var g0 = &Generation{GenerationID: "g0", Protagonists: []*Individual{i1}}
-var g1 = &Generation{GenerationID: "g1", Protagonists: []*Individual{i1, i2}}
-var g2 = &Generation{GenerationID: "g2", Protagonists: []*Individual{iMax, i1}}
-var g4 = &Generation{GenerationID: "g4", Protagonists: []*Individual{iMax, i2}}
-var g3 = &Generation{GenerationID: "g3", Protagonists: []*Individual{imin1, iMax}}
+var g0Pro = &Generation{GenerationID: "g0Pro", Protagonists: []*Individual{i1}}
+var g0Ant = &Generation{GenerationID: "g0Pro", Antagonists: []*Individual{i1}}
+var g0 = &Generation{GenerationID: "g0", Antagonists: []*Individual{i1}, Protagonists:[]*Individual{i1}}
 
-func TestCalcTopIndividualAllGenerations(t *testing.T) {
-	type args struct {
-		generations       []*Generation
-		individualKind    int
-		fitnessComparator int
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    ResultTopIndividuals
-		wantErr bool
-	}{
-		{"nil", args{nil, 1, 0}, ResultTopIndividuals{}, true},
-		{"empty", args{[]*Generation{}, 1, 0}, ResultTopIndividuals{}, true},
-		{"1", args{[]*Generation{g0}, 1, 0}, ResultTopIndividuals{Individual: i1, Generation: g0, Tree: ""}, false},
-		{"2", args{[]*Generation{g0, g1}, 1, 0}, ResultTopIndividuals{Individual: i1, Generation: g1, Tree: ""}, false},
-		{"3", args{[]*Generation{g0, g1, g2}, 1, 0}, ResultTopIndividuals{Individual: i1, Generation: g2, Tree: ""}, false},
-		{"3", args{[]*Generation{g0, g1, g2, g3}, 1, 0}, ResultTopIndividuals{Individual: imin1, Generation: g3, Tree: ""}, false},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := CalcNthPlaceIndividualAllGenerations(tt.args.generations, tt.args.individualKind, tt.args.fitnessComparator)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("CalcNthPlaceIndividualAllGenerations() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("CalcNthPlaceIndividualAllGenerations() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
+var g1Pro = &Generation{GenerationID: "g1Pro", Protagonists: []*Individual{i1, i2}}
+var g1 = &Generation{GenerationID: "g1",
+	Protagonists: []*Individual{i2, i1},
+	Antagonists: []*Individual{i1, iMax},}
+var g1SortedMoreBetter = &Generation{GenerationID: "g1",
+	Protagonists: []*Individual{i2, i1},
+	Antagonists: []*Individual{iMax, i1}}
+var g1SortedLessBetter = &Generation{GenerationID: "g1",
+	Protagonists: []*Individual{i1, i2},
+	Antagonists: []*Individual{i1, iMax}}
 
-func TestSortIndividuals(t *testing.T) {
-	type args struct {
-		individuals       []*Individual
-		fitnessComparator int
-	}
-	tests := []struct {
-		name string
-		args args
-		want []*Individual
-	}{
-		{"", args{[]*Individual{i1, i2, iMax, imin1}, 0}, []*Individual{imin1, i1, i2, iMax}},
-		{"", args{[]*Individual{i1, i2, iMax, i1, imin1}, 0}, []*Individual{imin1, i1, i1, i2, iMax}},
-		{"", args{[]*Individual{i1, i2, iMax, i1, imin1, i1}, 0}, []*Individual{imin1, i1, i1, i1, i2, iMax}},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got := SortIndividuals(tt.args.individuals, tt.args.fitnessComparator)
-			if len(got) != len(tt.want) {
-				t.Errorf("not same lengthgot = %v, want %v", got, tt.want)
-			}
-			for i := range got {
-				if got[i].TotalFitness != tt.want[i].TotalFitness {
-					t.Errorf("got = %v, want %v", got[i].TotalFitness, tt.want[i].TotalFitness)
-					return
-				}
-			}
-		})
-	}
-}
+var g2Pro = &Generation{GenerationID: "g2Pro", Protagonists: []*Individual{iMax, i1}}
+var g2 = &Generation{GenerationID: "g2Pro",
+		Protagonists: []*Individual{iMax, i1},
+		Antagonists: []*Individual{i1, iMax},}
+var g2SortedMoreBetter = &Generation{GenerationID: "g2",
+	Protagonists: []*Individual{iMax, i1},
+	Antagonists: []*Individual{iMax, i1}}
+var g2SortedLessBetter = &Generation{GenerationID: "g2",
+	Protagonists: []*Individual{i1, iMax},
+	Antagonists: []*Individual{i1, iMax}}
+
+var g4Pro = &Generation{GenerationID: "g4Pro", Protagonists: []*Individual{iMax, i2}}
+var g3Pro = &Generation{GenerationID: "g3Pro", Protagonists: []*Individual{imin1, iMax}}
+//
+//func TestCalcTopIndividualAllGenerations(t *testing.T) {
+//	type args struct {
+//		generations       []*Generation
+//		individualKind    int
+//		fitnessComparator int
+//	}
+//	tests := []struct {
+//		name    string
+//		args    args
+//		want    ResultTopIndividuals
+//		wantErr bool
+//	}{
+//		{"nil", args{nil, 1, 0}, ResultTopIndividuals{}, true},
+//		{"empty", args{[]*Generation{}, 1, 0}, ResultTopIndividuals{}, true},
+//		{"1", args{[]*Generation{g0Pro}, 1, 0}, ResultTopIndividuals{Individual: i1, Generation: g0Pro, Tree: ""}, false},
+//		{"2", args{[]*Generation{g0Pro, g1Pro}, 1, 0}, ResultTopIndividuals{Individual: i1, Generation: g1Pro, Tree: ""}, false},
+//		{"3", args{[]*Generation{g0Pro, g1Pro, g2Pro}, 1, 0}, ResultTopIndividuals{Individual: i1, Generation: g2Pro, Tree: ""}, false},
+//		{"3", args{[]*Generation{g0Pro, g1Pro, g2Pro, g3Pro}, 1, 0}, ResultTopIndividuals{Individual: imin1, Generation: g3Pro, Tree: ""}, false},
+//	}
+//	for _, tt := range tests {
+//		t.Run(tt.name, func(t *testing.T) {
+//			got, err := CalcNthPlaceIndividualAllGenerations(tt.args.generations, tt.args.individualKind, tt.args.fitnessComparator)
+//			if (err != nil) != tt.wantErr {
+//				t.Errorf("CalcNthPlaceIndividualAllGenerations() error = %v, wantErr %v", err, tt.wantErr)
+//				return
+//			}
+//			if !reflect.DeepEqual(got, tt.want) {
+//				t.Errorf("CalcNthPlaceIndividualAllGenerations() = %v, want %v", got, tt.want)
+//			}
+//		})
+//	}
+//}
+
+//func TestSortIndividuals(t *testing.T) {
+//	type args struct {
+//		individuals       []*Individual
+//		fitnessComparator int
+//	}
+//	tests := []struct {
+//		name string
+//		args args
+//		want []*Individual
+//	}{
+//		{"", args{[]*Individual{i1, i2, iMax, imin1}, 0}, []*Individual{imin1, i1, i2, iMax}},
+//		{"", args{[]*Individual{i1, i2, iMax, i1, imin1}, 0}, []*Individual{imin1, i1, i1, i2, iMax}},
+//		{"", args{[]*Individual{i1, i2, iMax, i1, imin1, i1}, 0}, []*Individual{imin1, i1, i1, i1, i2, iMax}},
+//	}
+//	for _, tt := range tests {
+//		t.Run(tt.name, func(t *testing.T) {
+//			got := SortIndividuals(tt.args.individuals, tt.args.fitnessComparator)
+//			if len(got) != len(tt.want) {
+//				t.Errorf("not same lengthgot = %v, want %v", got, tt.want)
+//			}
+//			for i := range got {
+//				if got[i].TotalFitness != tt.want[i].TotalFitness {
+//					t.Errorf("got = %v, want %v", got[i].TotalFitness, tt.want[i].TotalFitness)
+//					return
+//				}
+//			}
+//		})
+//	}
+//}

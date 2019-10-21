@@ -20,11 +20,11 @@ func GetTopIndividualInAllGenerations(sortedGenerations []*Generation, isMoreFit
 		topProtagonist = &Individual{TotalFitness: math.MinInt64}
 		for i := 0; i < len(sortedGenerations); i++ {
 			// This ensures it picks more recent individuals
-			if topAntagonist.TotalFitness >= sortedGenerations[i].Antagonists[0].TotalFitness {
+			if sortedGenerations[i].Antagonists[0].TotalFitness >=topAntagonist.TotalFitness  {
 				topAntagonist = sortedGenerations[i].Antagonists[0]
 			}
-			if topProtagonist.TotalFitness >= sortedGenerations[i].Protagonists[0].TotalFitness {
-				topAntagonist = sortedGenerations[i].Antagonists[0]
+			if sortedGenerations[i].Protagonists[0].TotalFitness >= topProtagonist.TotalFitness  {
+				topProtagonist = sortedGenerations[i].Protagonists[0]
 			}
 		}
 		return topAntagonist, topProtagonist, nil
@@ -33,11 +33,11 @@ func GetTopIndividualInAllGenerations(sortedGenerations []*Generation, isMoreFit
 		topProtagonist = &Individual{TotalFitness: math.MaxInt64}
 		for i := 0; i < len(sortedGenerations); i++ {
 			// This ensures it picks more recent individuals
-			if topAntagonist.TotalFitness <= sortedGenerations[i].Antagonists[0].TotalFitness {
+			if sortedGenerations[i].Antagonists[0].TotalFitness >= topAntagonist.TotalFitness  {
 				topAntagonist = sortedGenerations[i].Antagonists[0]
 			}
-			if topProtagonist.TotalFitness <= sortedGenerations[i].Protagonists[0].TotalFitness {
-				topAntagonist = sortedGenerations[i].Antagonists[0]
+			if sortedGenerations[i].Protagonists[0].TotalFitness >=topProtagonist.TotalFitness {
+				topProtagonist = sortedGenerations[i].Protagonists[0]
 			}
 		}
 	}
@@ -237,18 +237,27 @@ func CalculateCumulative(individuals []*Individual) (float64, error) {
 
 // SortGenerationsThoroughly sorts each kind of individual in each generation for every generation.
 // This allows for easy querying in later phases.
-func SortGenerationsThoroughly(generations []*Generation, isMoreFitnessBetter bool) error {
+func SortGenerationsThoroughly(generations []*Generation, isMoreFitnessBetter bool) ([]*Generation, error) {
+	if generations == nil {
+		return nil, fmt.Errorf("SortGenerationsThoroughly | generations cannot be nil")
+	}
+	if len(generations) < 1 {
+		return nil, fmt.Errorf("SortGenerationsThoroughly | generations cannot be empty")
+	}
+
+	sortedGenerations := make([]*Generation, len(generations))
 	for i := 0; i < len(generations); i++ {
+		sortedGenerations[i] = generations[i]
 		sortedAntagonists, err := SortIndividuals(generations[i].Antagonists, isMoreFitnessBetter)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		sortedProtagonists, err := SortIndividuals(generations[i].Protagonists, isMoreFitnessBetter)
 		if err != nil {
-			return err
+			return nil, err
 		}
-		generations[i].Protagonists = sortedProtagonists
-		generations[i].Antagonists = sortedAntagonists
+		sortedGenerations[i].Protagonists = sortedProtagonists
+		sortedGenerations[i].Antagonists = sortedAntagonists
 	}
-	return nil
+	return sortedGenerations, nil
 }
