@@ -9,9 +9,9 @@ import (
 )
 
 type EvolutionResult struct {
-	HasBeenAnalyzed bool
-	TopAntagonist   *Individual
-	TopProtagonist  *Individual
+	HasBeenAnalyzed     bool
+	TopAntagonist       *Individual
+	TopProtagonist      *Individual
 	IsMoreFitnessBetter bool
 
 	CoevolutionaryAverages []generationalCoevolutionaryAverages
@@ -25,11 +25,10 @@ type multiIndividualsPerGeneration struct {
 }
 
 type generationalCoevolutionaryAverages struct {
-	Generation       *Generation
-	AntagonistResult float64
+	Generation        *Generation
+	AntagonistResult  float64
 	ProtagonistResult float64
 }
-
 
 func (e *EvolutionResult) Analyze(generations []*Generation, isMoreFitnessBetter bool) error {
 	// Perform all sorting functions on each generation for each kind of individual
@@ -58,7 +57,6 @@ func (e *EvolutionResult) Analyze(generations []*Generation, isMoreFitnessBetter
 
 	return nil
 }
-
 
 func (e *EvolutionResult) PrintAverageGenerationSummary() (strings.Builder, error) {
 	if e.CoevolutionaryAverages == nil {
@@ -230,8 +228,6 @@ func (e *EvolutionResult) StartInteractiveTerminal() error {
 	return nil
 }
 
-
-
 func banner(title string) string {
 	builder := strings.Builder{}
 	builder.WriteString("############### ")
@@ -268,11 +264,11 @@ func interactiveGetTopIndividualInGenX(reader *bufio.Reader, sortedIndividuals [
 	bannerBuilder := strings.Builder{}
 	switch kind {
 	case IndividualAntagonist:
-		name:= "Antagonist"
+		name := "Antagonist"
 		bannerStr := banner(fmt.Sprintf("Top %s in Gen %d", name, generationInt))
 		bannerBuilder.WriteString(bannerStr)
 	case IndividualProtagonist:
-		name:= "Protagonist"
+		name := "Protagonist"
 		bannerStr := banner(fmt.Sprintf("Top %s in Gen %d", name, generationInt))
 		bannerBuilder.WriteString(bannerStr)
 	}
@@ -319,7 +315,7 @@ func interactiveGetTopNIndividualInGenX(reader *bufio.Reader, sortedIndividuals 
 				len(sortedIndividuals)))
 		} else {
 			if topN > len(sortedIndividuals[0].Antagonists) {
-				topN = len(sortedIndividuals[0].Antagonists)-1
+				topN = len(sortedIndividuals[0].Antagonists) - 1
 			}
 			if topN < 0 {
 				topN = 0
@@ -337,11 +333,11 @@ func interactiveGetTopNIndividualInGenX(reader *bufio.Reader, sortedIndividuals 
 	bannerBuilder := strings.Builder{}
 	switch kind {
 	case IndividualAntagonist:
-		name:= "Antagonist"
+		name := "Antagonist"
 		bannerStr := banner(fmt.Sprintf("Top %d %s in Gen %d", topN, name, generationInt))
 		bannerBuilder.WriteString(bannerStr)
 	case IndividualProtagonist:
-		name:= "Protagonist"
+		name := "Protagonist"
 		bannerStr := banner(fmt.Sprintf("Top %d %s in Gen %d", topN, name, generationInt))
 		bannerBuilder.WriteString(bannerStr)
 	}
@@ -390,7 +386,7 @@ func interactiveGetIndividualXInGenY(reader *bufio.Reader, sortedIndividuals []*
 				len(sortedIndividuals)))
 		} else {
 			if individualIndex > len(sortedIndividuals[0].Antagonists) {
-				individualIndex = len(sortedIndividuals[0].Antagonists)-1
+				individualIndex = len(sortedIndividuals[0].Antagonists) - 1
 			}
 			if individualIndex < 0 {
 				individualIndex = 0
@@ -432,11 +428,11 @@ func interactiveGetIndividualXInGenY(reader *bufio.Reader, sortedIndividuals []*
 	bannerBuilder := strings.Builder{}
 	switch kind {
 	case IndividualAntagonist:
-		name:= "Antagonist"
+		name := "Antagonist"
 		bannerStr := banner(fmt.Sprintf("%s[%d] in Gen %d", name, individualIndex, generationInt))
 		bannerBuilder.WriteString(bannerStr)
 	case IndividualProtagonist:
-		name:= "Protagonist"
+		name := "Protagonist"
 		bannerStr := banner(fmt.Sprintf("%s[%d] in Gen %d", name, individualIndex, generationInt))
 		bannerBuilder.WriteString(bannerStr)
 	}

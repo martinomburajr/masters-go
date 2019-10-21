@@ -20,10 +20,10 @@ func GetTopIndividualInAllGenerations(sortedGenerations []*Generation, isMoreFit
 		topProtagonist = &Individual{TotalFitness: math.MinInt64}
 		for i := 0; i < len(sortedGenerations); i++ {
 			// This ensures it picks more recent individuals
-			if sortedGenerations[i].Antagonists[0].TotalFitness >=topAntagonist.TotalFitness  {
+			if sortedGenerations[i].Antagonists[0].TotalFitness >= topAntagonist.TotalFitness {
 				topAntagonist = sortedGenerations[i].Antagonists[0]
 			}
-			if sortedGenerations[i].Protagonists[0].TotalFitness >= topProtagonist.TotalFitness  {
+			if sortedGenerations[i].Protagonists[0].TotalFitness >= topProtagonist.TotalFitness {
 				topProtagonist = sortedGenerations[i].Protagonists[0]
 			}
 		}
@@ -33,10 +33,10 @@ func GetTopIndividualInAllGenerations(sortedGenerations []*Generation, isMoreFit
 		topProtagonist = &Individual{TotalFitness: math.MaxInt64}
 		for i := 0; i < len(sortedGenerations); i++ {
 			// This ensures it picks more recent individuals
-			if sortedGenerations[i].Antagonists[0].TotalFitness >= topAntagonist.TotalFitness  {
+			if sortedGenerations[i].Antagonists[0].TotalFitness >= topAntagonist.TotalFitness {
 				topAntagonist = sortedGenerations[i].Antagonists[0]
 			}
-			if sortedGenerations[i].Protagonists[0].TotalFitness >=topProtagonist.TotalFitness {
+			if sortedGenerations[i].Protagonists[0].TotalFitness >= topProtagonist.TotalFitness {
 				topProtagonist = sortedGenerations[i].Protagonists[0]
 			}
 		}
@@ -65,9 +65,9 @@ func GetGenerationalFitnessAverage(sortedGenerations []*Generation) ([]generatio
 			return nil, err
 		}
 		result[i] = generationalCoevolutionaryAverages{
-			AntagonistResult: antagonistAverage,
+			AntagonistResult:  antagonistAverage,
 			ProtagonistResult: protagonistAverage,
-			Generation:       sortedGenerations[i],
+			Generation:        sortedGenerations[i],
 		}
 	}
 

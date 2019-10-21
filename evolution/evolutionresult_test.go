@@ -48,32 +48,33 @@ func TestCalcTopIndividual(t *testing.T) {
 
 var g0Pro = &Generation{GenerationID: "g0Pro", Protagonists: []*Individual{i1}}
 var g0Ant = &Generation{GenerationID: "g0Pro", Antagonists: []*Individual{i1}}
-var g0 = &Generation{GenerationID: "g0", Antagonists: []*Individual{i1}, Protagonists:[]*Individual{i1}}
+var g0 = &Generation{GenerationID: "g0", Antagonists: []*Individual{i1}, Protagonists: []*Individual{i1}}
 
 var g1Pro = &Generation{GenerationID: "g1Pro", Protagonists: []*Individual{i1, i2}}
 var g1 = &Generation{GenerationID: "g1",
 	Protagonists: []*Individual{i2, i1},
-	Antagonists: []*Individual{i1, iMax},}
+	Antagonists:  []*Individual{i1, iMax}}
 var g1SortedMoreBetter = &Generation{GenerationID: "g1",
 	Protagonists: []*Individual{i2, i1},
-	Antagonists: []*Individual{iMax, i1}}
+	Antagonists:  []*Individual{iMax, i1}}
 var g1SortedLessBetter = &Generation{GenerationID: "g1",
 	Protagonists: []*Individual{i1, i2},
-	Antagonists: []*Individual{i1, iMax}}
+	Antagonists:  []*Individual{i1, iMax}}
 
 var g2Pro = &Generation{GenerationID: "g2Pro", Protagonists: []*Individual{iMax, i1}}
 var g2 = &Generation{GenerationID: "g2Pro",
-		Protagonists: []*Individual{iMax, i1},
-		Antagonists: []*Individual{i1, iMax},}
+	Protagonists: []*Individual{iMax, i1},
+	Antagonists:  []*Individual{i1, iMax}}
 var g2SortedMoreBetter = &Generation{GenerationID: "g2",
 	Protagonists: []*Individual{iMax, i1},
-	Antagonists: []*Individual{iMax, i1}}
+	Antagonists:  []*Individual{iMax, i1}}
 var g2SortedLessBetter = &Generation{GenerationID: "g2",
 	Protagonists: []*Individual{i1, iMax},
-	Antagonists: []*Individual{i1, iMax}}
+	Antagonists:  []*Individual{i1, iMax}}
 
 var g4Pro = &Generation{GenerationID: "g4Pro", Protagonists: []*Individual{iMax, i2}}
 var g3Pro = &Generation{GenerationID: "g3Pro", Protagonists: []*Individual{imin1, iMax}}
+
 //
 //func TestCalcTopIndividualAllGenerations(t *testing.T) {
 //	type args struct {

@@ -34,16 +34,16 @@ func Evolution1() {
 
 	// TODO Include terminals and non terminals as part of strategy?
 	params := evolution.EvolutionParams{
-		GenerationsCount:                 50,
-		EachPopulationSize:               10, // Must be an even number to prevent awkward ordering of children.
-		AntagonistMaxStrategies:          20,
-		ProtagonistMaxStrategies:         20,
-		DepthPenaltyStrategyPenalization: 10,
-		ProbabilityOfMutation:            0.1,
-		ProbabilityOfNonTerminalMutation: 0.1,
-		DepthOfRandomNewTrees:            1,
-		DeletionType:                     evolution.DeletionTypeSafe,
-		EnforceIndependentVariable:       true,
+		GenerationsCount:                      50,
+		EachPopulationSize:                    10, // Must be an even number to prevent awkward ordering of children.
+		AntagonistMaxStrategies:               20,
+		ProtagonistMaxStrategies:              20,
+		DepthPenaltyStrategyPenalization:      10,
+		ProbabilityOfMutation:                 0.1,
+		ProbabilityOfNonTerminalMutation:      0.1,
+		DepthOfRandomNewTrees:                 1,
+		DeletionType:                          evolution.DeletionTypeSafe,
+		EnforceIndependentVariable:            true,
 		ProtagonistAvailableStrategies:        strategies,
 		AntagonistAvailableStrategies:         strategies,
 		SetEqualStrategyLength:                true,
@@ -141,7 +141,6 @@ func Evolution1() {
 		Generations: make([]*evolution.Generation, params.GenerationsCount),
 	}
 
-
 	// ########################### OUTPUT STATISTICS  #######################################################3
 	fmt.Printf("Generation Count: %d\n", engine.Parameters.GenerationsCount)
 	fmt.Printf("Each Individual Count: %d\n", engine.Parameters.EachPopulationSize)
@@ -211,7 +210,7 @@ func Evolution1() {
 	}
 	fmt.Println(averageGenerationSummary.String())
 
-	if (shouldRunInteractiveTerminal) {
+	if shouldRunInteractiveTerminal {
 		err = evolutionResult.StartInteractiveTerminal()
 		if err != nil {
 			log.Fatal(err)

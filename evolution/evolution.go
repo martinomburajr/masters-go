@@ -109,11 +109,11 @@ const (
 )
 
 type EvolutionEngine struct {
-	Parallelize      bool `json:"parallelize"`
-	Generations      []*Generation
-	StatisticsOutput string `json:"statisticsOutput"`
-	Parameters       EvolutionParams `json:"parameters"`
-	IsMoreFitnessBetter bool `json:"isMoreFitnessBetter"`
+	Parallelize         bool `json:"parallelize"`
+	Generations         []*Generation
+	StatisticsOutput    string          `json:"statisticsOutput"`
+	Parameters          EvolutionParams `json:"parameters"`
+	IsMoreFitnessBetter bool            `json:"isMoreFitnessBetter"`
 }
 
 func (e *EvolutionEngine) Start() (EvolutionResult, error) {
