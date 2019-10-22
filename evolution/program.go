@@ -2,7 +2,8 @@ package evolution
 
 import (
 	"fmt"
-	"github.com/martinomburajr/masters-go/eval"
+	"github.com/PaesslerAG/gval"
+	"github.com/martinomburajr/masters-go/utils"
 )
 
 const DeletionTypeMalicious = 1
@@ -27,12 +28,11 @@ func GenerateProgramID(count int) string {
 // The system is designed such that the first element of the terminals array will be the most prominent with regards
 // to appearance.
 func (p *Program) ApplyStrategy(strategy Strategy, terminals []SymbolicExpression,
-	nonTerminals []SymbolicExpression, mutationProbability float64, nonTerminalMutationProbability float64,
-	depth int, deletionStrategy int) (err error) {
+	nonTerminals []SymbolicExpression,depth int) (err error) {
 
 	switch strategy {
 	case StrategyDeleteNonTerminal: // CHANGE TO DeleteNonTerminal
-		err = p.T.DeleteSubTree(deletionStrategy)
+		err = p.T.DeleteNonTerminal()
 		break
 
 	case StrategyDeleteMalicious:
@@ -57,14 +57,28 @@ func (p *Program) ApplyStrategy(strategy Strategy, terminals []SymbolicExpressio
 
 	case StrategyReplaceBranch:
 		var tree *DualTree
-		tree, err = GenerateRandomTreeEnforceIndependentVariable(depth, terminals[0], terminals, nonTerminals)
+		tree, err = GenerateRandomTree(depth, terminals, nonTerminals)
 		err = p.T.ReplaceBranch(*tree)
 		break
 
-	case StrategyAddSubTree:
+	case StrategyAddRandomSubTree:
 		var tree *DualTree
-		tree, err = GenerateRandomTreeEnforceIndependentVariable(depth, terminals[0], terminals, nonTerminals)
+		tree, err = GenerateRandomTree(depth, terminals, nonTerminals)
 		err = p.T.AddSubTree(tree)
+		break
+
+	case StrategyAddSub:
+		var tree *DualTree
+		tree, err = GenerateRandomTree(depth, terminals,
+			[]SymbolicExpression{{arity: 2, value: "-", kind: 1}})
+		err = p.T.AddToLeaf(*tree)
+		break
+
+	case StrategyAddAdd:
+		var tree *DualTree
+		tree, err = GenerateRandomTree(depth, terminals,
+			[]SymbolicExpression{{arity: 2, value: "+", kind: 1}})
+		err = p.T.AddToLeaf(*tree)
 		break
 
 	case StrategyAddToLeaf:
@@ -75,23 +89,51 @@ func (p *Program) ApplyStrategy(strategy Strategy, terminals []SymbolicExpressio
 
 	case StrategyAddMult:
 		var tree *DualTree
+		tree, err = GenerateRandomTree(depth, terminals, []SymbolicExpression{{arity: 2, value: "*", kind: 1}})
+		err = p.T.AddToLeaf(*tree)
+		break
+
+	case StrategyReplaceBranchX:
+		var tree *DualTree
+		tree, err = GenerateRandomTreeEnforceIndependentVariable(depth, terminals[0], terminals, nonTerminals)
+		err = p.T.ReplaceBranch(*tree)
+		break
+
+	case StrategyAddRandomSubTreeX:
+		var tree *DualTree
+		tree, err = GenerateRandomTreeEnforceIndependentVariable(depth, terminals[0], terminals, nonTerminals)
+		err = p.T.AddSubTree(tree)
+		break
+
+	case StrategyAddToLeafX:
+		var tree *DualTree
+		tree, err = GenerateRandomTreeEnforceIndependentVariable(depth, terminals[0], terminals, nonTerminals)
+		err = p.T.AddToLeaf(*tree)
+		break
+
+	case StrategyAddMultX:
+		var tree *DualTree
 		tree, err = GenerateRandomTreeEnforceIndependentVariable(depth, terminals[0], terminals,
 			[]SymbolicExpression{{arity: 2, value: "*", kind: 1}})
 		err = p.T.AddToLeaf(*tree)
 		break
 
-	case StrategyAddSub:
+	case StrategyAddSubX:
 		var tree *DualTree
 		tree, err = GenerateRandomTreeEnforceIndependentVariable(depth, terminals[0], terminals,
 			[]SymbolicExpression{{arity: 2, value: "-", kind: 1}})
 		err = p.T.AddToLeaf(*tree)
 		break
 
-	case StrategyAddAdd:
+	case StrategyAddAddX:
 		var tree *DualTree
 		tree, err = GenerateRandomTreeEnforceIndependentVariable(depth, terminals[0], terminals,
 			[]SymbolicExpression{{arity: 2, value: "+", kind: 1}})
 		err = p.T.AddToLeaf(*tree)
+		break
+
+	case StrategySkip:
+		// Do nothing
 		break
 	default:
 		break
@@ -115,22 +157,25 @@ func EvaluateMathematicalExpression(expressionString string, independentVariable
 		return -1, fmt.Errorf("EvaluateMathematicalExpression | expressionString cannot be empty")
 	}
 	//
-	//expression, err := gval.Evaluate(expressionString, independentVariables)
-	//if err != nil {
-	//	return -1, err
-	//}
-
-	expression, err := eval.CalculateWithVar(expressionString, independentVariables)
+	expression, err := gval.Evaluate(expressionString, independentVariables)
+	if err != nil {
+		return -1, err
+	}
+	ans, err := utils.ConvertToFloat64(expression)
 	if err != nil {
 		return -1, err
 	}
 
-	//ans, err := utils.ConvertToFloat64(expression)
+	//ans, err := eval.CalculateV2Var(expressionString, independentVariables)
 	//if err != nil {
 	//	return -1, err
 	//}
 
-	return expression, nil
+	//ans, err := eval.CalculateWithVar(expressionString, independentVariables)
+	//if err != nil {
+	//	return -1, err
+	//}
+	return ans, nil
 }
 
 func (p Program) Clone() (Program, error) {

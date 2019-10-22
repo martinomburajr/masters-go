@@ -347,7 +347,7 @@ func TestDualTree_AddSubTree(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if err1 := tt.tree.AddSubTree(tt.subTree); (err1 != nil) != tt.wantErr {
-				t.Errorf("DualTree.StrategyAddSubTree() error = %v, wantErr %v", err1, tt.wantErr)
+				t.Errorf("DualTree.StrategyAddRandomSubTree() error = %v, wantErr %v", err1, tt.wantErr)
 			} else {
 				if err1 == nil {
 					contains, err := tt.tree.ContainsSubTree(tt.subTree)

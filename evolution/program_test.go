@@ -58,6 +58,8 @@ func TestEvaluateMathematicalExpression(t *testing.T) {
 		{"x -> 0", args{"x", map[string]float64{"x": 0}}, 0, false},
 		{"x -> 0 | y -> 1", args{"x + y", map[string]float64{"x": 0, "y": 1}}, 1, false},
 		{"x -> 2 | y -> 3", args{"(x * y) * y", map[string]float64{"x": 2, "y": 3}}, 18, false},
+		{"1", args{"1", nil}, 1, false},
+		//{"(4-(-3--9)-(-9)*-2*-3)", args{"(4-(-3--9)-(-9)*-2*-3)", nil}, 41, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -74,7 +76,6 @@ func TestEvaluateMathematicalExpression(t *testing.T) {
 }
 
 var mathematicalExpression float64
-
 func BenchmarkEvaluateMathematicalExpression(b *testing.B) {
 	expression := "x*x+5*x+10"
 	varMap := map[string]float64{"x": 0}

@@ -6,24 +6,18 @@ import (
 
 type EvolutionParams struct {
 	GenerationsCount                 int `json:"generationCount"`
-	EnableParallelism                bool
-	survivorSelection                int
-	parentSelection                  int `json:"parentSelection"`
+	EachPopulationSize               int `json:"eachPopulationSize"`
+	EnableParallelism                bool `json:"enableParallelism"`
 	ElitismPercentage                float64
-	ProgramEval                      func() float64
-	MaxDepth                         int
-	DepthPenaltyStrategy             int
-	DepthPenaltyStrategyPenalization float64
-	Threshold                        float64
-	MinThreshold                     float64
+
 	FitnessStrategy                  int
 	TournamentSize                   int
 	// EachPopulationSize represents the size of each protagonist or antagonist population.
 	// This value must be even otherwise pairwise operations such as crossover will fail
-	EachPopulationSize               int
-	ProbabilityOfRecombination       float64
+
+	//ProbabilityOfRecombination       float64
 	ProbabilityOfMutation            float64
-	ProbabilityOfNonTerminalMutation float64
+	//ProbabilityOfNonTerminalMutation float64
 
 	// ThresholdMultiplier is used when the FitnessRatioThreshold option is selected.
 	// It creates a threshold value based on the cumulative value of the dependent variable in the spec.
@@ -36,10 +30,7 @@ type EvolutionParams struct {
 	ProtagonistMaxStrategies int
 	//ProtagonistStrategyLength        int
 
-	// SurvivorPercentage represents how many individulas in the parent vs child population should continue.
-	// 1 means all parents move on. 0 means only children move on. Any number in betwee is a percentage value.
-	// It cannot be greater than 1 or less than 0.
-	SurvivorPercentage float64
+
 	// Strategies is a list of available strategies for each individual.
 	// These can be randomly allocated to individuals and duplicates are expected.
 	//Strategies            []Strategy
@@ -50,7 +41,7 @@ type EvolutionParams struct {
 	StrategyLengthLimit int
 
 	// DeletionType pertains to the different kinds of deletion operations possible for a given Tree.
-	DeletionType int
+	//DeletionType int
 
 	// EnforceIndependentVariable ensures that during individual Generation at the start of the evolution,
 	// independent variables are injected to the program meaning every program will at least have one independent
@@ -75,8 +66,9 @@ type EvolutionParams struct {
 	EvaluationThreshold float64
 	ParentSelection     int
 	StartIndividual     Program
-	Spec                SpecMulti
+
 	SurvivorSelection   int
+	SurvivorPercentage float64
 
 	ProtagonistAvailableStrategies []Strategy
 	AntagonistAvailableStrategies  []Strategy
@@ -100,13 +92,76 @@ type EvolutionParams struct {
 	// this value is used in both DualThresholdedRatioFitness and ThresholdedRatioFitness as a fitness value for
 	// both antagonist and protagonists thresholds.
 	ProtagonistThresholdMultiplier float64
+
+	//AvailableOperators           AvailableVariablesAndOperators
+	// ShouldRunInteractiveTerminal ensures the interactive terminal is run at the end of the evolution that allows
+	// users to query all individuals in all generations.
+	ShouldRunInteractiveTerminal bool
+
+	SpecParam SpecParam `json:"spec"`
+
+	Selection Selection `json:"selection"`
+	//FitnessStrategy FitnessStrategy `json:"fitnessStrategy"`
+	Spec                SpecMulti
 }
 
-const (
-	DepthPenaltyStrategyIgnore   = 0
-	DepthPenaltyStrategyPenalize = 2
-	DepthPenaltyStrategyTrim     = 1
-)
+
+type AvailableVariablesAndOperators struct {
+	Constants []string
+	Variables []string
+	Operators []string
+}
+
+type Strategies struct {
+	AvailableStrategies []string
+	AntagonistAvailableStrategies []string
+	ProtagonistAvailableStrategies []string
+	StrategySize int
+}
+
+type FitnessStrategy struct {
+	Type int
+	AntagonistThresholdMultiplier float64
+	ProtagonistThresholdMultiplier float64
+}
+
+type SpecParam struct {
+	// SpecRange defines a range of variables on either side of the X axis. A range of 4 will include -2, -1,
+	// 0 and 1.
+	Range int
+	//Expression is the actual expression being tested.
+	// It is the initial function that is converted to the startIndividual
+	Expression string
+	Seed int
+	AvailableVariablesAndOperators AvailableVariablesAndOperators
+}
+
+type Reproduction struct {
+	// CrossoverPercentage pertains to the amount of genetic material crossed-over.
+	// This is a percentage represented as a float64. A value of 1 means all material is swapped.
+	// A value of 0 means no material is swapped (which in effect are the same thing).
+	// Avoid 0 or 1 use values in between
+	CrossoverPercentage float64
+	ProbabilityOfMutation            float64
+}
+type Selection struct {
+	Parent ParentSelection
+	Survivor SurvivorSelection
+}
+
+type ParentSelection struct {
+	Type int
+	TournamentSize int
+}
+
+type SurvivorSelection struct {
+	Type int
+	// SurvivorPercentage represents how many individulas in the parent vs child population should continue.
+	// 1 means all parents move on. 0 means only children move on. Any number in betwee is a percentage value.
+	// It cannot be greater than 1 or less than 0.
+	SurvivorPercentage float64
+}
+
 
 type EvolutionEngine struct {
 	Parallelize         bool `json:"parallelize"`

@@ -1,163 +1,162 @@
 package evolution
 
 import (
-	"fmt"
 	"math/rand"
 )
 
 // CrossoverTree is a evolutionary technique used to take two parents swap their genetic material and form two new children.
-func CrossoverTree(individual1 *Individual, individual2 *Individual, maxDepth int, params EvolutionParams) (child1 Individual,
-	child2 Individual,
-	err error) {
-	// Requirements
-	if individual1 == nil {
-		return Individual{}, Individual{}, fmt.Errorf("crossover: individual 1 cannot be nil")
-	}
-	if individual1.Program == nil {
-		return Individual{}, Individual{}, fmt.Errorf("crossover: individual1.Program != nil")
-	}
-	if individual1.Program.T == nil {
-		return Individual{}, Individual{}, fmt.Errorf("crossover: individual1.Program.T != nil")
-	}
-	if individual1.Program.T.root == nil {
-		return Individual{}, Individual{}, fmt.Errorf("crossover: individual1.Program.T.root != nil")
-	}
-	if individual2 == nil {
-		return Individual{}, Individual{}, fmt.Errorf("crossover: individual2 cannot be nil")
-	}
-	if individual2.Program == nil {
-		return Individual{}, Individual{}, fmt.Errorf("crossover: individual2.Program != nil")
-	}
-	if individual2.Program.T == nil {
-		return Individual{}, Individual{}, fmt.Errorf("crossover: individual2.Program.T != nil")
-	}
-	if individual2.Program.T.root == nil {
-		return Individual{}, Individual{}, fmt.Errorf("crossover: individual2.Program.T.root != nil")
-	}
-	if maxDepth < 0 {
-		return Individual{}, Individual{}, fmt.Errorf("crossover: max depth cannot be less than 0")
-	}
-
-	// DO!
-	cloneA, err := individual1.Clone()
-	if err != nil {
-		return Individual{}, Individual{}, err
-	}
-	cloneB, err := individual2.Clone()
-	if err != nil {
-		return Individual{}, Individual{}, err
-	}
-
-	cloneATree := cloneA.Program.T
-	cloneBTree := cloneB.Program.T
-
-	cloneADepth, err := cloneATree.Depth()
-	if err != nil {
-		return Individual{}, Individual{}, err
-	}
-
-	cloneBDepth, err := cloneBTree.Depth()
-	if err != nil {
-		return Individual{}, Individual{}, err
-	}
-
-	// Check Depths for Swap
-
-	// 1. If depths < 1 in case it is just a Tree with only a root
-	if cloneADepth < 1 {
-		nodeB, _, err := cloneBTree.RandomTerminalAware()
-		if err != nil {
-			return Individual{}, Individual{}, err
-		}
-		hoboA, _, err := cloneATree.Replace(cloneATree.root, *nodeB)
-		if err != nil {
-			return Individual{}, Individual{}, err
-		}
-		_, _, err = cloneBTree.Replace(nodeB, hoboA)
-		if err != nil {
-			return Individual{}, Individual{}, err
-		}
-		return cloneA, cloneB, err
-	}
-
-	if cloneBDepth < 1 {
-		nodeA, _, err := cloneATree.RandomTerminalAware()
-		if err != nil {
-			return Individual{}, Individual{}, err
-		}
-		hoboB, _, err := cloneBTree.Replace(cloneATree.root, *nodeA)
-		if err != nil {
-			return Individual{}, Individual{}, err
-		}
-		_, _, err = cloneATree.Replace(nodeA, hoboB)
-		if err != nil {
-			return Individual{}, Individual{}, err
-		}
-		return cloneA, cloneB, err
-	}
-
-	shortestNodeA, _, shortestDepthA, err := cloneATree.GetShortestBranch(maxDepth / 2)
-	if err != nil {
-		return Individual{}, Individual{}, nil
-	}
-	shortestNodeB, _, shortestDepthB, err := cloneBTree.GetShortestBranch(maxDepth / 2)
-	if err != nil {
-		return Individual{}, Individual{}, nil
-	}
-
-	if cloneADepth > maxDepth {
-		if shortestDepthA >= maxDepth {
-			// Penalize Parent
-			penalty := float64(params.DepthPenaltyStrategyPenalization) * float64(shortestDepthA/maxDepth)
-			if individual1.HasCalculatedFitness {
-				return Individual{}, Individual{}, fmt.Errorf("cannot be penalized | Fitness uncalculated")
-			}
-			individual1.TotalFitness = individual1.TotalFitness + penalty
-		}
-	}
-	if cloneBDepth > maxDepth {
-		if shortestDepthB >= maxDepth {
-			// Penalize Parent
-			penalty := float64(params.DepthPenaltyStrategyPenalization) * float64(shortestDepthB/maxDepth)
-			if individual2.HasCalculatedFitness {
-				return Individual{}, Individual{}, fmt.Errorf("cannot be penalized | Fitness uncalculated")
-			}
-			individual2.TotalFitness = individual2.TotalFitness + penalty
-		}
-	}
-
-	if shortestDepthA <= shortestDepthB {
-		subTreeBAtDepth, err := cloneBTree.GetRandomSubTreeAtDepthAware(cloneBDepth) // confirm
-		if err != nil {
-			return Individual{}, Individual{}, err
-		}
-		hoboA, _, err := cloneATree.Replace(shortestNodeA, *subTreeBAtDepth.root)
-		if err != nil {
-			return Individual{}, Individual{}, err
-		}
-		_, _, err = cloneBTree.Replace(subTreeBAtDepth.root, hoboA)
-		if err != nil {
-			return Individual{}, Individual{}, err
-		}
-	} else {
-		subTreeAAtDepth, err := cloneATree.GetRandomSubTreeAtDepthAware(cloneADepth) // confirm
-		if err != nil {
-			return Individual{}, Individual{}, err
-		}
-		hoboB, _, err := cloneBTree.Replace(shortestNodeB, *subTreeAAtDepth.root)
-		if err != nil {
-			return Individual{}, Individual{}, err
-		}
-		_, _, err = cloneATree.Replace(subTreeAAtDepth.root, hoboB)
-		if err != nil {
-			return Individual{}, Individual{}, err
-		}
-	}
-
-	cloneA.Program.T = cloneATree
-	cloneB.Program.T = cloneBTree
-	return cloneA, cloneB, err
-}
+//func CrossoverTree(individual1 *Individual, individual2 *Individual, maxDepth int, params EvolutionParams) (child1 Individual,
+//	child2 Individual,
+//	err error) {
+//	// Requirements
+//	if individual1 == nil {
+//		return Individual{}, Individual{}, fmt.Errorf("crossover: individual 1 cannot be nil")
+//	}
+//	if individual1.Program == nil {
+//		return Individual{}, Individual{}, fmt.Errorf("crossover: individual1.Program != nil")
+//	}
+//	if individual1.Program.T == nil {
+//		return Individual{}, Individual{}, fmt.Errorf("crossover: individual1.Program.T != nil")
+//	}
+//	if individual1.Program.T.root == nil {
+//		return Individual{}, Individual{}, fmt.Errorf("crossover: individual1.Program.T.root != nil")
+//	}
+//	if individual2 == nil {
+//		return Individual{}, Individual{}, fmt.Errorf("crossover: individual2 cannot be nil")
+//	}
+//	if individual2.Program == nil {
+//		return Individual{}, Individual{}, fmt.Errorf("crossover: individual2.Program != nil")
+//	}
+//	if individual2.Program.T == nil {
+//		return Individual{}, Individual{}, fmt.Errorf("crossover: individual2.Program.T != nil")
+//	}
+//	if individual2.Program.T.root == nil {
+//		return Individual{}, Individual{}, fmt.Errorf("crossover: individual2.Program.T.root != nil")
+//	}
+//	if maxDepth < 0 {
+//		return Individual{}, Individual{}, fmt.Errorf("crossover: max depth cannot be less than 0")
+//	}
+//
+//	// DO!
+//	cloneA, err := individual1.Clone()
+//	if err != nil {
+//		return Individual{}, Individual{}, err
+//	}
+//	cloneB, err := individual2.Clone()
+//	if err != nil {
+//		return Individual{}, Individual{}, err
+//	}
+//
+//	cloneATree := cloneA.Program.T
+//	cloneBTree := cloneB.Program.T
+//
+//	cloneADepth, err := cloneATree.Depth()
+//	if err != nil {
+//		return Individual{}, Individual{}, err
+//	}
+//
+//	cloneBDepth, err := cloneBTree.Depth()
+//	if err != nil {
+//		return Individual{}, Individual{}, err
+//	}
+//
+//	// Check Depths for Swap
+//
+//	// 1. If depths < 1 in case it is just a Tree with only a root
+//	if cloneADepth < 1 {
+//		nodeB, _, err := cloneBTree.RandomTerminalAware()
+//		if err != nil {
+//			return Individual{}, Individual{}, err
+//		}
+//		hoboA, _, err := cloneATree.Replace(cloneATree.root, *nodeB)
+//		if err != nil {
+//			return Individual{}, Individual{}, err
+//		}
+//		_, _, err = cloneBTree.Replace(nodeB, hoboA)
+//		if err != nil {
+//			return Individual{}, Individual{}, err
+//		}
+//		return cloneA, cloneB, err
+//	}
+//
+//	if cloneBDepth < 1 {
+//		nodeA, _, err := cloneATree.RandomTerminalAware()
+//		if err != nil {
+//			return Individual{}, Individual{}, err
+//		}
+//		hoboB, _, err := cloneBTree.Replace(cloneATree.root, *nodeA)
+//		if err != nil {
+//			return Individual{}, Individual{}, err
+//		}
+//		_, _, err = cloneATree.Replace(nodeA, hoboB)
+//		if err != nil {
+//			return Individual{}, Individual{}, err
+//		}
+//		return cloneA, cloneB, err
+//	}
+//
+//	shortestNodeA, _, shortestDepthA, err := cloneATree.GetShortestBranch(maxDepth / 2)
+//	if err != nil {
+//		return Individual{}, Individual{}, nil
+//	}
+//	shortestNodeB, _, shortestDepthB, err := cloneBTree.GetShortestBranch(maxDepth / 2)
+//	if err != nil {
+//		return Individual{}, Individual{}, nil
+//	}
+//
+//	if cloneADepth > maxDepth {
+//		if shortestDepthA >= maxDepth {
+//			// Penalize Parent
+//			penalty := float64(params.DepthPenaltyStrategyPenalization) * float64(shortestDepthA/maxDepth)
+//			if individual1.HasCalculatedFitness {
+//				return Individual{}, Individual{}, fmt.Errorf("cannot be penalized | Fitness uncalculated")
+//			}
+//			individual1.TotalFitness = individual1.TotalFitness + penalty
+//		}
+//	}
+//	if cloneBDepth > maxDepth {
+//		if shortestDepthB >= maxDepth {
+//			// Penalize Parent
+//			penalty := float64(params.DepthPenaltyStrategyPenalization) * float64(shortestDepthB/maxDepth)
+//			if individual2.HasCalculatedFitness {
+//				return Individual{}, Individual{}, fmt.Errorf("cannot be penalized | Fitness uncalculated")
+//			}
+//			individual2.TotalFitness = individual2.TotalFitness + penalty
+//		}
+//	}
+//
+//	if shortestDepthA <= shortestDepthB {
+//		subTreeBAtDepth, err := cloneBTree.GetRandomSubTreeAtDepthAware(cloneBDepth) // confirm
+//		if err != nil {
+//			return Individual{}, Individual{}, err
+//		}
+//		hoboA, _, err := cloneATree.Replace(shortestNodeA, *subTreeBAtDepth.root)
+//		if err != nil {
+//			return Individual{}, Individual{}, err
+//		}
+//		_, _, err = cloneBTree.Replace(subTreeBAtDepth.root, hoboA)
+//		if err != nil {
+//			return Individual{}, Individual{}, err
+//		}
+//	} else {
+//		subTreeAAtDepth, err := cloneATree.GetRandomSubTreeAtDepthAware(cloneADepth) // confirm
+//		if err != nil {
+//			return Individual{}, Individual{}, err
+//		}
+//		hoboB, _, err := cloneBTree.Replace(shortestNodeB, *subTreeAAtDepth.root)
+//		if err != nil {
+//			return Individual{}, Individual{}, err
+//		}
+//		_, _, err = cloneATree.Replace(subTreeAAtDepth.root, hoboB)
+//		if err != nil {
+//			return Individual{}, Individual{}, err
+//		}
+//	}
+//
+//	cloneA.Program.T = cloneATree
+//	cloneB.Program.T = cloneBTree
+//	return cloneA, cloneB, err
+//}
 
 // getRandomDepthTargetLocation obtains a random depth for each individual that the crossover will target.
 // For example if the depth of individual1 is 10,

@@ -31,7 +31,7 @@ func (g *Generation) Start(generationCount int) (*Generation, error) {
 	}
 
 	// Calculate the Fitness for individuals in the Generation
-	for i := range g.Protagonists {
+	for i := 0; i < len(g.Protagonists); i++ {
 		protagonistFitness, err := AggregateFitness(*g.Protagonists[i])
 		if err != nil {
 			return nil, err
@@ -111,13 +111,10 @@ func (g *Generation) setupEpochs() ([]Epoch, error) {
 		for j, _ := range g.Protagonists {
 			epochs[count] = Epoch{
 				isComplete:                       false,
-				protagonistBegins:                false,
 				terminalSet:                      g.engine.Parameters.TerminalSet,
 				nonTerminalSet:                   g.engine.Parameters.NonTerminalSet,
 				hasAntagonistApplied:             false,
 				hasProtagonistApplied:            false,
-				probabilityOfMutation:            g.engine.Parameters.ProbabilityOfMutation,
-				probabilityOfNonTerminalMutation: g.engine.Parameters.ProbabilityOfNonTerminalMutation,
 				antagonist:                       g.Antagonists[i],
 				protagonist:                      g.Protagonists[j],
 				generation:                       g,
@@ -147,12 +144,18 @@ func (g *Generation) runEpochs(epochs []Epoch) ([]Epoch, error) {
 		return nil, fmt.Errorf("epochs slice is empty")
 	}
 
-	for i := range epochs {
-		err := epochs[i].Start()
-		if err != nil {
-			return nil, err
-		}
+	//wg := sync.WaitGroup{}
+	for i := 0; i < len(epochs); i++ {
+		//wg.Add(1)
+		//go func(i int) {
+		//	defer wg.Done()
+			epochs[i].Start()
+			//if err != nil {
+			//	return nil, err
+			//}
+		//}(i)
 	}
+	//wg.Wait()
 
 	return epochs, nil
 }

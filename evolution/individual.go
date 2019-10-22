@@ -28,7 +28,7 @@ type Individual struct {
 }
 
 func (i Individual) Clone() (Individual, error) {
-	i.Id = GenerateIndividualID("", i.Kind)
+	i.Id = i.Id +"c"
 	if i.Program != nil {
 		programClone, err := i.Program.Clone()
 		if err != nil {

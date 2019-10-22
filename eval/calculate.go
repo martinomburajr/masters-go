@@ -210,20 +210,11 @@ func (p *Parser) parseOperators(lhs Node, min_precedence int) (Node, bool) {
 	return lhs, true
 }
 
-// MartinsReplace can only replace a single item string
-func MartinsReplace(str string, old, new string) string {
-	sb := strings.Builder{}
-	for i := 0; i < len(str); i++ {
-		if str[i] == []byte(old)[0] {
-			sb.WriteString(new)
-			continue
-		}
-		sb.WriteByte(str[i])
-	}
-	return sb.String()
+func CalcEvaler() {
+
 }
 
-// Calculate is a streamlined evalutor that takes in a mathematical string and performs either +,
+//Calculate is a streamlined evalutor that takes in a mathematical string and performs either +,
 // - / * operations on the given string. It performs about 4 times better than existing methods as per the benchmarks..
 func Calculate(substitutedExpression string) (float64, error) {
 	var node Node
@@ -232,7 +223,7 @@ func Calculate(substitutedExpression string) (float64, error) {
 	var parseOk, evalOk bool
 
 	//substitutedExpression = MartinsReplace(substitutedExpression, " ", "")
-	substitutedExpression = NegativeNumberParser(substitutedExpression)
+	//substitutedExpression = NegativeNumberParser(substitutedExpression)
 	p = new(Parser).Init(substitutedExpression)
 	p.AddOperator('+', 1)
 	p.AddOperator('-', 1)
@@ -261,6 +252,21 @@ func CalculateWithVar(substitutedExpression string, variables map[string]float64
 	}
 	return Calculate(substitutedExpression)
 }
+
+// MartinsReplace can only replace a single item string
+func MartinsReplace(str string, old, new string) string {
+	sb := strings.Builder{}
+	for i := 0; i < len(str); i++ {
+		if str[i] == []byte(old)[0] {
+			sb.WriteString(new)
+			continue
+		}
+		sb.WriteByte(str[i])
+	}
+	return sb.String()
+}
+
+// Calcu
 
 // NegativeNumberParser is used to generate a representation that is aware of negative numbers in all possible
 // mathematical variations e.g. -1 1--1 etc. It acts as a sanitization method before the actual evaluation happens
@@ -325,7 +331,11 @@ func NegativeNumberParser(str string) string {
 			builder.WriteByte(str[i])
 		}
 	}
-	for i := len(str) - fixerAttempts; i < len(str)-1; i++ {
+	//g := builder.String()
+	//log.Println(g)
+	for i := len(str) - (fixerAttempts); i < len(str); i++ {
+		//u := string(str[i])
+		//log.Print(u)
 		if str[i] != '-' {
 			builder.WriteByte(str[i])
 		}
@@ -336,3 +346,11 @@ func NegativeNumberParser(str string) string {
 
 	return builder.String()
 }
+
+// NegativeNumberParser is used to generate a representation that is aware of negative numbers in all possible
+// mathematical variations e.g. -1 1--1 etc. It acts as a sanitization method before the actual evaluation happens
+//func NegativeNumberParser2(str string) string {
+//	str1 := strings.ReplaceAll(str, "(-", "(0-")
+//	str2 := strings.ReplaceAll(str1, "(-", "(0-")
+//	str3 := strings.ReplaceAll(str2, "(-", "(0-")
+//}

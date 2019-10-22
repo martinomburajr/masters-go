@@ -14,35 +14,37 @@ func main() {
 }
 
 func Evolution1() {
-	shouldRunInteractiveTerminal := true
 	rand.Seed(time.Now().UTC().UnixNano()) //Set seed
 
 	strategies := []evolution.Strategy{
+		evolution.StrategyFellTree,
 		evolution.StrategyDeleteNonTerminal,
 		evolution.StrategyDeleteMalicious,
 		evolution.StrategyDeleteTerminal,
 		evolution.StrategyMutateNonTerminal,
 		evolution.StrategyMutateTerminal,
 		evolution.StrategyReplaceBranch,
-		evolution.StrategyAddSubTree,
+		evolution.StrategyReplaceBranchX,
+		evolution.StrategyAddRandomSubTree,
+		evolution.StrategyAddRandomSubTreeX,
 		evolution.StrategyAddToLeaf,
 		evolution.StrategyAddMult,
+		evolution.StrategyAddMultX,
 		evolution.StrategyAddSub,
+		evolution.StrategyAddSubX,
 		evolution.StrategyAddAdd,
-		//evolution.StrategyFellTree,
+		evolution.StrategyAddAddX,
+		evolution.StrategySkip,
 	}
 
 	// TODO Include terminals and non terminals as part of strategy?
 	params := evolution.EvolutionParams{
 		GenerationsCount:                      50,
-		EachPopulationSize:                    10, // Must be an even number to prevent awkward ordering of children.
+		EachPopulationSize:                    2, // Must be an even number to prevent awkward ordering of children.
 		AntagonistMaxStrategies:               20,
 		ProtagonistMaxStrategies:              20,
-		DepthPenaltyStrategyPenalization:      10,
 		ProbabilityOfMutation:                 0.1,
-		ProbabilityOfNonTerminalMutation:      0.1,
 		DepthOfRandomNewTrees:                 1,
-		DeletionType:                          evolution.DeletionTypeSafe,
 		EnforceIndependentVariable:            true,
 		ProtagonistAvailableStrategies:        strategies,
 		AntagonistAvailableStrategies:         strategies,
@@ -57,33 +59,42 @@ func Evolution1() {
 		ParentSelection:                       evolution.FitnessDualThresholdedRatioFitness,
 		EqualStrategiesLength:                 20,
 		ThresholdMultiplier:                   1.5,
-		AntagonistThresholdMultiplier:         16,
-		ProtagonistThresholdMultiplier:        1.8,
+		AntagonistThresholdMultiplier:         30,
+		ProtagonistThresholdMultiplier:        1.3,
+
+
+		SpecParam: evolution.SpecParam{
+			Range: 100,
+			Expression: "x*x",
+			Seed: -500,
+			AvailableVariablesAndOperators: evolution.AvailableVariablesAndOperators{
+				Constants: []string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"},
+				Variables: []string{"x"},
+				Operators: []string{"*", "+", "-"},
+			},
+		},
+
+		ShouldRunInteractiveTerminal: false,
 	}
 
-	expression := "x*x"
-	expression = eval.MartinsReplace(expression, " ", "")
-	specCount := 20
+	params.SpecParam.Expression = eval.MartinsReplace(params.SpecParam.Expression, " ", "")
+	specCount := params.SpecParam.Range
 
-	constants := []string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"}
-	variables := []string{"x"}
-	operators := []string{"*", "+", "-"}
-
-	constantTerminals, err := evolution.GenerateTerminals(10, constants)
+	constantTerminals, err := evolution.GenerateTerminals(10, params.SpecParam.AvailableVariablesAndOperators.Constants)
 	if err != nil {
 		log.Fatal(err)
 	}
-	variableTerminals, err := evolution.GenerateTerminals(10, variables)
+	variableTerminals, err := evolution.GenerateTerminals(10, params.SpecParam.AvailableVariablesAndOperators.Variables)
 	if err != nil {
 		log.Fatal(err)
 	}
-	nonTerminals, err := evolution.GenerateNonTerminals(3, operators)
+	nonTerminals, err := evolution.GenerateNonTerminals(3, params.SpecParam.AvailableVariablesAndOperators.Operators)
 	if err != nil {
 		log.Fatal(err)
 	}
 	terminals := append(variableTerminals, constantTerminals...)
 
-	_, _, mathematicalExpression, err := evolution.ParseString(expression, operators, variables)
+	_, _, mathematicalExpression, err := evolution.ParseString(params.SpecParam.Expression, params.SpecParam.AvailableVariablesAndOperators.Operators, params.SpecParam.AvailableVariablesAndOperators.Variables)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -105,19 +116,19 @@ func Evolution1() {
 
 	switch params.FitnessStrategy {
 	case evolution.FitnessMonoThresholdedRatioFitness:
-		spec, err = evolution.GenerateSpecSimple(expression, specCount, -1*(specCount/2),
+		spec, err = evolution.GenerateSpecSimple(params.SpecParam.Expression, specCount, params.SpecParam.Seed,
 			params.ProtagonistThresholdMultiplier, params.ProtagonistThresholdMultiplier)
 		if err != nil {
 			log.Fatalf("MAIN | failed to create a valid spec | %s", err.Error())
 		}
 	case evolution.FitnessDualThresholdedRatioFitness:
-		spec, err = evolution.GenerateSpecSimple(expression, specCount, -1*(specCount/2),
+		spec, err = evolution.GenerateSpecSimple(params.SpecParam.Expression, specCount, params.SpecParam.Seed,
 			params.AntagonistThresholdMultiplier, params.ProtagonistThresholdMultiplier)
 		if err != nil {
 			log.Fatalf("MAIN | failed to create a valid spec | %s", err.Error())
 		}
 	default:
-		spec, err = evolution.GenerateSpecSimple(expression, specCount, -1*(specCount/2),
+		spec, err = evolution.GenerateSpecSimple(params.SpecParam.Expression, specCount, params.SpecParam.Seed,
 			params.ProtagonistThresholdMultiplier, params.ProtagonistThresholdMultiplier)
 		if err != nil {
 			log.Fatalf("MAIN | failed to create a valid spec | %s", err.Error())
@@ -210,7 +221,7 @@ func Evolution1() {
 	}
 	fmt.Println(averageGenerationSummary.String())
 
-	if shouldRunInteractiveTerminal {
+	if params.ShouldRunInteractiveTerminal {
 		err = evolutionResult.StartInteractiveTerminal()
 		if err != nil {
 			log.Fatal(err)

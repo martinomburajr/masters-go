@@ -45,20 +45,31 @@ const (
 	// StrategyReplaceBranch takes a given tree and randomly selects a branch i.
 	// e non-terminal and will swap it with a randomly generated tree of variable depth
 	StrategyReplaceBranch = "StrategyReplaceBranch"
+	StrategyReplaceBranchX = "StrategyReplaceBranchX"
 
 	// #############################  Add Strategies ############################################
 	// If an add strategy encounters a 0 at the root, it will replace the 0.
 
-	//StrategyAddSubTree is a generic strategy that adds a randomly generated subtree anywhere on a given tree
-	StrategyAddSubTree = "StrategyAddSubTree"
+	//StrategyAddRandomSubTree is a generic strategy that adds a randomly generated subtree anywhere on a given tree
+	StrategyAddRandomSubTree  = "StrategyAddRandomSubTree"
+	StrategyAddRandomSubTreeX = "StrategyAddRandomSubTreeX"
 	// StrategyAddToLeaf is similar to AddSubTree,
 	// however the SubTree will only be placed on a randomly selected leaf. It will not replace a non-terminal.
 	// It can replace a root
 	StrategyAddToLeaf = "StrategyAddToLeaf"
+	StrategyAddToLeafX = "StrategyAddToLeafX"
+
+
 	// StrategyAddMult will add a subTree with a root of multiplication to a given leaf node
 	StrategyAddMult = "StrategyAddMult"
+	// StrategyMultX will create a subTree that contains a multiplication as well as an independent variable
+	StrategyAddMultX = "StrategyAddMultX"
 	// StrategyAddMult will add a subTree with a root of subtract to a given leaf node
 	StrategyAddSub = "StrategyAddSub"
+	StrategyAddSubX = "StrategyAddSubX"
 	// StrategyAddMult will add a subTree with a root of add to a given leaf node
 	StrategyAddAdd = "StrategyAddAdd"
+	StrategyAddAddX = "StrategyAddAddX"
+	// StrategySkip performs no operations on the given subtree.
+	StrategySkip = "StrategySkip"
 )

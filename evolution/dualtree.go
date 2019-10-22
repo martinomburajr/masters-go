@@ -82,14 +82,16 @@ func (bst *DualTree) RandomNonTerminal() (*DualTreeNode, error) {
 	}
 	node := bst.root
 	if node.left == nil && node.right == nil {
-		return nil, fmt.Errorf("invalid treeNode, cannot only contain non-terminal")
+		return nil, nil
 	}
 
 	nodes, err := bst.NonTerminals()
 	if err != nil {
 		return nil, err
 	}
-
+	if len(nodes) == 0 {
+		return nil, nil
+	}
 	randIndex := rand.Intn(len(nodes))
 	return nodes[randIndex], nil
 }
@@ -183,8 +185,7 @@ func (d *DualTree) NonTerminals() ([]*DualTreeNode, error) {
 	}
 
 	if d.root.right == nil && d.root.left == nil {
-		nodes = append(nodes, d.root)
-		return nil, fmt.Errorf("treeNode has size (1) root is not a nonterminal")
+		return nodes, nil
 	}
 
 	branch(d.root, &nodes)
@@ -285,6 +286,9 @@ func (bst *DualTree) DeleteSubTree(deletionStrategy int) error {
 	if err != nil {
 		return err
 	}
+	if node == nil {
+		return nil
+	}
 
 	remove2(node)
 	node.arity = 0
@@ -308,36 +312,6 @@ func remove2(node *DualTreeNode) {
 }
 
 func (bst *DualTree) SoftDeleteSubTree() error {
-	return nil
-}
-
-// SwapSubTrees swaps a set of subtrees in a given treeNode. It is a bit expensive as the parent needs to be obtained
-// TODO Create Efficient Way of Locating Parent of NonTerminal Node
-func (bst *DualTree) SwapSubTrees() error {
-	if bst.root == nil {
-		return fmt.Errorf("treeNode you are swapping to has nil root")
-	}
-	if bst.root.left == nil && bst.root.right == nil {
-		return fmt.Errorf("treeNode you are swapping to is a lone terminal")
-	}
-
-	nodes, err := bst.NonTerminals()
-	if err != nil {
-		return err
-	}
-
-	nonTerminalIndex0 := 0
-	nonTerminalIndex1 := 0
-
-	for nonTerminalIndex0 == nonTerminalIndex1 {
-
-		nonTerminalIndex0 = rand.Intn(len(nodes))
-
-		nonTerminalIndex1 = rand.Intn(len(nodes))
-	}
-	// once they are different
-
-	//nodes[nonTerminalIndex0]
 	return nil
 }
 
@@ -494,21 +468,6 @@ func (bst *DualTree) Search(key string) (node *DualTreeNode, parent *DualTreeNod
 		}
 	})
 	return node, parent, nil
-}
-
-func (bst *DualTree) GetRandomSubTree() (*DualTree, error) {
-	if bst.root == nil {
-		return nil, fmt.Errorf("treeNode you are adding to has nil root")
-	}
-	if bst.root.left == nil && bst.root.right == nil {
-		return nil, fmt.Errorf("treeNode you are adding to is a lone terminal")
-	}
-	//node, err := bst.RandomNonTerminal()
-	//if err != nil {
-	//	return nil, err
-	//}
-
-	return nil, nil
 }
 
 // GetNode returns the first node it encounters with the given value.
@@ -1117,7 +1076,7 @@ func GenerateRandomTree(depth int, terminals []SymbolicExpression,
 	return &tree, err
 }
 
-// GenerateRandomTree generates a given treeNode of a depth between 0 (i.e) root and (inclusive of) the depth specified.
+// GenerateRandomTreeEnforceIndependentVariable generates a given treeNode of a depth between 0 (i.e) root and (inclusive of) the depth specified.
 // Assuming a binary structured treeNode. The number of terminals (T) is equal to 2^D where D is the depth.
 // The number of NonTerminals (NT) is equal to 2^D - 1
 func GenerateRandomTreeEnforceIndependentVariable(depth int, independentVar SymbolicExpression,
@@ -1216,6 +1175,9 @@ func (bst *DualTree) hasDiverseNonTerminalSet() (bool, error) {
 	branches, err := bst.NonTerminals()
 	if err != nil {
 		return false, err
+	}
+	if len(branches) == 0 {
+		return false, nil
 	}
 
 	holder := branches[0]
@@ -1360,6 +1322,9 @@ func (bst *DualTree) DeleteNonTerminal() error {
 	branches, err := bst.NonTerminals()
 	if err != nil {
 		return err
+	}
+	if len(branches) == 0 {
+		return nil
 	}
 
 	if len(branches) > 0 {
@@ -1509,6 +1474,9 @@ func (bst *DualTree) MutateNonTerminal(nonTerminalSet []SymbolicExpression) erro
 	if err != nil {
 		return err
 	}
+	if len(nodes) == 0 {
+		return nil
+	}
 
 	nodeValue := ""
 	fromSetValue := ""
@@ -1605,7 +1573,7 @@ func (bst *DualTree) AddToLeaf(tree DualTree) error {
 	return nil
 }
 
-// StrategyAddSubTree adds a given subtree to a treeNode.
+// StrategyAddRandomSubTree adds a given subtree to a treeNode.
 func (bst *DualTree) AddSubTree(subTree *DualTree) error {
 	if subTree == nil {
 		return fmt.Errorf("cannot add a nil subTree")
@@ -1628,6 +1596,9 @@ func (bst *DualTree) AddSubTree(subTree *DualTree) error {
 	node, err := bst.RandomNonTerminal()
 	if err != nil {
 		return err
+	}
+	if node == nil {
+		return nil
 	}
 
 	// Can check for arity
