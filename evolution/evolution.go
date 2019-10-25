@@ -2,6 +2,7 @@ package evolution
 
 import (
 	"fmt"
+	"strings"
 )
 
 type EvolutionParams struct {
@@ -17,8 +18,7 @@ type EvolutionParams struct {
 	EachPopulationSize int  `json:"eachPopulationSize"`
 	EnableParallelism  bool `json:"enableParallelism"`
 
-	Strategies            Strategies `json:"strategies"`
-	DepthOfRandomNewTrees int
+	Strategies Strategies `json:"strategies"`
 
 	FitnessStrategy FitnessStrategy `json:"fitnessStrategy"`
 	Reproduction    Reproduction    `json:"reproduction"`
@@ -30,14 +30,23 @@ type EvolutionParams struct {
 	FitnessCalculatorType int `json:"fitnessCalculatorType"`
 	// ShouldRunInteractiveTerminal ensures the interactive terminal is run at the end of the evolution that allows
 	// users to query all individuals in all generations.
-	ShouldRunInteractiveTerminal bool `json:"shouldRunInteractiveTerminal"`
-
-	StatisticsOutput StatisticsOutput `json:"shouldRunInteractiveTerminal"`
+	ShouldRunInteractiveTerminal bool             `json:"shouldRunInteractiveTerminal"`
+	StatisticsOutput             StatisticsOutput `json:"shouldRunInteractiveTerminal"`
 }
 
-//func (e EvolutionParams) Describe() string {
-//
-//}
+func (e EvolutionParams) ToString() string {
+	builder := strings.Builder{}
+	builder.WriteString(e.SpecParam.Expression)
+	builder.WriteString("-")
+	builder.WriteString(fmt.Sprintf("GenC: %d",  e.GenerationsCount))
+	builder.WriteString("-")
+	builder.WriteString(fmt.Sprintf("PopC: %d",  e.EachPopulationSize))
+	builder.WriteString("-")
+	builder.WriteString(fmt.Sprintf("PopC: %d",  e.FitnessStrategy.Type))
+	builder.WriteString("-")
+
+	return builder.String()
+}
 
 type StatisticsOutput struct {
 	OutputPath string `json:"outputPath"`
@@ -57,7 +66,7 @@ type AvailableSymbolicExpressions struct {
 }
 
 type Strategies struct {
-	AvailableStrategies            []Strategy `json:"availableStrategies"`
+	//AvailableStrategies            []Strategy `json:"availableStrategies"`
 	AntagonistAvailableStrategies  []Strategy `json:"antagonistAvailableStrategies"`
 	ProtagonistAvailableStrategies []Strategy `json:"protagonistAvailableStrategies"`
 
@@ -68,7 +77,7 @@ type Strategies struct {
 }
 
 type FitnessStrategy struct {
-	Type int `json:"type"`
+	Type string `json:"type"`
 	// AntagonistThresholdMultiplier is the multiplier applied to the antagonist delta when calculating fitness.
 	// A large value means that antagonists have to attain a greater delta from the spec in order to gain adequate
 	// fitness, conversely a smaller value gives the antagonists more slack to not manipulate the program excessively.

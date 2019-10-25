@@ -35,7 +35,7 @@ func JudgementDay(incomingPopulation []*Individual, kind int, generationCount in
 	// Reproduction
 	// Mutation
 
-	parentPopulationSize := int(opts.SurvivorPercentage * float64(opts.EachPopulationSize))
+	parentPopulationSize := int(opts.Selection.Survivor.SurvivorPercentage * float64(opts.EachPopulationSize))
 	childPopulationSize := opts.EachPopulationSize - parentPopulationSize
 
 	// Reproduction
@@ -62,8 +62,8 @@ func Mutate(outgoingParents []*Individual, children []*Individual, kind int,
 	if kind == IndividualAntagonist {
 		for i := 0; i < (len(outgoingParents)); i++ {
 			probabilityOfMutation := rand.Float64()
-			if probabilityOfMutation < opts.ProbabilityOfMutation {
-				err := outgoingParents[i].Mutate(opts.AntagonistAvailableStrategies)
+			if probabilityOfMutation < opts.Reproduction.ProbabilityOfMutation {
+				err := outgoingParents[i].Mutate(opts.Strategies.AntagonistAvailableStrategies)
 				if err != nil {
 					return nil, nil, err
 				}
@@ -72,8 +72,8 @@ func Mutate(outgoingParents []*Individual, children []*Individual, kind int,
 		// childs
 		for i := 0; i < (len(children)); i++ {
 			probabilityOfMutation := rand.Float64()
-			if probabilityOfMutation < opts.ProbabilityOfMutation {
-				err := children[i].Mutate(opts.AntagonistAvailableStrategies)
+			if probabilityOfMutation < opts.Reproduction.ProbabilityOfMutation {
+				err := children[i].Mutate(opts.Strategies.AntagonistAvailableStrategies)
 				if err != nil {
 					return nil, nil, err
 				}
@@ -82,8 +82,8 @@ func Mutate(outgoingParents []*Individual, children []*Individual, kind int,
 	} else if kind == IndividualProtagonist {
 		for i := 0; i < (len(outgoingParents)); i++ {
 			probabilityOfMutation := rand.Float64()
-			if probabilityOfMutation < opts.ProbabilityOfMutation {
-				err := outgoingParents[i].Mutate(opts.ProtagonistAvailableStrategies)
+			if probabilityOfMutation < opts.Reproduction.ProbabilityOfMutation {
+				err := outgoingParents[i].Mutate(opts.Strategies.ProtagonistAvailableStrategies)
 				if err != nil {
 					return nil, nil, err
 				}
@@ -92,8 +92,8 @@ func Mutate(outgoingParents []*Individual, children []*Individual, kind int,
 		// childs
 		for i := 0; i < (len(children)); i++ {
 			probabilityOfMutation := rand.Float64()
-			if probabilityOfMutation < opts.ProbabilityOfMutation {
-				err := children[i].Mutate(opts.ProtagonistAvailableStrategies)
+			if probabilityOfMutation < opts.Reproduction.ProbabilityOfMutation {
+				err := children[i].Mutate(opts.Strategies.ProtagonistAvailableStrategies)
 				if err != nil {
 					return nil, nil, err
 				}

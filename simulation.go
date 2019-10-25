@@ -1,11 +1,13 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/martinomburajr/masters-go/eval"
 	"github.com/martinomburajr/masters-go/evolution"
 	"log"
 	"math/rand"
+	"os"
 	"time"
 )
 
@@ -15,17 +17,173 @@ type Simulation struct {
 	Name                 string
 }
 
-func (s *Simulation) Begin() {
-	for i := 0; i < len(s.EvolutionStates); i++ {
-		for j := 0; j < s.NumberOfRunsPerState; j++ {
+// BeginToil will work through a multidimensional set of data to try all possible combination of parameters for ideal
+// parameter tuning
+func (s *Simulation) BeginToil(indexFile string) (error) {
+	var loadedIndex IndexProgress
+	file, err := os.Open(indexFile)
+	if err != nil {
+		return err
+	}
+	err = json.NewDecoder(file).Decode(&loadedIndex)
+	if err != nil {
+		return err
+	}
 
-			outputPath := fmt.Sprintf("%s/%s-%d.json", s.EvolutionStates[i].StatisticsOutput.Name,
-				time.Now().Format(time.RFC3339), i)
-			s.EvolutionStates[i].StatisticsOutput.OutputPath = outputPath
-			engine, evolutionParams := PrepareSimulation(s.EvolutionStates[i])
-			StartEngine(engine, evolutionParams)
+
+	for expressionIndex := loadedIndex.ExpressionIndex; expressionIndex < len(AllExpressions); expressionIndex++ {
+		for rangesIndex := loadedIndex.RangesIndex; rangesIndex < len(AllRanges); rangesIndex++ {
+			for seedIndex := loadedIndex.SeedIndex; seedIndex < len(AllSeed); seedIndex++ {
+				for generationsCountIndex := loadedIndex.GenerationsCountIndex; generationsCountIndex < len(
+					AllGenerationsCount); generationsCountIndex++ {
+					for eachPopulationIndex := loadedIndex.EachPopulationIndex; eachPopulationIndex < len(
+						AllEachPopulationSize); eachPopulationIndex++ {
+						for reproductionIndex := loadedIndex.ReproductionIndex; reproductionIndex < len(
+							AllReproduction); reproductionIndex++ {
+							for allDepthOfRandomNewTreeIndex := loadedIndex.
+								AllDepthOfRandomNewTreeIndex; allDepthOfRandomNewTreeIndex < len(
+								AllDepthOfRandomNewTree); allDepthOfRandomNewTreeIndex++ {
+								for antagonistStrategyCountIndex := loadedIndex.
+									AntagonistStrategyCountIndex; antagonistStrategyCountIndex < len(
+									AllAntagonistStrategyCount); antagonistStrategyCountIndex++ {
+									for protagonisttStrategyCountIndex := loadedIndex.
+										ProtagonisttStrategyCountIndex; protagonisttStrategyCountIndex < len(
+										AllProtagonistStrategyCount); protagonisttStrategyCountIndex++ {
+										//for availableStrategyIndex = 0; availableStrategyIndex < len(AllAvailableStrategy); availableStrategyIndex++ {
+										for fitnessStrategyTypeIndex := loadedIndex.
+											FitnessStrategyTypeIndex; fitnessStrategyTypeIndex < len(
+											AllFitnessStrategyType); fitnessStrategyTypeIndex++ {
+											for fitStratAntThresMultIndex := loadedIndex.
+												FitStratAntThresMultIndex; fitStratAntThresMultIndex < len(
+												AllFitStratAntThreshMult); fitStratAntThresMultIndex++ {
+												for fitStratProtThreshMultIndex := loadedIndex.
+													FitStratProtThreshMultIndex; fitStratProtThreshMultIndex < len(
+													AllFitStratProThreshMult); fitStratProtThreshMultIndex++ {
+													for selectParentTypeIndex := loadedIndex.
+														SelectParentTypeIndex; selectParentTypeIndex < len(
+														AllSelectionSurvivorPercentage); selectParentTypeIndex++ {
+														for strategiesAntagonistIndex := loadedIndex.
+															StrategiesAntagonistIndex; strategiesAntagonistIndex < len(
+															AllStrategies); strategiesAntagonistIndex++ {
+															for selectSurvivorPercentIndex := loadedIndex.SelectSurvivorPercentIndex; selectSurvivorPercentIndex < len(AllSelectionSurvivorPercentage); selectSurvivorPercentIndex++{
+																for strategiesProtagonistIndex := loadedIndex.
+																	StrategiesProtagonistIndex; strategiesProtagonistIndex < len(
+																	AllStrategies); strategiesProtagonistIndex++ {
+																	for numberOfRunsPerState := loadedIndex.
+																		RangesIndex; numberOfRunsPerState < s.NumberOfRunsPerState; numberOfRunsPerState++ {
+																		params := evolution.EvolutionParams{
+																			GenerationsCount:   AllGenerationsCount[generationsCountIndex],
+																			EachPopulationSize: AllEachPopulationSize[eachPopulationIndex],
+																			SpecParam: evolution.SpecParam{
+																				Seed:       AllSeed[seedIndex],
+																				Expression: AllExpressions[expressionIndex],
+																				Range:      AllRanges[rangesIndex],
+																				AvailableVariablesAndOperators: evolution.AvailableVariablesAndOperators{
+																					Constants: []string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"},
+																					Variables: []string{"x"},
+																					Operators: []string{"*", "+", "-"},
+																				},
+																			},
+																			Reproduction: AllReproduction[reproductionIndex],
+																			Strategies: evolution.Strategies{
+																				AntagonistAvailableStrategies:  AllPossibleStrategies[strategiesAntagonistIndex],
+																				ProtagonistAvailableStrategies: AllPossibleStrategies[strategiesProtagonistIndex],
+																				AntagonistStrategyCount:        AllAntagonistStrategyCount[antagonistStrategyCountIndex],
+																				ProtagonistStrategyCount:       AllProtagonistStrategyCount[protagonisttStrategyCountIndex],
+																			},
+																			Selection: evolution.Selection{
+																				Survivor: evolution.SurvivorSelection{
+																					Type:               1,
+																					SurvivorPercentage: AllSelectionSurvivorPercentage[selectSurvivorPercentIndex],
+																				},
+																			},
+																			FitnessStrategy: evolution.FitnessStrategy{
+																				Type:                           AllFitnessStrategyType[fitnessStrategyTypeIndex],
+																				AntagonistThresholdMultiplier:  AllFitStratAntThreshMult[fitStratAntThresMultIndex],
+																				ProtagonistThresholdMultiplier: AllFitStratProThreshMult[fitStratProtThreshMultIndex],
+																			},
+																			StatisticsOutput: evolution.StatisticsOutput{
+																				OutputPath: "",
+																			},
+																		}
+
+																		//s.EvolutionStates[evolutionState].StatisticsOutput.OutputPath = outputPath
+																		engine, evolutionParams := PrepareSimulation(params, numberOfRunsPerState)
+																		StartEngine(engine, evolutionParams)
+
+																		// Write index progress to file
+																		indexProgress := IndexProgress{
+																			NumberOfRunsPerState:           numberOfRunsPerState,
+																			AllDepthOfRandomNewTreeIndex:   allDepthOfRandomNewTreeIndex,
+																			AntagonistStrategyCountIndex:   antagonistStrategyCountIndex,
+																			EachPopulationIndex:            eachPopulationIndex,
+																			ExpressionIndex:                expressionIndex,
+																			FitnessStrategyTypeIndex:       fitnessStrategyTypeIndex,
+																			FitStratAntThresMultIndex:      fitStratAntThresMultIndex,
+																			FitStratProtThreshMultIndex:    fitStratProtThreshMultIndex,
+																			GenerationsCountIndex:          generationsCountIndex,
+																			ProtagonisttStrategyCountIndex: protagonisttStrategyCountIndex,
+																			RangesIndex:                    rangesIndex,
+																			ReproductionIndex:              reproductionIndex,
+																			SeedIndex:                      seedIndex,
+																			SelectParentTypeIndex:          selectParentTypeIndex,
+																			SelectSurvivorPercentIndex:     selectSurvivorPercentIndex,
+																			StrategiesAntagonistIndex:      strategiesAntagonistIndex,
+																			StrategiesProtagonistIndex:     strategiesProtagonistIndex,
+																		}
+																		err := WriteIndexProgressToFile(indexProgress, indexFile)
+																		if err != nil {
+																			return err
+																		}
+																	}
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+
+					}
+				}
+			}
 		}
 	}
+
+return nil
+
+}
+
+func WriteIndexProgressToFile(indexProgress IndexProgress, indexFile string) (error) {
+	file, err := os.Create(indexFile)
+	if err != nil {
+		return err
+	}
+	return json.NewEncoder(file).Encode(indexProgress)
+}
+
+type IndexProgress struct {
+	ExpressionIndex int `expressionIndex`
+	RangesIndex int `json:"rangesIndex"`
+	SeedIndex int `json:"seedIndex"`
+	GenerationsCountIndex int `json:"generationsCountIndex"`
+	EachPopulationIndex int `json:"eachPopulationIndex"`
+	ReproductionIndex int `json:"reproductionIndex"`
+	AllDepthOfRandomNewTreeIndex int `json:"allDepthOfRandomNewTreeIndex"`
+	AntagonistStrategyCountIndex int `json:"antagonistStrategyCountIndex"`
+	ProtagonisttStrategyCountIndex int `json:"protagonisttStrategyCountIndex"`
+	FitnessStrategyTypeIndex int `json:"fitnessStrategyTypeIndex"`
+	FitStratAntThresMultIndex int `json:"fitStratAntThresMultIndex"`
+	FitStratProtThreshMultIndex int `json:"fitStratProtThreshMultIndex"`
+	SelectParentTypeIndex int `json:"selectParentTypeIndex"`
+	SelectSurvivorPercentIndex int `json:"selectSurvivorPercentIndex"`
+	StrategiesAntagonistIndex int `json:"strategiesAntagonistIndex"`
+	StrategiesProtagonistIndex int `json:"strategiesProtagonistIndex"`
+	NumberOfRunsPerState int `json:"numberOfRunsPerState"`
 }
 
 func StartEngine(engine *evolution.EvolutionEngine, params evolution.EvolutionParams) {
@@ -64,7 +222,8 @@ func StartEngine(engine *evolution.EvolutionEngine, params evolution.EvolutionPa
 	}
 }
 
-func PrepareSimulation(params evolution.EvolutionParams) (*evolution.EvolutionEngine, evolution.EvolutionParams) {
+func PrepareSimulation(params evolution.EvolutionParams, count int) (*evolution.EvolutionEngine,
+	evolution.EvolutionParams) {
 	rand.Seed(time.Now().UTC().UnixNano()) //Set seed
 
 	if params.SpecParam.Seed < 0 {
@@ -106,12 +265,12 @@ func PrepareSimulation(params evolution.EvolutionParams) (*evolution.EvolutionEn
 	var spec evolution.SpecMulti
 
 	switch params.FitnessStrategy.Type {
-	case evolution.FitnessMonoThresholdedRatioFitness:
+	case evolution.FitnessMonoThresholdedRatio:
 		spec, err = evolution.GenerateSpecSimple(params.SpecParam, params.FitnessStrategy, params.FitnessCalculatorType)
 		if err != nil {
 			log.Fatalf("MAIN | failed to create a valid spec | %s", err.Error())
 		}
-	case evolution.FitnessDualThresholdedRatioFitness:
+	case evolution.FitnessDualThresholdedRatio:
 		spec, err = evolution.GenerateSpecSimple(params.SpecParam, params.FitnessStrategy, params.FitnessCalculatorType)
 		if err != nil {
 			log.Fatalf("MAIN | failed to create a valid spec | %s", err.Error())
@@ -169,13 +328,13 @@ func PrepareSimulation(params evolution.EvolutionParams) (*evolution.EvolutionEn
 		params.FitnessStrategy.IsMoreFitnessBetter = true
 		fmt.Printf("Fitness Strategy: %s\n", "FitnessThresholdedAntagonistRatio")
 		break
-	case evolution.FitnessMonoThresholdedRatioFitness:
+	case evolution.FitnessMonoThresholdedRatio:
 		params.FitnessStrategy.IsMoreFitnessBetter = true
-		fmt.Printf("Fitness Strategy: %s\n", "FitnessMonoThresholdedRatioFitness")
+		fmt.Printf("Fitness Strategy: %s\n", "FitnessMonoThresholdedRatio")
 		break
-	case evolution.FitnessDualThresholdedRatioFitness:
+	case evolution.FitnessDualThresholdedRatio:
 		params.FitnessStrategy.IsMoreFitnessBetter = true
-		fmt.Printf("Fitness Strategy: %s\n", "FitnessDualThresholdedRatioFitness")
+		fmt.Printf("Fitness Strategy: %s\n", "FitnessDualThresholdedRatio")
 		break
 	default:
 		params.FitnessStrategy.IsMoreFitnessBetter = true
@@ -185,6 +344,8 @@ func PrepareSimulation(params evolution.EvolutionParams) (*evolution.EvolutionEn
 	fmt.Printf("Is More Fitness Better: %t\n", params.FitnessStrategy.IsMoreFitnessBetter)
 	fmt.Println()
 
+	outputPath := fmt.Sprintf("data/%s/%s-%d.json", params.StatisticsOutput.Name, params.ToString(),	time.Now().Format(time.RFC3339), count)
+	params.StatisticsOutput.OutputPath=outputPath
 	return engine, params
 	// ########################### START THE EVOLUTION PROCESS ##################################################3
 }

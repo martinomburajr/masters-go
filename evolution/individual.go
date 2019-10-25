@@ -96,9 +96,6 @@ func Crossover(individual Individual, individual2 Individual, params EvolutionPa
 	if individual2.Program.T == nil {
 		return Individual{}, Individual{}, fmt.Errorf("crossover | individual2 - program Tree cannot be nil")
 	}
-	if params.StrategyLengthLimit < 1 {
-		return Individual{}, Individual{}, fmt.Errorf("crossover | params.StrategyLengthLimit must be greater than 0")
-	}
 
 	individual1Len := len(individual.Strategy)
 	individual2Len := len(individual2.Strategy)
@@ -114,7 +111,7 @@ func Crossover(individual Individual, individual2 Individual, params EvolutionPa
 		return Individual{}, Individual{}, err
 	}
 
-	crossoverPercentage := params.CrossoverPercentage
+	crossoverPercentage := params.Reproduction.CrossoverPercentage
 	if crossoverPercentage == 0 {
 		return child1, child2, err
 	}
@@ -126,130 +123,29 @@ func Crossover(individual Individual, individual2 Individual, params EvolutionPa
 	individual2ChunkSize := int(float64(individual2Len) * crossoverPercentage)
 
 	if individual1ChunkSize >= individual2ChunkSize {
-		if params.MaintainCrossoverGeneTransferEquality {
-			var ind1StartIndex int
-			if individual1Len == individual1ChunkSize {
-				ind1StartIndex = 0
-			} else {
-				ind1StartIndex = rand.Intn((individual1Len + 1) - individual1ChunkSize)
-			}
-			c1, c2 := StrategySwapper(individual.Strategy, individual2.Strategy, individual1ChunkSize, ind1StartIndex)
-			child1.Strategy = c1
-			child2.Strategy = c2
-			return child1, child2, nil
+		var ind1StartIndex int
+		if individual1Len == individual1ChunkSize {
+			ind1StartIndex = 0
 		} else {
-
+			ind1StartIndex = rand.Intn((individual1Len + 1) - individual1ChunkSize)
 		}
+		c1, c2 := StrategySwapper(individual.Strategy, individual2.Strategy, individual1ChunkSize, ind1StartIndex)
+		child1.Strategy = c1
+		child2.Strategy = c2
+		return child1, child2, nil
+
 	} else {
-		if params.MaintainCrossoverGeneTransferEquality {
-			var ind2StartIndex int
-			if individual2Len == individual2ChunkSize {
-				ind2StartIndex = 0
-			} else {
-				ind2StartIndex = rand.Intn(individual1Len + 1 - individual1ChunkSize)
-			}
-			c1, c2 := StrategySwapper(individual.Strategy, individual2.Strategy, individual1ChunkSize, ind2StartIndex)
-			child1.Strategy = c1
-			child2.Strategy = c2
-			return child1, child2, nil
+		var ind2StartIndex int
+		if individual2Len == individual2ChunkSize {
+			ind2StartIndex = 0
 		} else {
-
+			ind2StartIndex = rand.Intn(individual1Len + 1 - individual1ChunkSize)
 		}
+		c1, c2 := StrategySwapper(individual.Strategy, individual2.Strategy, individual1ChunkSize, ind2StartIndex)
+		child1.Strategy = c1
+		child2.Strategy = c2
+		return child1, child2, nil
 	}
-
-	//ind1Copy := make([]Strategy, individual1Len)
-	//copy(ind1Copy, individual.Strategy)
-	//ind2Copy := make([]Strategy, individual2Len)
-	//copy(ind2Copy, individual2.Strategy)
-	//
-	//if individual1Len <= individual2Len {
-	//	individual1ChunkSize := int(math.Ceil(float64(individual1Len) * float64(crossoverPercentage)))
-	//	if params.MaintainCrossoverGeneTransferEquality {
-	//
-	//		var ind1StartIndex int
-	//		if individual1Len == individual1ChunkSize {
-	//			ind1StartIndex = 0
-	//		} else {
-	//			ind1StartIndex = rand.Intn(individual1Len+1 - individual1ChunkSize)
-	//		}
-	//
-	//		ind2StartIndex := rand.Intn(individual2Len+1 - individual1ChunkSize)
-	//
-	//		for i := 0; i < individual1ChunkSize; i++ {
-	//			child2.Strategy[ind2StartIndex+i] = ind1Copy[ind1StartIndex+i]
-	//			child1.Strategy[ind1StartIndex+i] = ind2Copy[ind2StartIndex+i]
-	//		}
-	//	} else {
-	//		individual2ChunkSize := int(float32(individual2Len) * crossoverPercentage)
-	//
-	//		ind1StartIndex := rand.Intn(individual1Len - individual1ChunkSize)
-	//		ind1EndIndex := ind1StartIndex + individual1ChunkSize
-	//		ind2StartIndex := rand.Intn(individual2Len - individual2ChunkSize)
-	//		ind2EndIndex := ind2StartIndex + individual2ChunkSize
-	//
-	//		ind1Chunk := make([]Strategy, individual1ChunkSize)
-	//		ind2Chunk := make([]Strategy, individual2ChunkSize)
-	//		for i := 0; i < individual1ChunkSize; i++ {
-	//			ind1Chunk[i] = child1.Strategy[ind1StartIndex+i]
-	//		}
-	//		child1.Strategy = append(child1.Strategy[:ind1StartIndex],
-	//			child1.Strategy[:ind1EndIndex]...) // REMOVE ITEMS COPIED TO CHUNK
-	//		for i := 0; i < individual2ChunkSize; i++ {
-	//			ind2Chunk[i] = child2.Strategy[ind2StartIndex+i]
-	//		}
-	//		child2.Strategy = append(child2.Strategy[:ind2StartIndex], child2.Strategy[:ind2EndIndex]...) // REMOVE ITEMS COPIED TO CHUNK
-	//
-	//		child1.Strategy = append(child1.Strategy[:ind1StartIndex], append(child2.Strategy,
-	//			child1.Strategy[ind1StartIndex:]...)...) // INSERT TO CHILD1
-	//		child2.Strategy = append(child2.Strategy[:ind2StartIndex], append(child1.Strategy,
-	//			child2.Strategy[ind2StartIndex:]...)...)
-	//		log.Print()
-	//	}
-	//} else {
-	//	individual2ChunkSize := int(math.Ceil(float64(individual2Len) * float64(crossoverPercentage)))
-	//	if params.MaintainCrossoverGeneTransferEquality {
-	//
-	//		var ind2StartIndex int
-	//		if individual2Len == individual2ChunkSize {
-	//			ind2StartIndex = 0
-	//		} else {
-	//			ind2StartIndex = rand.Intn(individual2Len+1 - individual2ChunkSize)
-	//		}
-	//
-	//		ind1StartIndex := rand.Intn(individual1Len+1 - individual2ChunkSize)
-	//
-	//		for i := 0; i < individual2ChunkSize; i++ {
-	//			child1.Strategy[ind1StartIndex+i] = ind1Copy[ind2StartIndex+i]
-	//			child2.Strategy[ind2StartIndex+i] = ind2Copy[ind1StartIndex+i]
-	//		}
-	//	} else {
-	//		individual1ChunkSize := int(float32(individual1Len) * crossoverPercentage)
-	//
-	//		ind2StartIndex := rand.Intn(individual2Len - individual2ChunkSize)
-	//		ind2EndIndex := ind2StartIndex + individual2ChunkSize
-	//		ind1StartIndex := rand.Intn(individual1Len - individual1ChunkSize)
-	//		ind1EndIndex := ind1StartIndex + individual1ChunkSize
-	//
-	//		ind2Chunk := make([]Strategy, individual2ChunkSize)
-	//		ind1Chunk := make([]Strategy, individual1ChunkSize)
-	//		for i := 0; i < individual2ChunkSize; i++ {
-	//			ind2Chunk[i] = child2.Strategy[ind2StartIndex+i]
-	//		}
-	//		child2.Strategy = append(child2.Strategy[:ind2StartIndex],
-	//			child2.Strategy[:ind2EndIndex]...) // REMOVE ITEMS COPIED TO CHUNK
-	//		for i := 0; i < individual1ChunkSize; i++ {
-	//			ind1Chunk[i] = child1.Strategy[ind1StartIndex+i]
-	//		}
-	//		child1.Strategy = append(child1.Strategy[:ind1StartIndex],
-	//			child1.Strategy[:ind1EndIndex]...) // REMOVE ITEMS COPIED TO CHUNK
-	//
-	//		child2.Strategy = append(child2.Strategy[:ind2StartIndex], append(child1.Strategy,
-	//			child2.Strategy[ind2StartIndex:]...)...) // INSERT TO CHILD1
-	//		child1.Strategy = append(child1.Strategy[:ind1StartIndex], append(child2.Strategy,
-	//			child1.Strategy[ind1StartIndex:]...)...)
-	//	}
-	//}
-	return child1, child2, err
 }
 
 // StrategySwapper takes two slices containing variable length strategies.

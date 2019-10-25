@@ -83,14 +83,14 @@ func (e *Epoch) Start(perfectTreeMap map[string]PerfectTree) error {
 		}
 		break
 
-	case FitnessDualThresholdedRatioFitness:
+	case FitnessDualThresholdedRatio:
 		antagonistFitness, protagonistFitness, err = ThresholdedRatioFitness(e.generation.engine.Parameters.Spec, e.antagonist.Program,
 			e.protagonist.Program, e.generation.engine.Parameters.FitnessCalculatorType)
 		if err != nil {
 			return err
 		}
 		break
-	case FitnessMonoThresholdedRatioFitness:
+	case FitnessMonoThresholdedRatio:
 		antagonistFitness, protagonistFitness, err = ThresholdedRatioFitness(e.generation.engine.Parameters.Spec,
 			e.protagonist.Program,
 			e.protagonist.Program, e.generation.engine.Parameters.FitnessCalculatorType)
@@ -192,7 +192,7 @@ func (e *Epoch) applyAntagonistStrategy() error {
 		err := e.antagonist.Program.ApplyStrategy(strategy,
 			e.terminalSet,
 			e.nonTerminalSet,
-			e.generation.engine.Parameters.DepthOfRandomNewTrees)
+			e.generation.engine.Parameters.Strategies.DepthOfRandomNewTrees)
 		if err != nil {
 			return err
 		}
@@ -225,7 +225,7 @@ func (e *Epoch) applyProtagonistStrategy(antagonistTree DualTree) error {
 		err := e.protagonist.Program.ApplyStrategy(strategy,
 			e.terminalSet,
 			e.nonTerminalSet,
-			e.generation.engine.Parameters.DepthOfRandomNewTrees)
+			e.generation.engine.Parameters.Strategies.DepthOfRandomNewTrees)
 		if err != nil {
 			return err
 		}

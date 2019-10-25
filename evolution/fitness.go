@@ -6,12 +6,12 @@ import (
 )
 
 const (
-	FitnessAbsolute                    = 0
-	FitnessThresholdedAntagonistRatio  = 1
-	FitnessProtagonistThresholdTally   = 2
-	FitnessRatio                       = 3
-	FitnessMonoThresholdedRatioFitness = 5
-	FitnessDualThresholdedRatioFitness = 6
+	FitnessAbsolute                   = "FitnessAbsolute"
+	FitnessThresholdedAntagonistRatio = "FitnessThresholdedAntagonistRatio"
+	FitnessProtagonistThresholdTally  = "FitnessProtagonistThresholdTally"
+	FitnessRatio                      = "FitnessRatio"
+	FitnessMonoThresholdedRatio       = "FitnessMonoThresholdedRatio"
+	FitnessDualThresholdedRatio       = "FitnessDualThresholdedRatio"
 )
 
 //type IFitness interface {
