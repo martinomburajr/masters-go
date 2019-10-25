@@ -2,6 +2,7 @@ package evolution
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"os"
 	"strconv"
@@ -17,6 +18,7 @@ type EvolutionResult struct {
 	CoevolutionaryAverages []generationalCoevolutionaryAverages
 
 	SortedGenerationIndividuals []*Generation
+	OutputFile                  string
 }
 
 type multiIndividualsPerGeneration struct {
@@ -30,7 +32,8 @@ type generationalCoevolutionaryAverages struct {
 	ProtagonistResult float64
 }
 
-func (e *EvolutionResult) Analyze(generations []*Generation, isMoreFitnessBetter bool) error {
+func (e *EvolutionResult) Analyze(generations []*Generation, isMoreFitnessBetter bool,
+	params EvolutionParams) error {
 	// Perform all sorting functions on each generation for each kind of individual
 	e.IsMoreFitnessBetter = isMoreFitnessBetter
 	sortedGenerations, err := SortGenerationsThoroughly(generations, isMoreFitnessBetter)
@@ -55,7 +58,8 @@ func (e *EvolutionResult) Analyze(generations []*Generation, isMoreFitnessBetter
 	e.CoevolutionaryAverages = coevolutionaryAverages
 	e.HasBeenAnalyzed = true
 
-	return nil
+	err = writetoFile(params.StatisticsOutput.OutputPath, e, params)
+	return err
 }
 
 func (e *EvolutionResult) PrintAverageGenerationSummary() (strings.Builder, error) {
@@ -125,7 +129,7 @@ func (e *EvolutionResult) PrintTopIndividualSummary(kind int) (strings.Builder, 
 // 6. Top N Protagonists in Gen(x)
 // 7. Individual (X) in Generation (Y)
 // 8. Output Results to File
-func (e *EvolutionResult) StartInteractiveTerminal() error {
+func (e *EvolutionResult) StartInteractiveTerminal(params EvolutionParams) error {
 	fmt.Println()
 	fmt.Println()
 	fmt.Println("--------------------------------------------------------------")
@@ -144,7 +148,8 @@ func (e *EvolutionResult) StartInteractiveTerminal() error {
 		fmt.Println("5. Top N Antagonists in Gen(x)")
 		fmt.Println("6. Top N Protagonists in Gen(x)")
 		fmt.Println("7. Individual (X) in Generation (Y)")
-		fmt.Println("8. Output Results to File")
+		fmt.Println("8. Search By Expression")
+		fmt.Println("9. Output Results to File")
 		fmt.Println("\nType !q to exit!")
 		fmt.Print("->")
 		text, _ := reader.ReadString('\n')
@@ -215,7 +220,14 @@ func (e *EvolutionResult) StartInteractiveTerminal() error {
 			fmt.Println(str)
 			fmt.Println()
 		case "8":
-			str, err := interactiveWriteToFile(reader, e)
+			str, err := interactiveSearchForTreeShape(reader, e.SortedGenerationIndividuals, params)
+			if err != nil {
+				return err
+			}
+			fmt.Println(str)
+			fmt.Println()
+		case "9":
+			str, err := interactiveWriteToFile(reader, e, params)
 			if err != nil {
 				return err
 			}
@@ -302,7 +314,7 @@ func interactiveGetTopNIndividualInGenX(reader *bufio.Reader, sortedIndividuals 
 	topN := 3
 	isNotValidTopN := true
 	for isNotValidTopN {
-		fmt.Print(fmt.Sprintf("Input Top(N) Generation Number [0,%d)", len(sortedIndividuals[0].Antagonists)))
+		fmt.Print(fmt.Sprintf("Input Top(N) Individual Number [0,%d)", len(sortedIndividuals[0].Antagonists)))
 		fmt.Print("---->")
 		topStr, _ := reader.ReadString('\n')
 		// convert CRLF to LF
@@ -443,7 +455,7 @@ func interactiveGetIndividualXInGenY(reader *bufio.Reader, sortedIndividuals []*
 	return bannerBuilder.String(), nil
 }
 
-func interactiveWriteToFile(reader *bufio.Reader, evolutionResult *EvolutionResult) (string, error) {
+func interactiveWriteToFile(reader *bufio.Reader, evolutionResult *EvolutionResult, params EvolutionParams) (string, error) {
 	var fileName string
 	isNotValidFileName := true
 
@@ -461,5 +473,259 @@ func interactiveWriteToFile(reader *bufio.Reader, evolutionResult *EvolutionResu
 			isNotValidFileName = false
 		}
 	}
-	return fmt.Sprintf("Feature not yet implemented. Will not write to %s", fileName), nil
+	err := writetoFile(fileName, evolutionResult, params)
+	return "", err
+	//return fmt.Sprintf("Feature not yet implemented. Will not write to %s", fileName), nil
+}
+
+func interactiveSearchForTreeShape(reader *bufio.Reader, sortedGenerations []*Generation, params EvolutionParams) (
+	string,
+	error) {
+	//var fileName string
+	isNotValidSearch := true
+	builder := strings.Builder{}
+
+	for isNotValidSearch {
+		fmt.Print("---->Input a mathematical expression to search for. No parentheses needed: ")
+		mathExpression, _ := reader.ReadString('\n')
+		// convert CRLF to LF
+		mathExpression = strings.Replace(mathExpression, "\n", "", -1)
+
+		_, _, mathematicalExpression, err := ParseString(params.SpecParam.Expression, params.SpecParam.AvailableVariablesAndOperators.Operators, params.SpecParam.AvailableVariablesAndOperators.Variables)
+		if err != nil {
+			return "", fmt.Errorf(err.Error())
+		}
+		queryTree := DualTree{}
+		err = queryTree.FromSymbolicExpressionSet2(mathematicalExpression)
+		if err != nil {
+
+			return "", fmt.Errorf("interactiveSearchForTreeShap | cannot parse symbolic expression tree to convert starter tree to a" +
+				" mathematical" +
+				" expression")
+		}
+		starterTreeAsMathematicalExpression, err := queryTree.ToMathematicalString()
+		builder.WriteString(fmt.Sprintf("Searching for: %s\n", starterTreeAsMathematicalExpression))
+
+		if err != nil {
+			return "", fmt.Errorf("main | failed to convert starter tree to a mathematical expression")
+		}
+		isNotValidSearch = false
+		results := make([]*Individual, 0)
+		for i := range sortedGenerations {
+			for a := range sortedGenerations[i].Antagonists {
+				antagonistMathString, err := sortedGenerations[i].Antagonists[a].Program.T.ToMathematicalString()
+				if err != nil {
+					return "", fmt.Errorf(err.Error())
+				}
+				if strings.Contains(antagonistMathString, starterTreeAsMathematicalExpression) {
+					results = append(results, sortedGenerations[i].Antagonists[a])
+				}
+			}
+			for p := range sortedGenerations[i].Protagonists {
+				protagonistMathString, err := sortedGenerations[i].Protagonists[p].Program.T.ToMathematicalString()
+				if err != nil {
+					return "", fmt.Errorf(err.Error())
+				}
+				if strings.Contains(starterTreeAsMathematicalExpression, protagonistMathString) {
+					results = append(results, sortedGenerations[i].Protagonists[p])
+				}
+			}
+		}
+		if len(results) == 0 {
+			builder.WriteString(fmt.Sprintf("No match found. Searched %d individuals on both sides.\n",
+				(params.EachPopulationSize * 2 * params.GenerationsCount)))
+		} else {
+			for i := range results {
+				individualString := results[i].ToString()
+				builder.WriteString(individualString.String() + "\n")
+			}
+		}
+
+	}
+	return builder.String(), nil
+}
+
+func writetoFile(path string, evolutionResult *EvolutionResult, params EvolutionParams) error {
+	jsonOutput := JSONOutput{
+		Averages: JSONGeneric{
+			Antagonist: Coordinates{
+				DependentCoordinates: make([]float64,
+					len(evolutionResult.SortedGenerationIndividuals)),
+				IndependentCoordinates: make([]float64,
+					len(evolutionResult.SortedGenerationIndividuals)),
+			},
+			Protagonist: Coordinates{
+				DependentCoordinates: make([]float64,
+					len(evolutionResult.SortedGenerationIndividuals)),
+				IndependentCoordinates: make([]float64,
+					len(evolutionResult.SortedGenerationIndividuals)),
+			},
+		},
+		UltimateIndividuals: JSONGeneric{
+			Title: "Variance in Ultimate Individuals Internal Fitness",
+			Antagonist: Coordinates{
+				DependentCoordinates: make([]float64,
+					len(evolutionResult.SortedGenerationIndividuals[0].Antagonists[0].Fitness)),
+				IndependentCoordinates: make([]float64,
+					len(evolutionResult.SortedGenerationIndividuals[0].Antagonists[0].Fitness)),
+			},
+			Protagonist: Coordinates{
+				DependentCoordinates: make([]float64,
+					len(evolutionResult.SortedGenerationIndividuals[0].Antagonists[0].Fitness)),
+				IndependentCoordinates: make([]float64,
+					len(evolutionResult.SortedGenerationIndividuals[0].Antagonists[0].Fitness)),
+			},
+		},
+		TopPerGeneration: JSONGeneric{
+			Antagonist: Coordinates{
+				DependentCoordinates: make([]float64,
+					len(evolutionResult.SortedGenerationIndividuals)),
+				IndependentCoordinates: make([]float64,
+					len(evolutionResult.SortedGenerationIndividuals)),
+			},
+			Protagonist: Coordinates{
+				DependentCoordinates: make([]float64,
+					len(evolutionResult.SortedGenerationIndividuals)),
+				IndependentCoordinates: make([]float64,
+					len(evolutionResult.SortedGenerationIndividuals)),
+			},
+		},
+		BottomPerGeneration: JSONGeneric{
+			Antagonist: Coordinates{
+				DependentCoordinates: make([]float64,
+					len(evolutionResult.SortedGenerationIndividuals)),
+				IndependentCoordinates: make([]float64,
+					len(evolutionResult.SortedGenerationIndividuals)),
+			},
+			Protagonist: Coordinates{
+				DependentCoordinates: make([]float64,
+					len(evolutionResult.SortedGenerationIndividuals)),
+				IndependentCoordinates: make([]float64,
+					len(evolutionResult.SortedGenerationIndividuals)),
+			},
+		},
+	}
+
+	jsonOutput.Averages.Title = "Generational Averages for Antagonists vs Protagonists"
+	jsonOutput.Averages.SubTitle = fmt.Sprintf("Fitness (is more better?): %t", evolutionResult.IsMoreFitnessBetter)
+
+	coevolutionaryAverages := evolutionResult.CoevolutionaryAverages
+	for i := range coevolutionaryAverages {
+		// ##################### ANTAGONISTS #########################
+		// Averages
+		jsonOutput.Averages.Antagonist.IndependentCoordinates[i] = float64(i)
+		jsonOutput.Averages.Antagonist.DependentCoordinates[i] = coevolutionaryAverages[i].AntagonistResult
+		// Top Per Generation
+		jsonOutput.TopPerGeneration.Antagonist.IndependentCoordinates[i] = float64(i)
+		jsonOutput.TopPerGeneration.Antagonist.DependentCoordinates[i] = evolutionResult.
+			SortedGenerationIndividuals[i].Antagonists[0].TotalFitness
+		//Bottom Per Generation
+		jsonOutput.BottomPerGeneration.Antagonist.IndependentCoordinates[i] = float64(i)
+		jsonOutput.BottomPerGeneration.Antagonist.DependentCoordinates[i] = evolutionResult.
+			SortedGenerationIndividuals[i].Antagonists[len(evolutionResult.
+			SortedGenerationIndividuals[i].Antagonists)-1].TotalFitness
+
+		// ##################### PROTAGONISTS #########################
+		// Averages
+		jsonOutput.Averages.Protagonist.IndependentCoordinates[i] = float64(i)
+		jsonOutput.Averages.Protagonist.DependentCoordinates[i] = coevolutionaryAverages[i].ProtagonistResult
+		// Top Per Generation
+		jsonOutput.TopPerGeneration.Protagonist.IndependentCoordinates[i] = float64(i)
+		jsonOutput.TopPerGeneration.Protagonist.DependentCoordinates[i] = evolutionResult.
+			SortedGenerationIndividuals[i].Protagonists[0].TotalFitness
+		//Bottom Per Generation
+		jsonOutput.BottomPerGeneration.Protagonist.IndependentCoordinates[i] = float64(i)
+		jsonOutput.BottomPerGeneration.Protagonist.DependentCoordinates[i] = evolutionResult.
+			SortedGenerationIndividuals[i].Protagonists[len(evolutionResult.
+			SortedGenerationIndividuals[i].Protagonists)-1].TotalFitness
+	}
+
+	// Internal Variance of Ultimate Individuals
+	for i := 0; i < len(evolutionResult.TopAntagonist.Fitness); i++ {
+		jsonOutput.UltimateIndividuals.Antagonist.IndependentCoordinates[i] = float64(i)
+		jsonOutput.UltimateIndividuals.Antagonist.DependentCoordinates[i] = evolutionResult.TopAntagonist.Fitness[i]
+
+		jsonOutput.UltimateIndividuals.Protagonist.IndependentCoordinates[i] = float64(i)
+		jsonOutput.UltimateIndividuals.Protagonist.DependentCoordinates[i] = evolutionResult.TopProtagonist.Fitness[i]
+	}
+
+	topProtagonistMathExpression, err := evolutionResult.TopProtagonist.Program.T.ToMathematicalString()
+	if err != nil {
+		return err
+	}
+	topAntagonistMathExpression, err := evolutionResult.TopAntagonist.Program.T.ToMathematicalString()
+	if err != nil {
+		return err
+	}
+	// Equations
+	jsonOutput.Equations = JSONEquations{
+		Spec: JSONEquation{
+			Title:      "Spec",
+			Seed:       params.SpecParam.Seed,
+			Range:      params.SpecParam.Range,
+			Expression: params.SpecParam.Expression,
+		},
+		UltimateAntagonist: JSONEquation{
+			Title:      "Ult-Antagonist",
+			Seed:       params.SpecParam.Seed,
+			Range:      params.SpecParam.Range,
+			Expression: topAntagonistMathExpression,
+		},
+		UltimateProtagonist: JSONEquation{
+			Title:      "Ult-AProtagonist",
+			Seed:       params.SpecParam.Seed,
+			Range:      params.SpecParam.Range,
+			Expression: topProtagonistMathExpression,
+		},
+	}
+
+	file, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Wrote to file: %s", path)
+	return json.NewEncoder(file).Encode(jsonOutput)
+}
+
+type JSONOutput struct {
+	Averages JSONGeneric `json:"averages"`
+
+	// UltimateIndividuals returns the internal variance of the best individuals in all generations
+	UltimateIndividuals JSONGeneric `json:"ultimateIndividuals"`
+	// BottomPerGeneration returns the best kind of individual in each generation
+	TopPerGeneration JSONGeneric `json:"topPerGeneration"`
+	// BottomPerGeneration returns the worst kind of individual in each generation
+	BottomPerGeneration JSONGeneric `json:"bottomPerGeneration"`
+
+	Equations JSONEquations `json:"equations"`
+
+	//UltimateIndividualsDelta JSONGeneric `json:"averages"`
+	//
+	//FinalGenIndividuals JSONGeneric `json:"averages"`
+}
+
+type JSONGeneric struct {
+	Title       string      `json:"title"`
+	SubTitle    string      `json:"subTitle"`
+	Description string      `json:"description"`
+	Protagonist Coordinates `json:"protagonistCoordinates"`
+	Antagonist  Coordinates `json:"antagonistCoordinates"`
+}
+
+type JSONEquations struct {
+	Spec                JSONEquation `json:"spec"`
+	UltimateAntagonist  JSONEquation `json:"ultimateAntagonist"`
+	UltimateProtagonist JSONEquation `json:"ultimateProtagonist"`
+}
+
+type JSONEquation struct {
+	Title      string `json:"title"`
+	Expression string `json:"expression"`
+	Seed       int    `json:"seed"`
+	Range      int    `json:"range"`
+}
+
+type Coordinates struct {
+	IndependentCoordinates []float64 `json:"independentCoordinates"`
+	DependentCoordinates   []float64 `json:"dependentCoordinates"`
 }

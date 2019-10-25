@@ -2,6 +2,7 @@ package evolution
 
 import (
 	"fmt"
+	"math"
 )
 
 // Epoch is defined as a coevolutionary step where protagonist and antagonist compete.
@@ -11,16 +12,16 @@ import (
 // The test will use up the strategies it contains and attempt to chew away at the antagonists Fitness,
 // to maximize its own
 type Epoch struct {
-	id                               string
-	protagonist                      Individual
-	antagonist                       Individual
-	generation                       *Generation
-	program                          Program
-	isComplete                       bool
-	terminalSet                      []SymbolicExpression
-	nonTerminalSet                   []SymbolicExpression
-	hasAntagonistApplied             bool
-	hasProtagonistApplied            bool
+	id                    string
+	protagonist           *Individual
+	antagonist            *Individual
+	generation            *Generation
+	program               Program
+	isComplete            bool
+	terminalSet           []SymbolicExpression
+	nonTerminalSet        []SymbolicExpression
+	hasAntagonistApplied  bool
+	hasProtagonistApplied bool
 }
 
 // CreateEpochID generates a given epoch Id with some useful information
@@ -31,12 +32,15 @@ func CreateEpochID(count int, generationId, antagonistId, protagonistId string) 
 // Start creates the Epoch process. This process applies the antagonist Strategy first,
 // and then the protagonist Strategy second.
 // It then appends the Fitness values to each individual in the epoch.
-func (e *Epoch) Start() error {
-	if e.protagonist.Program == nil {
+func (e *Epoch) Start(perfectTreeMap map[string]PerfectTree) error {
+	if e.protagonist == nil {
 		return fmt.Errorf("epoch cannot have nil protagonist")
 	}
-	if e.antagonist.Program == nil {
+	if e.antagonist == nil {
 		return fmt.Errorf("epoch cannot have nil antagonist")
+	}
+	if perfectTreeMap == nil {
+		return fmt.Errorf("perfectTreeMap cannot be nil")
 	}
 
 	err := e.applyAntagonistStrategy()
@@ -56,46 +60,91 @@ func (e *Epoch) Start() error {
 	}
 
 	antagonistFitness, protagonistFitness := 0.0, 0.0
-	switch e.generation.engine.Parameters.FitnessStrategy {
+	switch e.generation.engine.Parameters.FitnessStrategy.Type {
 	case FitnessProtagonistThresholdTally:
 		antagonistFitness, protagonistFitness, err = ProtagonistThresholdTally(e.generation.engine.Parameters.Spec,
-			e.protagonist.Program, e.generation.engine.Parameters.EvaluationThreshold)
+			e.protagonist.Program, e.generation.engine.Parameters.FitnessStrategy.AntagonistThresholdMultiplier)
+		if err != nil {
+			return err
+		}
+		break
+	case FitnessThresholdedAntagonistRatio:
+		antagonistFitness, protagonistFitness, err = ThresholdedAntagonistRatioFitness(e.generation.engine.Parameters.Spec, e.antagonist.Program,
+			e.protagonist.Program, e.generation.engine.Parameters.FitnessCalculatorType)
 		if err != nil {
 			return err
 		}
 		break
 	case FitnessRatio:
 		antagonistFitness, protagonistFitness, err = RatioFitness(e.generation.engine.Parameters.Spec, e.antagonist.Program,
-			e.protagonist.Program)
+			e.protagonist.Program, e.generation.engine.Parameters.FitnessCalculatorType)
 		if err != nil {
 			return err
 		}
 		break
 
-	case FitnessRatioThresholder:
-		antagonistFitness, protagonistFitness, err = RatioFitnessThresholded(e.generation.engine.Parameters.Spec,
-			e.generation.engine.Parameters.ThresholdMultiplier, e.antagonist.Program,
-			e.protagonist.Program)
-		if err != nil {
-			return err
-		}
-		break
 	case FitnessDualThresholdedRatioFitness:
 		antagonistFitness, protagonistFitness, err = ThresholdedRatioFitness(e.generation.engine.Parameters.Spec, e.antagonist.Program,
-			e.protagonist.Program)
+			e.protagonist.Program, e.generation.engine.Parameters.FitnessCalculatorType)
 		if err != nil {
 			return err
 		}
 		break
 	case FitnessMonoThresholdedRatioFitness:
-		antagonistFitness, protagonistFitness, err = ThresholdedRatioFitness(e.generation.engine.Parameters.Spec, e.antagonist.Program,
-			e.protagonist.Program)
+		antagonistFitness, protagonistFitness, err = ThresholdedRatioFitness(e.generation.engine.Parameters.Spec,
+			e.protagonist.Program,
+			e.protagonist.Program, e.generation.engine.Parameters.FitnessCalculatorType)
 		if err != nil {
 			return err
 		}
 		break
 	default:
-		err = fmt.Errorf("Unknown Fitness Strategy selected")
+		err = fmt.Errorf("unknown Fitness Strategy selected")
+	}
+
+	if e.generation.engine.Parameters.FitnessStrategy.IsMoreFitnessBetter {
+		if perfectTreeMap[e.antagonist.Id].Program == nil {
+			perfectTreeMap[e.antagonist.Id] = PerfectTree{FitnessValue: math.MinInt64}
+		}
+		perfectTreeAntagonist := perfectTreeMap[e.antagonist.Id]
+		if perfectTreeAntagonist.FitnessValue < antagonistFitness {
+			perfectTreeAntagonist.Program = e.antagonist.Program
+			perfectTreeAntagonist.FitnessValue = antagonistFitness
+			perfectTreeAntagonist.FitnessDetla = antagonistFitness
+			perfectTreeMap[e.antagonist.Id] = perfectTreeAntagonist
+		}
+
+		if perfectTreeMap[e.protagonist.Id].Program == nil {
+			perfectTreeMap[e.protagonist.Id] = PerfectTree{FitnessValue: math.MinInt64}
+		}
+		perfectTreeProtagonist := perfectTreeMap[e.protagonist.Id]
+		if perfectTreeProtagonist.FitnessValue < protagonistFitness {
+			perfectTreeProtagonist.Program = e.protagonist.Program
+			perfectTreeProtagonist.FitnessValue = protagonistFitness
+			perfectTreeProtagonist.FitnessDetla = protagonistFitness
+			perfectTreeMap[e.protagonist.Id] = perfectTreeProtagonist
+		}
+	} else {
+		if perfectTreeMap[e.antagonist.Id].Program == nil {
+			perfectTreeMap[e.antagonist.Id] = PerfectTree{FitnessValue: math.MaxInt64}
+		}
+		perfectTreeAntagonist := perfectTreeMap[e.antagonist.Id]
+		if perfectTreeAntagonist.FitnessValue < antagonistFitness {
+			perfectTreeAntagonist.Program = e.antagonist.Program
+			perfectTreeAntagonist.FitnessValue = antagonistFitness
+			perfectTreeAntagonist.FitnessDetla = antagonistFitness
+			perfectTreeMap[e.antagonist.Id] = perfectTreeAntagonist
+		}
+		if perfectTreeMap[e.protagonist.Id].Program == nil {
+			perfectTreeMap[e.protagonist.Id] = PerfectTree{FitnessValue: math.MaxInt64}
+		}
+		perfectTreeProtagonist := perfectTreeMap[e.protagonist.Id]
+		if perfectTreeProtagonist.FitnessValue < protagonistFitness {
+			perfectTreeProtagonist.Program = e.protagonist.Program
+			perfectTreeProtagonist.FitnessValue = protagonistFitness
+			perfectTreeProtagonist.FitnessDetla = protagonistFitness
+			perfectTreeMap[e.protagonist.Id] = perfectTreeProtagonist
+		}
 	}
 
 	e.antagonist.Fitness = append(e.antagonist.Fitness, antagonistFitness)
@@ -113,6 +162,23 @@ func (e *Epoch) Start() error {
 	//e.antagonist.Program = &program
 	//e.protagonist.Program = &Program{}
 	return nil
+}
+
+// AggregateFitness simply adds all the Fitness values of a given individual to come up with a total number.
+// If the Fitness array is nil or empty return MaxInt8 as values such as -1 or 0 have a differnt meaning
+func AggregateFitness(individual Individual) (float64, error) {
+	if individual.Fitness == nil {
+		return math.MaxInt8, fmt.Errorf("individuals Fitness arr cannot be nil")
+	}
+	if len(individual.Fitness) == 0 {
+		return math.MaxInt8, fmt.Errorf("individuals Fitness arr cannot be empty")
+	}
+
+	sum := 0.0
+	for i := 0; i < len(individual.Fitness); i++ {
+		sum += individual.Fitness[i]
+	}
+	return sum, nil
 }
 
 // applyAntagonistStrategy applies the Antagonist strategies to program.

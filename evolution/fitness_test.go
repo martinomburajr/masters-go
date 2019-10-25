@@ -221,16 +221,16 @@ func Test_evaluateFitnessThresholded(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotAntagonistFitness, gotProtagonistFitness, err := evaluateFitnessThresholded(tt.args.spec, tt.args.antagonist, tt.args.protagonist)
+			gotAntagonistFitness, gotProtagonistFitness, err := thresholdedRatioFitness(tt.args.spec, tt.args.antagonist, tt.args.protagonist)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("evaluateFitnessThresholded() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("thresholdedRatioFitness() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if floatEquals(gotAntagonistFitness, tt.wantAntagonistFitness) {
-				t.Errorf("evaluateFitnessThresholded() gotAntagonistFitness = %v, want %v", gotAntagonistFitness, tt.wantAntagonistFitness)
+				t.Errorf("thresholdedRatioFitness() gotAntagonistFitness = %v, want %v", gotAntagonistFitness, tt.wantAntagonistFitness)
 			}
 			if floatEquals(gotProtagonistFitness, tt.wantProtagonistFitness) {
-				t.Errorf("evaluateFitnessThresholded() gotProtagonistFitness = %v, want %v", gotProtagonistFitness, tt.wantProtagonistFitness)
+				t.Errorf("thresholdedRatioFitness() gotProtagonistFitness = %v, want %v", gotProtagonistFitness, tt.wantProtagonistFitness)
 			}
 		})
 	}
@@ -327,6 +327,39 @@ func Test_calculateDelta(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := calculateDelta(tt.args.truth, tt.args.value); got != tt.want {
 				t.Errorf("calculateDelta() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_evaluateFitnessAntagonistThresholded(t *testing.T) {
+	type args struct {
+		spec        SpecMulti
+		antagonist  *Program
+		protagonist *Program
+		params      EvolutionParams
+	}
+	tests := []struct {
+		name                   string
+		args                   args
+		wantAntagonistFitness  float64
+		wantProtagonistFitness float64
+		wantErr                bool
+	}{
+		{},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotAntagonistFitness, gotProtagonistFitness, err := evaluateFitnessAntagonistThresholded(tt.args.spec, tt.args.antagonist, tt.args.protagonist, tt.args.params)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("evaluateFitnessAntagonistThresholded() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if gotAntagonistFitness != tt.wantAntagonistFitness {
+				t.Errorf("evaluateFitnessAntagonistThresholded() gotAntagonistFitness = %v, want %v", gotAntagonistFitness, tt.wantAntagonistFitness)
+			}
+			if gotProtagonistFitness != tt.wantProtagonistFitness {
+				t.Errorf("evaluateFitnessAntagonistThresholded() gotProtagonistFitness = %v, want %v", gotProtagonistFitness, tt.wantProtagonistFitness)
 			}
 		})
 	}

@@ -76,6 +76,7 @@ func TestEvaluateMathematicalExpression(t *testing.T) {
 }
 
 var mathematicalExpression float64
+
 func BenchmarkEvaluateMathematicalExpression(b *testing.B) {
 	expression := "x*x+5*x+10"
 	varMap := map[string]float64{"x": 0}

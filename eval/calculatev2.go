@@ -46,7 +46,7 @@ func Eval(exp ast.Expr) (float64, error) {
 		case token.INT:
 			i, err := strconv.Atoi(exp.Value)
 			return float64(i), err
-		case token.FLOAT :
+		case token.FLOAT:
 			return strconv.ParseFloat(exp.Value, 64)
 		}
 	}

@@ -3,6 +3,7 @@ package evolution
 import (
 	"fmt"
 	"github.com/PaesslerAG/gval"
+	"github.com/martinomburajr/masters-go/eval"
 	"github.com/martinomburajr/masters-go/utils"
 )
 
@@ -28,7 +29,7 @@ func GenerateProgramID(count int) string {
 // The system is designed such that the first element of the terminals array will be the most prominent with regards
 // to appearance.
 func (p *Program) ApplyStrategy(strategy Strategy, terminals []SymbolicExpression,
-	nonTerminals []SymbolicExpression,depth int) (err error) {
+	nonTerminals []SymbolicExpression, depth int) (err error) {
 
 	switch strategy {
 	case StrategyDeleteNonTerminal: // CHANGE TO DeleteNonTerminal
@@ -143,38 +144,41 @@ func (p *Program) ApplyStrategy(strategy Strategy, terminals []SymbolicExpressio
 
 // Eval is a simple helper function that takes in an independent variable,
 // uses the programs treeNode to compute the resultant value
-func (p *Program) EvalMulti(independentVariables IndependentVariableMap, expressionString string) (float64, error) {
+func (p *Program) EvalMulti(independentVariables IndependentVariableMap, expressionString string, fitnessCalculatorType int) (float64,
+	error) {
 	if p.T == nil {
 		return -1, fmt.Errorf("program: %v -> treeNode is nil", p.ID)
 	}
 
-	return EvaluateMathematicalExpression(expressionString, independentVariables)
+	return EvaluateMathematicalExpression(expressionString, independentVariables, fitnessCalculatorType)
 }
 
 // EvaluateMathematicalExpression evaluates a valid expression using the given independentVar
-func EvaluateMathematicalExpression(expressionString string, independentVariables IndependentVariableMap) (float64, error) {
+func EvaluateMathematicalExpression(expressionString string, independentVariables IndependentVariableMap,
+	fitnessCalculatorType int) (float64,
+	error) {
 	if expressionString == "" {
 		return -1, fmt.Errorf("EvaluateMathematicalExpression | expressionString cannot be empty")
 	}
 	//
-	expression, err := gval.Evaluate(expressionString, independentVariables)
-	if err != nil {
-		return -1, err
+	var ans = 0.0
+	switch fitnessCalculatorType {
+	case 0:
+		answer, err := eval.CalculateWithVar(expressionString, independentVariables)
+		if err != nil {
+			return -1, err
+		}
+		ans = answer
+	case 1:
+		expression, err := gval.Evaluate(expressionString, independentVariables)
+		if err != nil {
+			return -1, err
+		}
+		ans, err = utils.ConvertToFloat64(expression)
+		if err != nil {
+			return -1, err
+		}
 	}
-	ans, err := utils.ConvertToFloat64(expression)
-	if err != nil {
-		return -1, err
-	}
-
-	//ans, err := eval.CalculateV2Var(expressionString, independentVariables)
-	//if err != nil {
-	//	return -1, err
-	//}
-
-	//ans, err := eval.CalculateWithVar(expressionString, independentVariables)
-	//if err != nil {
-	//	return -1, err
-	//}
 	return ans, nil
 }
 

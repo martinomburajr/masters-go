@@ -2,8 +2,6 @@ package evolution
 
 import (
 	"fmt"
-	"github.com/martinomburajr/masters-go/utils"
-	"math"
 	"strings"
 )
 
@@ -42,116 +40,114 @@ type SpecMulti []EquationPairing
 // Esnure the antagonistThreshold is greater than that of the protagonist to demand antagonists drastically mutate
 // trees to give more disparate values. For monoThresholding, you have to set both values to the same number
 // CAN ONLY DO TWO DIFFERENT VARIABLES
-func GenerateSpec(mathematicalExpression string, independentVars []string, count int, initialSeed int,
-	antagonistThresholdMultiplier, protagonistThresholdMultiplier float64) (SpecMulti,
-	error) {
-
-	if mathematicalExpression == "" {
-		return nil, fmt.Errorf("GenerateSpec | cannot containe empty mathematical expression")
-	}
-	if count < 1 {
-		return nil, fmt.Errorf("GenerateSpec | count cannot be less than 0")
-	}
-	if count >= 5 {
-		count = 3
-	}
-	if antagonistThresholdMultiplier < 1 {
-		antagonistThresholdMultiplier = 1
-	}
-	if protagonistThresholdMultiplier < 1 {
-		protagonistThresholdMultiplier = 1
-	}
-	spec := make([]EquationPairing, count)
-
-	//1. Determine number of unique independent variables and kings of independent variables e.g. x, y
-	// pass in unique independent variables as a slice of strings? [OK]
-
-	// determine the number permutationsCount we can create count^independentVars.len
-	numVars := len(independentVars)
-	if independentVars == nil || numVars < 1 {
-		for i, _ := range spec {
-			dependentVariable, err := EvaluateMathematicalExpression(mathematicalExpression, nil)
-			if err != nil {
-				return nil, err
-			}
-			spec[i].Dependent = dependentVariable
-			spec[i].AntagonistThreshold = dependentVariable * antagonistThresholdMultiplier
-			spec[i].ProtagonistThreshold = dependentVariable * protagonistThresholdMultiplier
-		}
-		return spec, nil
-	}
-
-	if numVars < 2 {
-		for i := range spec {
-			spec[i].Independents = map[string]float64{}
-			//for j := 0; j < count; j++ {
-			spec[i].Independents[independentVars[0]] = float64(i + initialSeed)
-			//}
-			dependentVariable, err := EvaluateMathematicalExpression(mathematicalExpression,
-				spec[i].Independents)
-			if err != nil {
-				return nil, err
-			}
-			spec[i].Dependent = dependentVariable
-		}
-		return spec, nil
-	}
-
-	g := make([]int, 0)
-	for i := 0; i < count; i++ {
-		g = append(g, i+initialSeed)
-	}
-
-	permutationsCount := int(math.Pow(float64(count), float64(numVars)))
-	spec = make([]EquationPairing, permutationsCount)
-	permutationsWithRepetitions := utils.PermutationsWithRepetitions(g)
-
-	for i := range spec {
-		spec[i].Independents = map[string]float64{}
-		for j := range independentVars {
-			spec[i].Independents[independentVars[j]] = float64(permutationsWithRepetitions[i][j])
-		}
-		dependentVariable, err := EvaluateMathematicalExpression(mathematicalExpression,
-			spec[i].Independents)
-		if err != nil {
-			return nil, err
-		}
-		spec[i].Dependent = dependentVariable
-	}
-	return spec, nil
-}
+//func GenerateSpec(mathematicalExpression string, independentVars []string, count int, initialSeed int,
+//	antagonistThresholdMultiplier, protagonistThresholdMultiplier float64, params EvolutionParams) (SpecMulti,
+//	error) {
+//
+//	if mathematicalExpression == "" {
+//		return nil, fmt.Errorf("GenerateSpec | cannot containe empty mathematical expression")
+//	}
+//	if count < 1 {
+//		return nil, fmt.Errorf("GenerateSpec | count cannot be less than 0")
+//	}
+//	if count >= 5 {
+//		count = 3
+//	}
+//	if antagonistThresholdMultiplier < 1 {
+//		antagonistThresholdMultiplier = 1
+//	}
+//	if protagonistThresholdMultiplier < 1 {
+//		protagonistThresholdMultiplier = 1
+//	}
+//	spec := make([]EquationPairing, count)
+//
+//	//1. Determine number of unique independent variables and kings of independent variables e.g. x, y
+//	// pass in unique independent variables as a slice of strings? [OK]
+//
+//	// determine the number permutationsCount we can create count^independentVars.len
+//	numVars := len(independentVars)
+//	if independentVars == nil || numVars < 1 {
+//		for i, _ := range spec {
+//			dependentVariable, err := EvaluateMathematicalExpression(mathematicalExpression, nil, params)
+//			if err != nil {
+//				return nil, err
+//			}
+//			spec[i].Dependent = dependentVariable
+//			spec[i].AntagonistThreshold = dependentVariable * antagonistThresholdMultiplier
+//			spec[i].ProtagonistThreshold = dependentVariable * protagonistThresholdMultiplier
+//		}
+//		return spec, nil
+//	}
+//
+//	if numVars < 2 {
+//		for i := range spec {
+//			spec[i].Independents = map[string]float64{}
+//			//for j := 0; j < count; j++ {
+//			spec[i].Independents[independentVars[0]] = float64(i + initialSeed)
+//			//}
+//			dependentVariable, err := EvaluateMathematicalExpression(mathematicalExpression,
+//				spec[i].Independents, params)
+//			if err != nil {
+//				return nil, err
+//			}
+//			spec[i].Dependent = dependentVariable
+//		}
+//		return spec, nil
+//	}
+//
+//	g := make([]int, 0)
+//	for i := 0; i < count; i++ {
+//		g = append(g, i+initialSeed)
+//	}
+//
+//	permutationsCount := int(math.Pow(float64(count), float64(numVars)))
+//	spec = make([]EquationPairing, permutationsCount)
+//	permutationsWithRepetitions := utils.PermutationsWithRepetitions(g)
+//
+//	for i := range spec {
+//		spec[i].Independents = map[string]float64{}
+//		for j := range independentVars {
+//			spec[i].Independents[independentVars[j]] = float64(permutationsWithRepetitions[i][j])
+//		}
+//		dependentVariable, err := EvaluateMathematicalExpression(mathematicalExpression,
+//			spec[i].Independents, params)
+//		if err != nil {
+//			return nil, err
+//		}
+//		spec[i].Dependent = dependentVariable
+//	}
+//	return spec, nil
+//}
 
 // GenerateSpecSimple assumes a single independent variable x with an unlimited count.
-func GenerateSpecSimple(mathematicalExpression string, count int, initialSeed int,
-	antagonistThresholdMultiplier, protagonistThresholdMultiplier float64) (SpecMulti,
+func GenerateSpecSimple(specParam SpecParam, fitnessStrategy FitnessStrategy, fitnessCalculatorType int) (SpecMulti,
 	error) {
 
-	if mathematicalExpression == "" {
+	if specParam.Expression == "" {
 		return nil, fmt.Errorf("GenerateSpec | cannot containe empty mathematical expression")
 	}
-	if count < 1 {
-		return nil, fmt.Errorf("GenerateSpec | count cannot be less than 0")
+	if specParam.Range < 1 {
+		return nil, fmt.Errorf("GenerateSpec | specParam.Range cannot be less than 0")
 	}
-	if antagonistThresholdMultiplier < 1 {
-		antagonistThresholdMultiplier = 1
+	if fitnessStrategy.AntagonistThresholdMultiplier < 1 {
+		fitnessStrategy.AntagonistThresholdMultiplier = 1
 	}
-	if protagonistThresholdMultiplier < 1 {
-		protagonistThresholdMultiplier = 1
+	if fitnessStrategy.ProtagonistThresholdMultiplier < 1 {
+		fitnessStrategy.ProtagonistThresholdMultiplier = 1
 	}
 
-	spec := make([]EquationPairing, count)
-
+	spec := make([]EquationPairing, specParam.Range)
 	for i := range spec {
 		spec[i].Independents = map[string]float64{}
-		spec[i].Independents["x"] = float64(i + initialSeed)
-		dependentVariable, err := EvaluateMathematicalExpression(mathematicalExpression,
-			spec[i].Independents)
+		spec[i].Independents["x"] = float64(i + specParam.Seed)
+		dependentVariable, err := EvaluateMathematicalExpression(specParam.Expression,
+			spec[i].Independents, fitnessCalculatorType)
 		if err != nil {
 			return nil, err
 		}
 		spec[i].Dependent = dependentVariable
-		spec[i].AntagonistThreshold = dependentVariable * antagonistThresholdMultiplier
-		spec[i].ProtagonistThreshold = dependentVariable * protagonistThresholdMultiplier
+		spec[i].AntagonistThreshold = dependentVariable * fitnessStrategy.AntagonistThresholdMultiplier
+		spec[i].ProtagonistThreshold = dependentVariable * fitnessStrategy.ProtagonistThresholdMultiplier
 	}
 	return spec, nil
 }

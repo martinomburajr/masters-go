@@ -85,8 +85,8 @@ func tournamentSelect(selectedIndividuals []*Individual) (*Individual, error) {
 // Elitism is an evolutionary process where only the top (
 // n) individuals based on eliteCount are selected based on their Fitness.
 // In essence it ranks the individuals based on Fitness, then returns the top (n)
-func Elitism(population []*Individual, elitePercentage float64) ([]*Individual, error) {
-	return nil, nil
+func Elitism(population []*Individual, isMoreFitnessBetter bool) ([]*Individual, error) {
+	return SortIndividuals(population, isMoreFitnessBetter)
 }
 
 // Fitness Proportionate Selection is one of the most popular ways of parent selection.

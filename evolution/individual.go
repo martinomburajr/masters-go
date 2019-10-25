@@ -22,13 +22,13 @@ type Individual struct {
 	Kind                     int
 	Age                      int
 	TotalFitness             float64
+	FitnessDelta             float64
 	// BirthGen represents the generation where this individual was spawned
 	BirthGen int
 	Program  *Program
 }
 
 func (i Individual) Clone() (Individual, error) {
-	i.Id = i.Id +"c"
 	if i.Program != nil {
 		programClone, err := i.Program.Clone()
 		if err != nil {
@@ -69,12 +69,12 @@ func Crossover(individual Individual, individual2 Individual, params EvolutionPa
 	if individual.HasAppliedStrategy == false {
 		return Individual{}, Individual{}, fmt.Errorf("crossover | individual1 - HasAppliedStrategy should be true")
 	}
-	//if individual.Program == nil {
-	//	return Individual{}, Individual{}, fmt.Errorf("crossover | individual1 - program cannot be nil")
-	//}
-	//if individual.Program.T == nil {
-	//	return Individual{}, Individual{}, fmt.Errorf("crossover | individual1 - program Tree cannot be nil")
-	//}
+	if individual.Program == nil {
+		return Individual{}, Individual{}, fmt.Errorf("crossover | individual1 - program cannot be nil")
+	}
+	if individual.Program.T == nil {
+		return Individual{}, Individual{}, fmt.Errorf("crossover | individual1 - program Tree cannot be nil")
+	}
 	if individual2.Id == "" {
 		return Individual{}, Individual{}, fmt.Errorf("crossover | individual2 - individual Id cannot be empty")
 	}
@@ -90,12 +90,12 @@ func Crossover(individual Individual, individual2 Individual, params EvolutionPa
 	if individual2.HasAppliedStrategy == false {
 		return Individual{}, Individual{}, fmt.Errorf("crossover | individual2 - HasAppliedStrategy should be true")
 	}
-	//if individual2.Program == nil {
-	//	return Individual{}, Individual{}, fmt.Errorf("crossover | individual2 - program cannot be nil")
-	//}
-	//if individual2.Program.T == nil {
-	//	return Individual{}, Individual{}, fmt.Errorf("crossover | individual2 - program Tree cannot be nil")
-	//}
+	if individual2.Program == nil {
+		return Individual{}, Individual{}, fmt.Errorf("crossover | individual2 - program cannot be nil")
+	}
+	if individual2.Program.T == nil {
+		return Individual{}, Individual{}, fmt.Errorf("crossover | individual2 - program Tree cannot be nil")
+	}
 	if params.StrategyLengthLimit < 1 {
 		return Individual{}, Individual{}, fmt.Errorf("crossover | params.StrategyLengthLimit must be greater than 0")
 	}
@@ -104,10 +104,12 @@ func Crossover(individual Individual, individual2 Individual, params EvolutionPa
 	individual2Len := len(individual2.Strategy)
 
 	child1, err := individual.Clone()
+	child1.Id = child1.Id + "c1"
 	if err != nil {
 		return Individual{}, Individual{}, err
 	}
 	child2, err := individual2.Clone()
+	child2.Id = child2.Id + "c2"
 	if err != nil {
 		return Individual{}, Individual{}, err
 	}
@@ -403,6 +405,7 @@ func (i *Individual) ToString() strings.Builder {
 	sb.WriteString(fmt.Sprintf("AGE:  %d\n", i.Age))
 	sb.WriteString(fmt.Sprintf("FITNESS:  %f\n", i.TotalFitness))
 	sb.WriteString(fmt.Sprintf("FITNESS-ARR:  %v\n", i.Fitness))
+	sb.WriteString(fmt.Sprintf("SPEC-DELTA:  %v\n", i.FitnessDelta))
 	sb.WriteString(fmt.Sprintf("BIRTH GEN:  %d\n", i.BirthGen))
 	strategiesSummary := FormatStrategiesTotal(i.Strategy)
 	sb.WriteString(fmt.Sprintf("Strategy Summary:\n%s\n", strategiesSummary.String()))
@@ -421,6 +424,7 @@ func (i *Individual) ToString() strings.Builder {
 			}
 		}
 	}
+
 	return sb
 }
 

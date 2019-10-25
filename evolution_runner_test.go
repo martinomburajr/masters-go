@@ -18,6 +18,6 @@ func TestEvolution1(t *testing.T) {
 func BenchmarkEvolution1(b *testing.B) {
 	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
-		Evolution1()
+		PrepareSimulation()
 	}
 }
