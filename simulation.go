@@ -19,7 +19,7 @@ type Simulation struct {
 
 // BeginToil will work through a multidimensional set of data to try all possible combination of parameters for ideal
 // parameter tuning
-func (s *Simulation) BeginToil(indexFile string) (error) {
+func (s *Simulation) BeginToil(indexFile string) error {
 	var loadedIndex IndexProgress
 	file, err := os.Open(indexFile)
 	if err != nil {
@@ -29,7 +29,6 @@ func (s *Simulation) BeginToil(indexFile string) (error) {
 	if err != nil {
 		return err
 	}
-
 
 	for expressionIndex := loadedIndex.ExpressionIndex; expressionIndex < len(AllExpressions); expressionIndex++ {
 		for rangesIndex := loadedIndex.RangesIndex; rangesIndex < len(AllRanges); rangesIndex++ {
@@ -65,12 +64,15 @@ func (s *Simulation) BeginToil(indexFile string) (error) {
 														for strategiesAntagonistIndex := loadedIndex.
 															StrategiesAntagonistIndex; strategiesAntagonistIndex < len(
 															AllStrategies); strategiesAntagonistIndex++ {
-															for selectSurvivorPercentIndex := loadedIndex.SelectSurvivorPercentIndex; selectSurvivorPercentIndex < len(AllSelectionSurvivorPercentage); selectSurvivorPercentIndex++{
+															for selectSurvivorPercentIndex := loadedIndex.SelectSurvivorPercentIndex; selectSurvivorPercentIndex < len(AllSelectionSurvivorPercentage); selectSurvivorPercentIndex++ {
 																for strategiesProtagonistIndex := loadedIndex.
 																	StrategiesProtagonistIndex; strategiesProtagonistIndex < len(
 																	AllStrategies); strategiesProtagonistIndex++ {
 																	for numberOfRunsPerState := loadedIndex.
-																		RangesIndex; numberOfRunsPerState < s.NumberOfRunsPerState; numberOfRunsPerState++ {
+																		NumberOfRunsPerState; numberOfRunsPerState < s.
+																		NumberOfRunsPerState; numberOfRunsPerState++ {
+
+																		// TODO Add Parallelism
 																		params := evolution.EvolutionParams{
 																			GenerationsCount:   AllGenerationsCount[generationsCountIndex],
 																			EachPopulationSize: AllEachPopulationSize[eachPopulationIndex],
@@ -107,7 +109,6 @@ func (s *Simulation) BeginToil(indexFile string) (error) {
 																			},
 																		}
 
-																		//s.EvolutionStates[evolutionState].StatisticsOutput.OutputPath = outputPath
 																		engine, evolutionParams := PrepareSimulation(params, numberOfRunsPerState)
 																		StartEngine(engine, evolutionParams)
 
@@ -135,6 +136,11 @@ func (s *Simulation) BeginToil(indexFile string) (error) {
 																		if err != nil {
 																			return err
 																		}
+
+																		if numberOfRunsPerState == loadedIndex.
+																			NumberOfRunsPerState - 1 {
+
+																		}
 																	}
 																}
 															}
@@ -154,11 +160,32 @@ func (s *Simulation) BeginToil(indexFile string) (error) {
 		}
 	}
 
-return nil
+	return nil
 
 }
 
-func WriteIndexProgressToFile(indexProgress IndexProgress, indexFile string) (error) {
+func CoalesceFiles(folderPath string, fileSuffix string, noOfFiles int) error {
+	jsonOutputs := make([]evolution.JSONOutput, noOfFiles)
+	for i := 0; i < noOfFiles; i++ {
+		filePath := fmt.Sprintf("%s%s", folderPath, fileSuffix)
+		file, err := os.Open(filePath)
+		if err != nil {
+			return err
+		}
+
+		var jsonOutput evolution.JSONOutput
+		err = json.NewDecoder(file).Decode(&jsonOutput)
+		if err != nil {
+			return err
+		}
+		jsonOutputs[i] = jsonOutput
+	}
+
+
+
+}
+
+func WriteIndexProgressToFile(indexProgress IndexProgress, indexFile string) error {
 	file, err := os.Create(indexFile)
 	if err != nil {
 		return err
@@ -167,23 +194,23 @@ func WriteIndexProgressToFile(indexProgress IndexProgress, indexFile string) (er
 }
 
 type IndexProgress struct {
-	ExpressionIndex int `expressionIndex`
-	RangesIndex int `json:"rangesIndex"`
-	SeedIndex int `json:"seedIndex"`
-	GenerationsCountIndex int `json:"generationsCountIndex"`
-	EachPopulationIndex int `json:"eachPopulationIndex"`
-	ReproductionIndex int `json:"reproductionIndex"`
-	AllDepthOfRandomNewTreeIndex int `json:"allDepthOfRandomNewTreeIndex"`
-	AntagonistStrategyCountIndex int `json:"antagonistStrategyCountIndex"`
+	ExpressionIndex                int `expressionIndex`
+	RangesIndex                    int `json:"rangesIndex"`
+	SeedIndex                      int `json:"seedIndex"`
+	GenerationsCountIndex          int `json:"generationsCountIndex"`
+	EachPopulationIndex            int `json:"eachPopulationIndex"`
+	ReproductionIndex              int `json:"reproductionIndex"`
+	AllDepthOfRandomNewTreeIndex   int `json:"allDepthOfRandomNewTreeIndex"`
+	AntagonistStrategyCountIndex   int `json:"antagonistStrategyCountIndex"`
 	ProtagonisttStrategyCountIndex int `json:"protagonisttStrategyCountIndex"`
-	FitnessStrategyTypeIndex int `json:"fitnessStrategyTypeIndex"`
-	FitStratAntThresMultIndex int `json:"fitStratAntThresMultIndex"`
-	FitStratProtThreshMultIndex int `json:"fitStratProtThreshMultIndex"`
-	SelectParentTypeIndex int `json:"selectParentTypeIndex"`
-	SelectSurvivorPercentIndex int `json:"selectSurvivorPercentIndex"`
-	StrategiesAntagonistIndex int `json:"strategiesAntagonistIndex"`
-	StrategiesProtagonistIndex int `json:"strategiesProtagonistIndex"`
-	NumberOfRunsPerState int `json:"numberOfRunsPerState"`
+	FitnessStrategyTypeIndex       int `json:"fitnessStrategyTypeIndex"`
+	FitStratAntThresMultIndex      int `json:"fitStratAntThresMultIndex"`
+	FitStratProtThreshMultIndex    int `json:"fitStratProtThreshMultIndex"`
+	SelectParentTypeIndex          int `json:"selectParentTypeIndex"`
+	SelectSurvivorPercentIndex     int `json:"selectSurvivorPercentIndex"`
+	StrategiesAntagonistIndex      int `json:"strategiesAntagonistIndex"`
+	StrategiesProtagonistIndex     int `json:"strategiesProtagonistIndex"`
+	NumberOfRunsPerState           int `json:"numberOfRunsPerState"`
 }
 
 func StartEngine(engine *evolution.EvolutionEngine, params evolution.EvolutionParams) {
@@ -344,8 +371,8 @@ func PrepareSimulation(params evolution.EvolutionParams, count int) (*evolution.
 	fmt.Printf("Is More Fitness Better: %t\n", params.FitnessStrategy.IsMoreFitnessBetter)
 	fmt.Println()
 
-	outputPath := fmt.Sprintf("data/%s/%s-%d.json", params.StatisticsOutput.Name, params.ToString(),	time.Now().Format(time.RFC3339), count)
-	params.StatisticsOutput.OutputPath=outputPath
+	outputPath := fmt.Sprintf("data/%s/%s-%d.json", params.StatisticsOutput.Name, params.ToString(), time.Now().Format(time.RFC3339), count)
+	params.StatisticsOutput.OutputPath = outputPath
 	return engine, params
 	// ########################### START THE EVOLUTION PROCESS ##################################################3
 }

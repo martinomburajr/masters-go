@@ -38,11 +38,11 @@ func (e EvolutionParams) ToString() string {
 	builder := strings.Builder{}
 	builder.WriteString(e.SpecParam.Expression)
 	builder.WriteString("-")
-	builder.WriteString(fmt.Sprintf("GenC: %d",  e.GenerationsCount))
+	builder.WriteString(fmt.Sprintf("GenC: %d", e.GenerationsCount))
 	builder.WriteString("-")
-	builder.WriteString(fmt.Sprintf("PopC: %d",  e.EachPopulationSize))
+	builder.WriteString(fmt.Sprintf("PopC: %d", e.EachPopulationSize))
 	builder.WriteString("-")
-	builder.WriteString(fmt.Sprintf("PopC: %d",  e.FitnessStrategy.Type))
+	builder.WriteString(fmt.Sprintf("PopC: %d", e.FitnessStrategy.Type))
 	builder.WriteString("-")
 
 	return builder.String()

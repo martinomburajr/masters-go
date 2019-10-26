@@ -21,10 +21,22 @@ type Binary struct {
 	right Node
 }
 
+// Unary operator AST node
+type Unary struct {
+	op    byte
+	left  Node
+}
+
 func (n *Binary) Init(op byte, left, right Node) Node {
 	n.op = op
 	n.left = left
 	n.right = right
+	return n
+}
+
+func (n *Unary) Init(op byte, left Node) Node {
+	n.op = op
+	n.left = left
 	return n
 }
 
@@ -49,6 +61,18 @@ func (n *Binary) Eval() (Number, bool) {
 			return 0, false
 		}
 		return left / right, true
+	}
+	return 0, false
+}
+
+func (n *Unary) Eval() (Number, bool) {
+	left, ok := n.left.Eval()
+	if !ok {
+		return 0, false
+	}
+	switch n.op {
+	case '-':
+		return 0 - left, true
 	}
 	return 0, false
 }
@@ -85,13 +109,7 @@ type Lexer struct {
 	Oper byte
 }
 
-const (
-	ERR  = iota // error
-	NUM         // number
-	LPAR        // left parenthesis
-	RPAR        // right parenthesis
-	OP          // operator
-)
+
 
 func (lexer *Lexer) Init(data string) *Lexer {
 	lexer.data = data
@@ -103,20 +121,12 @@ func (l *Lexer) Next() int {
 	n := len(l.data)
 	l.Kind = ERR
 	if l.pos < n {
-		switch char := l.data[l.pos]; char {
-		case '+', '-', '*', '/':
-			l.pos++
-			l.Kind = OP
-			l.Oper = char
-		case '(':
-			l.pos++
-			l.Kind = LPAR
-			l.Oper = char
-		case ')':
-			l.pos++
-			l.Kind = RPAR
-			l.Oper = char
-		case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.':
+		char := l.data[l.pos]
+		var prevChar uint8
+		if l.pos != 0 {
+			prevChar = l.data[l.pos-1]
+		}
+		if char == '0' || char == '1' || char ==  '2' || char ==  '3' || char ==  '4' || char ==  '5' || char ==  '6' || char ==  '7' || char ==  '8' || char ==  '9' {
 			var value Number = 0
 			var divisor Number = 1
 			for ; l.pos < n && '0' <= l.data[l.pos] && l.data[l.pos] <= '9'; l.pos++ {
@@ -131,6 +141,24 @@ func (l *Lexer) Next() int {
 			}
 			l.Kind = NUM
 			l.Num = value / divisor
+		}  else if char == ')' {
+			l.pos++
+			l.Kind = RPAR
+			l.Oper = char
+		} else if char == '(' {
+			l.pos++
+			l.Kind = LPAR
+			l.Oper = char
+		}  else if char == '+' || char == '-' || char == '*'|| char == '/' {
+			if char == '-' && (prevChar == '+' || prevChar == '-' || prevChar == '/' || prevChar== '*' || prevChar == '('){
+				l.pos++
+				l.Kind = NEG
+				l.Oper = char
+			} else {
+				l.pos++
+				l.Kind = OP
+				l.Oper = char
+			}
 		}
 	}
 	return l.Kind
@@ -184,9 +212,24 @@ func (p *Parser) parsePrimary() (Node, bool) {
 			p.lexer.Next()
 		}
 		return node, true
+	case NEG:
+		p.lexer.Next()
+		p.lexer.Num = p.lexer.Num*-1
+		node := new(Leaf).Init(p.lexer.Num)
+		p.lexer.Kind = OP
+		return node, true
 	}
 	return nil, false
 }
+
+const (
+	ERR  = iota // error
+	NUM         // number
+	LPAR        // left parenthesis
+	RPAR        // right parenthesis
+	OP          // operator
+	NEG     // a negative sign
+)
 
 func (p *Parser) parseOperators(lhs Node, min_precedence int) (Node, bool) {
 	var ok bool
@@ -194,6 +237,9 @@ func (p *Parser) parseOperators(lhs Node, min_precedence int) (Node, bool) {
 	for p.lexer.Kind == OP && p.precedence[p.lexer.Oper] >= min_precedence {
 		op := p.lexer.Oper
 		p.lexer.Next()
+		if p.lexer.Num < 0 {
+			p.lexer.Kind = NUM
+		}
 		rhs, ok = p.parsePrimary()
 		if !ok {
 			return nil, false
@@ -224,6 +270,7 @@ func Calculate(substitutedExpression string) (float64, error) {
 
 	//substitutedExpression = MartinsReplace(substitutedExpression, " ", "")
 	//substitutedExpression = NegativeNumberParser(substitutedExpression)
+	substitutedExpression = NegativeNumberParser2(substitutedExpression)
 	p = new(Parser).Init(substitutedExpression)
 	p.AddOperator('+', 1)
 	p.AddOperator('-', 1)
@@ -267,6 +314,19 @@ func MartinsReplace(str string, old, new string) string {
 }
 
 // Calcu
+
+func NegativeNumberParser2(str string) string {
+	if str == "" {
+		return ""
+	}
+
+	builder := strings.Builder{}
+	if str[0] == '-' {
+		builder.WriteByte('0')
+	}
+	builder.WriteString(str)
+	return builder.String()
+}
 
 // NegativeNumberParser is used to generate a representation that is aware of negative numbers in all possible
 // mathematical variations e.g. -1 1--1 etc. It acts as a sanitization method before the actual evaluation happens

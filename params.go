@@ -15,21 +15,21 @@ var AllSeed = []int{0, 5, 50, 100, 250, 500, 1000}
 var AllGenerationsCount = []int{50, 75, 100, 150, 250, 500}
 var AllEachPopulationSize = []int{100, 250, 500, 1000, 2000}
 var AllReproduction = []evolution.Reproduction{
-	evolution.Reproduction{ProbabilityOfMutation: 0.1, CrossoverPercentage:0.1},
-	evolution.Reproduction{ProbabilityOfMutation: 0.1, CrossoverPercentage:0.2},
-	evolution.Reproduction{ProbabilityOfMutation: 0.1, CrossoverPercentage:0.3},
-	evolution.Reproduction{ProbabilityOfMutation: 0.1, CrossoverPercentage:0.4},
-	evolution.Reproduction{ProbabilityOfMutation: 0.1, CrossoverPercentage:0.5},
-	evolution.Reproduction{ProbabilityOfMutation: 0.1, CrossoverPercentage:0.6},
-	evolution.Reproduction{ProbabilityOfMutation: 0.1, CrossoverPercentage:0.7},
-	evolution.Reproduction{ProbabilityOfMutation: 0.1, CrossoverPercentage:0.8},
-	evolution.Reproduction{ProbabilityOfMutation: 0.1, CrossoverPercentage:0.9},
-	evolution.Reproduction{ProbabilityOfMutation: 0.1, CrossoverPercentage:1.0},
+	evolution.Reproduction{ProbabilityOfMutation: 0.1, CrossoverPercentage: 0.1},
+	evolution.Reproduction{ProbabilityOfMutation: 0.1, CrossoverPercentage: 0.2},
+	evolution.Reproduction{ProbabilityOfMutation: 0.1, CrossoverPercentage: 0.3},
+	evolution.Reproduction{ProbabilityOfMutation: 0.1, CrossoverPercentage: 0.4},
+	evolution.Reproduction{ProbabilityOfMutation: 0.1, CrossoverPercentage: 0.5},
+	evolution.Reproduction{ProbabilityOfMutation: 0.1, CrossoverPercentage: 0.6},
+	evolution.Reproduction{ProbabilityOfMutation: 0.1, CrossoverPercentage: 0.7},
+	evolution.Reproduction{ProbabilityOfMutation: 0.1, CrossoverPercentage: 0.8},
+	evolution.Reproduction{ProbabilityOfMutation: 0.1, CrossoverPercentage: 0.9},
+	evolution.Reproduction{ProbabilityOfMutation: 0.1, CrossoverPercentage: 1.0},
 }
 
-var AllDepthOfRandomNewTree = []int{1,2,5,10}
-var AllAntagonistStrategyCount = []int{2,5,10,15,20,30,50, 75, 100, 250}
-var AllProtagonistStrategyCount = []int{2,5,10,15,20,30,50, 75, 100, 250}
+var AllDepthOfRandomNewTree = []int{1, 2, 5, 10}
+var AllAntagonistStrategyCount = []int{2, 5, 10, 15, 20, 30, 50, 75, 100, 250}
+var AllProtagonistStrategyCount = []int{2, 5, 10, 15, 20, 30, 50, 75, 100, 250}
 
 var AllFitnessStrategyType = []string{evolution.FitnessThresholdedAntagonistRatio,
 	evolution.FitnessDualThresholdedRatio, evolution.FitnessRatio}

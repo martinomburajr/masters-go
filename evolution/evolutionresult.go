@@ -687,6 +687,15 @@ func writetoFile(path string, evolutionResult *EvolutionResult, params Evolution
 	return json.NewEncoder(file).Encode(jsonOutput)
 }
 
+type JSONCoalescedOutput struct {
+	Name string `json:"name"`
+	TopProtagonists []JSONGeneric `json:"coalescedTopProtagonists"`
+	TopAntagonists []JSONGeneric `json:"coalescedTopAntagonists"`
+	Averages []JSONGeneric `json:"coalescedAverages"`
+	Equations []JSONEquations `json:"coalescedEquations"`
+	CoalescedOutput []JSONOutput `json:"coalescedOutput"`
+}
+
 type JSONOutput struct {
 	Averages JSONGeneric `json:"averages"`
 
