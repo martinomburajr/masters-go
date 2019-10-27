@@ -689,10 +689,6 @@ func writetoFile(path string, evolutionResult *EvolutionResult, params Evolution
 
 type JSONCoalescedOutput struct {
 	Name            string          `json:"name"`
-	TopProtagonists []JSONGeneric   `json:"coalescedTopProtagonists"`
-	TopAntagonists  []JSONGeneric   `json:"coalescedTopAntagonists"`
-	Averages        []JSONGeneric   `json:"coalescedAverages"`
-	Equations       []JSONEquations `json:"coalescedEquations"`
 	CoalescedOutput []JSONOutput    `json:"coalescedOutput"`
 }
 

@@ -1,6 +1,10 @@
 package main
 
-import "github.com/martinomburajr/masters-go/evolution"
+import (
+	"github.com/martinomburajr/masters-go/evolution"
+	"log"
+	"os/exec"
+)
 
 func main() {
 	//name := "run.json"
@@ -13,11 +17,17 @@ func main() {
 	//json.NewEncoder(f).Encode(params)
 
 	simulation := Simulation{
-		NumberOfRunsPerState: 10,
+		NumberOfRunsPerState: 1,
 		Name:                 "simulation-1",
 	}
-	//
-	//simulation.Begin()
-	//cmd := exec.Command("Rscript", "launch.R")
-	//log.Fatal(cmd.Run())
+
+
+	params := evolution.EvolutionParams{
+
+	}
+
+
+	simulation.Begin(params)
+	cmd := exec.Command("Rscript", "launch.R")
+	log.Fatal(cmd.Run())
 }

@@ -12,10 +12,16 @@ import (
 )
 
 type Simulation struct {
-	EvolutionStates      []evolution.EvolutionParams
+	CurrentEvolutionState evolution.EvolutionParams
 	NumberOfRunsPerState int
 	Name                 string
 }
+
+func (s *Simulation) Begin(params evolution.EvolutionParams) {
+	engine, evolutionParams := PrepareSimulation(params, s.NumberOfRunsPerState)
+	StartEngine(engine, evolutionParams)
+}
+
 
 // BeginToil will work through a multidimensional set of data to try all possible combination of parameters for ideal
 // parameter tuning
@@ -163,6 +169,7 @@ func (s *Simulation) BeginToil(indexFile string) error {
 	return nil
 
 }
+
 
 func CoalesceFiles(folderPath string, fileSuffix string, noOfFiles int) error {
 	jsonOutputs := make([]evolution.JSONOutput, noOfFiles)
