@@ -72,7 +72,6 @@ const (
 	// StrategySkip performs no operations on the given subtree.
 	StrategySkip = "StrategySkip"
 
-
 	StrategyMultX
 	StrategyMult1
 	StrategyAddX

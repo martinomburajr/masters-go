@@ -138,7 +138,7 @@ func (s *Simulation) BeginToil(indexFile string) error {
 																		}
 
 																		if numberOfRunsPerState == loadedIndex.
-																			NumberOfRunsPerState - 1 {
+																			NumberOfRunsPerState-1 {
 
 																		}
 																	}
@@ -180,8 +180,6 @@ func CoalesceFiles(folderPath string, fileSuffix string, noOfFiles int) error {
 		}
 		jsonOutputs[i] = jsonOutput
 	}
-
-
 
 }
 
