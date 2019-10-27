@@ -7,8 +7,8 @@ var GenerationTest0 = Generation{
 	hasParentSelectionHappened:   false,
 	GenerationID:                 "gen0",
 	isComplete:                   false,
-	Protagonists:                 []*Individual{&IndividualProg0Kind0, &IndividualProg0Kind1},
-	Antagonists:                  []*Individual{&IndividualProg1Kind1, &IndividualNilProgNil},
+	Protagonists:                 []Individual{IndividualProg0Kind0, IndividualProg0Kind1},
+	Antagonists:                  []Individual{IndividualProg1Kind1, IndividualNilProgNil},
 	hasSurvivorSelectionHappened: false,
 }
 
@@ -18,7 +18,7 @@ var GenerationTest1 = Generation{
 	hasParentSelectionHappened:   false,
 	GenerationID:                 "gen0",
 	isComplete:                   false,
-	Protagonists:                 []*Individual{&IndividualProg0Kind0},
-	Antagonists:                  []*Individual{&IndividualProg1Kind1, &IndividualNilProgNil},
+	Protagonists:                 []Individual{IndividualProg0Kind0},
+	Antagonists:                  []Individual{IndividualProg1Kind1, IndividualNilProgNil},
 	hasSurvivorSelectionHappened: false,
 }
