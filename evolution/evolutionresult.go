@@ -58,7 +58,8 @@ func (e *EvolutionResult) Analyze(generations []*Generation, isMoreFitnessBetter
 	e.CoevolutionaryAverages = coevolutionaryAverages
 	e.HasBeenAnalyzed = true
 
-	err = writetoFile(params.StatisticsOutput.OutputPath, e, params)
+	outputFile, err := WritetoFile(params.StatisticsOutput.OutputPath, e, params)
+	e.OutputFile = outputFile
 	return err
 }
 
@@ -473,8 +474,8 @@ func interactiveWriteToFile(reader *bufio.Reader, evolutionResult *EvolutionResu
 			isNotValidFileName = false
 		}
 	}
-	err := writetoFile(fileName, evolutionResult, params)
-	return "", err
+	path, err := WritetoFile(fileName, evolutionResult, params)
+	return path, err
 	//return fmt.Sprintf("Feature not yet implemented. Will not write to %s", fileName), nil
 }
 
@@ -545,7 +546,7 @@ func interactiveSearchForTreeShape(reader *bufio.Reader, sortedGenerations []*Ge
 	return builder.String(), nil
 }
 
-func writetoFile(path string, evolutionResult *EvolutionResult, params EvolutionParams) error {
+func WritetoFile(path string, evolutionResult *EvolutionResult, params EvolutionParams) (string, error) {
 	jsonOutput := JSONOutput{
 		Averages: JSONGeneric{
 			Antagonist: Coordinates{
@@ -651,11 +652,11 @@ func writetoFile(path string, evolutionResult *EvolutionResult, params Evolution
 
 	topProtagonistMathExpression, err := evolutionResult.TopProtagonist.Program.T.ToMathematicalString()
 	if err != nil {
-		return err
+		return "", err
 	}
 	topAntagonistMathExpression, err := evolutionResult.TopAntagonist.Program.T.ToMathematicalString()
 	if err != nil {
-		return err
+		return "", err
 	}
 	// Equations
 	jsonOutput.Equations = JSONEquations{
@@ -679,17 +680,32 @@ func writetoFile(path string, evolutionResult *EvolutionResult, params Evolution
 		},
 	}
 
+	err = os.Mkdir(params.StatisticsOutput.OutputDir, 0755)
+	innerFolder := strings.ReplaceAll(path, ".json", "")
+	err = os.Mkdir(innerFolder, 0755)
+	g :=strings.SplitAfter(path, "/")
+
+	mainDir := g[0]
+	subDirInfo := g[1]
+	subsubDirName := strings.ReplaceAll(g[2], ".json", "")
+	leafFileName := g[2]
+
+	path = fmt.Sprintf("%s%s%s/%s", mainDir, subDirInfo, subsubDirName, leafFileName)
 	file, err := os.Create(path)
 	if err != nil {
-		return err
+		return "", err
 	}
 	fmt.Printf("Wrote to file: %s", path)
-	return json.NewEncoder(file).Encode(jsonOutput)
+	err = json.NewEncoder(file).Encode(jsonOutput)
+	if err != nil {
+		return path, err
+	}
+	return path, nil
 }
 
 type JSONCoalescedOutput struct {
-	Name            string          `json:"name"`
-	CoalescedOutput []JSONOutput    `json:"coalescedOutput"`
+	Name            string       `json:"name"`
+	CoalescedOutput []JSONOutput `json:"coalescedOutput"`
 }
 
 type JSONOutput struct {

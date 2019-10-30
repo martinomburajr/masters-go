@@ -72,6 +72,14 @@ func TestDualTree_ToMathematicalString(t *testing.T) {
 	}{
 		{"nil", TreeNil(), "", true},
 		{"T", TreeT_X(), "(x)", false},
+		{"10", TreeT_10(), "(10)", false},
+		{"100", TreeT_100(), "(100)", false},
+		{"100", TreeT_1000(), "(1000)", false},
+		{"x*10", Tree_X10(), "((x)*(10))", false},
+		{"x*100", Tree_X100(), "((x)*(100))", false},
+		{"x*1000", Tree_X1000(), "((x)*(1000))", false},
+		{"x*10000", Tree_X10000(), "((x)*(10000))", false},
+		{"x*100000", Tree_X100000(), "((x)*(100000))", false},
 		{"T-NT-T", TreeT_NT_T_0(), fmt.Sprintf("((%s)%s(%s))", X1.value, Mult.value, Const4.value),
 			false},
 		{"T-NT-T-NT-T", TreeT_NT_T_NT_T_0(),
@@ -83,9 +91,7 @@ func TestDualTree_ToMathematicalString(t *testing.T) {
 				X1.value,
 				Mult.value, Const4.value, Sub.value, Const9.value, Mult.value, Const0.value), false},
 
-		//{"NT(1)", Tree5(), "", true},
-		//{"T - NT(2)", Tree6(), "", true},
-		//{"T - NT(2)", Tree7(), "", true},
+		{"100000*x*x*x", Tree_100000XXX(),"(((100000)*(x))*((x)*(x)))", false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -238,7 +244,7 @@ func TestDualTree_Leafs(t *testing.T) {
 				return
 			}
 			for i := range got {
-				if !got[i].IsValEqual(tt.want[i]) {
+				if !got[i].IsValEqual(*tt.want[i]) {
 					t.Errorf("DualTree.Terminals() = %v, isEqual %v", got[i].value, tt.want[i].value)
 				}
 			}
@@ -320,7 +326,7 @@ func TestDualTree_Branches(t *testing.T) {
 				return
 			}
 			for i := range got {
-				if !got[i].IsValEqual(tt.want[i]) {
+				if !got[i].IsValEqual(*tt.want[i]) {
 					t.Errorf("DualTree.Terminals() = %v, isEqual %v", got[i].value, tt.want[i].value)
 				}
 			}
@@ -573,7 +579,7 @@ func TestDualTree_MutateTerminal(t *testing.T) {
 
 				diffCount := 0
 				for i := 0; i < len(oldTreeLeafs); i++ {
-					if !oldTreeLeafs[i].IsValEqual(newTreeLeafs[i]) {
+					if !oldTreeLeafs[i].IsValEqual(*newTreeLeafs[i]) {
 						diffCount++
 					}
 					if diffCount > 1 {
@@ -640,7 +646,7 @@ func TestDualTree_MutateNonTerminal(t *testing.T) {
 
 				diffCount := 0
 				for i := 0; i < len(oldTreeNonTerminals); i++ {
-					if !oldTreeNonTerminals[i].IsValEqual(newTreeNonTerminals[i]) {
+					if !oldTreeNonTerminals[i].IsValEqual(*newTreeNonTerminals[i]) {
 						diffCount++
 					}
 					if diffCount > 1 {
@@ -733,7 +739,7 @@ func TestSplitter(t *testing.T) {
 				return
 			}
 			for e := range got {
-				got[e].IsValEqual(tt.want[e])
+				got[e].IsValEqual(*tt.want[e])
 			}
 		})
 	}
@@ -994,7 +1000,7 @@ func contains(a, b []*DualTreeNode) (bool, error) {
 	count := 0
 	for i := range a {
 		for j := range b {
-			if a[i].IsValEqual(b[j]) {
+			if a[i].IsValEqual(*b[j]) {
 				count++
 				break
 			}
@@ -1117,10 +1123,10 @@ func TestDualTree_Search(t *testing.T) {
 				t.Errorf("DualTree.Search() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !gotNode.IsEqual(tt.wantNode) {
+			if !gotNode.IsEqual(*tt.wantNode) {
 				t.Errorf("DualTree.Search() gotNode = %v, want %v", gotNode, tt.wantNode)
 			}
-			if !gotParent.IsEqual(tt.wantParent) {
+			if !gotParent.IsEqual(*tt.wantParent) {
 				t.Errorf("DualTree.Search() gotParent = %v, want %v", gotParent, tt.wantParent)
 			}
 		})
@@ -1175,7 +1181,7 @@ func TestDualTree_Replace(t *testing.T) {
 				return
 			}
 			if !tt.wantErr {
-				equal := gotHobo.IsValEqual(tt.args.node)
+				equal := gotHobo.IsValEqual(*tt.args.node)
 				if !equal {
 					t.Errorf("DualTree.Replace() Hobo node doesnt have the same value is nil | goParentKey:  gotHobo"+
 						" = %v, want %v", gotParent,
@@ -1493,7 +1499,7 @@ func TestDualTree_GetBranchesAware(t *testing.T) {
 			}
 			if !tt.wantErr {
 				for o := range got {
-					if !got[o].node.IsEqual(tt.want[o].node) {
+					if !got[o].node.IsEqual(*tt.want[o].node) {
 						t.Errorf("DualTree.GetNonTerminalsAware() = %v, want %v", got[o].node, tt.want[o].node)
 					}
 					if got[o].parent == nil && tt.want[o].parent != nil {
@@ -1503,7 +1509,7 @@ func TestDualTree_GetBranchesAware(t *testing.T) {
 						t.Errorf("DualTree.GetNonTerminalsAware() = %v, want %v", got[o].parent, tt.want[o].parent)
 					}
 					if got[o].parent != nil && tt.want[o].parent != nil {
-						if !got[o].parent.IsEqual(tt.want[o].parent) || !got[o].parent.IsEqual(tt.want[o].
+						if !got[o].parent.IsEqual(*tt.want[o].parent) || !got[o].parent.IsEqual(*tt.want[o].
 							parent) {
 							t.Errorf("DualTree.GetNonTerminalsAware() = %v, want %v", got[o].parent, tt.want[o].parent)
 						}
@@ -1608,7 +1614,7 @@ func TestDualTree_GetLeafsAware(t *testing.T) {
 			}
 			if !tt.wantErr {
 				for o := range got {
-					if !got[o].node.IsEqual(tt.want[o].node) {
+					if !got[o].node.IsEqual(*tt.want[o].node) {
 						t.Errorf("DualTree.GetNonTerminalsAware() = %v, want %v", got[o].node, tt.want[o].node)
 					}
 					if got[o].parent == nil && tt.want[o].parent != nil {
@@ -1618,7 +1624,7 @@ func TestDualTree_GetLeafsAware(t *testing.T) {
 						t.Errorf("DualTree.GetNonTerminalsAware() = %v, want %v", got[o].parent, tt.want[o].parent)
 					}
 					if got[o].parent != nil && tt.want[o].parent != nil {
-						if !got[o].parent.IsEqual(tt.want[o].parent) || !got[o].parent.IsEqual(tt.want[o].
+						if !got[o].parent.IsEqual(*tt.want[o].parent) || !got[o].parent.IsEqual(*tt.want[o].
 							parent) {
 							t.Errorf("DualTree.GetNonTerminalsAware() = %v, want %v", got[o].parent, tt.want[o].parent)
 						}

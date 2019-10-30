@@ -63,7 +63,7 @@ func TestEvaluateMathematicalExpression(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := EvaluateMathematicalExpression(tt.args.expressionString, tt.args.independentVariables)
+			got, err := EvaluateMathematicalExpression(tt.args.expressionString, tt.args.independentVariables, 0)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("EvaluateMathematicalExpression() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -82,7 +82,7 @@ func BenchmarkEvaluateMathematicalExpression(b *testing.B) {
 	varMap := map[string]float64{"x": 0}
 
 	for i := 0; i < b.N; i++ {
-		mathematicalExpression1, err := EvaluateMathematicalExpression(expression, varMap)
+		mathematicalExpression1, err := EvaluateMathematicalExpression(expression, varMap, 0)
 		if err != nil {
 			b.Error(err)
 		}

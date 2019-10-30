@@ -96,6 +96,7 @@ func BenchmarkGValWithVarX(b *testing.B) {
 	}
 	b.Log(x1)
 }
+
 //
 //func BenchmarkCalculateWithManyVarX(b *testing.B) {
 //	b.ReportAllocs()

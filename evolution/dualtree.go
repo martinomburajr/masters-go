@@ -132,7 +132,7 @@ func (bst *DualTree) GetNonTerminalsAware() ([]AwareTree, error) {
 
 	bst.InOrderTraverseAware(func(n *DualTreeNode, parentNode *DualTreeNode) {
 		if !n.IsLeaf() {
-			if n.IsEqual(bst.root) {
+			if n.IsEqual(*bst.root) {
 				awareTrees = append(awareTrees, AwareTree{node: n, parent: nil})
 			} else {
 				awareTrees = append(awareTrees, AwareTree{node: n, parent: parentNode})
@@ -560,10 +560,10 @@ func (bst *DualTree) ContainsSubTree(subTree *DualTree) (bool, error) {
 	}
 
 	for i := range tree {
-		if tree[i].IsEqual(subTreeSlice[0]) {
+		if tree[i].IsEqual(*subTreeSlice[0]) {
 			count := 0
 			for j := 0; j < len(subTreeSlice); j++ {
-				if !tree[i+j].IsEqual(subTreeSlice[j]) {
+				if !tree[i+j].IsEqual(*subTreeSlice[j]) {
 					break
 				}
 				count++
@@ -588,7 +588,7 @@ func (bst *DualTree) ContainsNode(treeNode *DualTreeNode) (bool, error) {
 
 	found := false
 	bst.InOrderTraverse(func(node *DualTreeNode) {
-		if treeNode.IsEqual(node) {
+		if treeNode.IsEqual(*node) {
 			found = true
 		}
 		return
@@ -1182,7 +1182,7 @@ func (bst *DualTree) hasDiverseNonTerminalSet() (bool, error) {
 
 	holder := branches[0]
 	for i := range branches {
-		if !branches[i].IsValEqual(holder) {
+		if !branches[i].IsValEqual(*holder) {
 			return true, nil
 		}
 	}
@@ -1286,7 +1286,7 @@ func (bst *DualTree) GetShortestBranch(minAcceptableDepth int) (shortestNode *Du
 				return
 			}
 			nodeDepth.depth = *d
-			if n.IsEqual(p) {
+			if n.IsEqual(*p) {
 				nodeDepth.node = n
 				nodeDepth.parent = nil
 				*shouldReturn = true

@@ -253,7 +253,7 @@ func Calculate(substitutedExpression string) (float64, error) {
 	var p *Parser
 	var parseOk, evalOk bool
 
-	substitutedExpression = NegativeNumberParser2(substitutedExpression)
+	substitutedExpression = NegativeNumberParser(substitutedExpression)
 	p = new(Parser).Init(substitutedExpression)
 	p.AddOperator('+', 1)
 	p.AddOperator('-', 1)
@@ -283,21 +283,9 @@ func CalculateWithVar(substitutedExpression string, variables map[string]float64
 	return Calculate(substitutedExpression)
 }
 
-// MartinsReplace can only replace a single item string
-func MartinsReplace(str string, old, new string) string {
-	sb := strings.Builder{}
-	for i := 0; i < len(str); i++ {
-		if str[i] == []byte(old)[0] {
-			sb.WriteString(new)
-			continue
-		}
-		sb.WriteByte(str[i])
-	}
-	return sb.String()
-}
 
-// Calcu
-func NegativeNumberParser2(str string) string {
+// NegativeNumberParser adds a 0 if an odd number is at the start of a string
+func NegativeNumberParser(str string) string {
 	if str == "" {
 		return ""
 	}
@@ -309,89 +297,3 @@ func NegativeNumberParser2(str string) string {
 	return builder.String()
 }
 
-// NegativeNumberParser is used to generate a representation that is aware of negative numbers in all possible
-// mathematical variations e.g. -1 1--1 etc. It acts as a sanitization method before the actual evaluation happens
-func NegativeNumberParser(str string) string {
-	builder := strings.Builder{}
-	if len(str) == 0 {
-		return ""
-	}
-	if str[0] == '-' {
-		builder.WriteString("0-") //Change to write byte
-		if str[1] == '(' && str[2] == '-' {
-			builder.WriteString("(0") //Change to write byte
-			fixerAttempts := 0
-			for i := 2; i < len(str); i++ {
-				if str[i] == '-' && str[i+1] == '-' {
-					builder.WriteString("+")
-					i++
-					fixerAttempts++
-				} else {
-					builder.WriteByte(str[i])
-				}
-			}
-			for i := len(str) - fixerAttempts; i < len(str)-1; i++ {
-				if str[i] != '-' {
-					builder.WriteByte(str[i])
-				}
-			}
-			return builder.String()
-		}
-	} else if str[0] == '(' && str[1] == '-' {
-		builder.WriteString("(0") //Change to write byte
-	} else {
-		builder.WriteByte(str[0])
-	}
-	fixerAttempts := 0
-	addEndParenth := 0
-	for i := 1; i < len(str); i++ {
-		if str[i] == '-' && str[i+1] == '-' {
-			builder.WriteString("+")
-			i++
-			fixerAttempts++
-		} else if str[i] == '(' && str[i+1] == '-' {
-			builder.WriteString("(0-")
-			i++
-			fixerAttempts++
-		} else if str[i] == '*' && str[i+1] == '-' {
-			builder.WriteString("*(0-")
-			i += 1
-			fixerAttempts += 1
-			addEndParenth += 1
-		} else if str[i] == '+' && str[i+1] == '-' {
-			builder.WriteString("+(0-")
-			i += 1
-			fixerAttempts += 1
-			addEndParenth += 1
-		} else if str[i] == '/' && str[i+1] == '-' {
-			builder.WriteString("/(0-")
-			i += 1
-			fixerAttempts += 1
-			addEndParenth += 1
-		} else {
-			builder.WriteByte(str[i])
-		}
-	}
-	//g := builder.String()
-	//log.Println(g)
-	for i := len(str) - (fixerAttempts); i < len(str); i++ {
-		//u := string(str[i])
-		//log.Print(u)
-		if str[i] != '-' {
-			builder.WriteByte(str[i])
-		}
-	}
-	for i := 0; i < addEndParenth; i++ {
-		builder.WriteByte(')')
-	}
-
-	return builder.String()
-}
-
-// NegativeNumberParser is used to generate a representation that is aware of negative numbers in all possible
-// mathematical variations e.g. -1 1--1 etc. It acts as a sanitization method before the actual evaluation happens
-//func NegativeNumberParser2(str string) string {
-//	str1 := strings.ReplaceAll(str, "(-", "(0-")
-//	str2 := strings.ReplaceAll(str1, "(-", "(0-")
-//	str3 := strings.ReplaceAll(str2, "(-", "(0-")
-//}

@@ -40,6 +40,30 @@ var TreeT_X = func() *DualTree {
 	return &t
 }
 
+var TreeT_10 = func() *DualTree {
+	t := DualTree{}
+	t.root = Const10.ToDualTreeNode("0")
+	return &t
+}
+
+var TreeT_100 = func() *DualTree {
+	t := DualTree{}
+	t.root = Const100.ToDualTreeNode("0")
+	return &t
+}
+
+var TreeT_1000 = func() *DualTree {
+	t := DualTree{}
+	t.root = Const1000.ToDualTreeNode("0")
+	return &t
+}
+
+var TreeT_10000 = func() *DualTree {
+	t := DualTree{}
+	t.root = Const10000.ToDualTreeNode("0")
+	return &t
+}
+
 // TreeT_1 = 0
 var TreeT_1 = func() *DualTree {
 	t := DualTree{}
@@ -53,6 +77,64 @@ var TreeT_NT_T_4 = func() *DualTree {
 	t.root = Mult.ToDualTreeNode(RandString(5))
 	t.root.left = X1.ToDualTreeNode(RandString(5))
 	t.root.right = X1.ToDualTreeNode(RandString(5))
+	return &t
+}
+
+var Const10 = SymbolicExpression{kind: 0, value: "10", arity: 0}
+var Const100 = SymbolicExpression{kind: 0, value: "100", arity: 0}
+var Const1000 = SymbolicExpression{kind: 0, value: "1000", arity: 0}
+var Const10000 = SymbolicExpression{kind: 0, value: "10000", arity: 0}
+var Const100000 = SymbolicExpression{kind: 0, value: "100000", arity: 0}
+
+var Tree_X10 = func() *DualTree {
+	t := DualTree{}
+	t.root = Mult.ToDualTreeNode(RandString(5))
+	t.root.left = X1.ToDualTreeNode(RandString(5))
+	t.root.right = Const10.ToDualTreeNode(RandString(5))
+	return &t
+}
+
+var Tree_X100 = func() *DualTree {
+	t := DualTree{}
+	t.root = Mult.ToDualTreeNode(RandString(5))
+	t.root.left = X1.ToDualTreeNode(RandString(5))
+	t.root.right = Const100.ToDualTreeNode(RandString(5))
+	return &t
+}
+
+var Tree_X1000 = func() *DualTree {
+	t := DualTree{}
+	t.root = Mult.ToDualTreeNode(RandString(5))
+	t.root.left = X1.ToDualTreeNode(RandString(5))
+	t.root.right = Const1000.ToDualTreeNode(RandString(5))
+	return &t
+}
+
+var Tree_X10000 = func() *DualTree {
+	t := DualTree{}
+	t.root = Mult.ToDualTreeNode(RandString(5))
+	t.root.left = X1.ToDualTreeNode(RandString(5))
+	t.root.right = Const10000.ToDualTreeNode(RandString(5))
+	return &t
+}
+
+var Tree_X100000 = func() *DualTree {
+	t := DualTree{}
+	t.root = Mult.ToDualTreeNode(RandString(5))
+	t.root.left = X1.ToDualTreeNode(RandString(5))
+	t.root.right = Const100000.ToDualTreeNode(RandString(5))
+	return &t
+}
+
+var Tree_100000XXX = func() *DualTree {
+	t := DualTree{}
+	t.root = Mult.ToDualTreeNode(RandString(5))
+	t.root.left = Mult.ToDualTreeNode(RandString(5))
+	t.root.left.left = Const100000.ToDualTreeNode(RandString(5))
+	t.root.left.right = X1.ToDualTreeNode(RandString(5))
+	t.root.right = Mult.ToDualTreeNode(RandString(5))
+	t.root.right.left = X1.ToDualTreeNode(RandString(5))
+	t.root.right.right = X1.ToDualTreeNode(RandString(5))
 	return &t
 }
 

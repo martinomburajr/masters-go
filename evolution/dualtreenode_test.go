@@ -65,7 +65,7 @@ func TestDualTreeNode_IsValEqual(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.fields.IsValEqual(tt.args); got != tt.want {
+			if got := tt.fields.IsValEqual(*tt.args); got != tt.want {
 				t.Errorf("DualTreeNode.IsValEqual() = %v, isEqual %v", got, tt.want)
 			}
 		})
@@ -92,7 +92,7 @@ func TestDualTreeNode_IsEqual(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.treeNode.IsEqual(tt.subTree); got != tt.isEqual {
+			if got := tt.treeNode.IsEqual(*tt.subTree); got != tt.isEqual {
 				t.Errorf("DualTreeNode.IsEqual() = %v, isEqual %v", got, tt.isEqual)
 			}
 		})

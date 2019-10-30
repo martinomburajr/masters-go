@@ -18,7 +18,7 @@ type Individual struct {
 	Fitness                  []float64
 	HasAppliedStrategy       bool
 	HasCalculatedFitness     bool
-	FitnessCalculationMethod int
+	FitnessCalculationMethod string
 	Kind                     int
 	Age                      int
 	TotalFitness             float64

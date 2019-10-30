@@ -59,16 +59,16 @@ const (
 	StrategyAddToLeaf  = "StrategyAddToLeaf"
 	StrategyAddToLeafX = "StrategyAddToLeafX"
 
-	// StrategyAddMult will add a subTree with a root of multiplication to a given leaf node
-	StrategyAddMult = "StrategyAddMult"
+	// StrategyAddTreeWithMult will add a subTree with a root of multiplication to a given leaf node
+	StrategyAddTreeWithMult = "StrategyAddTreeWithMult"
 	// StrategyMultX will create a subTree that contains a multiplication as well as an independent variable
 	StrategyAddMultX = "StrategyAddMultX"
-	// StrategyAddMult will add a subTree with a root of subtract to a given leaf node
-	StrategyAddSub  = "StrategyAddSub"
-	StrategyAddSubX = "StrategyAddSubX"
-	// StrategyAddMult will add a subTree with a root of add to a given leaf node
-	StrategyAddAdd  = "StrategyAddAdd"
-	StrategyAddAddX = "StrategyAddAddX"
+	// StrategyAddTreeWithMult will add a subTree with a root of subtract to a given leaf node
+	StrategyAddTreeWithSub = "StrategyAddTreeWithSub"
+	StrategyAddSubX        = "StrategyAddSubX"
+	// StrategyAddTreeWithMult will add a subTree with a root of add to a given leaf node
+	StrategyAddTreeWithAdd = "StrategyAddTreeWithAdd"
+	StrategyAddAddX        = "StrategyAddAddX"
 	// StrategySkip performs no operations on the given subtree.
 	StrategySkip = "StrategySkip"
 

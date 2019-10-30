@@ -1,6 +1,9 @@
 package main
 
-import "testing"
+import (
+	"github.com/martinomburajr/masters-go/simulation"
+	"testing"
+)
 
 func TestEvolution1(t *testing.T) {
 	tests := []struct {
@@ -18,6 +21,6 @@ func TestEvolution1(t *testing.T) {
 func BenchmarkEvolution1(b *testing.B) {
 	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
-		PrepareSimulation()
+		simulation.PrepareSimulation()
 	}
 }

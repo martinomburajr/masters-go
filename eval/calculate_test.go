@@ -26,6 +26,9 @@ func TestCalculate(t *testing.T) {
 		{"(5+(4+(3+(2+ 1))))", args{"(5+(4+(3+(2+ 1))))"}, 0.0, true},
 		{"(4/2)", args{"(4/2)"}, 2, false},
 		{"-1+2", args{"-1+2"}, 1, false},
+		{"((((6)*(2))-((5)+((5)+(6))))*(1))", args{"((((6)*(2))-((5)+((5)+(6))))*(1))"}, -4, false},
+		{"(((6)*(((8)+(2))-(5)))+(((1)+(9))-(((1)*(2))*((1)+(6)))))", args{"(((6)*(((8)+(2))-(5)))+(((1)+(9))-(((1)*(" +
+			"2))*((1)+(6)))))"}, 26, false},
 		{"(4-2)", args{"(4-2)"}, 2, false},
 		{"(4-9)", args{"(4-9)"}, -5, false},
 		{"(4--9)", args{"(4--9)"}, 13, false},
@@ -39,6 +42,10 @@ func TestCalculate(t *testing.T) {
 		{"((1.23)*(1.34)+(2.3442))", args{"((1.23)*(1.34)+(2.3442))"}, 3.9924, false},
 		{"((1.23)*(1.34)+(2.3442))", args{"((1.23)*(1.34)+(2.3442)*(1))"}, 3.9924, false},
 		{"((1.23)*(1.34)+(2.3442))", args{"((1.23)*(1.34)+(2.3442)*(1)*(-1))"}, -0.6959999999999997, false},
+		{"((((6)*(2))-((5)+((5)+(6))))*(0))", args{"((((6)*(2))-((5)+((5)+(6))))*(0))"}, 0, false},
+		{"(((6)*(((8)+(2))-(5)))+(((0)+(9))-(((0)*(2))*((0)+(6)))))", args{"(((6)*(((8)+(2))-(5)))+(((0)+(9))-(((0)*(" +
+			"2))*((0)+(6)))))"}, 39, false},
+		{"1000*1000*1000", args{"1000*1000*1000"}, 1000000000, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -69,10 +76,10 @@ func TestCalculateWithVar(t *testing.T) {
 		{"1", args{"1", nil}, 1, false},
 		{"x without map", args{"x", nil}, 0.0, true},
 		{"x with map", args{"x", map[string]float64{"x": 1}}, 1, false},
-		{"x + y (y no map)", args{"x + y", map[string]float64{"x": 1}}, 0, true},
-		{"x + y", args{"x + y", map[string]float64{"x": 1, "y": 2}}, 3, false},
-		{"x * y", args{"x * y", map[string]float64{"x": 1, "y": 2}}, 2, false},
-		{"x * y * a* b", args{"x * y *a *b", map[string]float64{"x": 1, "y": 2, "a": 3, "b": 4}}, 24, false},
+		{"x + y (y no map)", args{"x + y", map[string]float64{"x": 1}}, 1, false},
+		{"x + y", args{"x+y", map[string]float64{"x": 1, "y": 2}}, 3, false},
+		{"x * y", args{"x*y", map[string]float64{"x": 1, "y": 2}}, 2, false},
+		{"x * y * a* b", args{"x*y*a*b", map[string]float64{"x": 1, "y": 2, "a": 3, "b": 4}}, 24, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -83,76 +90,6 @@ func TestCalculateWithVar(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("CalculateWithVar() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestNegativeNumberParser(t *testing.T) {
-	type args struct {
-		str string
-	}
-	tests := []struct {
-		name string
-		args args
-		want string
-	}{
-		//{"", args{""}, ""},
-		//{"$", args{"$"}, "$"},
-		//{"1", args{"1"}, "1"},
-		//{"1+2", args{"1+2"}, "1+2"},
-		//{"(1+2)", args{"(1+2)"}, "(1+2)"},
-		//{"(1+2--3)", args{"(1+2--3)"}, "(1+2+3)"},
-		//{"-1", args{"-1"}, "0-1"},
-		//{"-1+2", args{"-1+2"}, "0-1+2"},
-		//{"1-1+2", args{"1-1+2"}, "1-1+2"},
-		//{"0--1+2", args{"0--1+2"}, "0+1+2"},
-		//{"0--1+2--2", args{"0--1+2--2"}, "0+1+2+2"},
-		//{"0--1+2--2--3", args{"0--1+2--2--3"}, "0+1+2+2+3"},
-		//{"-0--1+2--2--3", args{"-0--1+2--2--3"}, "0-0+1+2+2+3"},
-		//{"(-50)+(2)", args{"(-50)+(2)"}, "(0-50)+(2)"},
-		//{"-(-50)+(2)", args{"-(-50)+(2)"}, "0-(0-50)+(2)"},
-		//{"-(-50)+(2--2)", args{"-(-50)+(2--2)"}, "0-(0-50)+(2+2)"},
-		//{"(4-(-9))", args{"(4-(-9))"}, "(4-(0-9))"},
-		//{"(4-(-3-9))", args{"(4-(-3-9))"}, "(4-(0-3-9))"},
-		//{"(4-(-3-9)-(-9))", args{"(4-(-3-9)-(-9))"}, "(4-(0-3-9)-(0-9)))"},
-		//{"-50*-50", args{"-50*-50"}, "0-50*(0-50)"},
-		//{"-50*50", args{"-50*50"}, "0-50*50"},
-		//{"-50+-50", args{"-50+-50"}, "0-50+(0-50)"},
-		//{"-50/-50", args{"-50/-50"}, "0-50/(0-50)"},
-		//{"0--1+2--2--3--4--5--6", args{"0--1+2--2--3--4--5--6"}, "0+1+2+2+3+4+5+6"},
-		//{"(4-(-3-9)-(-9)*-2)", args{"(4-(-3-9)-(-9)*-2)"}, "(4-(0-3-9)-(0-9)*(0-2))"},
-		//{"(4-(-3--9)-(-9)*-2*-3)", args{"(4-(-3--9)-(-9)*-2*-3)"}, "(4-(0-3-9)-(0-9)*(0-2)*(0-3))"},
-		//{"4-(-3--9)-(-9)*-2*-3", args{"4-(-3--9)-(-9)*-2*-3"}, "4-(0-3-9)-(0-9)*(0-2)*(0-3)"},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got := NegativeNumberParser(tt.args.str)
-			if got != tt.want {
-				t.Errorf("NegativeNumberParser() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestMartinsReplace(t *testing.T) {
-	type args struct {
-		str string
-		old string
-		new string
-	}
-	tests := []struct {
-		name string
-		args args
-		want string
-	}{
-		{"x * x * x", args{"x * x * x", " ", ""}, "x*x*x"},
-		{"x * x *                                               x", args{"x * x *                                               x", " ", ""}, "x*x*x"},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := MartinsReplace(tt.args.str, tt.args.old, tt.args.new); got != tt.want {
-				t.Errorf("MartinsReplace() = %v, want %v", got, tt.want)
 			}
 		})
 	}

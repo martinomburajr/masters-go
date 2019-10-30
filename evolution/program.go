@@ -2,9 +2,7 @@ package evolution
 
 import (
 	"fmt"
-	"github.com/PaesslerAG/gval"
 	"github.com/martinomburajr/masters-go/eval"
-	"github.com/martinomburajr/masters-go/utils"
 )
 
 const DeletionTypeMalicious = 1
@@ -68,14 +66,14 @@ func (p *Program) ApplyStrategy(strategy Strategy, terminals []SymbolicExpressio
 		err = p.T.AddSubTree(tree)
 		break
 
-	case StrategyAddSub:
+	case StrategyAddTreeWithSub:
 		var tree *DualTree
 		tree, err = GenerateRandomTree(depth, terminals,
 			[]SymbolicExpression{{arity: 2, value: "-", kind: 1}})
 		err = p.T.AddToLeaf(*tree)
 		break
 
-	case StrategyAddAdd:
+	case StrategyAddTreeWithAdd:
 		var tree *DualTree
 		tree, err = GenerateRandomTree(depth, terminals,
 			[]SymbolicExpression{{arity: 2, value: "+", kind: 1}})
@@ -88,7 +86,7 @@ func (p *Program) ApplyStrategy(strategy Strategy, terminals []SymbolicExpressio
 		err = p.T.AddToLeaf(*tree)
 		break
 
-	case StrategyAddMult:
+	case StrategyAddTreeWithMult:
 		var tree *DualTree
 		tree, err = GenerateRandomTree(depth, terminals, []SymbolicExpression{{arity: 2, value: "*", kind: 1}})
 		err = p.T.AddToLeaf(*tree)
@@ -160,25 +158,14 @@ func EvaluateMathematicalExpression(expressionString string, independentVariable
 	if expressionString == "" {
 		return -1, fmt.Errorf("EvaluateMathematicalExpression | expressionString cannot be empty")
 	}
-	//
+
 	var ans = 0.0
-	switch fitnessCalculatorType {
-	case 0:
-		answer, err := eval.CalculateWithVar(expressionString, independentVariables)
-		if err != nil {
-			return -1, err
-		}
-		ans = answer
-	case 1:
-		expression, err := gval.Evaluate(expressionString, independentVariables)
-		if err != nil {
-			return -1, err
-		}
-		ans, err = utils.ConvertToFloat64(expression)
-		if err != nil {
-			return -1, err
-		}
+	answer, err := eval.CalculateWithVar(expressionString, independentVariables)
+	if err != nil {
+		return -1, err
 	}
+	ans = answer
+
 	return ans, nil
 }
 

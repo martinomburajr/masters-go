@@ -36,14 +36,14 @@ type EvolutionParams struct {
 
 func (e EvolutionParams) ToString() string {
 	builder := strings.Builder{}
-	builder.WriteString(e.SpecParam.Expression)
+	expressionStr := strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(e.SpecParam.Expression, "*", ""), "+", ""), "-", ""), "/", "")
+	builder.WriteString(expressionStr)
 	builder.WriteString("-")
-	builder.WriteString(fmt.Sprintf("GenC: %d", e.GenerationsCount))
+	builder.WriteString(fmt.Sprintf("Gen%d", e.GenerationsCount))
 	builder.WriteString("-")
-	builder.WriteString(fmt.Sprintf("PopC: %d", e.EachPopulationSize))
+	builder.WriteString(fmt.Sprintf("Pop%d", e.EachPopulationSize))
 	builder.WriteString("-")
-	builder.WriteString(fmt.Sprintf("PopC: %d", e.FitnessStrategy.Type))
-	builder.WriteString("-")
+	builder.WriteString(fmt.Sprintf("%s", e.FitnessStrategy.Type))
 
 	return builder.String()
 }
@@ -51,6 +51,7 @@ func (e EvolutionParams) ToString() string {
 type StatisticsOutput struct {
 	OutputPath string `json:"outputPath"`
 	Name       string `json:"name"`
+	OutputDir  string `json:"outputDir"`
 }
 
 type AvailableVariablesAndOperators struct {
@@ -138,10 +139,10 @@ type EvolutionEngine struct {
 	Parameters  EvolutionParams `json:"parameters"`
 }
 
-func (e *EvolutionEngine) Start() (EvolutionResult, error) {
+func (e *EvolutionEngine) Start() (*EvolutionResult, error) {
 	err := e.validate()
 	if err != nil {
-		return EvolutionResult{}, err
+		return nil, err
 	}
 
 	// Set First Generation - TODO Parallelize Individual Creation
@@ -158,13 +159,13 @@ func (e *EvolutionEngine) Start() (EvolutionResult, error) {
 	antagonists, err := e.Generations[0].GenerateRandomIndividual(IndividualAntagonist,
 		e.Parameters.StartIndividual)
 	if err != nil {
-		return EvolutionResult{}, err
+		return nil, err
 	}
 
 	protagonists, err := e.Generations[0].GenerateRandomIndividual(IndividualProtagonist,
 		Program{})
 	if err != nil {
-		return EvolutionResult{}, err
+		return nil, err
 	}
 
 	gen0.Protagonists = protagonists
@@ -175,27 +176,27 @@ func (e *EvolutionEngine) Start() (EvolutionResult, error) {
 	for i := 0; i < e.Parameters.GenerationsCount-1; i++ {
 		protagonistsCleanse, err := CleansePopulation(e.Generations[i].Protagonists, *e.Parameters.StartIndividual.T)
 		if err != nil {
-			return EvolutionResult{}, err
+			return nil, err
 		}
 		antagonistsCleanse, err := CleansePopulation(e.Generations[i].Antagonists, *e.Parameters.StartIndividual.T)
 		if err != nil {
-			return EvolutionResult{}, err
+			return nil, err
 		}
 
 		e.Generations[i].Protagonists = protagonistsCleanse
 		e.Generations[i].Antagonists = antagonistsCleanse
 		nextGeneration, err := e.Generations[i].Start(i)
 		if err != nil {
-			return EvolutionResult{}, err
+			return nil, err
 		}
 		e.Generations[i+1] = nextGeneration
 	}
 
-	evolutionResult := EvolutionResult{}
+	evolutionResult := &EvolutionResult{}
 	err = evolutionResult.Analyze(e.Generations, e.Parameters.FitnessStrategy.IsMoreFitnessBetter,
 		e.Parameters)
 	if err != nil {
-		return EvolutionResult{}, err
+		return nil, err
 	}
 
 	return evolutionResult, nil

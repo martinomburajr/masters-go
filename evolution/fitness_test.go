@@ -108,7 +108,8 @@ func TestAggregateFitness(t *testing.T) {
 }
 
 func TestThresholdedRatioFitness(t *testing.T) {
-	xx25Spec, _ := GenerateSpec("x*x", []string{"x"}, 5, -2, 2, 5)
+	var xx25Spec, _ = GenerateSpecSimple(SpecParam{Expression:"x*x", Range: 5,Seed:-2 }, FitnessStrategy{Type:FitnessRatio,
+		IsMoreFitnessBetter:true}, 0)
 	type args struct {
 		spec        SpecMulti
 		antagonist  *Program
@@ -125,7 +126,8 @@ func TestThresholdedRatioFitness(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotAntagonistFitness, gotProtagonistFitness, err := ThresholdedRatioFitness(tt.args.spec, tt.args.antagonist, tt.args.protagonist)
+			gotAntagonistFitness, gotProtagonistFitness, err := ThresholdedRatioFitness(tt.args.spec,
+				tt.args.antagonist, tt.args.protagonist,0)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ThresholdedRatioFitness() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -140,14 +142,15 @@ func TestThresholdedRatioFitness(t *testing.T) {
 	}
 }
 
-var xSpec, _ = GenerateSpecSimple("x", 5, -1*(5/2), 5, 2)
-var xSpecMono, _ = GenerateSpecSimple("x", 5, -1*(5/2), 3, 3)
-var xSpecCount10, _ = GenerateSpecSimple("x", 10, -1*(10/2), 5, 2)
-var xSpecCount10Mono, _ = GenerateSpecSimple("x", 10, -1*(10/2), 3, 3)
-var xSpecCount100, _ = GenerateSpecSimple("x", 100, -1*(10/2), 5, 2)
-var xSpecCount100Mono, _ = GenerateSpecSimple("x", 100, -1*(10/2), 3, 3)
-var xxSpecCount100, _ = GenerateSpecSimple("x*x", 100, -1*(10/2), 5, 2)
-var xxSpecCount100Mono, _ = GenerateSpecSimple("x*x", 100, -1*(10/2), 3, 3)
+var xSpec, _ = GenerateSpecSimple(SpecParam{Expression:"x", Range: 0,Seed:1 }, FitnessStrategy{Type:FitnessRatio,
+	IsMoreFitnessBetter:true}, 0)
+var xSpecMono, _ = GenerateSpecSimple(SpecParam{Expression:"x",Range: 0,Seed:1 },  FitnessStrategy{Type:FitnessRatio,IsMoreFitnessBetter:true}, 0)
+var xSpecCount10, _ = GenerateSpecSimple(SpecParam{Expression:"x",Range: 0,Seed:1 },  FitnessStrategy{Type:FitnessRatio,IsMoreFitnessBetter:true}, 0)
+var xSpecCount10Mono, _ = GenerateSpecSimple(SpecParam{Expression:"x",Range: 0,Seed:1 },  FitnessStrategy{Type:FitnessRatio,IsMoreFitnessBetter:true}, 0)
+var xSpecCount100, _ = GenerateSpecSimple(SpecParam{Expression:"x",Range: 0,Seed:1 },  FitnessStrategy{Type:FitnessRatio,IsMoreFitnessBetter:true}, 0)
+var xSpecCount100Mono, _ = GenerateSpecSimple(SpecParam{Expression:"x",Range: 0,Seed:1 },  FitnessStrategy{Type:FitnessRatio,IsMoreFitnessBetter:true}, 0)
+var xxSpecCount100, _ = GenerateSpecSimple(SpecParam{Expression:"x*x",Range: 0,Seed:1 },  FitnessStrategy{Type:FitnessRatio,IsMoreFitnessBetter:true}, 0)
+var xxSpecCount100Mono, _ = GenerateSpecSimple(SpecParam{Expression:"x*x",Range: 0,Seed:1 },  FitnessStrategy{Type:FitnessRatio,IsMoreFitnessBetter:true}, 0)
 
 func Test_evaluateFitnessThresholded(t *testing.T) {
 
@@ -221,7 +224,8 @@ func Test_evaluateFitnessThresholded(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotAntagonistFitness, gotProtagonistFitness, err := thresholdedRatioFitness(tt.args.spec, tt.args.antagonist, tt.args.protagonist)
+			gotAntagonistFitness, gotProtagonistFitness, err := thresholdedRatioFitness(tt.args.spec,
+				tt.args.antagonist, tt.args.protagonist, 0)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("thresholdedRatioFitness() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -350,7 +354,8 @@ func Test_evaluateFitnessAntagonistThresholded(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotAntagonistFitness, gotProtagonistFitness, err := evaluateFitnessAntagonistThresholded(tt.args.spec, tt.args.antagonist, tt.args.protagonist, tt.args.params)
+			gotAntagonistFitness, gotProtagonistFitness, err := evaluateFitnessAntagonistThresholded(tt.args.spec,
+				tt.args.antagonist, tt.args.protagonist, 0)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("evaluateFitnessAntagonistThresholded() error = %v, wantErr %v", err, tt.wantErr)
 				return

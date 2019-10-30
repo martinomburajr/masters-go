@@ -581,7 +581,7 @@ func TestIndividual_CloneWithTree(t *testing.T) {
 				Fitness:                  tt.fields.Fitness,
 				HasAppliedStrategy:       tt.fields.HasAppliedStrategy,
 				HasCalculatedFitness:     tt.fields.HasCalculatedFitness,
-				FitnessCalculationMethod: tt.fields.FitnessCalculationMethod,
+				//FitnessCalculationMethod: tt.fields.FitnessCalculationMethod,
 				Kind:                     tt.fields.Kind,
 				Age:                      tt.fields.Age,
 				TotalFitness:             tt.fields.TotalFitness,
