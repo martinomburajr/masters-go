@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"github.com/gocarina/gocsv"
 	"os"
 	"strconv"
 	"strings"
@@ -607,20 +608,36 @@ func WritetoFile(path string, evolutionResult *EvolutionResult, params Evolution
 		},
 	}
 
+	csvOutput := CSVOutput{
+		CSVAverages: make([]CSVAverages, len(evolutionResult.SortedGenerationIndividuals)),
+		CSVUltimateIndividuals: make([]CSVUltimateIndividual, len(evolutionResult.SortedGenerationIndividuals[0].Antagonists[0].Fitness)),
+		CSVTopPerGeneration: make([]CSVTopPerGeneration, len(evolutionResult.SortedGenerationIndividuals)),
+		CSVBottomPerGeneration: make([]CSVAverages, len(evolutionResult.SortedGenerationIndividuals)),
+	}
+
 	jsonOutput.Averages.Title = "Generational Averages for Antagonists vs Protagonists"
 	jsonOutput.Averages.SubTitle = fmt.Sprintf("Fitness (is more better?): %t", evolutionResult.IsMoreFitnessBetter)
 
 	coevolutionaryAverages := evolutionResult.CoevolutionaryAverages
 	for i := range coevolutionaryAverages {
 		// ##################### ANTAGONISTS #########################
+		csvOutput.CSVAverages[i].Independent = float64(i)
+		csvOutput.CSVTopPerGeneration[i].Independent = float64(i)
+		csvOutput.CSVBottomPerGeneration[i].Independent = float64(i)
 		// Averages
+		csvOutput.CSVAverages[i].Antagonist = coevolutionaryAverages[i].AntagonistResult
 		jsonOutput.Averages.Antagonist.IndependentCoordinates[i] = float64(i)
 		jsonOutput.Averages.Antagonist.DependentCoordinates[i] = coevolutionaryAverages[i].AntagonistResult
 		// Top Per Generation
+		csvOutput.CSVTopPerGeneration[i].Antagonist = evolutionResult.
+			SortedGenerationIndividuals[i].Antagonists[0].TotalFitness
 		jsonOutput.TopPerGeneration.Antagonist.IndependentCoordinates[i] = float64(i)
 		jsonOutput.TopPerGeneration.Antagonist.DependentCoordinates[i] = evolutionResult.
 			SortedGenerationIndividuals[i].Antagonists[0].TotalFitness
 		//Bottom Per Generation
+		csvOutput.CSVBottomPerGeneration[i].Antagonist = evolutionResult.
+			SortedGenerationIndividuals[i].Antagonists[len(evolutionResult.
+			SortedGenerationIndividuals[i].Antagonists)-1].TotalFitness
 		jsonOutput.BottomPerGeneration.Antagonist.IndependentCoordinates[i] = float64(i)
 		jsonOutput.BottomPerGeneration.Antagonist.DependentCoordinates[i] = evolutionResult.
 			SortedGenerationIndividuals[i].Antagonists[len(evolutionResult.
@@ -628,13 +645,19 @@ func WritetoFile(path string, evolutionResult *EvolutionResult, params Evolution
 
 		// ##################### PROTAGONISTS #########################
 		// Averages
+		csvOutput.CSVAverages[i].Protagonist = coevolutionaryAverages[i].ProtagonistResult
 		jsonOutput.Averages.Protagonist.IndependentCoordinates[i] = float64(i)
 		jsonOutput.Averages.Protagonist.DependentCoordinates[i] = coevolutionaryAverages[i].ProtagonistResult
 		// Top Per Generation
+		csvOutput.CSVTopPerGeneration[i].Antagonist = evolutionResult.
+			SortedGenerationIndividuals[i].Protagonists[0].TotalFitness
 		jsonOutput.TopPerGeneration.Protagonist.IndependentCoordinates[i] = float64(i)
 		jsonOutput.TopPerGeneration.Protagonist.DependentCoordinates[i] = evolutionResult.
 			SortedGenerationIndividuals[i].Protagonists[0].TotalFitness
 		//Bottom Per Generation
+		csvOutput.CSVBottomPerGeneration[i].Protagonist = evolutionResult.
+			SortedGenerationIndividuals[i].Protagonists[len(evolutionResult.
+			SortedGenerationIndividuals[i].Protagonists)-1].TotalFitness
 		jsonOutput.BottomPerGeneration.Protagonist.IndependentCoordinates[i] = float64(i)
 		jsonOutput.BottomPerGeneration.Protagonist.DependentCoordinates[i] = evolutionResult.
 			SortedGenerationIndividuals[i].Protagonists[len(evolutionResult.
@@ -643,9 +666,13 @@ func WritetoFile(path string, evolutionResult *EvolutionResult, params Evolution
 
 	// Internal Variance of Ultimate Individuals
 	for i := 0; i < len(evolutionResult.TopAntagonist.Fitness); i++ {
+		csvOutput.CSVUltimateIndividuals[i].Independent = float64(i)
+
+		csvOutput.CSVUltimateIndividuals[i].Antagonist = evolutionResult.TopAntagonist.Fitness[i]
 		jsonOutput.UltimateIndividuals.Antagonist.IndependentCoordinates[i] = float64(i)
 		jsonOutput.UltimateIndividuals.Antagonist.DependentCoordinates[i] = evolutionResult.TopAntagonist.Fitness[i]
 
+		csvOutput.CSVUltimateIndividuals[i].Protagonist = evolutionResult.TopProtagonist.Fitness[i]
 		jsonOutput.UltimateIndividuals.Protagonist.IndependentCoordinates[i] = float64(i)
 		jsonOutput.UltimateIndividuals.Protagonist.DependentCoordinates[i] = evolutionResult.TopProtagonist.Fitness[i]
 	}
@@ -690,8 +717,10 @@ func WritetoFile(path string, evolutionResult *EvolutionResult, params Evolution
 	subsubDirName := strings.ReplaceAll(g[2], ".json", "")
 	leafFileName := g[2]
 
+	// Create JSON
 	path = fmt.Sprintf("%s%s%s/%s", mainDir, subDirInfo, subsubDirName, leafFileName)
 	file, err := os.Create(path)
+	defer file.Close()
 	if err != nil {
 		return "", err
 	}
@@ -700,25 +729,125 @@ func WritetoFile(path string, evolutionResult *EvolutionResult, params Evolution
 	if err != nil {
 		return path, err
 	}
+
+	//
+	csvMap := map[string]interface{}{
+		"averages": csvOutput.CSVAverages,
+		"topPerGeneration": csvOutput.CSVTopPerGeneration,
+		"bottomPerGeneration": csvOutput.CSVBottomPerGeneration,
+		"ultimateIndividuals": csvOutput.CSVUltimateIndividuals,
+		"topEquations": csvOutput.CSVTopEquations,
+		"topStrategies": csvOutput.CSVTopPerGeneration,
+		"strategiesPerGeneration": csvOutput.CSVStrategyPerGeneration,
+		"equationsPerGeneration": csvOutput.CSVEquationsPerGeneration,
+		"finalIndividuals": csvOutput.CSVFinalIndividuals,
+	}
+	err = writeCSV(csvMap, mainDir, subDirInfo, subsubDirName)
+	if err != nil {
+		return path, err
+	}
 	return path, nil
 }
 
-type JSONCoalescedOutput struct {
-	Name            string       `json:"name"`
-	CoalescedOutput []JSONOutput `json:"coalescedOutput"`
+
+func writeCSV(csvFileMap map[string]interface{}, mainDir, subDirInfo, subsubDirName string) (err error) {
+	for name := range csvFileMap {
+		pathCSV := fmt.Sprintf("%s%s%s/%s%s", mainDir, subDirInfo, subsubDirName, name, ".csv")
+		fileCSV, err := os.Create(pathCSV)
+		if err != nil {
+			return err
+		}
+		defer fileCSV.Close()
+
+		writer := gocsv.DefaultCSVWriter(fileCSV)
+		if writer.Error() != nil {
+			return  writer.Error()
+		}
+		err = gocsv.Marshal(csvFileMap[name], fileCSV)
+		if err != nil {
+			return err
+		}
+	}
+	return err
 }
 
+type JSONCoalescedOutput struct {
+	Name            string       `json:"name" csv:"name"`
+	CoalescedOutput []JSONOutput `json:"coalescedOutput" csv:"coalescedOutput"`
+}
+
+type CSVOutput struct {
+	CSVAverages []CSVAverages `csv:"averages"`
+	CSVUltimateIndividuals []CSVUltimateIndividual `csv:"ultimateIndividuals"`
+	CSVTopPerGeneration []CSVTopPerGeneration `csv:"topPerGeneration"`
+	CSVBottomPerGeneration []CSVAverages `csv:"bottomPerGeneration"`
+	CSVTopEquations CSVEquations `csv:"bottomPerGeneration"`
+	CSVTopStrategies CSVEquations `csv:"topStrategies"`
+	CSVEquationsPerGeneration []CSVEquations `csv:"equationesPerGeneration"`
+	CSVStrategyPerGeneration []CSVStrategy `csv:"strategyPerGeneration"`
+	CSVFinalIndividuals []CSVAverages `csv:"finalIndividuals"`
+}
+
+type CSVCoalescedOutput struct {
+	CSVAverages []CSVAverages `csv:"averages"`
+	CSVUltimateIndividuals []CSVUltimateIndividual `csv:"ultimateIndividuals"`
+	CSVTopPerGeneration []CSVTopPerGeneration `csv:"topPerGeneration"`
+	CSVBottomPerGeneration []CSVAverages `csv:"bottomPerGeneration"`
+	CSVTopEquations CSVEquations `csv:"bottomPerGeneration"`
+	CSVTopStrategies CSVEquations `csv:"topStrategies"`
+	CSVEquationsPerGeneration []CSVEquations `csv:"equationesPerGeneration"`
+	CSVStrategyPerGeneration []CSVStrategy `csv:"strategyPerGeneration"`
+}
+
+type CSVEquations struct {
+	Protagonist string `csv:"protagonistEquation"`
+	Antagonist string `csv:"protagonistEquation"`
+	Spec string `csv:"protagonistEquation"`
+}
+
+type CSVStrategy struct {
+	Protagonist string `csv:"protagonistStrategy"`
+	Antagonist string `csv:"antagonistStrategy"`
+}
+
+type CSVAverages struct {
+	Protagonist float64 `csv:"protagonist"`
+	Antagonist  float64 `csv:"antagonist"`
+	Independent  float64 `csv:"independent"`
+}
+
+type CSVUltimateIndividual struct {
+	Protagonist float64 `csv:"protagonistCoordinates"`
+	Antagonist  float64 `csv:"antagonistCoordinates"`
+	Independent  float64 `csv:"independent"`
+}
+
+type CSVTopPerGeneration struct {
+	Protagonist float64 `csv:"protagonistCoordinates"`
+	Antagonist  float64 `csv:"antagonistCoordinates"`
+	Independent  float64 `csv:"independent"`
+}
+
+type CSVGeneric struct {
+	//Title       string      `json:"title" csv:"title"`
+	//SubTitle    string      `json:"subTitle" csv:"subTitle"`
+	//Description string      `json:"description" csv:"description"`
+	Protagonist []float64 `json:"protagonistCoordinates" csv:"protagonistCoordinates"`
+	Antagonist  []float64 `json:"antagonistCoordinates" csv:"antagonistCoordinates"`
+}
+
+
 type JSONOutput struct {
-	Averages JSONGeneric `json:"averages"`
+	Averages JSONGeneric `json:"averages" csv:"averages"`
 
 	// UltimateIndividuals returns the internal variance of the best individuals in all generations
-	UltimateIndividuals JSONGeneric `json:"ultimateIndividuals"`
+	UltimateIndividuals JSONGeneric `json:"ultimateIndividuals" csv:"ultimateIndividuals"`
 	// BottomPerGeneration returns the best kind of individual in each generation
-	TopPerGeneration JSONGeneric `json:"topPerGeneration"`
+	TopPerGeneration JSONGeneric `json:"topPerGeneration" csv:"topPerGeneration"`
 	// BottomPerGeneration returns the worst kind of individual in each generation
-	BottomPerGeneration JSONGeneric `json:"bottomPerGeneration"`
+	BottomPerGeneration JSONGeneric `json:"bottomPerGeneration" csv:"bottomPerGeneration"`
 
-	Equations JSONEquations `json:"equations"`
+	Equations JSONEquations `json:"equations" csv:"equations"`
 
 	//UltimateIndividualsDelta JSONGeneric `json:"averages"`
 	//
@@ -726,27 +855,27 @@ type JSONOutput struct {
 }
 
 type JSONGeneric struct {
-	Title       string      `json:"title"`
-	SubTitle    string      `json:"subTitle"`
-	Description string      `json:"description"`
-	Protagonist Coordinates `json:"protagonistCoordinates"`
-	Antagonist  Coordinates `json:"antagonistCoordinates"`
+	Title       string      `json:"title" csv:"title"`
+	SubTitle    string      `json:"subTitle" csv:"subTitle"`
+	Description string      `json:"description" csv:"description"`
+	Protagonist Coordinates `json:"protagonistCoordinates" csv:"protagonistCoordinates"`
+	Antagonist  Coordinates `json:"antagonistCoordinates" csv:"antagonistCoordinates"`
 }
 
 type JSONEquations struct {
-	Spec                JSONEquation `json:"spec"`
-	UltimateAntagonist  JSONEquation `json:"ultimateAntagonist"`
-	UltimateProtagonist JSONEquation `json:"ultimateProtagonist"`
+	Spec                JSONEquation `json:"spec" csv:"spec"`
+	UltimateAntagonist  JSONEquation `json:"ultimateAntagonist" csv:"ultimateAntagonist"`
+	UltimateProtagonist JSONEquation `json:"ultimateProtagonist" csv:"ultimateProtagonist"`
 }
 
 type JSONEquation struct {
-	Title      string `json:"title"`
-	Expression string `json:"expression"`
-	Seed       int    `json:"seed"`
-	Range      int    `json:"range"`
+	Title      string `json:"title" csv:"title"`
+	Expression string `json:"expression" csv:"expression"`
+	Seed       int    `json:"seed" csv:"seed"`
+	Range      int    `json:"range" csv:"range"`
 }
 
 type Coordinates struct {
-	IndependentCoordinates []float64 `json:"independentCoordinates"`
-	DependentCoordinates   []float64 `json:"dependentCoordinates"`
+	IndependentCoordinates []float64 `json:"independentCoordinates" csv:"independentCoordinates"`
+	DependentCoordinates   []float64 `json:"dependentCoordinates" csv:"dependentCoordinates"`
 }

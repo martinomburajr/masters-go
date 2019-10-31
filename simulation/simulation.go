@@ -3,7 +3,6 @@ package simulation
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/martinomburajr/masters-go/eval"
 	"github.com/martinomburajr/masters-go/evolution"
 	"log"
 	"math/rand"
@@ -187,7 +186,7 @@ func PrepareSimulation(params evolution.EvolutionParams, count int) *evolution.E
 	if params.SpecParam.Seed < 0 {
 		params.FitnessCalculatorType = 1
 	}
-	params.SpecParam.Expression = eval.MartinsReplace(params.SpecParam.Expression, " ", "")
+	params.SpecParam.Expression = strings.ReplaceAll(params.SpecParam.Expression, " ", "")
 
 	constantTerminals, err := evolution.GenerateTerminals(10, params.SpecParam.AvailableVariablesAndOperators.Constants)
 	if err != nil {

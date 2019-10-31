@@ -22,7 +22,7 @@ func main() {
 	//}
 
 	simulation := simulation.Simulation{
-		NumberOfRunsPerState: 5,
+		NumberOfRunsPerState: 1,
 		Name:                 "simulation-1",
 		OutputDir:            "",
 	}

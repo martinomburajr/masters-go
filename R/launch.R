@@ -22,6 +22,10 @@ if (length(args)==0) {
     setwd(file.path(statsDir, ""))
 }
 
+toVector <- function(result) {
+    g <- result$averages$antagonistCoordinates$independentCoordinate
+}
+
 toCSV <- function() {
     raw <- readLines(filePath)
     # get rid of the "/* 0 */" lines
@@ -38,8 +42,6 @@ toCSV <- function() {
     flat_table <- bind_rows(tab_list)
     write.csv(flat_table, file = "mydata.csv")
 }
-
-
 
 # result <- fromJSON(file = filePath)
 toCSV()
@@ -73,7 +75,6 @@ average_plot <- function(result) {
     col="green")
     dev.off()
 }
-
 #top_individual returns averages as well as performance of the top individuals
 top_individual <- function(result) {
     png('plot.png', width=8, height=4, units='in', res=300)
@@ -127,7 +128,6 @@ top_individual <- function(result) {
     dev.off()
 }
 
-
 internal_variance <- function(result) {
     # Internal Variance of Best of All Time
     png('internal_variance.png', width=8, height=4, units='in', res=300)
@@ -157,7 +157,6 @@ internal_variance <- function(result) {
     print("done")
     dev.off()
 }
-
 
 spec_vs_solutions <- function(result) {
     png('spec_vs_solutions.png', width=7, height=4, units='in', res=300)
