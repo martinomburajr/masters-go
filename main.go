@@ -7,22 +7,8 @@ import (
 )
 
 func main() {
-	//name := "run.json"
-
-	//cmd := exec.Command("R",
-	//"--no-save" ,
-	//"--quiet",
-	//"--args",
-	//"/home/martinomburajr/go/src/github.com/martinomburajr/masters-go/R/launch.R",
-	//"/home/martinomburajr/go/src/github.com/martinomburajr/masters-go/data/xxx-Gen50-Pop30-FitnessRatio/2019-10-29T1212210200-0/2019-10-29T1212210200-0.json",
-	//"/home/martinomburajr/go/src/github.com/martinomburajr/masters-go/data/xxx-Gen50-Pop30-FitnessRatio/2019-10-29T1212210200-0/stats")
-	//err := cmd.Run()
-	//if err != nil {
-	//	log.Println(err.Error())
-	//}
-
 	simulation := simulation.Simulation{
-		NumberOfRunsPerState: 1,
+		NumberOfRunsPerState: 5,
 		Name:                 "simulation-1",
 		OutputDir:            "",
 	}

@@ -32,6 +32,8 @@ type EvolutionParams struct {
 	// users to query all individuals in all generations.
 	ShouldRunInteractiveTerminal bool             `json:"shouldRunInteractiveTerminal"`
 	StatisticsOutput             StatisticsOutput `json:"shouldRunInteractiveTerminal"`
+	// InternalCount - Output Only (Helps with file name assignments)
+	InternalCount                int
 }
 
 func (e EvolutionParams) ToString() string {

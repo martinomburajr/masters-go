@@ -3,6 +3,7 @@ package simulation
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gocarina/gocsv"
 	"github.com/martinomburajr/masters-go/evolution"
 	"log"
 	"math/rand"
@@ -26,6 +27,7 @@ func (s *Simulation) Begin(params evolution.EvolutionParams) error {
 
 	var folder string
 	for i := 0; i < s.NumberOfRunsPerState; i++ {
+		params.InternalCount = i
 		engine := PrepareSimulation(params, i)
 		folder = engine.Parameters.StatisticsOutput.OutputDir
 		err := StartEngine(engine)
@@ -51,7 +53,7 @@ func (s *Simulation) CoalesceFiles() (string, error) {
 
 	newFiles := make([]string, 0)
 	for i := range files {
-		if strings.Contains(files[i], "json") {
+		if strings.Contains(files[i], "generational") {
 			newFiles = append(newFiles, files[i])
 		}
 	}
@@ -62,14 +64,10 @@ func (s *Simulation) CoalesceFiles() (string, error) {
 		return "",fmt.Errorf("CoalesceFiles | no files to coalesce")
 	}
 
-	jsonOutputs := make([]evolution.JSONOutput, len(newFiles))
-	for i := 1; i < len(newFiles); i++ {
+	csvOutputs := make([]evolution.CSVOutput, 0)
+	generationalStatistics := make([][]evolution.GenerationalStatistics, 0)
+	for i := 0; i < len(newFiles); i++ {
 		filePath := fmt.Sprintf("%s", newFiles[i])
-		file, err := os.Open(filePath)
-		if err != nil {
-			return "", err
-		}
-
 		split := strings.Split(filePath, "/")
 		topLevelDir := split[0]
 		subInfoDir := split[1]
@@ -79,61 +77,87 @@ func (s *Simulation) CoalesceFiles() (string, error) {
 		if err != nil {
 			return "", err
 		}
-		workingDir := strings.ReplaceAll(absolutePath, filePath, "")
-		statsPath := fmt.Sprintf("%s%s/%s/%s/%s", workingDir, topLevelDir, subInfoDir, subSubNameDir, "stats")
-		RLaunchPath := fmt.Sprintf("%s%s", workingDir, "R/launch.R")
-		go func(){
-			cmd := exec.Command("Rscript",
-				RLaunchPath,
-				absolutePath,
-				statsPath)
-		err = cmd.Start()
+		err = s.RunRScript(absolutePath, filePath, topLevelDir, subInfoDir, subSubNameDir, err)
+
+		openFile, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE, os.ModePerm)
 		if err != nil {
-				log.Println(err.Error())
-			}
-		}()
-
-
-
-		var jsonOutput evolution.JSONOutput
-		err = json.NewDecoder(file).Decode(&jsonOutput)
-		if err != nil {
-			return "",err
+			return "", err
 		}
-		jsonOutputs[i-1] = jsonOutput
+		defer openFile.Close()
+
+		var generationalStatistic []evolution.GenerationalStatistics
+		err = gocsv.UnmarshalFile(openFile, &generationalStatistic)
+		if err != nil {
+			return "", err
+		}
+
+		generationalStatistics = append(generationalStatistics, generationalStatistic)
+
+		csvOutput := evolution.CSVOutput{
+			Generational: generationalStatistic,
+		}
+		csvOutputs = append(csvOutputs, csvOutput)
 	}
 
-	return coalesce(jsonOutputs, s.OutputDir)
+	// do epochal
+	// do individual
+
+
+	return coalesce(csvOutputs, s.OutputDir, "coalesced-generational.csv")
+}
+
+func (s *Simulation) RunRScript(absolutePath string, filePath string, topLevelDir string, subInfoDir string, subSubNameDir string, err error) error {
+	workingDir := strings.ReplaceAll(absolutePath, filePath, "")
+	statsPath := fmt.Sprintf("%s%s/%s/%s/%s", workingDir, topLevelDir, subInfoDir, subSubNameDir, "stats")
+	RLaunchPath := fmt.Sprintf("%s%s", workingDir, "R/launch.R")
+	go func() {
+		cmd := exec.Command("Rscript",
+			RLaunchPath,
+			absolutePath,
+			statsPath)
+		err = cmd.Start()
+		if err != nil {
+			log.Println(err.Error())
+		}
+	}()
+	return err
 }
 
 
-func coalesce(files []evolution.JSONOutput, outputDir string) (string, error) {
-	if files == nil {
-		return "", fmt.Errorf("coalesce | json files cannot be nil")
+func coalesce(csvFiles []evolution.CSVOutput, outputDir, outputFileName string) (string, error) {
+	if csvFiles == nil {
+		return "", fmt.Errorf("coalesce | json csvFiles cannot be nil")
 	}
-	if len(files) < 1 {
-		return "", fmt.Errorf("coalesce | json files cannot be empty")
+	if len(csvFiles) < 1 {
+		return "", fmt.Errorf("coalesce | json csvFiles cannot be empty")
 	}
 	if outputDir == "" {
 		return "", fmt.Errorf("outputDir empty")
 	}
 
-	coalesced := evolution.JSONCoalescedOutput{
-		Name: outputDir[:len(outputDir)-1],
-		CoalescedOutput: files,
+	baseCSV := csvFiles[0]
+	for i := 1; i < len(csvFiles); i++ {
+		baseCSV.Generational = append(baseCSV.Generational, csvFiles[i].Generational...)
 	}
 
-	path := fmt.Sprintf("%s%s", outputDir, "coalesced.json")
+	path := fmt.Sprintf("%s%s", outputDir, outputFileName)
 	err := os.Mkdir(outputDir, 0755)
-	file, err := os.Create(path)
+
+	outputFileCSV, err := os.Create(path)
+	if err != nil {
+		return path, err
+	}
+	defer outputFileCSV.Close()
+
+	writer := gocsv.DefaultCSVWriter(outputFileCSV)
+	if writer.Error() != nil {
+		return  path, writer.Error()
+	}
+	err = gocsv.Marshal(baseCSV.Generational, outputFileCSV)
 	if err != nil {
 		return path, err
 	}
 	fmt.Printf("\nWrote to file: %s", path)
-	err = json.NewEncoder(file).Encode(coalesced)
-	if err != nil {
-		return path, err
-	}
 
 	return path, nil
 }
@@ -466,7 +490,6 @@ func (s *Simulation) BeginToil(indexFile string) error {
 	}
 
 	return nil
-
 }
 
 
