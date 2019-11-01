@@ -19,7 +19,7 @@ func main() {
 		}, //}
 		SpecParam: evolution.SpecParam{ //json.NewEncoder(f).Encode(params)
 			Range:      5,
-			Expression: "10000*x*x*x",
+			Expression: "5*x*x*x",
 			Seed:       -1000,
 			AvailableVariablesAndOperators: evolution.AvailableVariablesAndOperators{
 				Constants: []string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"},
@@ -28,10 +28,10 @@ func main() {
 			},
 		},
 		GenerationsCount:   50,
-		EachPopulationSize: 30, // Must be an even number to prevent awkward ordering of children.
+		EachPopulationSize: 100, // Must be an even number to prevent awkward ordering of children.
 
 		FitnessStrategy: evolution.FitnessStrategy{
-			Type:                           evolution.FitnessRatio,
+			Type:                           evolution.FitnessDualThresholdedRatio,
 			AntagonistThresholdMultiplier:  40,
 			ProtagonistThresholdMultiplier: 1.2,
 		},

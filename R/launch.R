@@ -26,54 +26,18 @@ toVector <- function(result) {
     g <- result$averages$antagonistCoordinates$independentCoordinate
 }
 
-toCSV <- function() {
-    raw <- readLines(filePath)
-    # get rid of the "/* 0 */" lines
-    json <- grep("^/\\* [0-9]* \\*/", raw, value = TRUE, invert = TRUE)
-    n <- length(json)
-    json[-n] <- gsub("^}$", "},", json[-n])
-    json <- c("[", json, "]")
-    table <- fromJSON(json)
-    flatten(table)[1:3, c(1, 6, 12)]
-
-    tab_list <- lapply(1:nrow(table), function(i) data.frame(table[i, 1], table[i, 1],
-    stringsAsFactors = FALSE))
-    library(dplyr)
-    flat_table <- bind_rows(tab_list)
-    write.csv(flat_table, file = "mydata.csv")
-}
-
-# result <- fromJSON(file = filePath)
-toCSV()
-
 average_plot <- function(result) {
     png('averages.png', width=8, height=4, units='in', res=300)
-    print("AVERAGES")
-    # AVERAGES + TOP Individual Per Generation + Bottom Individual Per Generation
-    plot(
-    result$averages$antagonistCoordinates$independentCoordinate,
-    result$averages$antagonistCoordinates$dependentCoordinate,
-    xlim=c(0,50),
-    ylim=c(-1,1),
-    main=result$averages$title,
-    ylab="Fitness",
-    xlab="Generation")
-
-    legend("topleft",
-    c("tests", "bugs"),
-    fill=c("green", "red"))
-
-    # Generational Averages
-    lines(
-    result$averages$antagonistCoordinates$independentCoordinate,
-    result$averages$antagonistCoordinates$dependentCoordinate,
-    col="red")
-
-    lines(
-    result$averages$protagonistCoordinates$independentCoordinate,
-    result$averages$protagonistCoordinates$dependentCoordinate,
-    col="green")
-    dev.off()
+    p <- ggplot(coalesced_generational, 
+                aes(x=coalesced_generational$generation, 
+                    y=coalesced_generational$averageAntagonist,
+                    color=coalesced_generational$averageAntagonist))
+    
+    p + geom_point() + 
+        geom_smooth() + 
+        geom_point(aes(y=coalesced_generational$averageProtagonist, 
+                       color=coalesced_generational$averageProtagonist))+ 
+            geom_smooth()
 }
 #top_individual returns averages as well as performance of the top individuals
 top_individual <- function(result) {

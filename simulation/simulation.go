@@ -174,31 +174,6 @@ func StartEngine(engine *evolution.EvolutionEngine) error {
 		return err
 	}
 
-	antagonistSummary, err := evolutionResult.PrintTopIndividualSummary(evolution.IndividualAntagonist)
-	if err != nil {
-		return err
-	}
-	fmt.Println(antagonistSummary.String())
-
-	protagonistSummary, err := evolutionResult.PrintTopIndividualSummary(evolution.IndividualProtagonist)
-	if err != nil {
-		return err
-	}
-	fmt.Println(protagonistSummary.String())
-
-	averageGenerationSummary, err := evolutionResult.PrintAverageGenerationSummary()
-	if err != nil {
-		return err
-	}
-	fmt.Println(averageGenerationSummary.String())
-
-	if engine.Parameters.ShouldRunInteractiveTerminal {
-		err = evolutionResult.StartInteractiveTerminal(engine.Parameters)
-		if err != nil {
-			return err
-		}
-	}
-
 	return nil
 }
 
@@ -282,6 +257,7 @@ func PrepareSimulation(params evolution.EvolutionParams, count int) *evolution.E
 	// ########################### OUTPUT STATISTICS  #######################################################3
 	fmt.Printf("Generation Count: %d\n", engine.Parameters.GenerationsCount)
 	fmt.Printf("Each Individual Count: %d\n", engine.Parameters.EachPopulationSize)
+	fmt.Printf("Iteration Count: %d\n", count)
 
 	switch engine.Parameters.FitnessCalculatorType {
 	case 0:
@@ -321,7 +297,6 @@ func PrepareSimulation(params evolution.EvolutionParams, count int) *evolution.E
 		engine.Parameters.FitnessStrategy.IsMoreFitnessBetter = true
 		log.Printf("Fitness Strategy: %s\n", "Unknown")
 	}
-	fmt.Printf("Fitness Strategy: %s\n", engine.Parameters.FitnessStrategy)
 	fmt.Printf("Is More Fitness Better: %t\n", engine.Parameters.FitnessStrategy.IsMoreFitnessBetter)
 	fmt.Println()
 
