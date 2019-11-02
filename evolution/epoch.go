@@ -102,49 +102,26 @@ func (e *Epoch) Start(perfectTreeMap map[string]PerfectTree) error {
 		err = fmt.Errorf("unknown Fitness Strategy selected")
 	}
 
-	if e.generation.engine.Parameters.FitnessStrategy.IsMoreFitnessBetter {
-		if perfectTreeMap[e.antagonist.Id].Program == nil {
-			perfectTreeMap[e.antagonist.Id] = PerfectTree{FitnessValue: math.MinInt64}
-		}
-		perfectTreeAntagonist := perfectTreeMap[e.antagonist.Id]
-		if perfectTreeAntagonist.FitnessValue < antagonistFitness {
-			perfectTreeAntagonist.Program = e.antagonist.Program
-			perfectTreeAntagonist.FitnessValue = antagonistFitness
-			perfectTreeAntagonist.FitnessDetla = antagonistFitness
-			perfectTreeMap[e.antagonist.Id] = perfectTreeAntagonist
-		}
+	if perfectTreeMap[e.antagonist.Id].Program == nil {
+		perfectTreeMap[e.antagonist.Id] = PerfectTree{FitnessValue: math.MinInt64}
+	}
+	perfectTreeAntagonist := perfectTreeMap[e.antagonist.Id]
+	if perfectTreeAntagonist.FitnessValue < antagonistFitness {
+		perfectTreeAntagonist.Program = e.antagonist.Program
+		perfectTreeAntagonist.FitnessValue = antagonistFitness
+		perfectTreeAntagonist.FitnessDetla = antagonistFitness
+		perfectTreeMap[e.antagonist.Id] = perfectTreeAntagonist
+	}
 
-		if perfectTreeMap[e.protagonist.Id].Program == nil {
-			perfectTreeMap[e.protagonist.Id] = PerfectTree{FitnessValue: math.MinInt64}
-		}
-		perfectTreeProtagonist := perfectTreeMap[e.protagonist.Id]
-		if perfectTreeProtagonist.FitnessValue < protagonistFitness {
-			perfectTreeProtagonist.Program = e.protagonist.Program
-			perfectTreeProtagonist.FitnessValue = protagonistFitness
-			perfectTreeProtagonist.FitnessDetla = protagonistFitness
-			perfectTreeMap[e.protagonist.Id] = perfectTreeProtagonist
-		}
-	} else {
-		if perfectTreeMap[e.antagonist.Id].Program == nil {
-			perfectTreeMap[e.antagonist.Id] = PerfectTree{FitnessValue: math.MaxInt64}
-		}
-		perfectTreeAntagonist := perfectTreeMap[e.antagonist.Id]
-		if perfectTreeAntagonist.FitnessValue < antagonistFitness {
-			perfectTreeAntagonist.Program = e.antagonist.Program
-			perfectTreeAntagonist.FitnessValue = antagonistFitness
-			perfectTreeAntagonist.FitnessDetla = antagonistFitness
-			perfectTreeMap[e.antagonist.Id] = perfectTreeAntagonist
-		}
-		if perfectTreeMap[e.protagonist.Id].Program == nil {
-			perfectTreeMap[e.protagonist.Id] = PerfectTree{FitnessValue: math.MaxInt64}
-		}
-		perfectTreeProtagonist := perfectTreeMap[e.protagonist.Id]
-		if perfectTreeProtagonist.FitnessValue < protagonistFitness {
-			perfectTreeProtagonist.Program = e.protagonist.Program
-			perfectTreeProtagonist.FitnessValue = protagonistFitness
-			perfectTreeProtagonist.FitnessDetla = protagonistFitness
-			perfectTreeMap[e.protagonist.Id] = perfectTreeProtagonist
-		}
+	if perfectTreeMap[e.protagonist.Id].Program == nil {
+		perfectTreeMap[e.protagonist.Id] = PerfectTree{FitnessValue: math.MinInt64}
+	}
+	perfectTreeProtagonist := perfectTreeMap[e.protagonist.Id]
+	if perfectTreeProtagonist.FitnessValue < protagonistFitness {
+		perfectTreeProtagonist.Program = e.protagonist.Program
+		perfectTreeProtagonist.FitnessValue = protagonistFitness
+		perfectTreeProtagonist.FitnessDetla = protagonistFitness
+		perfectTreeMap[e.protagonist.Id] = perfectTreeProtagonist
 	}
 
 	e.antagonist.Fitness = append(e.antagonist.Fitness, antagonistFitness)

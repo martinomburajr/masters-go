@@ -190,7 +190,7 @@ func (g *Generation) ApplyParentSelection(currentPopulation []*Individual) ([]*I
 		g.hasParentSelectionHappened = true
 		return selectedInvididuals, nil
 	case ParentSelectionElitism:
-		selectedInvididuals, err := Elitism(currentPopulation, g.engine.Parameters.FitnessStrategy.IsMoreFitnessBetter)
+		selectedInvididuals, err := Elitism(currentPopulation, true)
 		if err != nil {
 			return nil, err
 		}

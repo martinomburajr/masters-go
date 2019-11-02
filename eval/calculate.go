@@ -265,10 +265,10 @@ func Calculate(substitutedExpression string) (float64, error) {
 		if evalOk {
 			return float64(result), nil // %v = default format
 		} else {
-			return 0.0, fmt.Errorf("%s = Evaluation error\n", substitutedExpression)
+			return 0.0, fmt.Errorf("%s = Invalid Evaluation error\n", substitutedExpression)
 		}
 	} else {
-		return 0.0, fmt.Errorf("%s = Syntax error\n", substitutedExpression)
+		return 0.0, fmt.Errorf("%s = Invalid Syntax error\n", substitutedExpression)
 	}
 }
 
@@ -283,7 +283,6 @@ func CalculateWithVar(substitutedExpression string, variables map[string]float64
 	return Calculate(substitutedExpression)
 }
 
-
 // NegativeNumberParser adds a 0 if an odd number is at the start of a string
 func NegativeNumberParser(str string) string {
 	if str == "" {
@@ -296,4 +295,3 @@ func NegativeNumberParser(str string) string {
 	builder.WriteString(str)
 	return builder.String()
 }
-

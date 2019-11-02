@@ -8,27 +8,27 @@ import (
 
 func main() {
 	simulation := simulation.Simulation{
-		NumberOfRunsPerState: 5,
+		NumberOfRunsPerState: 1,
 		Name:                 "simulation-1",
 		OutputDir:            "",
 	}
 
-	params := evolution.EvolutionParams{ //f, err := os.Create("test.json")
-		StatisticsOutput: evolution.StatisticsOutput{ //if err != nil {
-			OutputPath: "", //	log.Fatal(err)
+	params := evolution.EvolutionParams{
+		StatisticsOutput: evolution.StatisticsOutput{
+			OutputPath: "",
 		}, //}
-		SpecParam: evolution.SpecParam{ //json.NewEncoder(f).Encode(params)
-			Range:      5,
+		SpecParam: evolution.SpecParam{
+			Range:      10,
 			Expression: "5*x*x*x",
-			Seed:       -1000,
+			Seed:       50,
 			AvailableVariablesAndOperators: evolution.AvailableVariablesAndOperators{
 				Constants: []string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"},
 				Variables: []string{"x"},
-				Operators: []string{"*", "+", "-"},
+				Operators: []string{"*", "+", "-", "/"},
 			},
 		},
 		GenerationsCount:   50,
-		EachPopulationSize: 100, // Must be an even number to prevent awkward ordering of children.
+		EachPopulationSize: 50, // Must be an even number to prevent awkward ordering of children.
 
 		FitnessStrategy: evolution.FitnessStrategy{
 			Type:                           evolution.FitnessDualThresholdedRatio,
@@ -59,15 +59,16 @@ func main() {
 				evolution.StrategyReplaceBranch,
 				evolution.StrategyReplaceBranchX,
 				evolution.StrategyAddRandomSubTree,
-				evolution.StrategyAddRandomSubTreeX,
 				evolution.StrategyAddToLeaf,
 				evolution.StrategyAddTreeWithMult,
-				evolution.StrategyAddMultX,
 				evolution.StrategyAddTreeWithSub,
-				evolution.StrategyAddSubX,
 				evolution.StrategyAddTreeWithAdd,
-				evolution.StrategyAddAddX,
+				evolution.StrategyAddTreeWithDiv,
 				evolution.StrategySkip,
+				evolution.StrategyMultXD,
+				evolution.StrategyAddXD,
+				evolution.StrategySubXD,
+				evolution.StrategyDivXD,
 			},
 			AntagonistAvailableStrategies: []evolution.Strategy{
 				evolution.StrategyMutateNonTerminal,
@@ -75,18 +76,20 @@ func main() {
 				evolution.StrategyReplaceBranch,
 				evolution.StrategyReplaceBranchX,
 				evolution.StrategyAddRandomSubTree,
-				evolution.StrategyAddRandomSubTreeX,
 				evolution.StrategyAddToLeaf,
 				evolution.StrategyAddTreeWithMult,
-				evolution.StrategyAddMultX,
 				evolution.StrategyAddTreeWithSub,
-				evolution.StrategyAddSubX,
 				evolution.StrategyAddTreeWithAdd,
-				evolution.StrategyAddAddX,
+				evolution.StrategyAddTreeWithDiv,
 				evolution.StrategySkip,
+				evolution.StrategySkip,
+				evolution.StrategyMultXD,
+				evolution.StrategyAddXD,
+				evolution.StrategySubXD,
+				evolution.StrategyDivXD,
 			},
-			AntagonistStrategyCount:  5,
-			ProtagonistStrategyCount: 5,
+			AntagonistStrategyCount:  10,
+			ProtagonistStrategyCount: 10,
 			DepthOfRandomNewTrees:    1,
 		},
 		//FitnessCalculatorType: 0,

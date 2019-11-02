@@ -576,16 +576,16 @@ func TestIndividual_CloneWithTree(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			i := Individual{
-				Id:                       tt.fields.Id,
-				Strategy:                 tt.fields.Strategy,
-				Fitness:                  tt.fields.Fitness,
-				HasAppliedStrategy:       tt.fields.HasAppliedStrategy,
-				HasCalculatedFitness:     tt.fields.HasCalculatedFitness,
+				Id:                   tt.fields.Id,
+				Strategy:             tt.fields.Strategy,
+				Fitness:              tt.fields.Fitness,
+				HasAppliedStrategy:   tt.fields.HasAppliedStrategy,
+				HasCalculatedFitness: tt.fields.HasCalculatedFitness,
 				//FitnessCalculationMethod: tt.fields.FitnessCalculationMethod,
-				Kind:                     tt.fields.Kind,
-				Age:                      tt.fields.Age,
-				TotalFitness:             tt.fields.TotalFitness,
-				Program:                  tt.fields.Program,
+				Kind:         tt.fields.Kind,
+				Age:          tt.fields.Age,
+				TotalFitness: tt.fields.TotalFitness,
+				Program:      tt.fields.Program,
 			}
 			if got := i.CloneWithTree(tt.args.tree); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Individual.CloneWithTree() = %v, want %v", got, tt.want)

@@ -1611,3 +1611,51 @@ func (bst *DualTree) AddSubTree(subTree *DualTree) error {
 
 	return nil
 }
+
+// AttachSubTree will take the current dual tree, make the incoming subTree's root the actual root,
+// and attach the incoming leftmost node to the former root. So 3 + x where + is the root,
+// if the incoming tree is x - 1, we set - to the new root and replace x with 3 + x in the previous tree,
+// The result is ((3 + x) - 1) where - is not the new root.
+func (bst *DualTree) AttachSubTree(subTree *DualTree) error {
+	if subTree == nil {
+		return fmt.Errorf("cannot add a nil subTree")
+	}
+	if subTree.root == nil {
+		return fmt.Errorf("cannot add a subTree with a nil root")
+	}
+	if subTree.root.left == nil && subTree.root.right == nil {
+		return fmt.Errorf("subTree cannot be composed of a single terminal - no operation to add it to the treeNode.")
+	}
+
+	if bst.root == nil {
+		return fmt.Errorf("treeNode you are adding to has nil root")
+	}
+
+	oldRoot := *bst.root
+	bst.root = subTree.root
+	bst.root.left = &oldRoot
+	return nil
+}
+
+// getLeftMostChild returns the leftMostChild, if root is an orphan, the return parent variable is set to the root,
+// whilst the child is set to nil.
+func (bst *DualTree) getLeftMostChild() (child *DualTreeNode, parent *DualTreeNode, err error) {
+	if bst.root == nil {
+		return nil, nil, fmt.Errorf("getLeftMostChild | cannot add a nil subTree")
+	}
+	if bst.root.left == nil {
+		return nil, bst.root, nil
+	}
+	parent = bst.root
+	newLeft := bst.root.left
+	for {
+		if newLeft.left != nil {
+			newLeft = newLeft.left
+			parent = newLeft
+		} else {
+			break
+		}
+	}
+
+	return newLeft, parent, nil
+}

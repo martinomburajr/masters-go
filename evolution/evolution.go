@@ -33,7 +33,7 @@ type EvolutionParams struct {
 	ShouldRunInteractiveTerminal bool             `json:"shouldRunInteractiveTerminal"`
 	StatisticsOutput             StatisticsOutput `json:"shouldRunInteractiveTerminal"`
 	// InternalCount - Output Only (Helps with file name assignments)
-	InternalCount                int
+	InternalCount int
 }
 
 func (e EvolutionParams) ToString() string {
@@ -94,7 +94,6 @@ type FitnessStrategy struct {
 	// this value is used in both DualThresholdedRatioFitness and ThresholdedRatioFitness as a fitness value for
 	// both antagonist and protagonists thresholds.
 	ProtagonistThresholdMultiplier float64 `json:"protagonistThresholdMultiplier"`
-	IsMoreFitnessBetter            bool    `json:"isMoreFitnessBetter"`
 }
 
 type SpecParam struct {
@@ -195,7 +194,7 @@ func (e *EvolutionEngine) Start() (*EvolutionResult, error) {
 	}
 
 	evolutionResult := &EvolutionResult{}
-	err = evolutionResult.Analyze(e.Generations, e.Parameters.FitnessStrategy.IsMoreFitnessBetter,
+	err = evolutionResult.Analyze(e.Generations, true,
 		e.Parameters)
 	if err != nil {
 		return nil, err

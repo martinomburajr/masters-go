@@ -38,10 +38,6 @@ func (p *Program) ApplyStrategy(strategy Strategy, terminals []SymbolicExpressio
 		err = p.T.DeleteMalicious()
 		break
 
-	case StrategyFellTree:
-		err = p.T.FellTree()
-		break
-
 	case StrategyDeleteTerminal:
 		err = p.T.DeleteTerminal()
 		break
@@ -60,12 +56,39 @@ func (p *Program) ApplyStrategy(strategy Strategy, terminals []SymbolicExpressio
 		err = p.T.ReplaceBranch(*tree)
 		break
 
+	case StrategyReplaceBranchX:
+		var tree *DualTree
+		tree, err = GenerateRandomTreeEnforceIndependentVariable(depth, terminals[0], terminals, nonTerminals)
+		err = p.T.ReplaceBranch(*tree)
+		break
 	case StrategyAddRandomSubTree:
 		var tree *DualTree
 		tree, err = GenerateRandomTree(depth, terminals, nonTerminals)
 		err = p.T.AddSubTree(tree)
 		break
 
+	case StrategyAddToLeafX:
+		var tree *DualTree
+		tree, err = GenerateRandomTreeEnforceIndependentVariable(depth, terminals[0], terminals, nonTerminals)
+		err = p.T.AddToLeaf(*tree)
+		break
+
+	case StrategyAddToLeaf:
+		var tree *DualTree
+		tree, err = GenerateRandomTree(depth, terminals, nonTerminals)
+		err = p.T.AddToLeaf(*tree)
+		break
+
+	case StrategyAddTreeWithMult:
+		var tree *DualTree
+		tree, err = GenerateRandomTree(depth, terminals, []SymbolicExpression{{arity: 2, value: "*", kind: 1}})
+		err = p.T.AddToLeaf(*tree)
+		break
+	case StrategyAddTreeWithDiv:
+		var tree *DualTree
+		tree, err = GenerateRandomTree(depth, terminals, []SymbolicExpression{{arity: 2, value: "/", kind: 1}})
+		err = p.T.AddToLeaf(*tree)
+		break
 	case StrategyAddTreeWithSub:
 		var tree *DualTree
 		tree, err = GenerateRandomTree(depth, terminals,
@@ -80,60 +103,54 @@ func (p *Program) ApplyStrategy(strategy Strategy, terminals []SymbolicExpressio
 		err = p.T.AddToLeaf(*tree)
 		break
 
-	case StrategyAddToLeaf:
-		var tree *DualTree
-		tree, err = GenerateRandomTreeEnforceIndependentVariable(depth, terminals[0], terminals, nonTerminals)
-		err = p.T.AddToLeaf(*tree)
-		break
-
-	case StrategyAddTreeWithMult:
-		var tree *DualTree
-		tree, err = GenerateRandomTree(depth, terminals, []SymbolicExpression{{arity: 2, value: "*", kind: 1}})
-		err = p.T.AddToLeaf(*tree)
-		break
-
-	case StrategyReplaceBranchX:
-		var tree *DualTree
-		tree, err = GenerateRandomTreeEnforceIndependentVariable(depth, terminals[0], terminals, nonTerminals)
-		err = p.T.ReplaceBranch(*tree)
-		break
-
-	case StrategyAddRandomSubTreeX:
-		var tree *DualTree
-		tree, err = GenerateRandomTreeEnforceIndependentVariable(depth, terminals[0], terminals, nonTerminals)
-		err = p.T.AddSubTree(tree)
-		break
-
-	case StrategyAddToLeafX:
-		var tree *DualTree
-		tree, err = GenerateRandomTreeEnforceIndependentVariable(depth, terminals[0], terminals, nonTerminals)
-		err = p.T.AddToLeaf(*tree)
-		break
-
-	case StrategyAddMultX:
-		var tree *DualTree
-		tree, err = GenerateRandomTreeEnforceIndependentVariable(depth, terminals[0], terminals,
-			[]SymbolicExpression{{arity: 2, value: "*", kind: 1}})
-		err = p.T.AddToLeaf(*tree)
-		break
-
-	case StrategyAddSubX:
-		var tree *DualTree
-		tree, err = GenerateRandomTreeEnforceIndependentVariable(depth, terminals[0], terminals,
-			[]SymbolicExpression{{arity: 2, value: "-", kind: 1}})
-		err = p.T.AddToLeaf(*tree)
-		break
-
-	case StrategyAddAddX:
-		var tree *DualTree
-		tree, err = GenerateRandomTreeEnforceIndependentVariable(depth, terminals[0], terminals,
-			[]SymbolicExpression{{arity: 2, value: "+", kind: 1}})
-		err = p.T.AddToLeaf(*tree)
-		break
-
+	// DETERMINISTIC STRATEGIES
 	case StrategySkip:
 		// Do nothing
 		break
+	case StrategyFellTree:
+		err = p.T.FellTree()
+		break
+	case StrategyMultXD:
+		rootExpr := SymbolicExpression{arity: 2, value: "*", kind: 1}
+		rightExpr := SymbolicExpression{arity: 0, value: "x", kind: 0}
+		root := rootExpr.ToDualTreeNode(RandString(3))
+		right := rightExpr.ToDualTreeNode(RandString(2))
+		tree := &DualTree{root: root}
+		tree.root.right = right
+
+		err = p.T.AttachSubTree(tree)
+		break
+	case StrategyAddXD:
+		rootExpr := SymbolicExpression{arity: 2, value: "+", kind: 1}
+		rightExpr := SymbolicExpression{arity: 0, value: "x", kind: 0}
+		root := rootExpr.ToDualTreeNode(RandString(3))
+		right := rightExpr.ToDualTreeNode(RandString(2))
+		tree := &DualTree{root: root}
+		tree.root.right = right
+
+		err = p.T.AttachSubTree(tree)
+		break
+	case StrategySubXD:
+		rootExpr := SymbolicExpression{arity: 2, value: "-", kind: 1}
+		rightExpr := SymbolicExpression{arity: 0, value: "x", kind: 0}
+		root := rootExpr.ToDualTreeNode(RandString(3))
+		right := rightExpr.ToDualTreeNode(RandString(2))
+		tree := &DualTree{root: root}
+		tree.root.right = right
+
+		err = p.T.AttachSubTree(tree)
+		break
+	case StrategyDivXD:
+		rootExpr := SymbolicExpression{arity: 2, value: "/", kind: 1}
+		rightExpr := SymbolicExpression{arity: 0, value: "x", kind: 0}
+		root := rootExpr.ToDualTreeNode(RandString(3))
+		right := rightExpr.ToDualTreeNode(RandString(2))
+		tree := &DualTree{root: root}
+		tree.root.right = right
+
+		err = p.T.AttachSubTree(tree)
+		break
+
 	default:
 		break
 	}
@@ -150,6 +167,11 @@ func (p *Program) EvalMulti(independentVariables IndependentVariableMap, express
 
 	return EvaluateMathematicalExpression(expressionString, independentVariables, fitnessCalculatorType)
 }
+
+const (
+	MathErrorGeneral = 0
+	MathErrorInvalid = 1
+)
 
 // EvaluateMathematicalExpression evaluates a valid expression using the given independentVar
 func EvaluateMathematicalExpression(expressionString string, independentVariables IndependentVariableMap,

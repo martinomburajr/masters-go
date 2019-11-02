@@ -5,12 +5,11 @@
 
 args = commandArgs(trailingOnly=TRUE)
 # library("rjson")
-library("expss")
+library(expss)
 library(jsonlite)
-library("dplyr")
+library(dplyr)
+library(ggplot2)
 filePath <- ""
-
-
 
 if (length(args)==0) {
     stop("At least one argument must be supplied (input file).n", call.=FALSE)
@@ -22,22 +21,26 @@ if (length(args)==0) {
     setwd(file.path(statsDir, ""))
 }
 
+dataset <- read.csv(filePath)
+
 toVector <- function(result) {
     g <- result$averages$antagonistCoordinates$independentCoordinate
 }
 
 average_plot <- function(result) {
     png('averages.png', width=8, height=4, units='in', res=300)
-    p <- ggplot(coalesced_generational, 
-                aes(x=coalesced_generational$generation, 
-                    y=coalesced_generational$averageAntagonist,
-                    color=coalesced_generational$averageAntagonist))
+    p <- ggplot(result,
+                aes(x=result$generation,
+                    y=result$averageAntagonist,
+                    color=result$averageAntagonist))
     
     p + geom_point() + 
         geom_smooth() + 
-        geom_point(aes(y=coalesced_generational$averageProtagonist, 
-                       color=coalesced_generational$averageProtagonist))+ 
+        geom_point(aes(y=result$averageProtagonist,
+                       color=result$averageProtagonist))+
             geom_smooth()
+
+        ggsave('averages.png', width=8, height=4, units='in', dpi="retina")
 }
 #top_individual returns averages as well as performance of the top individuals
 top_individual <- function(result) {
@@ -172,47 +175,15 @@ spec_vs_solutions <- function(result) {
     dev.off()
     ############################## SPEC #################################
 }
-
 parse_individuals <- function(result) {
     average_plot(result)
-    top_individual(result)
-    internal_variance(result)
-    spec_vs_solutions(result)
+    #top_individual(result)
+    #internal_variance(result)
+    #spec_vs_solutions(result)
 }
 
-parse_table <- function(result) {
-#     Create Table for all Averages for Generations (Antagonist, Protagonist)
-#     averagesTable <- data.frame(
-#         generation: c(0:49)
-#         antagonist: result$averages$antagonistCoordinates$independentCoordinate
-#         protagonist: result$averages$protagonistCoordinates$independentCoordinate
-#     )
+parse_individuals(dataset)
 
-    print(result)
-    data(result$averages)
-    averagesTable = apply_labels(result$averages$protagonistCoordinates,
-    independentCoordinates = "Protagonist Independent Coordinates",
-    dependentCoordinates = "Protagonist Dependent Coordinates")
-
-    # png('table-averages.png', width=7, height=4, units='in', res=300)
-    # print(averagesTable)
-
-    # cro(result$averages$antagonistCoordinates, result$averages$protagonistCoordinates)
-}
-# Generational Averages
-
-# parse_individuals(result)
-parse_table(result)
-
-# lines(
-#     result$ultimateIndividuals$protagonistCoordinates$independentCoordinate,
-#     result$ultimateIndividuals$protagonistCoordinates$dependentCoordinate,
-#     col="green")
-# # Spec
-# lines(
-#     result$ultimateIndividuals$protagonistCoordinates$independentCoordinate,
-#     result$ultimateIndividuals$protagonistCoordinates$dependentCoordinate,
-#     col="green")
 print("done")
-# dev.off()
+dev.off()
 

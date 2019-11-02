@@ -548,7 +548,7 @@ func interactiveSearchForTreeShape(reader *bufio.Reader, sortedGenerations []*Ge
 
 func WritetoFile(path string, evolutionResult *EvolutionResult, params EvolutionParams, count int) (string, error) {
 	csvOutput := CSVOutput{
-		Generational:              make([]GenerationalStatistics, len(evolutionResult.SortedGenerationIndividuals)),
+		Generational: make([]GenerationalStatistics, len(evolutionResult.SortedGenerationIndividuals)),
 		//CSVUltimateIndividuals: make([]CSVUltimateIndividual, len(evolutionResult.SortedGenerationIndividuals[0].Antagonists[0].Fitness)),
 		//CSVTopPerGeneration:    make([]CSVTopPerGeneration, len(evolutionResult.SortedGenerationIndividuals)),
 		//CSVBottomPerGeneration: make([]GenerationalStatistics, len(evolutionResult.SortedGenerationIndividuals)),
@@ -558,8 +558,8 @@ func WritetoFile(path string, evolutionResult *EvolutionResult, params Evolution
 	coevolutionaryAverages := evolutionResult.CoevolutionaryAverages
 
 	for i := range coevolutionaryAverages {
-		csvOutput.Generational[i].Generation = i+1
-		csvOutput.Generational[i].Run = count+1
+		csvOutput.Generational[i].Generation = i + 1
+		csvOutput.Generational[i].Run = count + 1
 		csvOutput.Generational[i].Spec = params.SpecParam.Expression
 
 		// ########################################## ANTAGONISTS ###################################################
@@ -589,7 +589,7 @@ func WritetoFile(path string, evolutionResult *EvolutionResult, params Evolution
 	err := os.Mkdir(params.StatisticsOutput.OutputDir, 0755)
 	innerFolder := strings.ReplaceAll(path, ".json", "")
 	err = os.Mkdir(innerFolder, 0755)
-	g :=strings.SplitAfter(path, "/")
+	g := strings.SplitAfter(path, "/")
 
 	mainDir := g[0]
 	subDirInfo := g[1]
@@ -633,7 +633,6 @@ func dominantStrategy(individual Individual) string {
 	return topStrategy
 }
 
-
 func WriteCSVWithMap(csvFileMap map[string]interface{}, mainDir, subDirInfo, subsubDirName string, count int) (err error) {
 	for name := range csvFileMap {
 		pathCSV := fmt.Sprintf("%s%s%s/%s-%d%s", mainDir, subDirInfo, subsubDirName, name, count, ".csv")
@@ -645,7 +644,7 @@ func WriteCSVWithMap(csvFileMap map[string]interface{}, mainDir, subDirInfo, sub
 
 		writer := gocsv.DefaultCSVWriter(fileCSV)
 		if writer.Error() != nil {
-			return  writer.Error()
+			return writer.Error()
 		}
 		err = gocsv.Marshal(csvFileMap[name], fileCSV)
 		if err != nil {
@@ -655,15 +654,13 @@ func WriteCSVWithMap(csvFileMap map[string]interface{}, mainDir, subDirInfo, sub
 	return err
 }
 
-
-
 type JSONCoalescedOutput struct {
 	Name            string       `json:"name" csv:"name"`
 	CoalescedOutput []JSONOutput `json:"coalescedOutput" csv:"coalescedOutput"`
 }
 
 type CSVOutput struct {
-	Generational               []GenerationalStatistics `csv:"generational"`
+	Generational []GenerationalStatistics `csv:"generational"`
 	//CSVTopPerGeneration    []CSVTopPerGeneration    `csv:"topPerGeneration"`
 	//CSVBottomPerGeneration []GenerationalStatistics `csv:"bottomPerGeneration"`
 	//TopEquationsPerGeneration
@@ -671,52 +668,50 @@ type CSVOutput struct {
 
 	CSVUltimateIndividuals []CSVUltimateIndividual `csv:"ultimateIndividuals"`
 
-	CSVTopEquations CSVEquations `csv:"bottomPerGeneration"`
-	CSVTopStrategies CSVEquations `csv:"topStrategies"`
-	CSVTopEquationVariationPerEpoch CSVStrategy `csv:"topEquationVariation"`
+	CSVTopEquations                 CSVEquations `csv:"bottomPerGeneration"`
+	CSVTopStrategies                CSVEquations `csv:"topStrategies"`
+	CSVTopEquationVariationPerEpoch CSVStrategy  `csv:"topEquationVariation"`
 
-	CSVEquationsPerGeneration []CSVEquations     `csv:"equationsPerGeneration"`
-	CSVStrategyPerGeneration []CSVStrategy       `csv:"strategyPerGeneration"`
-	CSVFinalIndividuals []GenerationalStatistics `csv:"finalIndividuals"`
+	CSVEquationsPerGeneration []CSVEquations           `csv:"equationsPerGeneration"`
+	CSVStrategyPerGeneration  []CSVStrategy            `csv:"strategyPerGeneration"`
+	CSVFinalIndividuals       []GenerationalStatistics `csv:"finalIndividuals"`
 }
-
-
 
 type CSVEquations struct {
 	Protagonist string `csv:"protagonistEquation"`
-	Antagonist string `csv:"protagonistEquation"`
-	Spec string `csv:"protagonistEquation"`
+	Antagonist  string `csv:"protagonistEquation"`
+	Spec        string `csv:"protagonistEquation"`
 }
 
 type CSVStrategy struct {
 	Protagonist string `csv:"protagonistStrategy"`
-	Antagonist string `csv:"antagonistStrategy"`
+	Antagonist  string `csv:"antagonistStrategy"`
 }
 
 // GenerationalStatistics refer to statistics per generation.
 // So Top or Bottom refer to the best or worst in the given generation and not a cumulative of the evolutionary process.
 type GenerationalStatistics struct {
-	Generation  int `csv:"generation"`
-	AverageAntagonist  float64 `csv:"averageAntagonist"`
-	AverageProtagonist float64 `csv:"averageProtagonist"`
-	TopAntagonist  float64 `csv:"topAntagonist"`
-	TopProtagonist  float64 `csv:"topProtagonist"`
-	BottomAntagonist  float64 `csv:"bottomAntagonist"`
-	BottomProtagonist  float64 `csv:"bottomProtagonist"`
-	TopAntagonistFavoriteStrategy  string `csv:"topAntagonistDominantStrategy"`
-	TopProtagonistFavoriteStrategy  string `csv:"topProtagonistDominantStrategy"`
-	TopAntagonistAge  int `csv:"topAntagonistAge"`
-	TopProtagonistAge  int `csv:"topProtagonistAge"`
-	TopAntagonistEquation string `csv:"topAntagonistEquation"`
-	TopProtagonistEquation string `csv:"topProtagonistEquation"`
-	Spec string `csv:"spec"`
-	Run int `csv:"runNumber"`
+	Generation                     int     `csv:"generation"`
+	AverageAntagonist              float64 `csv:"averageAntagonist"`
+	AverageProtagonist             float64 `csv:"averageProtagonist"`
+	TopAntagonist                  float64 `csv:"topAntagonist"`
+	TopProtagonist                 float64 `csv:"topProtagonist"`
+	BottomAntagonist               float64 `csv:"bottomAntagonist"`
+	BottomProtagonist              float64 `csv:"bottomProtagonist"`
+	TopAntagonistFavoriteStrategy  string  `csv:"topAntagonistDominantStrategy"`
+	TopProtagonistFavoriteStrategy string  `csv:"topProtagonistDominantStrategy"`
+	TopAntagonistAge               int     `csv:"topAntagonistAge"`
+	TopProtagonistAge              int     `csv:"topProtagonistAge"`
+	TopAntagonistEquation          string  `csv:"topAntagonistEquation"`
+	TopProtagonistEquation         string  `csv:"topProtagonistEquation"`
+	Spec                           string  `csv:"spec"`
+	Run                            int     `csv:"runNumber"`
 }
 
 type CSVMetadata struct {
-	Title       string      `json:"title" csv:"title"`
-	SubTitle    string      `json:"subTitle" csv:"subTitle"`
-	Description string      `json:"description" csv:"description"`
+	Title           string          `json:"title" csv:"title"`
+	SubTitle        string          `json:"subTitle" csv:"subTitle"`
+	Description     string          `json:"description" csv:"description"`
 	EvolutionParams EvolutionParams `json:"evolutionaryParams"`
 }
 
@@ -744,13 +739,13 @@ type IndividualStatistics struct {
 type CSVUltimateIndividual struct {
 	Protagonist float64 `csv:"protagonistCoordinates"`
 	Antagonist  float64 `csv:"antagonistCoordinates"`
-	Independent  float64 `csv:"independent"`
+	Independent float64 `csv:"independent"`
 }
 
 type CSVTopPerGeneration struct {
 	Protagonist float64 `csv:"protagonistCoordinates"`
 	Antagonist  float64 `csv:"antagonistCoordinates"`
-	Independent  float64 `csv:"independent"`
+	Independent float64 `csv:"independent"`
 }
 
 type CSVGeneric struct {
@@ -762,14 +757,14 @@ type CSVGeneric struct {
 }
 
 type CSVCoalescedOutput struct {
-	CSVAverages []GenerationalStatistics            `csv:"averages"`
-	CSVUltimateIndividuals []CSVUltimateIndividual  `csv:"ultimateIndividuals"`
-	CSVTopPerGeneration []CSVTopPerGeneration       `csv:"topPerGeneration"`
-	CSVBottomPerGeneration []GenerationalStatistics `csv:"bottomPerGeneration"`
-	CSVTopEquations CSVEquations                    `csv:"bottomPerGeneration"`
-	CSVTopStrategies CSVEquations                   `csv:"topStrategies"`
-	CSVEquationsPerGeneration []CSVEquations        `csv:"equationesPerGeneration"`
-	CSVStrategyPerGeneration []CSVStrategy          `csv:"strategyPerGeneration"`
+	CSVAverages               []GenerationalStatistics `csv:"averages"`
+	CSVUltimateIndividuals    []CSVUltimateIndividual  `csv:"ultimateIndividuals"`
+	CSVTopPerGeneration       []CSVTopPerGeneration    `csv:"topPerGeneration"`
+	CSVBottomPerGeneration    []GenerationalStatistics `csv:"bottomPerGeneration"`
+	CSVTopEquations           CSVEquations             `csv:"bottomPerGeneration"`
+	CSVTopStrategies          CSVEquations             `csv:"topStrategies"`
+	CSVEquationsPerGeneration []CSVEquations           `csv:"equationesPerGeneration"`
+	CSVStrategyPerGeneration  []CSVStrategy            `csv:"strategyPerGeneration"`
 }
 
 type JSONOutput struct {

@@ -58,10 +58,10 @@ func (s *Simulation) CoalesceFiles() (string, error) {
 		}
 	}
 	if newFiles == nil {
-		return "",fmt.Errorf("CoalesceFiles | could not coalesce files - nil")
+		return "", fmt.Errorf("CoalesceFiles | could not coalesce files - nil")
 	}
 	if len(newFiles) == 0 {
-		return "",fmt.Errorf("CoalesceFiles | no files to coalesce")
+		return "", fmt.Errorf("CoalesceFiles | no files to coalesce")
 	}
 
 	csvOutputs := make([]evolution.CSVOutput, 0)
@@ -102,7 +102,6 @@ func (s *Simulation) CoalesceFiles() (string, error) {
 	// do epochal
 	// do individual
 
-
 	return coalesce(csvOutputs, s.OutputDir, "coalesced-generational.csv")
 }
 
@@ -122,7 +121,6 @@ func (s *Simulation) RunRScript(absolutePath string, filePath string, topLevelDi
 	}()
 	return err
 }
-
 
 func coalesce(csvFiles []evolution.CSVOutput, outputDir, outputFileName string) (string, error) {
 	if csvFiles == nil {
@@ -151,7 +149,7 @@ func coalesce(csvFiles []evolution.CSVOutput, outputDir, outputFileName string) 
 
 	writer := gocsv.DefaultCSVWriter(outputFileCSV)
 	if writer.Error() != nil {
-		return  path, writer.Error()
+		return path, writer.Error()
 	}
 	err = gocsv.Marshal(baseCSV.Generational, outputFileCSV)
 	if err != nil {
@@ -162,14 +160,13 @@ func coalesce(csvFiles []evolution.CSVOutput, outputDir, outputFileName string) 
 	return path, nil
 }
 
-
 func StartEngine(engine *evolution.EvolutionEngine) error {
 	evolutionResult, err := engine.Start()
 	if err != nil {
 		return err
 	}
 
-	err = evolutionResult.Analyze(engine.Generations, engine.Parameters.FitnessStrategy.IsMoreFitnessBetter, engine.Parameters)
+	err = evolutionResult.Analyze(engine.Generations, true, engine.Parameters)
 	if err != nil {
 		return err
 	}
@@ -270,34 +267,26 @@ func PrepareSimulation(params evolution.EvolutionParams, count int) *evolution.E
 
 	switch engine.Parameters.FitnessStrategy.Type {
 	case evolution.FitnessAbsolute:
-		engine.Parameters.FitnessStrategy.IsMoreFitnessBetter = true
 		fmt.Printf("Fitness Strategy: %s\n", "FitnessAbsolute")
 		break
 	case evolution.FitnessRatio:
-		engine.Parameters.FitnessStrategy.IsMoreFitnessBetter = true
 		fmt.Printf("Fitness Strategy: %s\n", "FitnessRatio")
 		break
 	case evolution.FitnessProtagonistThresholdTally:
 		fmt.Printf("Fitness Strategy: %s\n", "FitnessProtagonistThresholdTally")
-		engine.Parameters.FitnessStrategy.IsMoreFitnessBetter = false
 		break
 	case evolution.FitnessThresholdedAntagonistRatio:
-		engine.Parameters.FitnessStrategy.IsMoreFitnessBetter = true
 		fmt.Printf("Fitness Strategy: %s\n", "FitnessThresholdedAntagonistRatio")
 		break
 	case evolution.FitnessMonoThresholdedRatio:
-		engine.Parameters.FitnessStrategy.IsMoreFitnessBetter = true
 		fmt.Printf("Fitness Strategy: %s\n", "FitnessMonoThresholdedRatio")
 		break
 	case evolution.FitnessDualThresholdedRatio:
-		engine.Parameters.FitnessStrategy.IsMoreFitnessBetter = true
 		fmt.Printf("Fitness Strategy: %s\n", "FitnessDualThresholdedRatio")
 		break
 	default:
-		engine.Parameters.FitnessStrategy.IsMoreFitnessBetter = true
 		log.Printf("Fitness Strategy: %s\n", "Unknown")
 	}
-	fmt.Printf("Is More Fitness Better: %t\n", engine.Parameters.FitnessStrategy.IsMoreFitnessBetter)
 	fmt.Println()
 
 	var outputPath string
@@ -316,7 +305,6 @@ func PrepareSimulation(params evolution.EvolutionParams, count int) *evolution.E
 	return engine
 	// ########################### START THE EVOLUTION PROCESS ##################################################3
 }
-
 
 // BeginToil will work through a multidimensional set of data to try all possible combination of parameters for ideal
 // parameter tuning
@@ -467,8 +455,6 @@ func (s *Simulation) BeginToil(indexFile string) error {
 	return nil
 }
 
-
-
 func WriteIndexProgressToFile(indexProgress IndexProgress, indexFile string) error {
 	file, err := os.Create(indexFile)
 	if err != nil {
@@ -496,4 +482,3 @@ type IndexProgress struct {
 	StrategiesProtagonistIndex     int `json:"strategiesProtagonistIndex"`
 	NumberOfRunsPerState           int `json:"numberOfRunsPerState"`
 }
-

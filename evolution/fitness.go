@@ -3,6 +3,7 @@ package evolution
 import (
 	"fmt"
 	"math"
+	"strings"
 )
 
 const (
@@ -68,15 +69,20 @@ func evaluateFitnessAntagonistThresholded(spec SpecMulti, antagonist, protagonis
 
 	antagonistExpression, protagonistExpression, err := generateExpressions(antagonist, protagonist)
 	if err != nil {
-		return 10000.001, 10000.001, err
+		return -2, -2, err
 	}
 	deltaProtagonist := 0.0
 	deltaAntagonist := 0.0
 	deltaAntagonistThreshold := 0.0
+	antagonistDividedByZeroCount := 0
+	protagonistDividedByZeroCount := 0
+
 	for i := range spec {
 		dependentAntagonistVar, err := antagonist.EvalMulti(spec[i].Independents, antagonistExpression, fitnessCalculatorType)
 		if err != nil {
-			return 10000.001, 10000.001, err
+			if strings.Contains(strings.ToLower(err.Error()), "invalid") {
+				antagonistDividedByZeroCount++
+			}
 		}
 		dA := calculateDelta(spec[i].Dependent, dependentAntagonistVar)
 		deltaAntagonist += dA
@@ -84,7 +90,9 @@ func evaluateFitnessAntagonistThresholded(spec SpecMulti, antagonist, protagonis
 
 		dependentProtagonistVar, err := protagonist.EvalMulti(spec[i].Independents, protagonistExpression, fitnessCalculatorType)
 		if err != nil {
-			return 10000.001, 10000.001, err
+			if strings.Contains(strings.ToLower(err.Error()), "invalid") {
+				protagonistDividedByZeroCount++
+			}
 		}
 		deltaTruthToProtagonistVar := calculateDelta(spec[i].Dependent, dependentProtagonistVar)
 		deltaProtagonist += deltaTruthToProtagonistVar
@@ -95,17 +103,35 @@ func evaluateFitnessAntagonistThresholded(spec SpecMulti, antagonist, protagonis
 	deltaAntagonist = deltaAntagonist / specLen
 	deltaAntagonistThreshold = deltaAntagonistThreshold / specLen
 
-	//antagonists
+
+	//If there are no underlying errors
 	if deltaAntagonist >= deltaAntagonistThreshold {
+		// If the antagonist has surpassed its threshold, let it begin to gain fitness!
 		antagonistFitness = (deltaAntagonist - deltaAntagonistThreshold) / deltaAntagonist
 	} else {
+		// Else it will begin to attain less fitness
 		antagonistFitness = -1 * ((deltaAntagonistThreshold - deltaAntagonist) / deltaAntagonistThreshold)
 	}
 
 	if deltaProtagonist <= deltaAntagonist {
-		protagonistFitness = deltaProtagonist / deltaAntagonist
+		// If the protagonist fitness is less than that of the antagonist, give it fitness
+		protagonistFitness = 1 - (deltaProtagonist / deltaAntagonist)
 	} else {
-		protagonistFitness = -1 * ((deltaProtagonist) / deltaAntagonist)
+		protagonistFitness = (deltaAntagonist - deltaProtagonist) / deltaProtagonist
+	}
+
+	if antagonistDividedByZeroCount > 0 {
+		if antagonistFitness > 0 {
+			antagonistFitness = antagonistFitness - (antagonistFitness * 0.1 * float64(
+				antagonistDividedByZeroCount))
+		}
+		// No else statement as if the antagonist is already less than 0, it should remain there.
+	}
+	if protagonistDividedByZeroCount > 0 {
+		if protagonistFitness > 0 {
+			protagonistFitness = protagonistFitness - (protagonistFitness * 0.1 * float64(
+				protagonistDividedByZeroCount))
+		}
 	}
 
 	return antagonistFitness, protagonistFitness, nil
@@ -169,6 +195,7 @@ func RatioFitness(spec SpecMulti, antagonist, protagonist *Program,
 
 	err = fitnessParameterValidator(spec, antagonist, protagonist)
 	if err != nil {
+
 		return math.MaxInt64, math.MaxInt64, err
 	}
 
@@ -196,8 +223,7 @@ func RatioFitness(spec SpecMulti, antagonist, protagonist *Program,
 // If the protagonists delta is greater than that of the antagonist it automatically is given a value of 0.
 // If the protagonist achieves identical spec values it obtains a value of 1 and the antagonists gets a value of 0
 func ratioFitness(spec SpecMulti, antagonistExpression, protagonistExpression string,
-	antagonistProgram, protagonistProgram *Program, fitnessCalculatorType int) (protagonistFitness,
-	antagonistFitness float64, err error) {
+	antagonistProgram, protagonistProgram *Program, fitnessCalculatorType int) (protagonistFitness, antagonistFitness float64, err error) {
 	deltaProtagonist := 0.0
 	deltaAntagonist := 0.0
 
@@ -209,14 +235,14 @@ func ratioFitness(spec SpecMulti, antagonistExpression, protagonistExpression st
 	for _, s := range spec {
 		dependentAntagonistVar, err := antagonistProgram.EvalMulti(s.Independents, antagonistExpression, fitnessCalculatorType)
 		if err != nil {
-			return math.MaxInt64, math.MaxInt64, err
+			return 0, -2, err
 		}
 		dA := calculateDelta(float64(s.Dependent), float64(dependentAntagonistVar))
 		deltaAntagonist += dA
 
 		dependentProtagonistVar, err := protagonistProgram.EvalMulti(s.Independents, protagonistExpression, fitnessCalculatorType)
 		if err != nil {
-			return math.MaxInt64, math.MaxInt64, err
+			return -2, 0, err
 		}
 		dP := calculateDelta(float64(s.Dependent), float64(dependentProtagonistVar))
 		deltaProtagonist += dP
@@ -276,16 +302,20 @@ func thresholdedRatioFitness(spec SpecMulti, antagonist, protagonist *Program,
 
 	antagonistExpression, protagonistExpression, err := generateExpressions(antagonist, protagonist)
 	if err != nil {
-		return 10000.001, 10000.001, err
+		return -2, -2, err
 	}
 	deltaProtagonist := 0.0
 	deltaAntagonist := 0.0
 	deltaAntagonistThreshold := 0.0
 	deltaProtagonistThreshold := 0.0
+	antagonistDividedByZeroCount := 0
+	protagonistDividedByZeroCount := 0
 	for i := range spec {
 		dependentAntagonistVar, err := antagonist.EvalMulti(spec[i].Independents, antagonistExpression, fitnessCalculatorType)
 		if err != nil {
-			return 10000.001, 10000.001, err
+			if strings.Contains(strings.ToLower(err.Error()), "invalid") {
+				antagonistDividedByZeroCount++
+			}
 		}
 		dA := calculateDelta(spec[i].Dependent, dependentAntagonistVar)
 		deltaAntagonist += dA
@@ -294,7 +324,9 @@ func thresholdedRatioFitness(spec SpecMulti, antagonist, protagonist *Program,
 
 		dependentProtagonistVar, err := protagonist.EvalMulti(spec[i].Independents, protagonistExpression, fitnessCalculatorType)
 		if err != nil {
-			return 10000.001, 10000.001, err
+			if strings.Contains(strings.ToLower(err.Error()), "invalid") {
+				protagonistDividedByZeroCount++
+			}
 		}
 		deltaTruthToProtagonistVar := calculateDelta(spec[i].Dependent, dependentProtagonistVar)
 		deltaProtagonist += deltaTruthToProtagonistVar
@@ -319,6 +351,20 @@ func thresholdedRatioFitness(spec SpecMulti, antagonist, protagonist *Program,
 		protagonistFitness = (deltaProtagonistThreshold - deltaProtagonist) / deltaProtagonistThreshold
 	} else {
 		protagonistFitness = -1 * ((deltaProtagonist - deltaProtagonistThreshold) / deltaProtagonist)
+	}
+
+	if antagonistDividedByZeroCount > 0 {
+		if antagonistFitness > 0 {
+			antagonistFitness = antagonistFitness - (antagonistFitness * 0.1 * float64(
+				antagonistDividedByZeroCount))
+		}
+		// No else statement as if the antagonist is already less than 0, it should remain there.
+	}
+	if protagonistDividedByZeroCount > 0 {
+		if protagonistFitness > 0 {
+			protagonistFitness = protagonistFitness - (protagonistFitness * 0.1 * float64(
+				protagonistDividedByZeroCount))
+		}
 	}
 
 	return antagonistFitness, protagonistFitness, nil

@@ -91,7 +91,7 @@ func TestDualTree_ToMathematicalString(t *testing.T) {
 				X1.value,
 				Mult.value, Const4.value, Sub.value, Const9.value, Mult.value, Const0.value), false},
 
-		{"100000*x*x*x", Tree_100000XXX(),"(((100000)*(x))*((x)*(x)))", false},
+		{"100000*x*x*x", Tree_100000XXX(), "(((100000)*(x))*((x)*(x)))", false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
