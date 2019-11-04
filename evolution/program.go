@@ -181,14 +181,7 @@ func EvaluateMathematicalExpression(expressionString string, independentVariable
 		return -1, fmt.Errorf("EvaluateMathematicalExpression | expressionString cannot be empty")
 	}
 
-	var ans = 0.0
-	answer, err := eval.CalculateWithVar(expressionString, independentVariables)
-	if err != nil {
-		return -1, err
-	}
-	ans = answer
-
-	return ans, nil
+	return eval.CalculateWithVar(expressionString, independentVariables)
 }
 
 func (p Program) Clone() (Program, error) {

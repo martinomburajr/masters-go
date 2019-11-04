@@ -83,14 +83,27 @@ func (g *Generation) setupEpochs() ([]Epoch, error) {
 	count := 0
 	for i := range g.Antagonists {
 		for j := range g.Protagonists {
+
+			cloneAntagonist, err := g.Antagonists[i].Clone()
+			if err != nil {
+				return nil, err
+			}
+			cloneAntagonist.Parent = g.Antagonists[i]
+
+			cloneProtagonist, err := g.Protagonists[i].Clone()
+			if err != nil {
+				return nil, err
+			}
+			cloneProtagonist.Parent = g.Protagonists[i]
+
 			epochs[count] = Epoch{
 				isComplete:            false,
 				terminalSet:           g.engine.Parameters.SpecParam.AvailableSymbolicExpressions.Terminals,
 				nonTerminalSet:        g.engine.Parameters.SpecParam.AvailableSymbolicExpressions.NonTerminals,
 				hasAntagonistApplied:  false,
 				hasProtagonistApplied: false,
-				antagonist:            g.Antagonists[i],
-				protagonist:           g.Protagonists[j],
+				antagonist:            &cloneAntagonist,
+				protagonist:           &cloneProtagonist,
 				generation:            g,
 				program:               g.engine.Parameters.StartIndividual,
 				id: CreateEpochID(count, g.GenerationID, g.Antagonists[i].Id,
@@ -105,7 +118,7 @@ func (g *Generation) setupEpochs() ([]Epoch, error) {
 type PerfectTree struct {
 	Program      *Program
 	FitnessValue float64
-	FitnessDetla float64
+	FitnessDelta float64
 }
 
 // runEpoch begins the run of a single epoch
@@ -129,12 +142,12 @@ func (g *Generation) runEpochs(epochs []Epoch) ([]Epoch, error) {
 	for i := 0; i < len(g.Antagonists); i++ {
 		perfectAntagonistTree := perfectFitnessMap[g.Antagonists[i].Id]
 		g.Antagonists[i].Program = perfectAntagonistTree.Program
-		g.Antagonists[i].FitnessDelta = perfectAntagonistTree.FitnessDetla
+		g.Antagonists[i].FitnessDelta = perfectAntagonistTree.FitnessDelta
 	}
 	for i := 0; i < len(g.Protagonists); i++ {
 		perfectProtagonistTree := perfectFitnessMap[g.Protagonists[i].Id]
 		g.Protagonists[i].Program = perfectProtagonistTree.Program
-		g.Protagonists[i].FitnessDelta = perfectProtagonistTree.FitnessDetla
+		g.Protagonists[i].FitnessDelta = perfectProtagonistTree.FitnessDelta
 	}
 
 	return epochs, nil
@@ -162,6 +175,7 @@ func (g *Generation) Compete() error {
 		}
 		g.Protagonists[i].TotalFitness = float64(protagonistFitness / float64(len(g.Protagonists[i].Fitness)))
 		g.Protagonists[i].HasCalculatedFitness = true
+		g.Protagonists[i].HasAppliedStrategy = true
 		g.Protagonists[i].Age++
 
 		antagonistFitness, err := AggregateFitness(*g.Antagonists[i])
@@ -170,6 +184,7 @@ func (g *Generation) Compete() error {
 		}
 		g.Antagonists[i].TotalFitness = float64(antagonistFitness / float64(len(g.Antagonists[i].Fitness)))
 		g.Antagonists[i].HasCalculatedFitness = true
+		g.Antagonists[i].HasAppliedStrategy = true
 		g.Antagonists[i].Age++
 	}
 

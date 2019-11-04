@@ -26,7 +26,7 @@ type Epoch struct {
 
 // CreateEpochID generates a given epoch Id with some useful information
 func CreateEpochID(count int, generationId, antagonistId, protagonistId string) string {
-	return fmt.Sprintf("EPOCH-%d-GEN-%s-ANTAGON-%s-PROTAGON-%s", count, generationId, antagonistId, protagonistId)
+	return fmt.Sprintf("EPOCH-%d", count)
 }
 
 // Start creates the Epoch process. This process applies the antagonist Strategy first,
@@ -59,7 +59,7 @@ func (e *Epoch) Start(perfectTreeMap map[string]PerfectTree) error {
 		return fmt.Errorf("antagonist and protagonist havent applied Strategy to program")
 	}
 
-	antagonistFitness, protagonistFitness := 0.0, 0.0
+	antagonistFitness, protagonistFitness, antagonistFitnessDelta, protagonistFitnessDelta := 0.0, 0.0, 0.0, 0.0
 	switch e.generation.engine.Parameters.FitnessStrategy.Type {
 	case FitnessProtagonistThresholdTally:
 		antagonistFitness, protagonistFitness, err = ProtagonistThresholdTally(e.generation.engine.Parameters.Spec,
@@ -84,14 +84,18 @@ func (e *Epoch) Start(perfectTreeMap map[string]PerfectTree) error {
 		break
 
 	case FitnessDualThresholdedRatio:
-		antagonistFitness, protagonistFitness, err = ThresholdedRatioFitness(e.generation.engine.Parameters.Spec, e.antagonist.Program,
+		antagonistFitness, protagonistFitness, antagonistFitnessDelta,
+			protagonistFitnessDelta, err = ThresholdedRatioFitness(e.generation.engine.Parameters.Spec,
+			e.antagonist.Program,
 			e.protagonist.Program, e.generation.engine.Parameters.FitnessCalculatorType)
 		if err != nil {
 			return err
 		}
 		break
 	case FitnessMonoThresholdedRatio:
-		antagonistFitness, protagonistFitness, err = ThresholdedRatioFitness(e.generation.engine.Parameters.Spec,
+		antagonistFitness, protagonistFitness, antagonistFitnessDelta, protagonistFitnessDelta,
+			err = ThresholdedRatioFitness(e.generation.
+			engine.Parameters.Spec,
 			e.protagonist.Program,
 			e.protagonist.Program, e.generation.engine.Parameters.FitnessCalculatorType)
 		if err != nil {
@@ -102,30 +106,34 @@ func (e *Epoch) Start(perfectTreeMap map[string]PerfectTree) error {
 		err = fmt.Errorf("unknown Fitness Strategy selected")
 	}
 
-	if perfectTreeMap[e.antagonist.Id].Program == nil {
-		perfectTreeMap[e.antagonist.Id] = PerfectTree{FitnessValue: math.MinInt64}
+	if perfectTreeMap[e.antagonist.Parent.Id].Program == nil {
+		perfectTreeMap[e.antagonist.Parent.Id] = PerfectTree{FitnessValue: math.MinInt64}
 	}
-	perfectTreeAntagonist := perfectTreeMap[e.antagonist.Id]
+	perfectTreeAntagonist := perfectTreeMap[e.antagonist.Parent.Id]
 	if perfectTreeAntagonist.FitnessValue < antagonistFitness {
 		perfectTreeAntagonist.Program = e.antagonist.Program
 		perfectTreeAntagonist.FitnessValue = antagonistFitness
-		perfectTreeAntagonist.FitnessDetla = antagonistFitness
-		perfectTreeMap[e.antagonist.Id] = perfectTreeAntagonist
+		perfectTreeAntagonist.FitnessDelta = antagonistFitnessDelta
+		perfectTreeMap[e.antagonist.Parent.Id] = perfectTreeAntagonist
 	}
 
-	if perfectTreeMap[e.protagonist.Id].Program == nil {
-		perfectTreeMap[e.protagonist.Id] = PerfectTree{FitnessValue: math.MinInt64}
+	if perfectTreeMap[e.protagonist.Parent.Id].Program == nil {
+		perfectTreeMap[e.protagonist.Parent.Id] = PerfectTree{FitnessValue: math.MinInt64}
 	}
-	perfectTreeProtagonist := perfectTreeMap[e.protagonist.Id]
+	perfectTreeProtagonist := perfectTreeMap[e.protagonist.Parent.Id]
 	if perfectTreeProtagonist.FitnessValue < protagonistFitness {
 		perfectTreeProtagonist.Program = e.protagonist.Program
 		perfectTreeProtagonist.FitnessValue = protagonistFitness
-		perfectTreeProtagonist.FitnessDetla = protagonistFitness
-		perfectTreeMap[e.protagonist.Id] = perfectTreeProtagonist
+		perfectTreeProtagonist.FitnessDelta = protagonistFitnessDelta
+		perfectTreeMap[e.protagonist.Parent.Id] = perfectTreeProtagonist
 	}
 
-	e.antagonist.Fitness = append(e.antagonist.Fitness, antagonistFitness)
-	e.protagonist.Fitness = append(e.protagonist.Fitness, protagonistFitness)
+	e.antagonist.Parent.Fitness = append(e.antagonist.Parent.Fitness, antagonistFitness)
+	e.protagonist.Parent.Fitness = append(e.protagonist.Parent.Fitness, protagonistFitness)
+
+	// KILL THE CHILDREN!
+	//e.antagonist = nil
+	//e.protagonist = nil
 
 	//antString := e.antagonist.ToString()
 	//fmt.Println(antString.String())

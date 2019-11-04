@@ -2,6 +2,7 @@ package eval
 
 import (
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 )
@@ -46,7 +47,7 @@ func (n *Binary) Eval() (Number, bool) {
 		return left * right, true
 	case '/':
 		if right == 0 {
-			return 0, false
+			return Number(math.NaN()), false
 		}
 		return left / right, true
 	}
@@ -247,6 +248,7 @@ func (p *Parser) parseOperators(lhs Node, min_precedence int) (Node, bool) {
 
 //Calculate is a streamlined evalutor that takes in a mathematical string and performs either +,
 // - / * operations on the given string. It performs about 4 times better than existing methods as per the benchmarks..
+// Divide by 0 returns not a number
 func Calculate(substitutedExpression string) (float64, error) {
 	var node Node
 	var result Number
@@ -265,11 +267,16 @@ func Calculate(substitutedExpression string) (float64, error) {
 		if evalOk {
 			return float64(result), nil // %v = default format
 		} else {
-			return 0.0, fmt.Errorf("%s = Invalid Evaluation error\n", substitutedExpression)
+			return float64(result), fmt.Errorf("%s = Invalid Evaluation error\n", substitutedExpression)
 		}
 	} else {
 		return 0.0, fmt.Errorf("%s = Invalid Syntax error\n", substitutedExpression)
 	}
+}
+
+// MathError Kind = 0, syntax, Kind = 1 NaN
+type MathError struct {
+	Kind int
 }
 
 func CalculateWithVar(substitutedExpression string, variables map[string]float64) (float64, error) {

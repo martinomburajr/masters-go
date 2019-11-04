@@ -18,6 +18,8 @@ func TestCalculate(t *testing.T) {
 		{"foreign symbol", args{"r"}, 0.0, true},
 		{"valid number | 7", args{"7"}, 7, false},
 		{"valid number | 73213", args{"73213"}, 73213, false},
+		//{"1/0", args{"1/0"}, math.NaN(), true}, // Cannot test divide by zero. As NaN by definition means f != f
+		{"0/1", args{"0/1"}, 0, true},
 		{"5+4+3+2+1", args{"5+4+3+2+1"}, 15, false},
 		{"5+4+3+2+ 1 spacing", args{"5+4+3+2+ 1"}, 0.0, true},
 		{"(5+4)", args{"(5+4)"}, 9, false},

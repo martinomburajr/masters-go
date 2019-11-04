@@ -14,6 +14,7 @@ const (
 
 type Individual struct {
 	Id                       string
+	Parent                   *Individual
 	Strategy                 []Strategy
 	Fitness                  []float64
 	HasAppliedStrategy       bool

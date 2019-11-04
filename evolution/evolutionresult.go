@@ -14,6 +14,8 @@ type EvolutionResult struct {
 	TopAntagonist       *Individual
 	TopProtagonist      *Individual
 	IsMoreFitnessBetter bool
+	FinalAntagonist *Individual
+	FinalProtagonist *Individual
 
 	CoevolutionaryAverages []generationalCoevolutionaryAverages
 
@@ -34,6 +36,18 @@ type generationalCoevolutionaryAverages struct {
 
 func (e *EvolutionResult) Analyze(generations []*Generation, isMoreFitnessBetter bool,
 	params EvolutionParams) error {
+	sortedFinalAntagonists, err := SortIndividuals(generations[len(generations)-1].Antagonists, true)
+	if err != nil {
+		return err
+	}
+	sortedFinalProtagonists, err := SortIndividuals(generations[len(generations)-1].Protagonists, true)
+	if err != nil {
+		return err
+	}
+
+	e.FinalAntagonist = sortedFinalAntagonists[0]
+	e.FinalProtagonist = sortedFinalProtagonists[0]
+
 	// Perform all sorting functions on each generation for each kind of individual
 	e.IsMoreFitnessBetter = isMoreFitnessBetter
 	sortedGenerations, err := SortGenerationsThoroughly(generations, isMoreFitnessBetter)
@@ -549,14 +563,13 @@ func interactiveSearchForTreeShape(reader *bufio.Reader, sortedGenerations []*Ge
 func WritetoFile(path string, evolutionResult *EvolutionResult, params EvolutionParams, count int) (string, error) {
 	csvOutput := CSVOutput{
 		Generational: make([]GenerationalStatistics, len(evolutionResult.SortedGenerationIndividuals)),
-		//CSVUltimateIndividuals: make([]CSVUltimateIndividual, len(evolutionResult.SortedGenerationIndividuals[0].Antagonists[0].Fitness)),
-		//CSVTopPerGeneration:    make([]CSVTopPerGeneration, len(evolutionResult.SortedGenerationIndividuals)),
-		//CSVBottomPerGeneration: make([]GenerationalStatistics, len(evolutionResult.SortedGenerationIndividuals)),
-		//CSVStrategyPerGeneration:
+		Epochal: make([]EpochalStatistics, len(evolutionResult.SortedGenerationIndividuals[0].Protagonists[0].
+			Fitness)),
 	}
 
 	coevolutionaryAverages := evolutionResult.CoevolutionaryAverages
 
+	// GENERATIONAL
 	for i := range coevolutionaryAverages {
 		csvOutput.Generational[i].Generation = i + 1
 		csvOutput.Generational[i].Run = count + 1
@@ -568,10 +581,11 @@ func WritetoFile(path string, evolutionResult *EvolutionResult, params Evolution
 
 		csvOutput.Generational[i].AverageAntagonist = coevolutionaryAverages[i].AntagonistResult
 		csvOutput.Generational[i].TopAntagonist = topAntagonist.TotalFitness
-		csvOutput.Generational[i].BottomAntagonist = topAntagonist.TotalFitness
-		csvOutput.Generational[i].TopAntagonistAge = topAntagonist.Age
+		csvOutput.Generational[i].TopAntagonistBirthGen = topAntagonist.BirthGen
+		csvOutput.Generational[i].TopAntagonistDelta = topAntagonist.FitnessDelta
 		csvOutput.Generational[i].TopAntagonistEquation = topAntagonistEquation
 		csvOutput.Generational[i].TopAntagonistFavoriteStrategy = dominantStrategy(*topAntagonist)
+		csvOutput.Generational[i].TopAntagonistStrategies = strategiesToString(*topAntagonist)
 
 		// ########################################## PROTAGONISTS ###################################################
 		topProtagonist := evolutionResult.SortedGenerationIndividuals[i].Protagonists[0]
@@ -579,10 +593,25 @@ func WritetoFile(path string, evolutionResult *EvolutionResult, params Evolution
 
 		csvOutput.Generational[i].AverageProtagonist = coevolutionaryAverages[i].ProtagonistResult
 		csvOutput.Generational[i].TopProtagonist = topProtagonist.TotalFitness
-		csvOutput.Generational[i].BottomProtagonist = topProtagonist.TotalFitness
-		csvOutput.Generational[i].TopProtagonistAge = topProtagonist.Age
+		csvOutput.Generational[i].TopProtagonistBirthGen = topProtagonist.BirthGen
+		csvOutput.Generational[i].TopProtagonistDelta = topAntagonist.FitnessDelta
 		csvOutput.Generational[i].TopProtagonistEquation = topProtagonistEquation
 		csvOutput.Generational[i].TopProtagonistFavoriteStrategy = dominantStrategy(*topProtagonist)
+		csvOutput.Generational[i].TopProtagonistStrategies = strategiesToString(*topProtagonist)
+	}
+
+	topProtagonist := evolutionResult.SortedGenerationIndividuals[0].Protagonists[0]
+	topAntagonist:= evolutionResult.SortedGenerationIndividuals[0].Antagonists[0]
+	finalProtagonist:= evolutionResult.FinalProtagonist
+	finalAntagonist:= evolutionResult.FinalAntagonist
+
+	for i := 0; i < len(csvOutput.Epochal); i++ {
+		csvOutput.Epochal[i].Epoch = i+1
+		csvOutput.Epochal[i].TopAntagonist = topAntagonist.Fitness[i]
+		csvOutput.Epochal[i].TopProtagonist = topProtagonist.Fitness[i]
+
+		csvOutput.Epochal[i].FinalAntagonist = finalAntagonist.Fitness[i]
+		csvOutput.Epochal[i].FinalProtagonist= finalProtagonist.Fitness[i]
 	}
 
 	// Internal Variance of Ultimate Individuals
@@ -597,8 +626,7 @@ func WritetoFile(path string, evolutionResult *EvolutionResult, params Evolution
 
 	csvMap := map[string]interface{}{
 		"generational": csvOutput.Generational,
-		//"topPerGeneration": csvOutput.CSVTopPerGeneration,
-		//"bottomPerGeneration": csvOutput.CSVBottomPerGeneration,
+		"epochal": csvOutput.Epochal,
 		//"ultimateIndividuals": csvOutput.CSVUltimateIndividuals,
 		//"topEquations": csvOutput.CSVTopEquations,
 		//"topStrategies": csvOutput.CSVTopPerGeneration,
@@ -633,6 +661,15 @@ func dominantStrategy(individual Individual) string {
 	return topStrategy
 }
 
+func strategiesToString(individual Individual) string {
+	sb := strings.Builder{}
+	for _, strategy := range individual.Strategy {
+		sb.WriteString(string(strategy))
+		sb.WriteString("|")
+	}
+	return sb.String()
+}
+
 func WriteCSVWithMap(csvFileMap map[string]interface{}, mainDir, subDirInfo, subsubDirName string, count int) (err error) {
 	for name := range csvFileMap {
 		pathCSV := fmt.Sprintf("%s%s%s/%s-%d%s", mainDir, subDirInfo, subsubDirName, name, count, ".csv")
@@ -661,20 +698,7 @@ type JSONCoalescedOutput struct {
 
 type CSVOutput struct {
 	Generational []GenerationalStatistics `csv:"generational"`
-	//CSVTopPerGeneration    []CSVTopPerGeneration    `csv:"topPerGeneration"`
-	//CSVBottomPerGeneration []GenerationalStatistics `csv:"bottomPerGeneration"`
-	//TopEquationsPerGeneration
-	//
-
-	CSVUltimateIndividuals []CSVUltimateIndividual `csv:"ultimateIndividuals"`
-
-	CSVTopEquations                 CSVEquations `csv:"bottomPerGeneration"`
-	CSVTopStrategies                CSVEquations `csv:"topStrategies"`
-	CSVTopEquationVariationPerEpoch CSVStrategy  `csv:"topEquationVariation"`
-
-	CSVEquationsPerGeneration []CSVEquations           `csv:"equationsPerGeneration"`
-	CSVStrategyPerGeneration  []CSVStrategy            `csv:"strategyPerGeneration"`
-	CSVFinalIndividuals       []GenerationalStatistics `csv:"finalIndividuals"`
+	Epochal                   []EpochalStatistics `csv:"epochal"`
 }
 
 type CSVEquations struct {
@@ -696,12 +720,14 @@ type GenerationalStatistics struct {
 	AverageProtagonist             float64 `csv:"averageProtagonist"`
 	TopAntagonist                  float64 `csv:"topAntagonist"`
 	TopProtagonist                 float64 `csv:"topProtagonist"`
-	BottomAntagonist               float64 `csv:"bottomAntagonist"`
-	BottomProtagonist              float64 `csv:"bottomProtagonist"`
+	TopAntagonistStrategies        string  `csv:"antagonistStrategies"`
+	TopProtagonistStrategies       string  `csv:"topProtagonistStrategies"`
 	TopAntagonistFavoriteStrategy  string  `csv:"topAntagonistDominantStrategy"`
 	TopProtagonistFavoriteStrategy string  `csv:"topProtagonistDominantStrategy"`
-	TopAntagonistAge               int     `csv:"topAntagonistAge"`
-	TopProtagonistAge              int     `csv:"topProtagonistAge"`
+	TopAntagonistBirthGen          int     `csv:"topAntagonistBirthGen"`
+	TopProtagonistBirthGen         int     `csv:"topProtagonistBirthGen"`
+	TopAntagonistDelta             float64 `csv:"topAntagonistDelta"`
+	TopProtagonistDelta            float64 `csv:"topProtagonistDelta"`
 	TopAntagonistEquation          string  `csv:"topAntagonistEquation"`
 	TopProtagonistEquation         string  `csv:"topProtagonistEquation"`
 	Spec                           string  `csv:"spec"`
@@ -715,26 +741,14 @@ type CSVMetadata struct {
 	EvolutionParams EvolutionParams `json:"evolutionaryParams"`
 }
 
-//type EpochalStatistics struct {
-//	TopAntagonist float64
-//	TopProtagonist float64
-//}
-//
-//type StrategicStatistics struct {
-//	TopAntagonist string `csv:"averageAntagonist"`
-//	TopProtagonist string
-//	BottomAntagonist string
-//	BottomProtagonist string
-//}
-
-type IndividualStatistics struct {
-	//TopAntagonist
-	//TopProtagonist
-	//BottomAntagonist
-	//BottomProtagonist
-	//FinalAntagonist
-	//FinalProtagonist
+type EpochalStatistics struct {
+	TopAntagonist float64
+	TopProtagonist float64
+	FinalAntagonist float64
+	FinalProtagonist float64
+	Epoch int
 }
+
 
 type CSVUltimateIndividual struct {
 	Protagonist float64 `csv:"protagonistCoordinates"`

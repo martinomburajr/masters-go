@@ -20,7 +20,7 @@ func main() {
 		SpecParam: evolution.SpecParam{
 			Range:      10,
 			Expression: "5*x*x*x",
-			Seed:       50,
+			Seed:       1,
 			AvailableVariablesAndOperators: evolution.AvailableVariablesAndOperators{
 				Constants: []string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"},
 				Variables: []string{"x"},
@@ -28,7 +28,7 @@ func main() {
 			},
 		},
 		GenerationsCount:   50,
-		EachPopulationSize: 50, // Must be an even number to prevent awkward ordering of children.
+		EachPopulationSize: 10, // Must be an even number to prevent awkward ordering of children.
 
 		FitnessStrategy: evolution.FitnessStrategy{
 			Type:                           evolution.FitnessDualThresholdedRatio,
@@ -39,7 +39,7 @@ func main() {
 		Selection: evolution.Selection{
 			Parent: evolution.ParentSelection{
 				Type:           evolution.ParentSelectionTournament,
-				TournamentSize: 3,
+				TournamentSize: 1,
 			},
 			Survivor: evolution.SurvivorSelection{
 				Type:               1,
@@ -96,12 +96,12 @@ func main() {
 		//ShouldRunInteractiveTerminal: shouldRunInteractive,
 	}
 
-	err := simulation.Begin(params)
+	finalParams, err := simulation.Begin(params)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	_, err = simulation.CoalesceFiles()
+	_, err = simulation.CoalesceFiles(finalParams)
 	if err != nil {
 		log.Fatal(err)
 	}
