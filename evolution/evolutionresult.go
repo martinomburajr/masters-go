@@ -14,8 +14,8 @@ type EvolutionResult struct {
 	TopAntagonist       *Individual
 	TopProtagonist      *Individual
 	IsMoreFitnessBetter bool
-	FinalAntagonist *Individual
-	FinalProtagonist *Individual
+	FinalAntagonist     *Individual
+	FinalProtagonist    *Individual
 
 	CoevolutionaryAverages []generationalCoevolutionaryAverages
 
@@ -135,11 +135,11 @@ func (e *EvolutionResult) PrintTopIndividualSummary(kind int) (strings.Builder, 
 // StartInteractiveTerminal will start a Command Line Interface CLI that allows the user to interact with the presented
 // data. The user has the ability to select from a given set of options using their keyboard after the user has been
 // prompted. Here are a list of interactive elements that this module can print
-// 0. Top Protagonist
-// 1. Top Antagonist
+// 0. Top ProtagonistEquation
+// 1. Top AntagonistEquation
 // 2. Average GenerationalStatistics Fitness
-// 3. Top Antagonist in Gen(X)
-// 4. Top Protagonist in Gen(X)
+// 3. Top AntagonistEquation in Gen(X)
+// 4. Top ProtagonistEquation in Gen(X)
 // 5. Top N Antagonists in Gen(x)
 // 6. Top N Protagonists in Gen(x)
 // 7. Individual (X) in Generation (Y)
@@ -155,11 +155,11 @@ func (e *EvolutionResult) StartInteractiveTerminal(params EvolutionParams) error
 	reader := bufio.NewReader(os.Stdin)
 	isRunning := true
 	for isRunning {
-		fmt.Println("0. Top Antagonist")
-		fmt.Println("1. Top Protagonist")
+		fmt.Println("0. Top AntagonistEquation")
+		fmt.Println("1. Top ProtagonistEquation")
 		fmt.Println("2. Average GenerationalStatistics Fitness")
-		fmt.Println("3. Top Antagonist in Gen(X)")
-		fmt.Println("4. Top Protagonist in Gen(X)")
+		fmt.Println("3. Top AntagonistEquation in Gen(X)")
+		fmt.Println("4. Top ProtagonistEquation in Gen(X)")
 		fmt.Println("5. Top N Antagonists in Gen(x)")
 		fmt.Println("6. Top N Protagonists in Gen(x)")
 		fmt.Println("7. Individual (X) in Generation (Y)")
@@ -177,13 +177,13 @@ func (e *EvolutionResult) StartInteractiveTerminal(params EvolutionParams) error
 		switch text {
 		case "0":
 			strBuilder := e.TopAntagonist.ToString()
-			bannerStr := banner("Top Antagonist")
+			bannerStr := banner("Top AntagonistEquation")
 			fmt.Println(bannerStr)
 			fmt.Println(strBuilder.String())
 			fmt.Println()
 		case "1":
 			strBuilder := e.TopProtagonist.ToString()
-			bannerStr := banner("Top Protagonist")
+			bannerStr := banner("Top ProtagonistEquation")
 			fmt.Println(bannerStr)
 			fmt.Println(strBuilder.String())
 			fmt.Println()
@@ -291,11 +291,11 @@ func interactiveGetTopIndividualInGenX(reader *bufio.Reader, sortedIndividuals [
 	bannerBuilder := strings.Builder{}
 	switch kind {
 	case IndividualAntagonist:
-		name := "Antagonist"
+		name := "AntagonistEquation"
 		bannerStr := banner(fmt.Sprintf("Top %s in Gen %d", name, generationInt))
 		bannerBuilder.WriteString(bannerStr)
 	case IndividualProtagonist:
-		name := "Protagonist"
+		name := "ProtagonistEquation"
 		bannerStr := banner(fmt.Sprintf("Top %s in Gen %d", name, generationInt))
 		bannerBuilder.WriteString(bannerStr)
 	}
@@ -360,11 +360,11 @@ func interactiveGetTopNIndividualInGenX(reader *bufio.Reader, sortedIndividuals 
 	bannerBuilder := strings.Builder{}
 	switch kind {
 	case IndividualAntagonist:
-		name := "Antagonist"
+		name := "AntagonistEquation"
 		bannerStr := banner(fmt.Sprintf("Top %d %s in Gen %d", topN, name, generationInt))
 		bannerBuilder.WriteString(bannerStr)
 	case IndividualProtagonist:
-		name := "Protagonist"
+		name := "ProtagonistEquation"
 		bannerStr := banner(fmt.Sprintf("Top %d %s in Gen %d", topN, name, generationInt))
 		bannerBuilder.WriteString(bannerStr)
 	}
@@ -426,7 +426,7 @@ func interactiveGetIndividualXInGenY(reader *bufio.Reader, sortedIndividuals []*
 	kind := 0
 	isValidKind := true
 	for isValidKind {
-		fmt.Print(fmt.Sprintf("Antagonist(0) or Protagonist(1)"))
+		fmt.Print(fmt.Sprintf("AntagonistEquation(0) or ProtagonistEquation(1)"))
 		fmt.Print("--------->")
 		kindStr, _ := reader.ReadString('\n')
 		// convert CRLF to LF
@@ -455,11 +455,11 @@ func interactiveGetIndividualXInGenY(reader *bufio.Reader, sortedIndividuals []*
 	bannerBuilder := strings.Builder{}
 	switch kind {
 	case IndividualAntagonist:
-		name := "Antagonist"
+		name := "AntagonistEquation"
 		bannerStr := banner(fmt.Sprintf("%s[%d] in Gen %d", name, individualIndex, generationInt))
 		bannerBuilder.WriteString(bannerStr)
 	case IndividualProtagonist:
-		name := "Protagonist"
+		name := "ProtagonistEquation"
 		bannerStr := banner(fmt.Sprintf("%s[%d] in Gen %d", name, individualIndex, generationInt))
 		bannerBuilder.WriteString(bannerStr)
 	}
@@ -584,8 +584,8 @@ func WritetoFile(path string, evolutionResult *EvolutionResult, params Evolution
 		csvOutput.Generational[i].TopAntagonistBirthGen = topAntagonist.BirthGen
 		csvOutput.Generational[i].TopAntagonistDelta = topAntagonist.FitnessDelta
 		csvOutput.Generational[i].TopAntagonistEquation = topAntagonistEquation
-		csvOutput.Generational[i].TopAntagonistFavoriteStrategy = dominantStrategy(*topAntagonist)
-		csvOutput.Generational[i].TopAntagonistStrategies = strategiesToString(*topAntagonist)
+		csvOutput.Generational[i].TopAntagonistFavoriteStrategy = DominantStrategy(*topAntagonist)
+		csvOutput.Generational[i].TopAntagonistStrategies = StrategiesToString(*topAntagonist)
 
 		// ########################################## PROTAGONISTS ###################################################
 		topProtagonist := evolutionResult.SortedGenerationIndividuals[i].Protagonists[0]
@@ -596,22 +596,22 @@ func WritetoFile(path string, evolutionResult *EvolutionResult, params Evolution
 		csvOutput.Generational[i].TopProtagonistBirthGen = topProtagonist.BirthGen
 		csvOutput.Generational[i].TopProtagonistDelta = topAntagonist.FitnessDelta
 		csvOutput.Generational[i].TopProtagonistEquation = topProtagonistEquation
-		csvOutput.Generational[i].TopProtagonistFavoriteStrategy = dominantStrategy(*topProtagonist)
-		csvOutput.Generational[i].TopProtagonistStrategies = strategiesToString(*topProtagonist)
+		csvOutput.Generational[i].TopProtagonistFavoriteStrategy = DominantStrategy(*topProtagonist)
+		csvOutput.Generational[i].TopProtagonistStrategies = StrategiesToString(*topProtagonist)
 	}
 
 	topProtagonist := evolutionResult.SortedGenerationIndividuals[0].Protagonists[0]
-	topAntagonist:= evolutionResult.SortedGenerationIndividuals[0].Antagonists[0]
-	finalProtagonist:= evolutionResult.FinalProtagonist
-	finalAntagonist:= evolutionResult.FinalAntagonist
+	topAntagonist := evolutionResult.SortedGenerationIndividuals[0].Antagonists[0]
+	finalProtagonist := evolutionResult.FinalProtagonist
+	finalAntagonist := evolutionResult.FinalAntagonist
 
 	for i := 0; i < len(csvOutput.Epochal); i++ {
-		csvOutput.Epochal[i].Epoch = i+1
+		csvOutput.Epochal[i].Epoch = i + 1
 		csvOutput.Epochal[i].TopAntagonist = topAntagonist.Fitness[i]
 		csvOutput.Epochal[i].TopProtagonist = topProtagonist.Fitness[i]
 
 		csvOutput.Epochal[i].FinalAntagonist = finalAntagonist.Fitness[i]
-		csvOutput.Epochal[i].FinalProtagonist= finalProtagonist.Fitness[i]
+		csvOutput.Epochal[i].FinalProtagonist = finalProtagonist.Fitness[i]
 	}
 
 	// Internal Variance of Ultimate Individuals
@@ -626,7 +626,7 @@ func WritetoFile(path string, evolutionResult *EvolutionResult, params Evolution
 
 	csvMap := map[string]interface{}{
 		"generational": csvOutput.Generational,
-		"epochal": csvOutput.Epochal,
+		"epochal":      csvOutput.Epochal,
 		//"ultimateIndividuals": csvOutput.CSVUltimateIndividuals,
 		//"topEquations": csvOutput.CSVTopEquations,
 		//"topStrategies": csvOutput.CSVTopPerGeneration,
@@ -642,7 +642,7 @@ func WritetoFile(path string, evolutionResult *EvolutionResult, params Evolution
 	return path, nil
 }
 
-func dominantStrategy(individual Individual) string {
+func DominantStrategy(individual Individual) string {
 	domStrat := map[string]int{}
 	for i := range individual.Strategy {
 		strategy := string(individual.Strategy[i])
@@ -653,21 +653,47 @@ func dominantStrategy(individual Individual) string {
 
 	var topStrategy string
 	counter := 0
-	for e := range domStrat {
-		if domStrat[e] > counter {
-			topStrategy = e
+	for k, v := range domStrat {
+		if v > counter {
+			counter = v
+			topStrategy = k
 		}
 	}
 	return topStrategy
 }
 
-func strategiesToString(individual Individual) string {
+func DominantStrategyStr(str string) string {
+	strategies := strings.Split(str, "|")
+
+	domStrat := map[string]int{}
+	for i := range strategies {
+		strategy := string(strategies[i])
+		stratCount := domStrat[strategy]
+		if domStrat[strategy] > -1 {
+			domStrat[strategy] = stratCount + 1
+		}
+	}
+
+	var topStrategy string
+	counter := 0
+	for k, v := range domStrat {
+		if v > counter {
+			counter = v
+			topStrategy = k
+		}
+	}
+	return topStrategy
+}
+
+func StrategiesToString(individual Individual) string {
 	sb := strings.Builder{}
 	for _, strategy := range individual.Strategy {
 		sb.WriteString(string(strategy))
 		sb.WriteString("|")
 	}
-	return sb.String()
+
+	final := sb.String()
+	return final[:len(final)-1]
 }
 
 func WriteCSVWithMap(csvFileMap map[string]interface{}, mainDir, subDirInfo, subsubDirName string, count int) (err error) {
@@ -698,7 +724,7 @@ type JSONCoalescedOutput struct {
 
 type CSVOutput struct {
 	Generational []GenerationalStatistics `csv:"generational"`
-	Epochal                   []EpochalStatistics `csv:"epochal"`
+	Epochal      []EpochalStatistics      `csv:"epochal"`
 }
 
 type CSVEquations struct {
@@ -742,13 +768,12 @@ type CSVMetadata struct {
 }
 
 type EpochalStatistics struct {
-	TopAntagonist float64
-	TopProtagonist float64
-	FinalAntagonist float64
+	TopAntagonist    float64
+	TopProtagonist   float64
+	FinalAntagonist  float64
 	FinalProtagonist float64
-	Epoch int
+	Epoch            int
 }
-
 
 type CSVUltimateIndividual struct {
 	Protagonist float64 `csv:"protagonistCoordinates"`

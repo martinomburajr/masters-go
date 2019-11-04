@@ -136,7 +136,7 @@ func evaluateFitnessAntagonistThresholded(spec SpecMulti, antagonist, protagonis
 	return antagonistFitness, protagonistFitness, nil
 }
 
-// #3 ProtagonistThresholdTally takes only the protagonist and checks to see if the Protagonist(Antagonist(
+// #3 ProtagonistThresholdTally takes only the protagonist and checks to see if the ProtagonistEquation(AntagonistEquation(
 // InitialProgram)) (indicated by protagonistAntagonistProgramPair) lay within the threshold of the spec.
 // If not the antagonist receives a Fitness of -1 (
 // which is better) and the protagonist receives a Fitness of (1) and vice versa
@@ -198,7 +198,7 @@ func RatioFitness(spec SpecMulti, antagonist, protagonist *Program,
 		return math.MaxInt64, math.MaxInt64, err
 	}
 
-	// Antagonist
+	// AntagonistEquation
 	antagonistMathematicalExpression, err := antagonist.T.ToMathematicalString()
 	if err != nil {
 		return math.MaxInt64, math.MaxInt64, err

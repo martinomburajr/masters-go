@@ -6,9 +6,9 @@ import (
 )
 
 type EvolutionParams struct {
-	Name string `json:"name"`
+	Name string
 	// StartIndividual - Output Only - This is set by the SpecParam Expression. Do not set it manually
-	StartIndividual Program `json:"startIndividual"`
+	StartIndividual Program
 	// Spec - Output Only - This is set by the SpecParam Expression. Do not set it manually
 	Spec             SpecMulti `json:"generationCount"`
 	SpecParam        SpecParam `json:"spec"`
@@ -38,14 +38,39 @@ type EvolutionParams struct {
 
 func (e EvolutionParams) ToString() string {
 	builder := strings.Builder{}
-	expressionStr := strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(e.SpecParam.Expression, "*", ""), "+", ""), "-", ""), "/", "")
-	builder.WriteString(expressionStr)
+	//Input Program
+	expressionStr := strings.ReplaceAll(
+		strings.ReplaceAll(
+			strings.ReplaceAll(
+				strings.ReplaceAll(e.SpecParam.Expression, "*", ""),
+				"+", "+"),
+			"-", "-"),
+		"/", "DIV")
+	builder.WriteString(fmt.Sprintf("%s(Ran:%d|Seed:%d)", expressionStr, e.SpecParam.Range, e.SpecParam.Seed))
 	builder.WriteString("-")
-	builder.WriteString(fmt.Sprintf("Gen%d", e.GenerationsCount))
+	// GenCount
+	builder.WriteString(fmt.Sprintf("G%d", e.GenerationsCount))
 	builder.WriteString("-")
-	builder.WriteString(fmt.Sprintf("Pop%d", e.EachPopulationSize))
+	// Population Size
+	builder.WriteString(fmt.Sprintf("P%d", e.EachPopulationSize))
 	builder.WriteString("-")
-	builder.WriteString(fmt.Sprintf("%s", e.FitnessStrategy.Type))
+	// Fitness
+	fitness := strings.ReplaceAll(e.FitnessStrategy.Type, "Fitness", "")
+	builder.WriteString(fmt.Sprintf("F%s(a%.2f|p%.2f)",
+		fitness[:len(fitness)/2], e.FitnessStrategy.AntagonistThresholdMultiplier,
+		e.FitnessStrategy.ProtagonistThresholdMultiplier))
+	builder.WriteString("-")
+	//Parent
+	builder.WriteString(fmt.Sprintf("Par(Typ%s|TSiz%d)", e.Selection.Parent.Type, e.Selection.Parent.TournamentSize))
+	builder.WriteString("-")
+	//Survivor
+	builder.WriteString(fmt.Sprintf("Sur(Typ%s|Per%.2f)", e.Selection.Survivor.Type,
+		e.Selection.Survivor.SurvivorPercentage))
+	builder.WriteString("-")
+	// ReproductionPercentage
+	builder.WriteString(fmt.Sprintf("Repr(Cro%.2f|Mut%.2f)", e.Reproduction.CrossoverPercentage,
+		e.Reproduction.ProbabilityOfMutation))
+	builder.WriteString("-")
 
 	return builder.String()
 }
@@ -64,8 +89,8 @@ type AvailableVariablesAndOperators struct {
 
 type AvailableSymbolicExpressions struct {
 	//Constants []SymbolicExpression
-	NonTerminals []SymbolicExpression `json:"nonTerminals"`
-	Terminals    []SymbolicExpression `json:"terminals"`
+	NonTerminals []SymbolicExpression
+	Terminals    []SymbolicExpression
 }
 
 type Strategies struct {
@@ -102,11 +127,11 @@ type SpecParam struct {
 	Range int `json:"range"`
 	//Expression is the actual expression being tested.
 	// It is the initial function that is converted to the startIndividual
-	Expression                     string                         `json:"expression"`
-	Seed                           int                            `json:"seed"`
-	AvailableVariablesAndOperators AvailableVariablesAndOperators `json:"availableVariablesAndOperators"`
+	Expression                     string `json:"expression"`
+	Seed                           int    `json:"seed"`
+	AvailableVariablesAndOperators AvailableVariablesAndOperators
 	// AvailableSymbolicExpressions - Output Only
-	AvailableSymbolicExpressions AvailableSymbolicExpressions `json:"availableSymbolicExpressions"`
+	AvailableSymbolicExpressions AvailableSymbolicExpressions
 }
 
 type Reproduction struct {
@@ -118,17 +143,17 @@ type Reproduction struct {
 	ProbabilityOfMutation float64 `json:"probabilityOfMutation"`
 }
 type Selection struct {
-	Parent   ParentSelection   `json:"crossoverPercentage"`
-	Survivor SurvivorSelection `json:"crossoverPercentage"`
+	Parent   ParentSelection   `json:"parentSelection"`
+	Survivor SurvivorSelection `json:"survivorSelection"`
 }
 
 type ParentSelection struct {
-	Type           int `json:"type"`
-	TournamentSize int `json:"tournamentSize"`
+	Type           string `json:"type"`
+	TournamentSize int    `json:"tournamentSize"`
 }
 
 type SurvivorSelection struct {
-	Type int `json:"type"`
+	Type string `json:"type"`
 	// SurvivorPercentage represents how many individulas in the parent vs child population should continue.
 	// 1 means all parents move on. 0 means only children move on. Any number in betwee is a percentage value.
 	// It cannot be greater than 1 or less than 0.

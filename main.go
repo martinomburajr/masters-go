@@ -8,7 +8,7 @@ import (
 
 func main() {
 	simulation := simulation.Simulation{
-		NumberOfRunsPerState: 1,
+		NumberOfRunsPerState: 10,
 		Name:                 "simulation-1",
 		OutputDir:            "",
 	}
@@ -28,7 +28,7 @@ func main() {
 			},
 		},
 		GenerationsCount:   50,
-		EachPopulationSize: 10, // Must be an even number to prevent awkward ordering of children.
+		EachPopulationSize: 20, // Must be an even number to prevent awkward ordering of children.
 
 		FitnessStrategy: evolution.FitnessStrategy{
 			Type:                           evolution.FitnessDualThresholdedRatio,
@@ -42,7 +42,7 @@ func main() {
 				TournamentSize: 1,
 			},
 			Survivor: evolution.SurvivorSelection{
-				Type:               1,
+				Type:               "SteadyState",
 				SurvivorPercentage: 0.2,
 			},
 		},

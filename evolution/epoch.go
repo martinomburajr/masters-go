@@ -166,7 +166,7 @@ func AggregateFitness(individual Individual) (float64, error) {
 	return sum, nil
 }
 
-// applyAntagonistStrategy applies the Antagonist strategies to program.
+// applyAntagonistStrategy applies the AntagonistEquation strategies to program.
 func (e *Epoch) applyAntagonistStrategy() error {
 	program, err := e.generation.engine.Parameters.StartIndividual.Clone()
 	if err != nil {
@@ -186,7 +186,7 @@ func (e *Epoch) applyAntagonistStrategy() error {
 	return nil
 }
 
-// applyProtagonistStrategy Apply Protagonist strategies to program.
+// applyProtagonistStrategy Apply ProtagonistEquation strategies to program.
 func (e *Epoch) applyProtagonistStrategy(antagonistTree DualTree) error {
 	//if e.protagonist == nil {
 	//	return fmt.Errorf("protagonist cannot be nil")

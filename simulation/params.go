@@ -36,7 +36,7 @@ var AllFitnessStrategyType = []string{evolution.FitnessThresholdedAntagonistRati
 var AllFitStratAntThreshMult = []float64{5, 10, 25, 50, 100, 250}
 var AllFitStratProThreshMult = []float64{1, 1.1, 1.25, 1.5, 1.8, 2.5, 5}
 
-var AllSelectionParentType = []int{evolution.ParentSelectionTournament, evolution.ParentSelectionElitism}
+var AllSelectionParentType = []string{evolution.ParentSelectionTournament, evolution.ParentSelectionElitism}
 var AllSelectionSurvivorPercentage = []float64{0.1, 0.2, 0.4, 0.5, 0.8, 0.9, 1.0}
 
 var AllPossibleStrategies = [][]evolution.Strategy{AllStrategies, AllStrategiesDeterministic,

@@ -102,8 +102,18 @@ func (s *Simulation) CoalesceFiles(evolutionParams evolution.EvolutionParams) (s
 		csvOutputs = append(csvOutputs, csvOutput)
 	}
 
+	// write params to file
+	paramsPath := fmt.Sprintf("%s/%s", s.OutputDir, "params.json")
+	paramsFile, err := os.Create(paramsPath)
+	if err != nil {
+		return "", err
+	}
+	err = json.NewEncoder(paramsFile).Encode(evolutionParams)
+	if err != nil {
+		return "", err
+	}
+	fmt.Println("Wrote Params file to: " + paramsPath)
 	// do epochal
-	// do individual
 	cumulative, err := coalesceCumulative(csvOutputs, evolutionParams, s.OutputDir, "cumulative-generational.csv")
 	if err != nil {
 		return cumulative, err
@@ -112,6 +122,11 @@ func (s *Simulation) CoalesceFiles(evolutionParams evolution.EvolutionParams) (s
 	if err != nil {
 		return averages, err
 	}
+	best, err := coalesceBest(csvOutputs, evolutionParams, s.OutputDir, "coalesced-best.csv")
+	if err != nil {
+		return best, err
+	}
+	// do epochal
 	return "", err
 }
 
@@ -154,7 +169,7 @@ func coalesceCumulative(csvFiles []evolution.CSVOutput, evolutionParams evolutio
 	return path, err
 }
 
-func coalesceAverages(csvFiles []evolution.CSVOutput, evolutionParams evolution.EvolutionParams, outputDir,	averagesOutputFilepath string) (
+func coalesceAverages(csvFiles []evolution.CSVOutput, evolutionParams evolution.EvolutionParams, outputDir, averagesOutputFilepath string) (
 	string, error) {
 
 	// averages
@@ -200,8 +215,8 @@ func coalesceAverages(csvFiles []evolution.CSVOutput, evolutionParams evolution.
 		return "", err
 	}
 	for i, bestEquation := range bestEquations {
-		coalesced.AveragedGenerationalStatistics[i].TopProtagonistEquation = bestEquation.Protagonist
-		coalesced.AveragedGenerationalStatistics[i].TopAntagonistEquation = bestEquation.Antagonist
+		coalesced.AveragedGenerationalStatistics[i].TopProtagonistEquation = bestEquation.ProtagonistEquation
+		coalesced.AveragedGenerationalStatistics[i].TopAntagonistEquation = bestEquation.AntagonistEquation
 	}
 
 	// WRITE TO FILE
@@ -226,11 +241,178 @@ func coalesceAverages(csvFiles []evolution.CSVOutput, evolutionParams evolution.
 	return path, nil
 }
 
-type BestEquation struct {
-	Antagonist  string
-	Protagonist string
+func coalesceBest(csvFiles []evolution.CSVOutput, evolutionParams evolution.EvolutionParams, outputDir,
+	averagesOutputFilepath string) (
+	string, error) {
+
+	type TotalGenerationalStatistics struct {
+		SpecEquation                string  `csv:"specEquation"`
+		SpecRange                   int     `csv:"range"`
+		SpecSeed                    int     `csv:"seed"`
+		AntagonistEquation          string  `csv:"A"`
+		ProtagonistEquation         string  `csv:"P"`
+		AntagonistDelta             float64 `csv:"ADelta"`
+		ProtagonistDelta            float64 `csv:"PDelta"`
+		AntagonistGeneration        int     `csv:"AGeneration"`
+		ProtagonistGeneration       int     `csv:"PGeneration"`
+		AntagonistRun               int     `csv:"ARun"`
+		ProtagonistRun              int     `csv:"PRun"`
+		AntagonistBirthGen          int     `csv:"ABirthGen"`
+		ProtagonistBirthGen         int     `csv:"PBirthGen"`
+		AntagonistDominantStrategy  string  `csv:"AFaveStrategy"`
+		ProtagonistDominantStrategy string  `csv:"PFaveStrategy"`
+		AntagonistStrategyList      string  `csv:"AStrategies"`
+		ProtagonistStrategyList     string  `csv:"PStrategies"`
+	}
+
+	type TotalStatistics struct {
+		TotalStatistics []TotalGenerationalStatistics `csv:"averagedGenerational"`
+	}
+
+	coalesced := TotalStatistics{
+		TotalStatistics: make([]TotalGenerationalStatistics, 1),
+	}
+
+	// BEST EQUATIONS
+	bestEquation, err := BestEquationAllGenerations(csvFiles, evolutionParams.Spec)
+	if err != nil {
+		return "", err
+	}
+
+	coalesced.TotalStatistics[0] = TotalGenerationalStatistics{
+		SpecEquation:                evolutionParams.SpecParam.Expression,
+		AntagonistEquation:          bestEquation.AntagonistEquation,
+		ProtagonistEquation:         bestEquation.ProtagonistEquation,
+		AntagonistDelta:             bestEquation.AntagonistDelta,
+		ProtagonistDelta:            bestEquation.ProtagonistDelta,
+		AntagonistGeneration:        bestEquation.AntagonistGeneration,
+		ProtagonistGeneration:       bestEquation.ProtagonistGeneration,
+		AntagonistBirthGen:          bestEquation.AntagonistBirthGen,
+		ProtagonistBirthGen:         bestEquation.ProtagonistBirthGen,
+		AntagonistRun:               bestEquation.AntagonistRun,
+		ProtagonistRun:              bestEquation.ProtagonistRun,
+		AntagonistStrategyList:      bestEquation.AntagonistStrategy,
+		ProtagonistStrategyList:     bestEquation.ProtagonistStrategy,
+		AntagonistDominantStrategy:  evolution.DominantStrategyStr(bestEquation.AntagonistStrategy),
+		ProtagonistDominantStrategy: evolution.DominantStrategyStr(bestEquation.ProtagonistStrategy),
+		SpecRange:                   evolutionParams.SpecParam.Range,
+		SpecSeed:                    evolutionParams.SpecParam.Seed,
+	}
+
+	// WRITE TO FILE
+	path := fmt.Sprintf("%s%s", outputDir, averagesOutputFilepath)
+	err = os.Mkdir(outputDir, 0755)
+	outputFileCSV, err := os.Create(path)
+	if err != nil {
+		return path, err
+	}
+	defer outputFileCSV.Close()
+
+	writer := gocsv.DefaultCSVWriter(outputFileCSV)
+	if writer.Error() != nil {
+		return path, writer.Error()
+	}
+	err = gocsv.Marshal(coalesced.TotalStatistics, outputFileCSV)
+	if err != nil {
+		return path, err
+	}
+	fmt.Printf("\nWrote Averages to file: %s", path)
+
+	return path, nil
 }
 
+type BestEquation struct {
+	AntagonistEquation   string
+	AntagonistDelta      float64
+	AntagonistStrategy   string
+	AntagonistGeneration int
+	AntagonistBirthGen   int
+	AntagonistRun        int
+
+	ProtagonistEquation   string
+	ProtagonistDelta      float64
+	ProtagonistStrategy   string
+	ProtagonistGeneration int
+	ProtagonistBirthGen   int
+	ProtagonistRun        int
+
+	SpecDelta float64
+}
+
+// TODO Return Ultimate Statistics
+func BestEquationAllGenerations(csvFiles []evolution.CSVOutput, spec evolution.SpecMulti) (bestEquation BestEquation,
+	err error) {
+	if csvFiles == nil {
+		return BestEquation{}, fmt.Errorf("coalesce | json csvFiles cannot be nil")
+	}
+	if len(csvFiles) < 1 {
+		return BestEquation{}, fmt.Errorf("coalesce | json csvFiles cannot be empty")
+	}
+
+	numberOfGenerations := len(csvFiles[0].Generational)
+	bestEquation = BestEquation{}
+
+	bestAntagonistDelta := -math.MaxFloat64
+	bestProtagonistDelta := math.MaxFloat64
+	bestAntagonistEquation := ""
+	bestProtagonistEquation := ""
+	for i := 0; i < numberOfGenerations; i++ {
+
+		for _, csvFile := range csvFiles {
+			antagonistDelta := 0.0
+			protagonistDelta := 0.0
+			//specAntagonistDelta := 0.0
+			//specProtagonistDelta := 0.0
+			antagonistEquation := csvFile.Generational[i].TopAntagonistEquation
+			protagonistEquation := csvFile.Generational[i].TopProtagonistEquation
+			for s := range spec {
+				independentX := spec[s].Independents
+				dependentVarAntagonist, err := evolution.EvaluateMathematicalExpression(antagonistEquation,
+					independentX, 0)
+				if err != nil {
+					// Handle Divide By Zero
+					//return nil, err
+					fmt.Print("DIV-BY-0")
+				}
+				antagonistDelta += math.Abs(dependentVarAntagonist - spec[s].Dependent)
+				dependentVarProagonist, err := evolution.EvaluateMathematicalExpression(protagonistEquation,
+					independentX, 0)
+				if err != nil {
+					// Handle Divide By Zero
+					//return nil, err
+					fmt.Print("DIV-BY-0")
+				}
+				protagonistDelta += math.Abs(dependentVarProagonist - spec[s].Dependent)
+			}
+			if antagonistDelta >= bestAntagonistDelta {
+				bestAntagonistDelta = antagonistDelta
+				bestAntagonistEquation = antagonistEquation
+
+				bestEquation.AntagonistDelta = bestAntagonistDelta
+				bestEquation.AntagonistEquation = bestAntagonistEquation
+				bestEquation.AntagonistBirthGen = csvFile.Generational[i].TopAntagonistBirthGen
+				bestEquation.AntagonistGeneration = i
+				bestEquation.AntagonistRun = csvFile.Generational[i].Run
+				bestEquation.AntagonistStrategy = csvFile.Generational[i].TopAntagonistStrategies
+			}
+			if protagonistDelta <= bestProtagonistDelta {
+				bestProtagonistDelta = protagonistDelta
+				bestProtagonistEquation = protagonistEquation
+
+				bestEquation.ProtagonistDelta = protagonistDelta
+				bestEquation.ProtagonistEquation = bestProtagonistEquation
+				bestEquation.ProtagonistBirthGen = csvFile.Generational[i].TopProtagonistBirthGen
+				bestEquation.ProtagonistGeneration = i
+				bestEquation.ProtagonistRun = csvFile.Generational[i].Run
+				bestEquation.ProtagonistStrategy = csvFile.Generational[i].TopProtagonistStrategies
+			}
+		}
+	}
+
+	return bestEquation, nil
+}
+
+// TODO Return Ultimate Statistics
 func BestEquationPerGeneration(csvFiles []evolution.CSVOutput, spec evolution.SpecMulti) (bestEquation []BestEquation,
 	err error) {
 	if csvFiles == nil {
@@ -243,20 +425,20 @@ func BestEquationPerGeneration(csvFiles []evolution.CSVOutput, spec evolution.Sp
 	numberOfGenerations := len(csvFiles[0].Generational)
 	bestEquation = make([]BestEquation, numberOfGenerations)
 
-	bestAntagonistDelta := -1000000.0
+	bestAntagonistDelta := -math.MaxFloat64
 	bestProtagonistDelta := math.MaxFloat64
 	bestAntagonistEquation := ""
 	bestProtagonistEquation := ""
-
 	for i := 0; i < numberOfGenerations; i++ {
-
 		for _, csvFile := range csvFiles {
 			antagonistDelta := 0.0
 			protagonistDelta := 0.0
+			//specAntagonistDelta := 0.0
+			//specProtagonistDelta := 0.0
 			antagonistEquation := csvFile.Generational[i].TopAntagonistEquation
 			protagonistEquation := csvFile.Generational[i].TopProtagonistEquation
-			for i := range spec {
-				independentX := spec[i].Independents
+			for s := range spec {
+				independentX := spec[s].Independents
 				dependentVarAntagonist, err := evolution.EvaluateMathematicalExpression(antagonistEquation,
 					independentX, 0)
 				if err != nil {
@@ -264,7 +446,7 @@ func BestEquationPerGeneration(csvFiles []evolution.CSVOutput, spec evolution.Sp
 					//return nil, err
 					fmt.Print("DIV-BY-0")
 				}
-				antagonistDelta += math.Abs(dependentVarAntagonist - spec[i].Dependent)
+				antagonistDelta += math.Abs(dependentVarAntagonist - spec[s].Dependent)
 				dependentVarProagonist, err := evolution.EvaluateMathematicalExpression(protagonistEquation,
 					independentX, 0)
 				if err != nil {
@@ -272,7 +454,7 @@ func BestEquationPerGeneration(csvFiles []evolution.CSVOutput, spec evolution.Sp
 					//return nil, err
 					fmt.Print("DIV-BY-0")
 				}
-				protagonistDelta += math.Abs(dependentVarProagonist - spec[i].Dependent)
+				protagonistDelta += math.Abs(dependentVarProagonist - spec[s].Dependent)
 			}
 
 			if antagonistDelta > bestAntagonistDelta {
@@ -285,8 +467,8 @@ func BestEquationPerGeneration(csvFiles []evolution.CSVOutput, spec evolution.Sp
 			}
 		}
 		bestEquation[i] = BestEquation{
-			Antagonist:  bestAntagonistEquation,
-			Protagonist: bestProtagonistEquation,
+			AntagonistEquation:  bestAntagonistEquation,
+			ProtagonistEquation: bestProtagonistEquation,
 		}
 	}
 
@@ -385,7 +567,7 @@ func PrepareSimulation(params evolution.EvolutionParams, count int) *evolution.E
 		}
 	}
 
-	fmt.Printf("Protagonist vs Antagonist Competitive Coevolution:\nMathematical Expression: %s\nSpec:%s\n",
+	fmt.Printf("ProtagonistEquation vs AntagonistEquation Competitive Coevolution:\nMathematical Expression: %s\nSpec:%s\n",
 		starterTreeAsMathematicalExpression,
 		spec.ToString(),
 	)
@@ -534,7 +716,7 @@ func (s *Simulation) BeginToil(indexFile string) error {
 																			},
 																			Selection: evolution.Selection{
 																				Survivor: evolution.SurvivorSelection{
-																					Type:               1,
+																					Type:               "SteadyState",
 																					SurvivorPercentage: AllSelectionSurvivorPercentage[selectSurvivorPercentIndex],
 																				},
 																			},

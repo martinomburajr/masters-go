@@ -23,8 +23,8 @@ Selection is the stage of a genetic algorithm in which individual genomes are ch
 */
 
 const (
-	ParentSelectionTournament           = 0 // ID for Tournament Selection
-	ParentSelectionElitism              = 1 //ID for elitism
+	ParentSelectionTournament           = "ParentSelectionTournament" // ID for Tournament Selection
+	ParentSelectionElitism              = "ParentSelectionElitism"    //ID for elitism
 	ParentSelectionFitnessProportionate = 2
 )
 
