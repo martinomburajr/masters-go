@@ -60,6 +60,21 @@ import (
 //	}
 //}
 
+
+func TestConcurrency(t *testing.T) {
+	for i := 0; i < 20; i++ {
+		go func(i int) {
+			t.Log(i)
+			trees, err := Tree_X10().GetNonTerminalsAware()
+			if err != nil {
+
+			}
+			t.Log(trees)
+		}(i)
+	}
+}
+
+
 /**
 THIS DOES NOT TEST OR CORRECT FOR TRIG OPERATORS YET
 */

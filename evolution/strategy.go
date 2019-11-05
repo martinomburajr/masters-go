@@ -18,50 +18,50 @@ const (
 
 	// StrategyDeleteNonTerminal will select a non-root non-terminal element from a given tree and delete it by
 	// setting it to 0
-	StrategyDeleteNonTerminal = "StrategyDeleteNonTerminalR"
+	StrategyDeleteNonTerminal = "DeleteNonTerminalR"
 	// StrategyDeleteMalicious randomly selects any element of a tree (
 	// including the root) and convert it to a value of 0 potentially deleting all
 	// genetic material if the root is selected
-	StrategyDeleteMalicious = "StrategyDeleteMaliciousR"
+	StrategyDeleteMalicious = "DeleteMaliciousR"
 	// StrategyDeleteTerminal will convert a terminal node to 0.
-	StrategyDeleteTerminal = "StrategyDeleteTerminalR"
+	StrategyDeleteTerminal = "DeleteTerminalR"
 	// StrategyMutateNode randomly selects a non-terminal in a tree and changes its value to one of the available
 	// nonterminals in the parameter list.
 	// If the tree only contains a root that is a terminal it will ignore it.
-	StrategyMutateNonTerminal = "StrategyMutateNonTerminalR"
+	StrategyMutateNonTerminal = "MutateNonTerminalR"
 	// StrategyMutateTerminal randomly selects a terminal in a tree and changes its value to one of the available
 	// terminals in the parameter list.
 	// If the tree only contains a root that is a terminal it will ignore it.
-	StrategyMutateTerminal = "StrategyMutateTerminalR"
+	StrategyMutateTerminal = "MutateTerminalR"
 	// StrategyReplaceBranch takes a given tree and randomly selects a branch i.
 	// e non-terminal and will swap it with a randomly generated tree of variable depth
-	StrategyReplaceBranch  = "StrategyReplaceBranchR"
-	StrategyReplaceBranchX = "StrategyReplaceBranchXR"
+	StrategyReplaceBranch  = "ReplaceBranchR"
+	StrategyReplaceBranchX = "ReplaceBranchXR"
 	//StrategyAddRandomSubTree is a generic strategy that adds a randomly generated subtree anywhere on a given tree
 	//  If an add strategy encounters a 0 at the root, it will replace the 0.
-	StrategyAddRandomSubTree = "StrategyAddRandomSubTreeR"
+	StrategyAddRandomSubTree = "AddRandomSubTreeR"
 	// StrategyAddToLeaf is similar to AddSubTree,
 	// however the SubTree will only be placed on a randomly selected leaf. It will not replace a non-terminal.
 	// It can replace a root
-	StrategyAddToLeaf  = "StrategyAddToLeafR"
-	StrategyAddToLeafX = "StrategyAddToLeafX"
+	StrategyAddToLeaf  = "AddToLeafR"
+	StrategyAddToLeafX = "AddToLeafX"
 	// StrategyAddTreeWithMult will add a subTree with a root of multiplication to a given leaf node
-	StrategyAddTreeWithMult = "StrategyAddTreeWithMult"
+	StrategyAddTreeWithMult = "AddTreeWithMult"
 	// StrategyAddTreeWithMult will add a subTree with a root of subtract to a given leaf node
-	StrategyAddTreeWithSub = "StrategyAddTreeWithSub"
+	StrategyAddTreeWithSub = "AddTreeWithSub"
 	// StrategyAddTreeWithMult will add a subTree with a root of add to a given leaf node
-	StrategyAddTreeWithAdd = "StrategyAddTreeWithAdd"
-	StrategyAddTreeWithDiv = "StrategyAddTreeWithDiv"
+	StrategyAddTreeWithAdd = "AddTreeWithAdd"
+	StrategyAddTreeWithDiv = "AddTreeWithDiv"
 
 	// ####################################################### DETERMINISTIC STRATEGIES #############################
 	// StrategySkip performs no operations on the given subtree.
-	StrategySkip = "StrategySkipD"
+	StrategySkip = "SkipD"
 	// StrategyFellTree destroys the tree and sets its root to 0 and kills it all.
-	StrategyFellTree = "StrategyFellTreeD"
-	StrategyMultXD   = "StrategyMultXD"
-	StrategyAddXD    = "StrategyAddXD"
-	StrategySubXD    = "StrategySubXD"
-	StrategyDivXD    = "StrategyDivXD"
+	StrategyFellTree = "FellTreeD"
+	StrategyMultXD   = "MultXD"
+	StrategyAddXD    = "AddXD"
+	StrategySubXD    = "SubXD"
+	StrategyDivXD    = "DivXD"
 
 	//Strategy
 )

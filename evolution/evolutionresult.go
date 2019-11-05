@@ -627,13 +627,6 @@ func WritetoFile(path string, evolutionResult *EvolutionResult, params Evolution
 	csvMap := map[string]interface{}{
 		"generational": csvOutput.Generational,
 		"epochal":      csvOutput.Epochal,
-		//"ultimateIndividuals": csvOutput.CSVUltimateIndividuals,
-		//"topEquations": csvOutput.CSVTopEquations,
-		//"topStrategies": csvOutput.CSVTopPerGeneration,
-		//"topEquationVariation": csvOutput.CSVTopEquationVariation,
-		//"strategiesPerGeneration": csvOutput.CSVStrategyPerGeneration,
-		//"equationsPerGeneration": csvOutput.CSVEquationsPerGeneration,
-		//"finalIndividuals": csvOutput.CSVFinalIndividuals,
 	}
 	err = WriteCSVWithMap(csvMap, mainDir, subDirInfo, subsubDirName, params.InternalCount)
 	if err != nil {
@@ -717,10 +710,6 @@ func WriteCSVWithMap(csvFileMap map[string]interface{}, mainDir, subDirInfo, sub
 	return err
 }
 
-type JSONCoalescedOutput struct {
-	Name            string       `json:"name" csv:"name"`
-	CoalescedOutput []JSONOutput `json:"coalescedOutput" csv:"coalescedOutput"`
-}
 
 type CSVOutput struct {
 	Generational []GenerationalStatistics `csv:"generational"`
@@ -742,29 +731,22 @@ type CSVStrategy struct {
 // So Top or Bottom refer to the best or worst in the given generation and not a cumulative of the evolutionary process.
 type GenerationalStatistics struct {
 	Generation                     int     `csv:"generation"`
-	AverageAntagonist              float64 `csv:"averageAntagonist"`
-	AverageProtagonist             float64 `csv:"averageProtagonist"`
-	TopAntagonist                  float64 `csv:"topAntagonist"`
-	TopProtagonist                 float64 `csv:"topProtagonist"`
-	TopAntagonistStrategies        string  `csv:"antagonistStrategies"`
-	TopProtagonistStrategies       string  `csv:"topProtagonistStrategies"`
-	TopAntagonistFavoriteStrategy  string  `csv:"topAntagonistDominantStrategy"`
-	TopProtagonistFavoriteStrategy string  `csv:"topProtagonistDominantStrategy"`
-	TopAntagonistBirthGen          int     `csv:"topAntagonistBirthGen"`
-	TopProtagonistBirthGen         int     `csv:"topProtagonistBirthGen"`
-	TopAntagonistDelta             float64 `csv:"topAntagonistDelta"`
-	TopProtagonistDelta            float64 `csv:"topProtagonistDelta"`
-	TopAntagonistEquation          string  `csv:"topAntagonistEquation"`
-	TopProtagonistEquation         string  `csv:"topProtagonistEquation"`
+	AverageAntagonist              float64 `csv:"avgA"`
+	AverageProtagonist             float64 `csv:"avgP"`
+	TopAntagonist                  float64 `csv:"topA"`
+	TopProtagonist                 float64 `csv:"topP"`
+	TopAntagonistFavoriteStrategy  string  `csv:"topADomStrat"`
+	TopProtagonistFavoriteStrategy string  `csv:"topPDomStrat"`
+	TopAntagonistStrategies        string  `csv:"topAStrategies"`
+	TopProtagonistStrategies       string  `csv:"topPStrategies"`
+	TopAntagonistBirthGen          int     `csv:"topABirthGen"`
+	TopProtagonistBirthGen         int     `csv:"topPBirthGen"`
+	TopAntagonistDelta             float64 `csv:"topADelta"`
+	TopProtagonistDelta            float64 `csv:"topPDelta"`
+	TopAntagonistEquation          string  `csv:"topAEquation"`
+	TopProtagonistEquation         string  `csv:"topPEquation"`
 	Spec                           string  `csv:"spec"`
 	Run                            int     `csv:"runNumber"`
-}
-
-type CSVMetadata struct {
-	Title           string          `json:"title" csv:"title"`
-	SubTitle        string          `json:"subTitle" csv:"subTitle"`
-	Description     string          `json:"description" csv:"description"`
-	EvolutionParams EvolutionParams `json:"evolutionaryParams"`
 }
 
 type EpochalStatistics struct {
@@ -773,78 +755,4 @@ type EpochalStatistics struct {
 	FinalAntagonist  float64
 	FinalProtagonist float64
 	Epoch            int
-}
-
-type CSVUltimateIndividual struct {
-	Protagonist float64 `csv:"protagonistCoordinates"`
-	Antagonist  float64 `csv:"antagonistCoordinates"`
-	Independent float64 `csv:"independent"`
-}
-
-type CSVTopPerGeneration struct {
-	Protagonist float64 `csv:"protagonistCoordinates"`
-	Antagonist  float64 `csv:"antagonistCoordinates"`
-	Independent float64 `csv:"independent"`
-}
-
-type CSVGeneric struct {
-	//Title       string      `json:"title" csv:"title"`
-	//SubTitle    string      `json:"subTitle" csv:"subTitle"`
-	//Description string      `json:"description" csv:"description"`
-	Protagonist []float64 `json:"protagonistCoordinates" csv:"protagonistCoordinates"`
-	Antagonist  []float64 `json:"antagonistCoordinates" csv:"antagonistCoordinates"`
-}
-
-type CSVCoalescedOutput struct {
-	CSVAverages               []GenerationalStatistics `csv:"averages"`
-	CSVUltimateIndividuals    []CSVUltimateIndividual  `csv:"ultimateIndividuals"`
-	CSVTopPerGeneration       []CSVTopPerGeneration    `csv:"topPerGeneration"`
-	CSVBottomPerGeneration    []GenerationalStatistics `csv:"bottomPerGeneration"`
-	CSVTopEquations           CSVEquations             `csv:"bottomPerGeneration"`
-	CSVTopStrategies          CSVEquations             `csv:"topStrategies"`
-	CSVEquationsPerGeneration []CSVEquations           `csv:"equationesPerGeneration"`
-	CSVStrategyPerGeneration  []CSVStrategy            `csv:"strategyPerGeneration"`
-}
-
-type JSONOutput struct {
-	Averages JSONGeneric `json:"averages" csv:"averages"`
-
-	// UltimateIndividuals returns the internal variance of the best individuals in all generations
-	UltimateIndividuals JSONGeneric `json:"ultimateIndividuals" csv:"ultimateIndividuals"`
-	// BottomPerGeneration returns the best kind of individual in each generation
-	TopPerGeneration JSONGeneric `json:"topPerGeneration" csv:"topPerGeneration"`
-	// BottomPerGeneration returns the worst kind of individual in each generation
-	BottomPerGeneration JSONGeneric `json:"bottomPerGeneration" csv:"bottomPerGeneration"`
-
-	Equations JSONEquations `json:"equations" csv:"equations"`
-
-	//UltimateIndividualsDelta JSONGeneric `json:"averages"`
-	//
-	//FinalGenIndividuals JSONGeneric `json:"averages"`
-}
-
-type JSONGeneric struct {
-	Title       string      `json:"title" csv:"title"`
-	SubTitle    string      `json:"subTitle" csv:"subTitle"`
-	Description string      `json:"description" csv:"description"`
-	Protagonist Coordinates `json:"protagonistCoordinates" csv:"protagonistCoordinates"`
-	Antagonist  Coordinates `json:"antagonistCoordinates" csv:"antagonistCoordinates"`
-}
-
-type JSONEquations struct {
-	Spec                JSONEquation `json:"spec" csv:"spec"`
-	UltimateAntagonist  JSONEquation `json:"ultimateAntagonist" csv:"ultimateAntagonist"`
-	UltimateProtagonist JSONEquation `json:"ultimateProtagonist" csv:"ultimateProtagonist"`
-}
-
-type JSONEquation struct {
-	Title      string `json:"title" csv:"title"`
-	Expression string `json:"expression" csv:"expression"`
-	Seed       int    `json:"seed" csv:"seed"`
-	Range      int    `json:"range" csv:"range"`
-}
-
-type Coordinates struct {
-	IndependentCoordinates []float64 `json:"independentCoordinates" csv:"independentCoordinates"`
-	DependentCoordinates   []float64 `json:"dependentCoordinates" csv:"dependentCoordinates"`
 }

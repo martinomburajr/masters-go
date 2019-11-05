@@ -8,18 +8,17 @@ import (
 
 func main() {
 	simulation := simulation.Simulation{
-		NumberOfRunsPerState: 10,
+		NumberOfRunsPerState: 5,
 		Name:                 "simulation-1",
 		OutputDir:            "",
 	}
-
 	params := evolution.EvolutionParams{
 		StatisticsOutput: evolution.StatisticsOutput{
 			OutputPath: "",
-		}, //}
+		},
 		SpecParam: evolution.SpecParam{
 			Range:      10,
-			Expression: "5*x*x*x",
+			Expression: "5*x*x*x+2*x+7",
 			Seed:       1,
 			AvailableVariablesAndOperators: evolution.AvailableVariablesAndOperators{
 				Constants: []string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"},
@@ -28,7 +27,7 @@ func main() {
 			},
 		},
 		GenerationsCount:   50,
-		EachPopulationSize: 20, // Must be an even number to prevent awkward ordering of children.
+		EachPopulationSize: 10, // Must be an even number to prevent awkward ordering of children.
 
 		FitnessStrategy: evolution.FitnessStrategy{
 			Type:                           evolution.FitnessDualThresholdedRatio,
@@ -39,7 +38,7 @@ func main() {
 		Selection: evolution.Selection{
 			Parent: evolution.ParentSelection{
 				Type:           evolution.ParentSelectionTournament,
-				TournamentSize: 1,
+				TournamentSize: 3,
 			},
 			Survivor: evolution.SurvivorSelection{
 				Type:               "SteadyState",

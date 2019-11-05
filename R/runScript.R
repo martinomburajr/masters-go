@@ -9,38 +9,38 @@ library(expss)
 library(jsonlite)
 library(dplyr)
 library(ggplot2)
-filePath <- ""
+generationalFilePath <- ""
+epochalFilePath <- ""
 
 if (length(args)==0) {
     stop("At least one argument must be supplied (input file).n", call.=FALSE)
 } else {
-    filePath = args[2]
-    print(filePath)
+    # 1 - Path to Generational File
+    # 2 - Path to Epochal File
+    # 3 - Stats File
+    generationalFilePath = args[1]
+    epochalFilePath = args[2]
     statsDir = args[3]
     dir.create(file.path(statsDir, ""), showWarnings = FALSE)
     setwd(file.path(statsDir, ""))
 }
 
-
 ####################################### CODE BEGINS ##########################
-
-dataset <- read.csv(filePath)
+datasetGenerational <- read.csv(generationalFilePath)
+datasetEpochal <- read.csv(epochalFilePath)
 
 # Plots out the average between the average of all antagonists in a given geernation, and the average of all
 # protagonists in the same generation.
-average_plot <- function(result) {
-    png('averages.png', width=8, height=4, units='in', res=300)
+average_plot_generational <- function(result) {
+    png('averages_generational.png', width=8, height=4, units='in', res=300)
     p <- ggplot(result,
                 aes(x=result$generation,
                     y=result$averageAntagonist,
                     color=result$averageAntagonist))
     
-    p + geom_point() + 
-        geom_smooth() + 
-        geom_point(
+    p +  geom_point(
             aes(y=result$averageProtagonist,
                        color=result$averageProtagonist)) +
-        geom_smooth() +
 
         # topAntagonistReference Plot
         geom_line(
@@ -51,14 +51,15 @@ average_plot <- function(result) {
             aes(y=result$topProtagonist, color="green"))
 
     ggsave('averages.png', width=8, height=4, units='in', dpi="retina")
+    print("done")
+    dev.off()
 }
 
 run_stats <- function(result) {
-    average_plot(result)
+    average_plot_generational(result)
 }
 
-run_stats(dataset)
+run_stats(datasetGenerational)
 
-print("done")
-dev.off()
+
 

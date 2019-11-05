@@ -26,18 +26,22 @@ type Simulation struct {
 func (s *Simulation) Begin(params evolution.EvolutionParams) (evolution.EvolutionParams, error) {
 	os.Mkdir("data", 0755)
 
+	//wg := sync.WaitGroup{}
 	var folder string
 	for i := 0; i < s.NumberOfRunsPerState; i++ {
-		params.InternalCount = i
-		engine := PrepareSimulation(params, i)
-		params = engine.Parameters
-		folder = engine.Parameters.StatisticsOutput.OutputDir
+		//wg.Add(1)
+		//go func(params evolution.EvolutionParams, i int){
+		//	defer wg.Done()
+			params.InternalCount = i
+			engine := PrepareSimulation(params, i)
+			params = engine.Parameters
+			folder = engine.Parameters.StatisticsOutput.OutputDir
 
-		err := StartEngine(engine)
-		if err != nil {
-			return params, err
-		}
+			StartEngine(engine)
+		//}(params, i)
 	}
+	//wg.Wait()
+	log.Println("SYNCHRONIZED!")
 
 	s.OutputDir = folder
 	return params, nil
@@ -69,6 +73,7 @@ func (s *Simulation) CoalesceFiles(evolutionParams evolution.EvolutionParams) (s
 
 	csvOutputs := make([]evolution.CSVOutput, 0)
 	generationalStatistics := make([][]evolution.GenerationalStatistics, 0)
+
 	for i := 0; i < len(newFiles); i++ {
 		filePath := fmt.Sprintf("%s", newFiles[i])
 		split := strings.Split(filePath, "/")
@@ -80,7 +85,9 @@ func (s *Simulation) CoalesceFiles(evolutionParams evolution.EvolutionParams) (s
 		if err != nil {
 			return "", err
 		}
-		err = s.RunRScript(absolutePath, filePath, topLevelDir, subInfoDir, subSubNameDir, err)
+
+		s.RunRScript(absolutePath, filePath, topLevelDir, subInfoDir, subSubNameDir,
+			evolutionParams.InternalCount)
 
 		openFile, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE, os.ModePerm)
 		if err != nil {
@@ -372,7 +379,7 @@ func BestEquationAllGenerations(csvFiles []evolution.CSVOutput, spec evolution.S
 				if err != nil {
 					// Handle Divide By Zero
 					//return nil, err
-					fmt.Print("DIV-BY-0")
+					
 				}
 				antagonistDelta += math.Abs(dependentVarAntagonist - spec[s].Dependent)
 				dependentVarProagonist, err := evolution.EvaluateMathematicalExpression(protagonistEquation,
@@ -380,7 +387,7 @@ func BestEquationAllGenerations(csvFiles []evolution.CSVOutput, spec evolution.S
 				if err != nil {
 					// Handle Divide By Zero
 					//return nil, err
-					fmt.Print("DIV-BY-0")
+					
 				}
 				protagonistDelta += math.Abs(dependentVarProagonist - spec[s].Dependent)
 			}
@@ -444,7 +451,7 @@ func BestEquationPerGeneration(csvFiles []evolution.CSVOutput, spec evolution.Sp
 				if err != nil {
 					// Handle Divide By Zero
 					//return nil, err
-					fmt.Print("DIV-BY-0")
+					//
 				}
 				antagonistDelta += math.Abs(dependentVarAntagonist - spec[s].Dependent)
 				dependentVarProagonist, err := evolution.EvaluateMathematicalExpression(protagonistEquation,
@@ -452,7 +459,7 @@ func BestEquationPerGeneration(csvFiles []evolution.CSVOutput, spec evolution.Sp
 				if err != nil {
 					// Handle Divide By Zero
 					//return nil, err
-					fmt.Print("DIV-BY-0")
+					//
 				}
 				protagonistDelta += math.Abs(dependentVarProagonist - spec[s].Dependent)
 			}
@@ -475,21 +482,30 @@ func BestEquationPerGeneration(csvFiles []evolution.CSVOutput, spec evolution.Sp
 	return bestEquation, nil
 }
 
-func (s *Simulation) RunRScript(absolutePath string, filePath string, topLevelDir string, subInfoDir string, subSubNameDir string, err error) error {
+func (s *Simulation) RunRScript(absolutePath string, filePath string, topLevelDir string, subInfoDir string,
+	subSubNameDir string, run int) chan error {
+
 	workingDir := strings.ReplaceAll(absolutePath, filePath, "")
+	epochalPath := fmt.Sprintf("%s%s/%s/%s/%s-%d", workingDir, topLevelDir, subInfoDir, subSubNameDir, "epochal", run)
 	statsPath := fmt.Sprintf("%s%s/%s/%s/%s", workingDir, topLevelDir, subInfoDir, subSubNameDir, "stats")
-	RLaunchPath := fmt.Sprintf("%s%s", workingDir, "R/launch.R")
+	RLaunchPath := fmt.Sprintf("%s%s", workingDir, "R/runScript.R")
+
+	errChan := make(chan error)
+
 	go func() {
 		cmd := exec.Command("Rscript",
 			RLaunchPath,
 			absolutePath,
+			epochalPath,
 			statsPath)
-		err = cmd.Start()
+		log.Println(fmt.Sprintf("Rscript: %s", cmd.String()))
+		err := cmd.Start()
 		if err != nil {
-			log.Println(err.Error())
+			errChan <- err
 		}
 	}()
-	return err
+
+	return errChan
 }
 
 func StartEngine(engine *evolution.EvolutionEngine) error {

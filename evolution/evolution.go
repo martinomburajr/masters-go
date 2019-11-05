@@ -46,7 +46,7 @@ func (e EvolutionParams) ToString() string {
 				"+", "+"),
 			"-", "-"),
 		"/", "DIV")
-	builder.WriteString(fmt.Sprintf("%s(Ran:%d|Seed:%d)", expressionStr, e.SpecParam.Range, e.SpecParam.Seed))
+	builder.WriteString(fmt.Sprintf("%sRan%dSeed%d", expressionStr, e.SpecParam.Range, e.SpecParam.Seed))
 	builder.WriteString("-")
 	// GenCount
 	builder.WriteString(fmt.Sprintf("G%d", e.GenerationsCount))
@@ -56,21 +56,20 @@ func (e EvolutionParams) ToString() string {
 	builder.WriteString("-")
 	// Fitness
 	fitness := strings.ReplaceAll(e.FitnessStrategy.Type, "Fitness", "")
-	builder.WriteString(fmt.Sprintf("F%s(a%.2f|p%.2f)",
+	builder.WriteString(strings.ReplaceAll(fmt.Sprintf("F%sa%.2fp%.2f",
 		fitness[:len(fitness)/2], e.FitnessStrategy.AntagonistThresholdMultiplier,
-		e.FitnessStrategy.ProtagonistThresholdMultiplier))
+		e.FitnessStrategy.ProtagonistThresholdMultiplier), ".", ""))
 	builder.WriteString("-")
 	//Parent
-	builder.WriteString(fmt.Sprintf("Par(Typ%s|TSiz%d)", e.Selection.Parent.Type, e.Selection.Parent.TournamentSize))
+	builder.WriteString(fmt.Sprintf("ParTyp%sTSiz%d", e.Selection.Parent.Type, e.Selection.Parent.TournamentSize))
 	builder.WriteString("-")
 	//Survivor
-	builder.WriteString(fmt.Sprintf("Sur(Typ%s|Per%.2f)", e.Selection.Survivor.Type,
-		e.Selection.Survivor.SurvivorPercentage))
+	builder.WriteString(strings.ReplaceAll(fmt.Sprintf("SurTyp%sPer%.2f", e.Selection.Survivor.Type,
+		e.Selection.Survivor.SurvivorPercentage), ".", ""))
 	builder.WriteString("-")
 	// ReproductionPercentage
-	builder.WriteString(fmt.Sprintf("Repr(Cro%.2f|Mut%.2f)", e.Reproduction.CrossoverPercentage,
-		e.Reproduction.ProbabilityOfMutation))
-	builder.WriteString("-")
+	builder.WriteString(strings.ReplaceAll(fmt.Sprintf("ReprCro%.2fMut%.2f", e.Reproduction.CrossoverPercentage,
+		e.Reproduction.ProbabilityOfMutation), ".", ""))
 
 	return builder.String()
 }
