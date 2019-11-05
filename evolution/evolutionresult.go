@@ -716,21 +716,10 @@ type CSVOutput struct {
 	Epochal      []EpochalStatistics      `csv:"epochal"`
 }
 
-type CSVEquations struct {
-	Protagonist string `csv:"protagonistEquation"`
-	Antagonist  string `csv:"protagonistEquation"`
-	Spec        string `csv:"protagonistEquation"`
-}
-
-type CSVStrategy struct {
-	Protagonist string `csv:"protagonistStrategy"`
-	Antagonist  string `csv:"antagonistStrategy"`
-}
-
 // GenerationalStatistics refer to statistics per generation.
 // So Top or Bottom refer to the best or worst in the given generation and not a cumulative of the evolutionary process.
 type GenerationalStatistics struct {
-	Generation                     int     `csv:"generation"`
+	Generation                     int     `csv:"gen"`
 	AverageAntagonist              float64 `csv:"avgA"`
 	AverageProtagonist             float64 `csv:"avgP"`
 	TopAntagonist                  float64 `csv:"topA"`
@@ -746,7 +735,7 @@ type GenerationalStatistics struct {
 	TopAntagonistEquation          string  `csv:"topAEquation"`
 	TopProtagonistEquation         string  `csv:"topPEquation"`
 	Spec                           string  `csv:"spec"`
-	Run                            int     `csv:"runNumber"`
+	Run                            int     `csv:"run"`
 }
 
 type EpochalStatistics struct {

@@ -486,13 +486,14 @@ func (s *Simulation) RunRScript(absolutePath string, filePath string, topLevelDi
 	subSubNameDir string, run int) chan error {
 
 	workingDir := strings.ReplaceAll(absolutePath, filePath, "")
-	epochalPath := fmt.Sprintf("%s%s/%s/%s/%s-%d", workingDir, topLevelDir, subInfoDir, subSubNameDir, "epochal", run)
+	epochalPath := fmt.Sprintf("%s%s/%s/%s/%s-%d.csv", workingDir, topLevelDir, subInfoDir, subSubNameDir, "epochal",
+		run)
 	statsPath := fmt.Sprintf("%s%s/%s/%s/%s", workingDir, topLevelDir, subInfoDir, subSubNameDir, "stats")
 	RLaunchPath := fmt.Sprintf("%s%s", workingDir, "R/runScript.R")
 
 	errChan := make(chan error)
 
-	go func() {
+	//go func() {
 		cmd := exec.Command("Rscript",
 			RLaunchPath,
 			absolutePath,
@@ -501,9 +502,10 @@ func (s *Simulation) RunRScript(absolutePath string, filePath string, topLevelDi
 		log.Println(fmt.Sprintf("Rscript: %s", cmd.String()))
 		err := cmd.Start()
 		if err != nil {
+			fmt.Println("ERROR: " + err.Error())
 			errChan <- err
 		}
-	}()
+	//}()
 
 	return errChan
 }
@@ -639,15 +641,12 @@ func PrepareSimulation(params evolution.EvolutionParams, count int) *evolution.E
 
 	var outputPath string
 	var folder string
-	timeStr := strings.ReplaceAll(strings.ReplaceAll(time.Now().Format(time.RFC3339), ":", ""), "+", "")
-	if engine.Parameters.StatisticsOutput.Name == "" {
-		folder = fmt.Sprintf("data/%s/", engine.Parameters.ToString())
-		outputPath = fmt.Sprintf("%s%s-%d.json", folder,
-			timeStr, count)
-	} else {
-		folder = fmt.Sprintf("data/%s-%s/", engine.Parameters.StatisticsOutput.Name, engine.Parameters.ToString())
-		outputPath = fmt.Sprintf("%s%s-%d.json", folder, timeStr, count)
-	}
+	timeStr := engine.Parameters.InternalCount
+
+	folder = fmt.Sprintf("data/%s/", engine.Parameters.ToString())
+	outputPath = fmt.Sprintf("%s%d", folder,
+		timeStr)
+
 	engine.Parameters.StatisticsOutput.OutputDir = folder
 	engine.Parameters.StatisticsOutput.OutputPath = outputPath
 	return engine
