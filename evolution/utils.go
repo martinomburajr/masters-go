@@ -15,7 +15,6 @@ const (
 	letterIdxMax  = 63 / letterIdxBits   // # of letter indices fitting in 63 bits
 )
 
-
 func RandString(n int) string {
 	sb := strings.Builder{}
 	sb.Grow(n)

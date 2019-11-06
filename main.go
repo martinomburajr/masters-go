@@ -27,7 +27,7 @@ func main() {
 			},
 		},
 		GenerationsCount:   50,
-		EachPopulationSize: 10, // Must be an even number to prevent awkward ordering of children.
+		EachPopulationSize: 6, // Must be an even number to prevent awkward ordering of children.
 
 		FitnessStrategy: evolution.FitnessStrategy{
 			Type:                           evolution.FitnessDualThresholdedRatio,
@@ -42,13 +42,13 @@ func main() {
 			},
 			Survivor: evolution.SurvivorSelection{
 				Type:               "SteadyState",
-				SurvivorPercentage: 0.2,
+				SurvivorPercentage: 0.5,
 			},
 		},
 
 		Reproduction: evolution.Reproduction{
 			ProbabilityOfMutation: 0.01,
-			CrossoverPercentage:   0.5,
+			CrossoverPercentage:   0.2,
 		},
 
 		Strategies: evolution.Strategies{
@@ -87,8 +87,8 @@ func main() {
 				evolution.StrategySubXD,
 				evolution.StrategyDivXD,
 			},
-			AntagonistStrategyCount:  10,
-			ProtagonistStrategyCount: 10,
+			AntagonistStrategyCount:  15,
+			ProtagonistStrategyCount: 15,
 			DepthOfRandomNewTrees:    1,
 		},
 		//FitnessCalculatorType: 0,
@@ -100,7 +100,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	_, err = simulation.CoalesceFiles(finalParams)
+	err = simulation.CoalesceFiles(finalParams)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -60,7 +60,6 @@ import (
 //	}
 //}
 
-
 func TestConcurrency(t *testing.T) {
 	for i := 0; i < 20; i++ {
 		go func(i int) {
@@ -73,7 +72,6 @@ func TestConcurrency(t *testing.T) {
 		}(i)
 	}
 }
-
 
 /**
 THIS DOES NOT TEST OR CORRECT FOR TRIG OPERATORS YET

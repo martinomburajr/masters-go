@@ -1,0 +1,16 @@
+stratNum,runTopAStrategy,runTopPStrategy,runFinAStrategy,runFinPStrategy
+1,MultXD,AddToLeafR,MultXD,AddToLeafR
+2,AddTreeWithDiv,AddTreeWithSub,AddTreeWithDiv,AddTreeWithSub
+3,SubXD,AddTreeWithSub,SubXD,AddTreeWithSub
+4,MultXD,SubXD,MultXD,SubXD
+5,MultXD,AddTreeWithAdd,MultXD,AddTreeWithAdd
+6,AddXD,MutateNonTerminalR,AddXD,MutateNonTerminalR
+7,AddTreeWithAdd,AddXD,AddTreeWithAdd,AddXD
+8,AddTreeWithDiv,AddXD,AddTreeWithDiv,AddXD
+9,AddTreeWithDiv,MutateNonTerminalR,AddTreeWithDiv,MutateNonTerminalR
+10,SubXD,DivXD,SubXD,DivXD
+11,AddTreeWithAdd,AddTreeWithDiv,AddTreeWithAdd,AddTreeWithDiv
+12,MultXD,AddTreeWithMult,MultXD,AddTreeWithMult
+13,MutateNonTerminalR,AddTreeWithDiv,MutateNonTerminalR,AddTreeWithDiv
+14,SubXD,SubXD,SubXD,SubXD
+15,ReplaceBranchR,SkipD,ReplaceBranchR,SkipD

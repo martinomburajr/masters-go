@@ -3,7 +3,6 @@ package evolution
 import (
 	"bufio"
 	"fmt"
-	"github.com/gocarina/gocsv"
 	"os"
 	"strconv"
 	"strings"
@@ -72,8 +71,8 @@ func (e *EvolutionResult) Analyze(generations []*Generation, isMoreFitnessBetter
 	e.CoevolutionaryAverages = coevolutionaryAverages
 	e.HasBeenAnalyzed = true
 
-	outputFile, err := WritetoFile(params.StatisticsOutput.OutputPath, e, params, params.InternalCount)
-	e.OutputFile = outputFile
+	_, err = e.WriteToFile(params.StatisticsOutput.OutputPath, params)
+
 	return err
 }
 
@@ -488,7 +487,7 @@ func interactiveWriteToFile(reader *bufio.Reader, evolutionResult *EvolutionResu
 			isNotValidFileName = false
 		}
 	}
-	path, err := WritetoFile(fileName, evolutionResult, params, 0)
+	path, err := evolutionResult.WriteToFile(fileName, params)
 	return path, err
 	//return fmt.Sprintf("Feature not yet implemented. Will not write to %s", fileName), nil
 }
@@ -558,190 +557,4 @@ func interactiveSearchForTreeShape(reader *bufio.Reader, sortedGenerations []*Ge
 
 	}
 	return builder.String(), nil
-}
-
-func WritetoFile(path string, evolutionResult *EvolutionResult, params EvolutionParams, count int) (string, error) {
-	csvOutput := CSVOutput{
-		Generational: make([]GenerationalStatistics, len(evolutionResult.SortedGenerationIndividuals)),
-		Epochal: make([]EpochalStatistics, len(evolutionResult.SortedGenerationIndividuals[0].Protagonists[0].
-			Fitness)),
-	}
-
-	coevolutionaryAverages := evolutionResult.CoevolutionaryAverages
-
-	// GENERATIONAL
-	for i := range coevolutionaryAverages {
-		csvOutput.Generational[i].Generation = i + 1
-		csvOutput.Generational[i].Run = count + 1
-		csvOutput.Generational[i].Spec = params.SpecParam.Expression
-
-		// ########################################## ANTAGONISTS ###################################################
-		topAntagonist := evolutionResult.SortedGenerationIndividuals[i].Antagonists[0]
-		topAntagonistEquation, _ := topAntagonist.Program.T.ToMathematicalString()
-
-		csvOutput.Generational[i].AverageAntagonist = coevolutionaryAverages[i].AntagonistResult
-		csvOutput.Generational[i].TopAntagonist = topAntagonist.TotalFitness
-		csvOutput.Generational[i].TopAntagonistBirthGen = topAntagonist.BirthGen
-		csvOutput.Generational[i].TopAntagonistDelta = topAntagonist.FitnessDelta
-		csvOutput.Generational[i].TopAntagonistEquation = topAntagonistEquation
-		csvOutput.Generational[i].TopAntagonistFavoriteStrategy = DominantStrategy(*topAntagonist)
-		csvOutput.Generational[i].TopAntagonistStrategies = StrategiesToString(*topAntagonist)
-
-		// ########################################## PROTAGONISTS ###################################################
-		topProtagonist := evolutionResult.SortedGenerationIndividuals[i].Protagonists[0]
-		topProtagonistEquation, _ := topProtagonist.Program.T.ToMathematicalString()
-
-		csvOutput.Generational[i].AverageProtagonist = coevolutionaryAverages[i].ProtagonistResult
-		csvOutput.Generational[i].TopProtagonist = topProtagonist.TotalFitness
-		csvOutput.Generational[i].TopProtagonistBirthGen = topProtagonist.BirthGen
-		csvOutput.Generational[i].TopProtagonistDelta = topAntagonist.FitnessDelta
-		csvOutput.Generational[i].TopProtagonistEquation = topProtagonistEquation
-		csvOutput.Generational[i].TopProtagonistFavoriteStrategy = DominantStrategy(*topProtagonist)
-		csvOutput.Generational[i].TopProtagonistStrategies = StrategiesToString(*topProtagonist)
-	}
-
-	topProtagonist := evolutionResult.SortedGenerationIndividuals[0].Protagonists[0]
-	topAntagonist := evolutionResult.SortedGenerationIndividuals[0].Antagonists[0]
-	finalProtagonist := evolutionResult.FinalProtagonist
-	finalAntagonist := evolutionResult.FinalAntagonist
-
-	for i := 0; i < len(csvOutput.Epochal); i++ {
-		csvOutput.Epochal[i].Epoch = i + 1
-		csvOutput.Epochal[i].TopAntagonist = topAntagonist.Fitness[i]
-		csvOutput.Epochal[i].TopProtagonist = topProtagonist.Fitness[i]
-
-		csvOutput.Epochal[i].FinalAntagonist = finalAntagonist.Fitness[i]
-		csvOutput.Epochal[i].FinalProtagonist = finalProtagonist.Fitness[i]
-	}
-
-	// Internal Variance of Ultimate Individuals
-	err := os.Mkdir(params.StatisticsOutput.OutputDir, 0755)
-	innerFolder := strings.ReplaceAll(path, ".json", "")
-	err = os.Mkdir(innerFolder, 0755)
-	g := strings.SplitAfter(path, "/")
-
-	mainDir := g[0]
-	subDirInfo := g[1]
-	subsubDirName := strings.ReplaceAll(g[2], ".json", "")
-
-	csvMap := map[string]interface{}{
-		"generational": csvOutput.Generational,
-		"epochal":      csvOutput.Epochal,
-	}
-	err = WriteCSVWithMap(csvMap, mainDir, subDirInfo, subsubDirName, params.InternalCount)
-	if err != nil {
-		return path, err
-	}
-	return path, nil
-}
-
-func DominantStrategy(individual Individual) string {
-	domStrat := map[string]int{}
-	for i := range individual.Strategy {
-		strategy := string(individual.Strategy[i])
-
-		stratCount := domStrat[strategy]
-		domStrat[strategy] = stratCount + 1
-	}
-
-	var topStrategy string
-	counter := 0
-	for k, v := range domStrat {
-		if v > counter {
-			counter = v
-			topStrategy = k
-		}
-	}
-	return topStrategy
-}
-
-func DominantStrategyStr(str string) string {
-	strategies := strings.Split(str, "|")
-
-	domStrat := map[string]int{}
-	for i := range strategies {
-		strategy := string(strategies[i])
-		stratCount := domStrat[strategy]
-		if domStrat[strategy] > -1 {
-			domStrat[strategy] = stratCount + 1
-		}
-	}
-
-	var topStrategy string
-	counter := 0
-	for k, v := range domStrat {
-		if v > counter {
-			counter = v
-			topStrategy = k
-		}
-	}
-	return topStrategy
-}
-
-func StrategiesToString(individual Individual) string {
-	sb := strings.Builder{}
-	for _, strategy := range individual.Strategy {
-		sb.WriteString(string(strategy))
-		sb.WriteString("|")
-	}
-
-	final := sb.String()
-	return final[:len(final)-1]
-}
-
-func WriteCSVWithMap(csvFileMap map[string]interface{}, mainDir, subDirInfo, subsubDirName string, count int) (err error) {
-	for name := range csvFileMap {
-		pathCSV := fmt.Sprintf("%s%s%s/%s-%d%s", mainDir, subDirInfo, subsubDirName, name, count, ".csv")
-		fileCSV, err := os.Create(pathCSV)
-		if err != nil {
-			return err
-		}
-		defer fileCSV.Close()
-
-		writer := gocsv.DefaultCSVWriter(fileCSV)
-		if writer.Error() != nil {
-			return writer.Error()
-		}
-		err = gocsv.Marshal(csvFileMap[name], fileCSV)
-		if err != nil {
-			return err
-		}
-	}
-	return err
-}
-
-
-type CSVOutput struct {
-	Generational []GenerationalStatistics `csv:"generational"`
-	Epochal      []EpochalStatistics      `csv:"epochal"`
-}
-
-// GenerationalStatistics refer to statistics per generation.
-// So Top or Bottom refer to the best or worst in the given generation and not a cumulative of the evolutionary process.
-type GenerationalStatistics struct {
-	Generation                     int     `csv:"gen"`
-	AverageAntagonist              float64 `csv:"avgA"`
-	AverageProtagonist             float64 `csv:"avgP"`
-	TopAntagonist                  float64 `csv:"topA"`
-	TopProtagonist                 float64 `csv:"topP"`
-	TopAntagonistFavoriteStrategy  string  `csv:"topADomStrat"`
-	TopProtagonistFavoriteStrategy string  `csv:"topPDomStrat"`
-	TopAntagonistStrategies        string  `csv:"topAStrategies"`
-	TopProtagonistStrategies       string  `csv:"topPStrategies"`
-	TopAntagonistBirthGen          int     `csv:"topABirthGen"`
-	TopProtagonistBirthGen         int     `csv:"topPBirthGen"`
-	TopAntagonistDelta             float64 `csv:"topADelta"`
-	TopProtagonistDelta            float64 `csv:"topPDelta"`
-	TopAntagonistEquation          string  `csv:"topAEquation"`
-	TopProtagonistEquation         string  `csv:"topPEquation"`
-	Spec                           string  `csv:"spec"`
-	Run                            int     `csv:"run"`
-}
-
-type EpochalStatistics struct {
-	TopAntagonist    float64
-	TopProtagonist   float64
-	FinalAntagonist  float64
-	FinalProtagonist float64
-	Epoch            int
 }

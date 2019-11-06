@@ -109,7 +109,6 @@ func TestAggregateFitness(t *testing.T) {
 
 var xx25Spec, _ = GenerateSpecSimple(SpecParam{Expression: "x*x", Range: 5, Seed: -2}, FitnessStrategy{Type: FitnessRatio}, 0)
 
-
 var xSpec, _ = GenerateSpecSimple(SpecParam{Expression: "x", Range: 0, Seed: 1}, FitnessStrategy{Type: FitnessRatio}, 0)
 var xSpecMono, _ = GenerateSpecSimple(SpecParam{Expression: "x", Range: 0, Seed: 1}, FitnessStrategy{Type: FitnessRatio}, 0)
 var xSpecCount10, _ = GenerateSpecSimple(SpecParam{Expression: "x", Range: 0, Seed: 1}, FitnessStrategy{Type: FitnessRatio}, 0)

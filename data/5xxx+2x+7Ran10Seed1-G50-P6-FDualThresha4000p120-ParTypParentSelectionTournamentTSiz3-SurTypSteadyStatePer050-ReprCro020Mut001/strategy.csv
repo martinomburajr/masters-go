@@ -1,0 +1,16 @@
+AntagonistStrategy,ProtagonistStrategy
+MutateNonTerminalR,ReplaceBranchXR
+AddTreeWithAdd,AddToLeafR
+ReplaceBranchR,ReplaceBranchXR
+MultXD,AddRandomSubTreeR
+SkipD,AddTreeWithAdd
+SkipD,AddTreeWithDiv
+ReplaceBranchXR,SubXD
+MultXD,AddXD
+SkipD,MutateTerminalR
+SkipD,AddTreeWithSub
+SubXD,SubXD
+MultXD,SkipD
+AddXD,AddTreeWithAdd
+MultXD,AddTreeWithMult
+AddTreeWithDiv,AddTreeWithAdd

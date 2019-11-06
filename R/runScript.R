@@ -10,8 +10,8 @@ args = commandArgs(trailingOnly=TRUE)
 library(ggplot2)
 library(readr)
 library(knitr)
-library(kableExtra)
-devtools::install_github("haozhu233/kableExtra")
+# library(kableExtra)
+# devtools::install_github("haozhu233/kableExtra")
 
 generationalFilePath <- ""
 epochalFilePath <- ""
@@ -36,7 +36,7 @@ datasetEpochal <- read.csv(epochalFilePath)
 
 # Plots out the average between the average of all antagonists in a given geernation, and the average of all
 # protagonists in the same generation.
-average_plot_generational <- function(result) {
+generational_average_plot <- function(result) {
     # result <- data.frame()
     p <- ggplot(data = result,
                 mapping = aes(
@@ -68,8 +68,26 @@ average_plot_generational <- function(result) {
     # dev.off()
 }
 
-plot_table <- function(result) {
 
+generational_density_plot <- function(result) {
+    p <- ggplot(data=result, mapping=aes(x=result$avgA, y=result$gen))
+    p + geom_density(kernel="gaussian", mapping=aes(x=result$avgA, y=result$gen))
+    ggsave('generational_density.png', width=8, height=4, units='in', dpi="retina")
+}
+
+generational_histogram_plot <- function(result) {
+    # plotAvgA <- ggplot(data=result, mapping=aes(x=result$avgA))
+    # plotAvgA + geom_histogram(binwidth=0.1, mapping=aes(x=result$avgA))
+    # ggsave('generational_histogram-avgA.png', plot=plotAvgA,  width=8, height=4, units='in', dpi="retina")
+
+
+    plotAvgP <- ggplot(data=result, mapping=aes(x=result$avgP))
+    plotAvgP + geom_histogram(binwidth=0.1, mapping=aes(x=result$avgP), fill="green", colour="black")
+                # geom_histogram(binwidth=0.1, mapping=aes(x=result$avgA), fill="red")
+    ggsave('generational_histogram-avgP.png',  width=8, height=4, units='in', dpi="retina")
+}
+
+plot_table <- function(result) {
     #Avg
     varAvgA <- var(result$avgA)
     varAvgP <- var(result$avgP)
@@ -133,7 +151,7 @@ plot_table <- function(result) {
     names(summaryS) <- headings
     str(summaryS)
 
-    summaryS + kable() + kable_styling(bootstrap_options = c("striped", "hover"))
+    summaryS + kable(x=summaryS) + kable_styling(bootstrap_options = c("striped", "hover"))
     kable(summaryS)
 
     # print_screen(huxResult)
@@ -158,8 +176,10 @@ plot_table <- function(result) {
 }
 
 run_stats <- function(datasetGenerational) {
-    average_plot_generational(datasetGenerational)
-    plot_table(datasetGenerational)
+    # generational_average_plot(datasetGenerational)
+    generational_histogram_plot(datasetGenerational)
+    # generational_density_plot(datasetGenerational)
+    # plot_table(datasetGenerational)
 }
 
 run_stats(datasetGenerational)
