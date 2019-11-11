@@ -36,24 +36,29 @@ func (evolutionResult *EvolutionResult) WriteToFile(path string, params Evolutio
 		topAntagonistEquation, _ := topAntagonist.Program.T.ToMathematicalString()
 
 		csvOutput.Generational[i].AverageAntagonist = coevolutionaryAverages[i].AntagonistResult
-		csvOutput.Generational[i].TopAntagonist = topAntagonist.TotalFitness
+		csvOutput.Generational[i].TopAntagonist = topAntagonist.AverageFitness
 		csvOutput.Generational[i].TopAntagonistBirthGen = topAntagonist.BirthGen
-		csvOutput.Generational[i].TopAntagonistDelta = topAntagonist.FitnessDelta
+		csvOutput.Generational[i].TopAntagonistDelta = topAntagonist.BestFitnessDelta
 		csvOutput.Generational[i].TopAntagonistEquation = topAntagonistEquation
 		csvOutput.Generational[i].TopAntagonistFavoriteStrategy = DominantStrategy(*topAntagonist)
 		csvOutput.Generational[i].TopAntagonistStrategies = StrategiesToString(*topAntagonist)
+		csvOutput.Generational[i].TopAntagonistSD = topAntagonist.FitnessStdDev
+		csvOutput.Generational[i].TopAntagonistBestFitness = topAntagonist.BestFitness
+
 
 		// ########################################## PROTAGONISTS ###################################################
 		topProtagonist := evolutionResult.SortedGenerationIndividuals[i].Protagonists[0]
 		topProtagonistEquation, _ := topProtagonist.Program.T.ToMathematicalString()
 
 		csvOutput.Generational[i].AverageProtagonist = coevolutionaryAverages[i].ProtagonistResult
-		csvOutput.Generational[i].TopProtagonist = topProtagonist.TotalFitness
+		csvOutput.Generational[i].TopProtagonist = topProtagonist.AverageFitness
 		csvOutput.Generational[i].TopProtagonistBirthGen = topProtagonist.BirthGen
-		csvOutput.Generational[i].TopProtagonistDelta = topProtagonist.FitnessDelta
+		csvOutput.Generational[i].TopProtagonistDelta = topProtagonist.BestFitnessDelta
 		csvOutput.Generational[i].TopProtagonistEquation = topProtagonistEquation
 		csvOutput.Generational[i].TopProtagonistFavoriteStrategy = DominantStrategy(*topProtagonist)
 		csvOutput.Generational[i].TopProtagonistStrategies = StrategiesToString(*topProtagonist)
+		csvOutput.Generational[i].TopAntagonistSD = topProtagonist.FitnessStdDev
+		csvOutput.Generational[i].TopAntagonistBestFitness = topProtagonist.BestFitness
 	}
 
 	topProtagonist := evolutionResult.SortedGenerationIndividuals[0].Protagonists[0]
@@ -71,7 +76,7 @@ func (evolutionResult *EvolutionResult) WriteToFile(path string, params Evolutio
 
 		csvOutput.Epochal[i].TopAntagonist = topAntagonist.Fitness[i]
 		csvOutput.Epochal[i].TopAntagonistBirthGen = topAntagonist.BirthGen
-		csvOutput.Epochal[i].TopAntagonistDelta = topAntagonist.FitnessDelta
+		csvOutput.Epochal[i].TopAntagonistDelta = topAntagonist.BestFitnessDelta
 		csvOutput.Epochal[i].TopAntagonistEquation = topAntagonistEq
 		csvOutput.Epochal[i].TopAntagonistStrategy = StrategiesToString(*topAntagonist)
 		csvOutput.Epochal[i].TopAntagonistDominantStrategy = DominantStrategy(*topAntagonist)
@@ -79,7 +84,7 @@ func (evolutionResult *EvolutionResult) WriteToFile(path string, params Evolutio
 
 		csvOutput.Epochal[i].TopProtagonist = topProtagonist.Fitness[i]
 		csvOutput.Epochal[i].TopProtagonistBirthGen = topProtagonist.BirthGen
-		csvOutput.Epochal[i].TopProtagonistDelta = topProtagonist.FitnessDelta
+		csvOutput.Epochal[i].TopProtagonistDelta = topProtagonist.BestFitnessDelta
 		csvOutput.Epochal[i].TopProtagonistEquation = topProtagonistEq
 		csvOutput.Epochal[i].TopProtagonistStrategy = StrategiesToString(*topProtagonist)
 		csvOutput.Epochal[i].TopProtagonistDominantStrategy = DominantStrategy(*topProtagonist)
@@ -87,14 +92,14 @@ func (evolutionResult *EvolutionResult) WriteToFile(path string, params Evolutio
 
 		csvOutput.Epochal[i].FinalAntagonist = finalAntagonist.Fitness[i]
 		csvOutput.Epochal[i].FinalAntagonistBirthGen = finalAntagonist.BirthGen
-		csvOutput.Epochal[i].FinalAntagonistDelta = finalAntagonist.FitnessDelta
+		csvOutput.Epochal[i].FinalAntagonistDelta = finalAntagonist.BestFitnessDelta
 		csvOutput.Epochal[i].FinalAntagonistEquation = finalAntagonistEq
 		csvOutput.Epochal[i].FinalAntagonistStrategy = StrategiesToString(*finalAntagonist)
 		csvOutput.Epochal[i].FinalAntagonistDominantStrategy = DominantStrategy(*finalAntagonist)
 
 		csvOutput.Epochal[i].FinalProtagonist = finalProtagonist.Fitness[i]
 		csvOutput.Epochal[i].FinalProtagonistBirthGen = finalProtagonist.BirthGen
-		csvOutput.Epochal[i].FinalProtagonistDelta = finalProtagonist.FitnessDelta
+		csvOutput.Epochal[i].FinalProtagonistDelta = finalProtagonist.BestFitnessDelta
 		csvOutput.Epochal[i].FinalProtagonistEquation = finalProtagonistEq
 		csvOutput.Epochal[i].FinalProtagonistStrategy = StrategiesToString(*finalProtagonist)
 		csvOutput.Epochal[i].FinalProtagonistDominantStrategy = DominantStrategy(*finalProtagonist)
@@ -429,6 +434,7 @@ func (c *MultiOutput) WriteBestIndividuals(evolutionParams EvolutionParams, outp
 		ProtagonistDominantStrategy: DominantStrategyStr(bestEquation.ProtagonistStrategy),
 		SpecRange:                   evolutionParams.SpecParam.Range,
 		SpecSeed:                    evolutionParams.SpecParam.Seed,
+
 	}
 
 	bestAntagonistStrategyList := coalesced.TotalStatistics[0].AntagonistStrategyList
@@ -441,7 +447,6 @@ func (c *MultiOutput) WriteBestIndividuals(evolutionParams EvolutionParams, outp
 	if len(bestProtagonistStrategy) < len(bestAntagonistStrategy) {
 		stratLen = len(bestAntagonistStrategy)
 	}
-
 
 	bestStrategies := make([]BestStrategy, stratLen)
 	for i := 0; i < len(bestAntagonistStrategy); i++ {
@@ -578,13 +583,13 @@ func BestEquationAllGenerations(multiCSVOutput *MultiOutput, spec SpecMulti) (be
 			for s := range spec {
 				independentX := spec[s].Independents
 				dependentVarAntagonist, err := EvaluateMathematicalExpression(antagonistEquation,
-					independentX, 0)
+					independentX)
 				if err != nil {
 
 				}
 				antagonistDelta += math.Abs(dependentVarAntagonist - spec[s].Dependent)
 				dependentVarProagonist, err := EvaluateMathematicalExpression(protagonistEquation,
-					independentX, 0)
+					independentX)
 				if err != nil {
 				}
 				protagonistDelta += math.Abs(dependentVarProagonist - spec[s].Dependent)
@@ -643,7 +648,7 @@ func BestEquationPerGeneration(multiCSVOutput *MultiOutput, spec SpecMulti) (bes
 			for s := range spec {
 				independentX := spec[s].Independents
 				dependentVarAntagonist, err := EvaluateMathematicalExpression(antagonistEquation,
-					independentX, 0)
+					independentX)
 				if err != nil {
 					// Handle Divide By Zero
 					//return nil, err
@@ -651,7 +656,7 @@ func BestEquationPerGeneration(multiCSVOutput *MultiOutput, spec SpecMulti) (bes
 				}
 				antagonistDelta += math.Abs(dependentVarAntagonist - spec[s].Dependent)
 				dependentVarProagonist, err := EvaluateMathematicalExpression(protagonistEquation,
-					independentX, 0)
+					independentX)
 				if err != nil {
 					// Handle Divide By Zero
 					//return nil, err
@@ -686,14 +691,19 @@ type GenerationalStatistics struct {
 	AverageProtagonist             float64 `csv:"avgP"`
 	TopAntagonist                  float64 `csv:"topA"`
 	TopProtagonist                 float64 `csv:"topP"`
+	TopAntagonistBestFitness  float64 `csv:"topABest"`
+	TopProtagonistBestFitness  float64 `csv:"topPBest"`
+	TopAntagonistSD  float64 `csv:"topASD"`
+	TopProtagonistSD  float64 `csv:"topPSD"`
+
 	TopAntagonistFavoriteStrategy  string  `csv:"topADomStrat"`
 	TopProtagonistFavoriteStrategy string  `csv:"topPDomStrat"`
 	TopAntagonistStrategies        string  `csv:"topAStrategies"`
 	TopProtagonistStrategies       string  `csv:"topPStrategies"`
 	TopAntagonistBirthGen          int     `csv:"topABirthGen"`
 	TopProtagonistBirthGen         int     `csv:"topPBirthGen"`
-	TopAntagonistDelta             float64 `csv:"topADelta"`
-	TopProtagonistDelta            float64 `csv:"topPDelta"`
+	TopAntagonistDelta             float64 `csv:"topABestDelta"`
+	TopProtagonistDelta            float64 `csv:"topPBestDelta"`
 	TopAntagonistEquation          string  `csv:"topAEquation"`
 	TopProtagonistEquation         string  `csv:"topPEquation"`
 	Spec                           string  `csv:"spec"`
@@ -728,7 +738,6 @@ type EpochalStatistics struct {
 	FinalProtagonistDominantStrategy      string  `csv:"epochFinalPDomStrategy"`
 
 	Epoch                         int     `csv:"epoch"`
-
 }
 
 type RunStrategyStatistics struct {

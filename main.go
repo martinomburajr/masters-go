@@ -25,9 +25,11 @@ func main() {
 				Variables: []string{"x"},
 				Operators: []string{"*", "+", "-", "/"},
 			},
+			DivideByZeroStrategy: evolution.DivByZeroIgnore,
+			DivideByZeroPenalty: -2,
 		},
 		GenerationsCount:   50,
-		EachPopulationSize: 6, // Must be an even number to prevent awkward ordering of children.
+		EachPopulationSize: 2, // Must be an even number to prevent awkward ordering of children.
 
 		FitnessStrategy: evolution.FitnessStrategy{
 			Type:                           evolution.FitnessDualThresholdedRatio,
@@ -38,7 +40,7 @@ func main() {
 		Selection: evolution.Selection{
 			Parent: evolution.ParentSelection{
 				Type:           evolution.ParentSelectionTournament,
-				TournamentSize: 3,
+				TournamentSize: 1,
 			},
 			Survivor: evolution.SurvivorSelection{
 				Type:               "SteadyState",

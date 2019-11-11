@@ -159,13 +159,13 @@ func (p *Program) ApplyStrategy(strategy Strategy, terminals []SymbolicExpressio
 
 // Eval is a simple helper function that takes in an independent variable,
 // uses the programs treeNode to compute the resultant value
-func (p *Program) EvalMulti(independentVariables IndependentVariableMap, expressionString string, fitnessCalculatorType int) (float64,
+func (p *Program) EvalMulti(independentVariables IndependentVariableMap, expressionString string) (float64,
 	error) {
 	if p.T == nil {
 		return -1, fmt.Errorf("program: %v -> treeNode is nil", p.ID)
 	}
 
-	return EvaluateMathematicalExpression(expressionString, independentVariables, fitnessCalculatorType)
+	return EvaluateMathematicalExpression(expressionString, independentVariables)
 }
 
 const (
@@ -174,8 +174,7 @@ const (
 )
 
 // EvaluateMathematicalExpression evaluates a valid expression using the given independentVar
-func EvaluateMathematicalExpression(expressionString string, independentVariables IndependentVariableMap,
-	fitnessCalculatorType int) (float64,
+func EvaluateMathematicalExpression(expressionString string, independentVariables IndependentVariableMap) (float64,
 	error) {
 	if expressionString == "" {
 		return -1, fmt.Errorf("EvaluateMathematicalExpression | expressionString cannot be empty")

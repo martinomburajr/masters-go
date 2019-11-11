@@ -2,6 +2,7 @@ package evolution
 
 import (
 	"fmt"
+	"gonum.org/v1/gonum/stat"
 )
 
 type Generation struct {
@@ -142,12 +143,14 @@ func (g *Generation) runEpochs(epochs []Epoch) ([]Epoch, error) {
 	for i := 0; i < len(g.Antagonists); i++ {
 		perfectAntagonistTree := perfectFitnessMap[g.Antagonists[i].Id]
 		g.Antagonists[i].Program = perfectAntagonistTree.Program
-		g.Antagonists[i].FitnessDelta = perfectAntagonistTree.FitnessDelta
+		g.Antagonists[i].BestFitnessDelta = perfectAntagonistTree.FitnessDelta
+		g.Antagonists[i].BestFitness = perfectAntagonistTree.FitnessValue
 	}
 	for i := 0; i < len(g.Protagonists); i++ {
 		perfectProtagonistTree := perfectFitnessMap[g.Protagonists[i].Id]
 		g.Protagonists[i].Program = perfectProtagonistTree.Program
-		g.Protagonists[i].FitnessDelta = perfectProtagonistTree.FitnessDelta
+		g.Protagonists[i].BestFitnessDelta = perfectProtagonistTree.FitnessDelta
+		g.Antagonists[i].BestFitness = perfectProtagonistTree.FitnessValue
 	}
 
 	return epochs, nil
@@ -169,20 +172,20 @@ func (g *Generation) Compete() error {
 
 	// Calculate the Fitness for individuals in the Generation
 	for i := 0; i < len(g.Protagonists); i++ {
-		protagonistFitness, err := AggregateFitness(*g.Protagonists[i])
-		if err != nil {
-			return err
-		}
-		g.Protagonists[i].TotalFitness = float64(protagonistFitness / float64(len(g.Protagonists[i].Fitness)))
+		mean, std := stat.MeanStdDev(g.Protagonists[i].Fitness, nil)
+		variance := stat.Variance(g.Protagonists[i].Fitness, nil)
+		g.Protagonists[i].AverageFitness = mean
+		g.Protagonists[i].FitnessStdDev = std
+		g.Protagonists[i].FitnessVariance = variance
 		g.Protagonists[i].HasCalculatedFitness = true
 		g.Protagonists[i].HasAppliedStrategy = true
 		g.Protagonists[i].Age++
 
-		antagonistFitness, err := AggregateFitness(*g.Antagonists[i])
-		if err != nil {
-			return err
-		}
-		g.Antagonists[i].TotalFitness = float64(antagonistFitness / float64(len(g.Antagonists[i].Fitness)))
+		antMean, antStd := stat.MeanStdDev(g.Antagonists[i].Fitness, nil)
+		antVariance := stat.Variance(g.Antagonists[i].Fitness, nil)
+		g.Antagonists[i].AverageFitness = antMean
+		g.Antagonists[i].FitnessStdDev = antStd
+		g.Antagonists[i].FitnessVariance = antVariance
 		g.Antagonists[i].HasCalculatedFitness = true
 		g.Antagonists[i].HasAppliedStrategy = true
 		g.Antagonists[i].Age++

@@ -17,16 +17,20 @@ type Individual struct {
 	Parent                   *Individual
 	Strategy                 []Strategy
 	Fitness                  []float64
+	FitnessVariance          float64
+	FitnessStdDev            float64
 	HasAppliedStrategy       bool
 	HasCalculatedFitness     bool
 	FitnessCalculationMethod string
 	Kind                     int
+	BirthGen                 int
 	Age                      int
-	TotalFitness             float64
-	FitnessDelta             float64
+	BestFitness              float64 // Best fitness from all epochs
+	AverageFitness           float64 // Measures average fitness throughout epoch
+	BestFitnessDelta         float64
 	// BirthGen represents the generation where this individual was spawned
-	BirthGen int
-	Program  *Program
+
+	Program  *Program // The best program generated
 }
 
 func (i Individual) Clone() (Individual, error) {
@@ -300,9 +304,9 @@ func (i *Individual) ToString() strings.Builder {
 
 	sb.WriteString(fmt.Sprintf("####   %s   ####\n", i.Id))
 	sb.WriteString(fmt.Sprintf("AGE:  %d\n", i.Age))
-	sb.WriteString(fmt.Sprintf("FITNESS:  %f\n", i.TotalFitness))
+	sb.WriteString(fmt.Sprintf("FITNESS:  %f\n", i.AverageFitness))
 	sb.WriteString(fmt.Sprintf("FITNESS-ARR:  %v\n", i.Fitness))
-	sb.WriteString(fmt.Sprintf("SPEC-DELTA:  %v\n", i.FitnessDelta))
+	sb.WriteString(fmt.Sprintf("SPEC-DELTA:  %v\n", i.BestFitnessDelta))
 	sb.WriteString(fmt.Sprintf("BIRTH GEN:  %d\n", i.BirthGen))
 	strategiesSummary := FormatStrategiesTotal(i.Strategy)
 	sb.WriteString(fmt.Sprintf("Strategy Summary:\n%s\n", strategiesSummary.String()))

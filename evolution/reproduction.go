@@ -111,7 +111,7 @@ import (
 //			if individual1.HasCalculatedFitness {
 //				return Individual{}, Individual{}, fmt.Errorf("cannot be penalized | Fitness uncalculated")
 //			}
-//			individual1.TotalFitness = individual1.TotalFitness + penalty
+//			individual1.AverageFitness = individual1.AverageFitness + penalty
 //		}
 //	}
 //	if cloneBDepth > maxDepth {
@@ -121,7 +121,7 @@ import (
 //			if individual2.HasCalculatedFitness {
 //				return Individual{}, Individual{}, fmt.Errorf("cannot be penalized | Fitness uncalculated")
 //			}
-//			individual2.TotalFitness = individual2.TotalFitness + penalty
+//			individual2.AverageFitness = individual2.AverageFitness + penalty
 //		}
 //	}
 //
@@ -231,7 +231,7 @@ func depthPenaltyIgnore(maxDepth int, individual1Depth int, individual2Depth int
 //	var individual1DepthRemainderFromMaX, individual2DepthRemainderFromMax int
 //	if individual1Depth >= maxDepth {
 //		if individual1.HasCalculatedFitness {
-//			individual1.TotalFitness = individual1.TotalFitness + penalization
+//			individual1.AverageFitness = individual1.AverageFitness + penalization
 //		} else {
 //			return -1, -1, fmt.Errorf("crossover | depthPenalty | Fitness of individual %s has not been calculated"+
 //				" before crossover", individual1.Id)
@@ -242,7 +242,7 @@ func depthPenaltyIgnore(maxDepth int, individual1Depth int, individual2Depth int
 //
 //	if individual2Depth >= maxDepth {
 //		if individual2.HasCalculatedFitness {
-//			individual2.TotalFitness = individual2.TotalFitness + penalization
+//			individual2.AverageFitness = individual2.AverageFitness + penalization
 //		} else {
 //			return -1, -1, fmt.Errorf("crossover | depthPenalty | Fitness of individual %s has not been calculated"+
 //				" before crossover", individual1.Id)
@@ -273,7 +273,7 @@ func depthPenaltyIgnore(maxDepth int, individual1Depth int, individual2Depth int
 //
 //	if individual2Depth >= maxDepth {
 //		if individual2.HasCalculatedFitness {
-//			individual2.TotalFitness = individual2.TotalFitness + int(penalization)
+//			individual2.AverageFitness = individual2.AverageFitness + int(penalization)
 //		}else {
 //			return -1, -1, fmt.Errorf("crossover | depthPenalty | Fitness of individual %s has not been calculated" +
 //				" before crossover", individual1.Id)

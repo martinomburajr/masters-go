@@ -16,7 +16,7 @@ type EvolutionResult struct {
 	FinalAntagonist     *Individual
 	FinalProtagonist    *Individual
 
-	CoevolutionaryAverages []generationalCoevolutionaryAverages
+	CoevolutionaryAverages []GenerationalCoevolutionaryAverages
 
 	SortedGenerationIndividuals []*Generation
 	OutputFile                  string
@@ -27,7 +27,7 @@ type multiIndividualsPerGeneration struct {
 	Individuals []*Individual
 }
 
-type generationalCoevolutionaryAverages struct {
+type GenerationalCoevolutionaryAverages struct {
 	Generation        *Generation
 	AntagonistResult  float64
 	ProtagonistResult float64

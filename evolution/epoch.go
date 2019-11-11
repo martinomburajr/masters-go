@@ -76,8 +76,9 @@ func (e *Epoch) Start(perfectTreeMap map[string]PerfectTree) error {
 		}
 		break
 	case FitnessRatio:
-		antagonistFitness, protagonistFitness, err = RatioFitness(e.generation.engine.Parameters.Spec, e.antagonist.Program,
-			e.protagonist.Program, e.generation.engine.Parameters.FitnessCalculatorType)
+		antagonistFitness, protagonistFitness, antagonistFitnessDelta,
+			protagonistFitnessDelta, err = RatioFitness(e.generation.engine.Parameters.Spec, e.antagonist.Program,
+			e.protagonist.Program, e.generation.engine.Parameters.SpecParam.DivideByZeroStrategy)
 		if err != nil {
 			return err
 		}
@@ -87,7 +88,7 @@ func (e *Epoch) Start(perfectTreeMap map[string]PerfectTree) error {
 		antagonistFitness, protagonistFitness, antagonistFitnessDelta,
 			protagonistFitnessDelta, err = ThresholdedRatioFitness(e.generation.engine.Parameters.Spec,
 			e.antagonist.Program,
-			e.protagonist.Program, e.generation.engine.Parameters.FitnessCalculatorType)
+			e.protagonist.Program, e.generation.engine.Parameters.SpecParam.DivideByZeroStrategy)
 		if err != nil {
 			return err
 		}
@@ -97,7 +98,7 @@ func (e *Epoch) Start(perfectTreeMap map[string]PerfectTree) error {
 			err = ThresholdedRatioFitness(e.generation.
 			engine.Parameters.Spec,
 			e.protagonist.Program,
-			e.protagonist.Program, e.generation.engine.Parameters.FitnessCalculatorType)
+			e.protagonist.Program, e.generation.engine.Parameters.SpecParam.DivideByZeroStrategy)
 		if err != nil {
 			return err
 		}

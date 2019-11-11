@@ -6,10 +6,10 @@ import (
 	"testing"
 )
 
-var i1 = &Individual{TotalFitness: 1, Id: "i1"}
-var i2 = &Individual{TotalFitness: 2, Id: "i2"}
-var iMax = &Individual{TotalFitness: math.MaxInt64, Id: "iMaxInt"}
-var imin1 = &Individual{TotalFitness: -1, Id: "iMin1"}
+var i1 = &Individual{AverageFitness: 1, Id: "i1"}
+var i2 = &Individual{AverageFitness: 2, Id: "i2"}
+var iMax = &Individual{AverageFitness: math.MaxInt64, Id: "iMaxInt"}
+var imin1 = &Individual{AverageFitness: -1, Id: "iMin1"}
 
 func TestCalcTopIndividual(t *testing.T) {
 	type args struct {
@@ -38,8 +38,8 @@ func TestCalcTopIndividual(t *testing.T) {
 				return
 			}
 			if !tt.wantErr {
-				if !reflect.DeepEqual(got.TotalFitness, tt.want.TotalFitness) {
-					t.Errorf("GetNthPlaceIndividual() = %v, want %v", got.TotalFitness, tt.want.TotalFitness)
+				if !reflect.DeepEqual(got.AverageFitness, tt.want.AverageFitness) {
+					t.Errorf("GetNthPlaceIndividual() = %v, want %v", got.AverageFitness, tt.want.AverageFitness)
 				}
 			}
 		})
@@ -130,8 +130,8 @@ var g3Pro = &Generation{GenerationID: "g3Pro", Protagonists: []*Individual{imin1
 //				t.Errorf("not same lengthgot = %v, want %v", got, tt.want)
 //			}
 //			for i := range got {
-//				if got[i].TotalFitness != tt.want[i].TotalFitness {
-//					t.Errorf("got = %v, want %v", got[i].TotalFitness, tt.want[i].TotalFitness)
+//				if got[i].AverageFitness != tt.want[i].AverageFitness {
+//					t.Errorf("got = %v, want %v", got[i].AverageFitness, tt.want[i].AverageFitness)
 //					return
 //				}
 //			}

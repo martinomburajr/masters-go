@@ -71,7 +71,7 @@ func getNRandom(population []*Individual, tournamentSize int) []*Individual {
 func tournamentSelect(selectedIndividuals []*Individual) (*Individual, error) {
 	fittest := selectedIndividuals[0]
 	for i := range selectedIndividuals {
-		if selectedIndividuals[i].TotalFitness > fittest.TotalFitness {
+		if selectedIndividuals[i].AverageFitness > fittest.AverageFitness {
 			individual, err := selectedIndividuals[i].Clone()
 			if err != nil {
 				return nil, err

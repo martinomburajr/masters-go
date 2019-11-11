@@ -519,8 +519,8 @@ func TestIndividual_Clone(t *testing.T) {
 		want    Individual
 		wantErr bool
 	}{
-		//{"", Individual{Strategy:[]Strategy{"1","2","3"}, TotalFitness: 10}, Individual{Strategy:[]Strategy{"1","2",
-		//	"3"}, TotalFitness: 10}, false},
+		//{"", Individual{Strategy:[]Strategy{"1","2","3"}, AverageFitness: 10}, Individual{Strategy:[]Strategy{"1","2",
+		//	"3"}, AverageFitness: 10}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -533,7 +533,7 @@ func TestIndividual_Clone(t *testing.T) {
 				FitnessCalculationMethod: tt.fields.FitnessCalculationMethod,
 				Kind:                     tt.fields.Kind,
 				Age:                      tt.fields.Age,
-				TotalFitness:             tt.fields.TotalFitness,
+				AverageFitness:           tt.fields.AverageFitness,
 				Program:                  tt.fields.Program,
 			}
 			got, err := i.Clone()
@@ -582,10 +582,10 @@ func TestIndividual_CloneWithTree(t *testing.T) {
 				HasAppliedStrategy:   tt.fields.HasAppliedStrategy,
 				HasCalculatedFitness: tt.fields.HasCalculatedFitness,
 				//FitnessCalculationMethod: tt.fields.FitnessCalculationMethod,
-				Kind:         tt.fields.Kind,
-				Age:          tt.fields.Age,
-				TotalFitness: tt.fields.TotalFitness,
-				Program:      tt.fields.Program,
+				Kind:           tt.fields.Kind,
+				Age:            tt.fields.Age,
+				AverageFitness: tt.fields.TotalFitness,
+				Program:        tt.fields.Program,
 			}
 			if got := i.CloneWithTree(tt.args.tree); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Individual.CloneWithTree() = %v, want %v", got, tt.want)

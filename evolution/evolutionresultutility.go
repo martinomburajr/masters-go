@@ -16,27 +16,27 @@ func GetTopIndividualInAllGenerations(sortedGenerations []*Generation, isMoreFit
 	}
 
 	if isMoreFitnessBetter {
-		topAntagonist = &Individual{TotalFitness: math.MinInt64}
-		topProtagonist = &Individual{TotalFitness: math.MinInt64}
+		topAntagonist = &Individual{AverageFitness: math.MinInt64}
+		topProtagonist = &Individual{AverageFitness: math.MinInt64}
 		for i := 0; i < len(sortedGenerations); i++ {
 			// This ensures it picks more recent individuals
-			if sortedGenerations[i].Antagonists[0].TotalFitness >= topAntagonist.TotalFitness {
+			if sortedGenerations[i].Antagonists[0].AverageFitness >= topAntagonist.AverageFitness {
 				topAntagonist = sortedGenerations[i].Antagonists[0]
 			}
-			if sortedGenerations[i].Protagonists[0].TotalFitness >= topProtagonist.TotalFitness {
+			if sortedGenerations[i].Protagonists[0].AverageFitness >= topProtagonist.AverageFitness {
 				topProtagonist = sortedGenerations[i].Protagonists[0]
 			}
 		}
 		return topAntagonist, topProtagonist, nil
 	} else {
-		topAntagonist = &Individual{TotalFitness: math.MaxInt64}
-		topProtagonist = &Individual{TotalFitness: math.MaxInt64}
+		topAntagonist = &Individual{AverageFitness: math.MaxInt64}
+		topProtagonist = &Individual{AverageFitness: math.MaxInt64}
 		for i := 0; i < len(sortedGenerations); i++ {
 			// This ensures it picks more recent individuals
-			if sortedGenerations[i].Antagonists[0].TotalFitness >= topAntagonist.TotalFitness {
+			if sortedGenerations[i].Antagonists[0].AverageFitness >= topAntagonist.AverageFitness {
 				topAntagonist = sortedGenerations[i].Antagonists[0]
 			}
-			if sortedGenerations[i].Protagonists[0].TotalFitness >= topProtagonist.TotalFitness {
+			if sortedGenerations[i].Protagonists[0].AverageFitness >= topProtagonist.AverageFitness {
 				topProtagonist = sortedGenerations[i].Protagonists[0]
 			}
 		}
@@ -46,7 +46,7 @@ func GetTopIndividualInAllGenerations(sortedGenerations []*Generation, isMoreFit
 }
 
 // GetGenerationalFitnessAverage returns the average for antagonists and protagonists of individual for each generation
-func GetGenerationalFitnessAverage(sortedGenerations []*Generation) ([]generationalCoevolutionaryAverages, error) {
+func GetGenerationalFitnessAverage(sortedGenerations []*Generation) ([]GenerationalCoevolutionaryAverages, error) {
 	if sortedGenerations == nil {
 		return nil, fmt.Errorf("GetGenerationalFitnessAverage | Generation cannot be nil")
 	}
@@ -54,7 +54,7 @@ func GetGenerationalFitnessAverage(sortedGenerations []*Generation) ([]generatio
 		return nil, fmt.Errorf("GetGenerationalFitnessAverage | Generation cannot be empty")
 	}
 
-	result := make([]generationalCoevolutionaryAverages, len(sortedGenerations))
+	result := make([]GenerationalCoevolutionaryAverages, len(sortedGenerations))
 	for i := range sortedGenerations {
 		antagonistAverage, err := CalculateAverage(sortedGenerations[i].Antagonists)
 		if err != nil {
@@ -64,7 +64,7 @@ func GetGenerationalFitnessAverage(sortedGenerations []*Generation) ([]generatio
 		if err != nil {
 			return nil, err
 		}
-		result[i] = generationalCoevolutionaryAverages{
+		result[i] = GenerationalCoevolutionaryAverages{
 			AntagonistResult:  antagonistAverage,
 			ProtagonistResult: protagonistAverage,
 			Generation:        sortedGenerations[i],
@@ -187,16 +187,16 @@ func SortIndividuals(individuals []*Individual, isMoreFitnessBetter bool) ([]*In
 	switch isMoreFitnessBetter {
 	case true:
 		sort.Slice(individuals, func(i, j int) bool {
-			return individuals[i].TotalFitness > individuals[j].TotalFitness
+			return individuals[i].AverageFitness > individuals[j].AverageFitness
 		})
 	case false:
 		sort.Slice(individuals, func(i, j int) bool {
-			return individuals[i].TotalFitness < individuals[j].TotalFitness
+			return individuals[i].AverageFitness < individuals[j].AverageFitness
 		})
 	default:
 		// Default to More is better
 		sort.Slice(individuals, func(i, j int) bool {
-			return individuals[i].TotalFitness > individuals[j].TotalFitness
+			return individuals[i].AverageFitness > individuals[j].AverageFitness
 		})
 	}
 	return individuals, nil
@@ -213,7 +213,7 @@ func CalculateAverage(individuals []*Individual) (float64, error) {
 
 	sum := 0.0
 	for i := range individuals {
-		sum += individuals[i].TotalFitness
+		sum += individuals[i].AverageFitness
 	}
 	return float64(sum / float64(len(individuals))), nil
 }
@@ -229,7 +229,7 @@ func CalculateCumulative(individuals []*Individual) (float64, error) {
 
 	sum := 0.0
 	for i := range individuals {
-		sum += individuals[i].TotalFitness
+		sum += individuals[i].AverageFitness
 	}
 
 	return float64(sum), nil

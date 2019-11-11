@@ -44,12 +44,12 @@ func TestSortGenerationsThoroughly(t *testing.T) {
 						t.Errorf("SortGenerationsThoroughly() Protagonists not Same Length = %v, want %v", got, tt.want)
 					}
 					for e := range got[i].Antagonists {
-						if got[i].Antagonists[e].TotalFitness != tt.want[i].Antagonists[e].TotalFitness {
+						if got[i].Antagonists[e].AverageFitness != tt.want[i].Antagonists[e].AverageFitness {
 							t.Errorf("SortGenerationsThoroughly() Antagonists = %v, want %v", got, tt.want)
 						}
 					}
 					for e := range got[i].Protagonists {
-						if got[i].Protagonists[e].TotalFitness != tt.want[i].Protagonists[e].TotalFitness {
+						if got[i].Protagonists[e].AverageFitness != tt.want[i].Protagonists[e].AverageFitness {
 							t.Errorf("SortGenerationsThoroughly() Protagonists = %v, want %v", got, tt.want)
 						}
 					}

@@ -18,19 +18,21 @@ type EquationPairing struct {
 	AntagonistPenalization float64
 	// ProtagonistPenalization value to give the protagonist if it creates an invalid tree evaluation e.g. DivideByZero
 	ProtagonistPenalization float64
+
+	DivideByZeroPenalty float64
 }
 
 type IndependentVariableMap map[string]float64
 
 func (e *EquationPairing) ToString() string {
-	return fmt.Sprintf("  %#v  |  %.2f  \n", e.Independents, e.Dependent)
+	return fmt.Sprintf("  %#v  \t  %.2f  \n", e.Independents, e.Dependent)
 }
 
-// SpecMulti is the underlying datascrutuctre that contains the spec as well as threshold information
+// SpecMulti is the underlying data structre that contains the spec as well as threshold information
 type SpecMulti []EquationPairing
 
 // GenerateSpecSimple assumes a single independent variable x with an unlimited count.
-func GenerateSpecSimple(specParam SpecParam, fitnessStrategy FitnessStrategy, fitnessCalculatorType int) (SpecMulti,
+func GenerateSpecSimple(specParam SpecParam, fitnessStrategy FitnessStrategy) (SpecMulti,
 	error) {
 
 	if specParam.Expression == "" {
@@ -51,13 +53,14 @@ func GenerateSpecSimple(specParam SpecParam, fitnessStrategy FitnessStrategy, fi
 		spec[i].Independents = map[string]float64{}
 		spec[i].Independents["x"] = float64(i + specParam.Seed)
 		dependentVariable, err := EvaluateMathematicalExpression(specParam.Expression,
-			spec[i].Independents, fitnessCalculatorType)
+			spec[i].Independents)
 		if err != nil {
 			return nil, err
 		}
 		spec[i].Dependent = dependentVariable
 		spec[i].AntagonistThreshold = dependentVariable * fitnessStrategy.AntagonistThresholdMultiplier
 		spec[i].ProtagonistThreshold = dependentVariable * fitnessStrategy.ProtagonistThresholdMultiplier
+		spec[i].DivideByZeroPenalty = specParam.DivideByZeroPenalty
 	}
 	return spec, nil
 }
@@ -68,7 +71,7 @@ func (spec SpecMulti) ToString() string {
 		return sb.String()
 	}
 
-	sb.WriteString("  x  :  f(x)  \n")
+	sb.WriteString("  x  :\t  f(x)  \n")
 	for i := range spec {
 		s := spec[i].ToString()
 		sb.WriteString(s)

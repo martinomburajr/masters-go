@@ -107,16 +107,17 @@ func TestAggregateFitness(t *testing.T) {
 	}
 }
 
-var xx25Spec, _ = GenerateSpecSimple(SpecParam{Expression: "x*x", Range: 5, Seed: -2}, FitnessStrategy{Type: FitnessRatio}, 0)
+var xx25Spec, _ = GenerateSpecSimple(SpecParam{Expression: "x*x", Range: 5, Seed: -2}, FitnessStrategy{Type: FitnessRatio})
 
-var xSpec, _ = GenerateSpecSimple(SpecParam{Expression: "x", Range: 0, Seed: 1}, FitnessStrategy{Type: FitnessRatio}, 0)
-var xSpecMono, _ = GenerateSpecSimple(SpecParam{Expression: "x", Range: 0, Seed: 1}, FitnessStrategy{Type: FitnessRatio}, 0)
-var xSpecCount10, _ = GenerateSpecSimple(SpecParam{Expression: "x", Range: 0, Seed: 1}, FitnessStrategy{Type: FitnessRatio}, 0)
-var xSpecCount10Mono, _ = GenerateSpecSimple(SpecParam{Expression: "x", Range: 0, Seed: 1}, FitnessStrategy{Type: FitnessRatio}, 0)
-var xSpecCount100, _ = GenerateSpecSimple(SpecParam{Expression: "x", Range: 0, Seed: 1}, FitnessStrategy{Type: FitnessRatio}, 0)
-var xSpecCount100Mono, _ = GenerateSpecSimple(SpecParam{Expression: "x", Range: 0, Seed: 1}, FitnessStrategy{Type: FitnessRatio}, 0)
-var xxSpecCount100, _ = GenerateSpecSimple(SpecParam{Expression: "x*x", Range: 0, Seed: 1}, FitnessStrategy{Type: FitnessRatio}, 0)
-var xxSpecCount100Mono, _ = GenerateSpecSimple(SpecParam{Expression: "x*x", Range: 0, Seed: 1}, FitnessStrategy{Type: FitnessRatio}, 0)
+var xSpec, _ = GenerateSpecSimple(SpecParam{Expression: "x", Range: 0, Seed: 1}, FitnessStrategy{Type: FitnessRatio})
+var xSpecMono, _ = GenerateSpecSimple(SpecParam{Expression: "x", Range: 0, Seed: 1}, FitnessStrategy{Type: FitnessRatio})
+var xSpecCount10, _ = GenerateSpecSimple(SpecParam{Expression: "x", Range: 0, Seed: 1}, FitnessStrategy{Type: FitnessRatio})
+var xSpecCount10Mono, _ = GenerateSpecSimple(SpecParam{Expression: "x", Range: 0, Seed: 1}, FitnessStrategy{Type: FitnessRatio})
+var xSpecCount100, _ = GenerateSpecSimple(SpecParam{Expression: "x", Range: 0, Seed: 1}, FitnessStrategy{Type: FitnessRatio})
+var xSpecCount100Mono, _ = GenerateSpecSimple(SpecParam{Expression: "x", Range: 0, Seed: 1},
+FitnessStrategy{Type: FitnessRatio})
+var xxSpecCount100, _ = GenerateSpecSimple(SpecParam{Expression: "x*x", Range: 0, Seed: 1}, FitnessStrategy{Type: FitnessRatio})
+var xxSpecCount100Mono, _ = GenerateSpecSimple(SpecParam{Expression: "x*x", Range: 0, Seed: 1}, FitnessStrategy{Type: FitnessRatio})
 
 //func Test_evaluateFitnessThresholded(t *testing.T) {
 //
@@ -292,6 +293,10 @@ func Test_calculateDelta(t *testing.T) {
 	}{
 		{"0|1", args{0, 1}, 1},
 		{"0| -1", args{0, -1}, 1},
+		{"-10| -1", args{-10, -1}, 9},
+		{"-10| -10", args{-10, -10}, 0},
+		{"-10| 10", args{-10, 10}, 20},
+		{"-1| -10", args{-1, -10}, 9},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
