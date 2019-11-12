@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/martinomburajr/masters-go/evolution"
 	"github.com/martinomburajr/masters-go/simulation"
 	"log"
@@ -26,10 +27,10 @@ func main() {
 				Operators: []string{"*", "+", "-", "/"},
 			},
 			DivideByZeroStrategy: evolution.DivByZeroIgnore,
-			DivideByZeroPenalty: -2,
+			DivideByZeroPenalty:  -2,
 		},
 		GenerationsCount:   50,
-		EachPopulationSize: 2, // Must be an even number to prevent awkward ordering of children.
+		EachPopulationSize: 10, // Must be an even number to prevent awkward ordering of children.
 
 		FitnessStrategy: evolution.FitnessStrategy{
 			Type:                           evolution.FitnessDualThresholdedRatio,
@@ -40,7 +41,7 @@ func main() {
 		Selection: evolution.Selection{
 			Parent: evolution.ParentSelection{
 				Type:           evolution.ParentSelectionTournament,
-				TournamentSize: 1,
+				TournamentSize: 3,
 			},
 			Survivor: evolution.SurvivorSelection{
 				Type:               "SteadyState",
@@ -102,10 +103,12 @@ func main() {
 		log.Fatal(err)
 	}
 
-	err = simulation.CoalesceFiles(finalParams)
-	if err != nil {
-		log.Fatal(err)
-	}
+	fmt.Print(finalParams)
+
+	//err = simulation.CoalesceFiles(finalParams)
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
 
 	//cmd := exec.Command("Rscript", "launchCoalesced.R", coalescedFilesPath)
 	//log.Fatal(cmd.Run())

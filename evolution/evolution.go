@@ -131,7 +131,7 @@ type SpecParam struct {
 	AvailableVariablesAndOperators AvailableVariablesAndOperators
 	// AvailableSymbolicExpressions - Output Only
 	AvailableSymbolicExpressions AvailableSymbolicExpressions
-	DivideByZeroStrategy         string `json:"divideByZeroStrategy"`
+	DivideByZeroStrategy         string  `json:"divideByZeroStrategy"`
 	DivideByZeroPenalty          float64 `json:"divideByZeroPenalty"`
 }
 

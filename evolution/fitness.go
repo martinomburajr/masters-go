@@ -20,11 +20,9 @@ const (
 	DivByZeroSetSpecValueZero = "SetSpecValueZero"
 )
 
-
 func divByZeroIgnore() {
 
 }
-
 
 //type IFitness interface {
 //func (spec SpecMulti, antagonist, protagonist *Program) (err error)
@@ -499,12 +497,12 @@ func thresholdedRatioFitness(spec SpecMulti, antagonist, protagonist *Program,
 		return antagonistFitness, protagonistFitness, deltaAntagonist, deltaProtagonist, nil
 	} else if !isAntagonistValid && isProtagonistValid {
 		if deltaProtagonist <= deltaProtagonistThreshold {
-				if deltaProtagonist == 0 {
-					protagonistFitness = 1
-					protagonistDividedByZeroCount = -1
-				} else {
-					protagonistFitness = (deltaProtagonistThreshold - deltaProtagonist) / deltaProtagonistThreshold
-				}
+			if deltaProtagonist == 0 {
+				protagonistFitness = 1
+				protagonistDividedByZeroCount = -1
+			} else {
+				protagonistFitness = (deltaProtagonistThreshold - deltaProtagonist) / deltaProtagonistThreshold
+			}
 		} else {
 			protagonistFitness = -1 * ((deltaProtagonist - deltaProtagonistThreshold) / deltaProtagonist)
 			//protagonistFitness = -1 * (deltaProtagonist / deltaAntagonist)

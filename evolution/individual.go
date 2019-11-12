@@ -17,6 +17,7 @@ type Individual struct {
 	Parent                   *Individual
 	Strategy                 []Strategy
 	Fitness                  []float64
+	Deltas                   []float64
 	FitnessVariance          float64
 	FitnessStdDev            float64
 	HasAppliedStrategy       bool
@@ -28,9 +29,10 @@ type Individual struct {
 	BestFitness              float64 // Best fitness from all epochs
 	AverageFitness           float64 // Measures average fitness throughout epoch
 	BestFitnessDelta         float64
+	AverageFitnessDelta	 		float64
 	// BirthGen represents the generation where this individual was spawned
 
-	Program  *Program // The best program generated
+	Program *Program // The best program generated
 }
 
 func (i Individual) Clone() (Individual, error) {
@@ -152,6 +154,8 @@ func Crossover(individual Individual, individual2 Individual, params EvolutionPa
 		return child1, child2, nil
 	}
 }
+
+
 
 // StrategySwapper takes two slices containing variable length strategies.
 // The swapLength must be smaller than the length of the largest, but less than the length of the smallest.
@@ -363,4 +367,59 @@ func KindToString(kind int) string {
 	default:
 		return "UNKNOWN"
 	}
+}
+
+
+func DominantStrategy(individual Individual) string {
+	domStrat := map[string]int{}
+	for i := range individual.Strategy {
+		strategy := string(individual.Strategy[i])
+
+		stratCount := domStrat[strategy]
+		domStrat[strategy] = stratCount + 1
+	}
+
+	var topStrategy string
+	counter := 0
+	for k, v := range domStrat {
+		if v > counter {
+			counter = v
+			topStrategy = k
+		}
+	}
+	return topStrategy
+}
+
+func DominantStrategyStr(str string) string {
+	strategies := strings.Split(str, "|")
+
+	domStrat := map[string]int{}
+	for i := range strategies {
+		strategy := string(strategies[i])
+		stratCount := domStrat[strategy]
+		if domStrat[strategy] > -1 {
+			domStrat[strategy] = stratCount + 1
+		}
+	}
+
+	var topStrategy string
+	counter := 0
+	for k, v := range domStrat {
+		if v > counter {
+			counter = v
+			topStrategy = k
+		}
+	}
+	return topStrategy
+}
+
+func StrategiesToString(individual Individual) string {
+	sb := strings.Builder{}
+	for _, strategy := range individual.Strategy {
+		sb.WriteString(string(strategy))
+		sb.WriteString("|")
+	}
+
+	final := sb.String()
+	return final[:len(final)-1]
 }

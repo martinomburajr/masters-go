@@ -115,7 +115,7 @@ var xSpecCount10, _ = GenerateSpecSimple(SpecParam{Expression: "x", Range: 0, Se
 var xSpecCount10Mono, _ = GenerateSpecSimple(SpecParam{Expression: "x", Range: 0, Seed: 1}, FitnessStrategy{Type: FitnessRatio})
 var xSpecCount100, _ = GenerateSpecSimple(SpecParam{Expression: "x", Range: 0, Seed: 1}, FitnessStrategy{Type: FitnessRatio})
 var xSpecCount100Mono, _ = GenerateSpecSimple(SpecParam{Expression: "x", Range: 0, Seed: 1},
-FitnessStrategy{Type: FitnessRatio})
+	FitnessStrategy{Type: FitnessRatio})
 var xxSpecCount100, _ = GenerateSpecSimple(SpecParam{Expression: "x*x", Range: 0, Seed: 1}, FitnessStrategy{Type: FitnessRatio})
 var xxSpecCount100Mono, _ = GenerateSpecSimple(SpecParam{Expression: "x*x", Range: 0, Seed: 1}, FitnessStrategy{Type: FitnessRatio})
 

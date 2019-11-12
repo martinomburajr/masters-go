@@ -18,10 +18,9 @@ type Simulation struct {
 	NumberOfRunsPerState  int
 	Name                  string
 	// Output-Only
-	OutputDir string
+	OutputDir       string
 	SimulationStats []SimulationRunStats
 }
-
 
 func (s *Simulation) Begin(params evolution.EvolutionParams) (evolution.EvolutionParams, error) {
 	os.Mkdir("data", 0755)
@@ -46,52 +45,8 @@ func (s *Simulation) Begin(params evolution.EvolutionParams) (evolution.Evolutio
 	s.OutputDir = folder
 
 
-	// ####################################### BEST INDIVIDUALS ####################################
-	_, _, bestIndividualsAllTime, err := s.BestIndividualsAllRuns(params)
-	if err != nil {
-		return params, err
-	}
-	err = bestIndividualsAllTime.WriteCSV(fmt.Sprintf("%s/%s", s.OutputDir, "bestall.csv"))
-	if err != nil {
-		return params, err
-	}
-
-	// ####################################### STRATEGIES ######################################
-	strategyStats, err := s.ToStrategyStats(s.OutputDir)
-	if err != nil {
-		return params,err
-	}
-	err = WriteRunStrategy(strategyStats, fmt.Sprintf("%s/%s", s.OutputDir, "strategy.csv"))
-	if err != nil {
-		return params,err
-	}
-
-
-		// WRITE TO FILE
-	outputPath := fmt.Sprintf("%s/%s", s.OutputDir, "runs.csv")
-	statistics, err := s.ToRunStats()
-	if err != nil {
-		return params, err
-	}
-	outputFileCSV, err := os.Create(outputPath)
-	if err != nil {
-		return params,err
-	}
-	defer outputFileCSV.Close()
-
-	writer := gocsv.DefaultCSVWriter(outputFileCSV)
-	if writer.Error() != nil {
-		return params,writer.Error()
-	}
-	err = gocsv.Marshal(statistics, outputFileCSV)
-	if err != nil {
-		return params,err
-	}
-
-
-	return params,err
+	return params, nil
 }
-
 
 func WriteRunStrategy(runStrat []RunStrategyStatistics, outputPath string) error {
 	// WRITE TO FILE
@@ -111,54 +66,15 @@ func WriteRunStrategy(runStrat []RunStrategyStatistics, outputPath string) error
 	}
 	return nil
 }
+
 type SimulationRunStats struct {
-	TopAntagonist        evolution.Individual
-	TopProtagonist       evolution.Individual
-	TopAntagonistGeneration int
+	TopAntagonist            evolution.Individual
+	TopProtagonist           evolution.Individual
+	TopAntagonistGeneration  int
 	TopProtagonistGeneration int
-	FinalAntagonist      evolution.Individual
-	FinalProtagonist     evolution.Individual
-	GenerationalAverages []GenerationalAverages
-}
-
-// CoalesceFiles will coalesce all files into a single document that can be analyzed
-func (s *Simulation) CoalesceFiles(evolutionParams evolution.EvolutionParams) error {
-
-	multiCSVOutput := evolution.MultiOutput{}
-	err := multiCSVOutput.Load(s.OutputDir, "", evolutionParams)
-
-	// write params to file
-	paramsPath := fmt.Sprintf("%s/%s", s.OutputDir, "params.json")
-	paramsFile, err := os.Create(paramsPath)
-	if err != nil {
-		return err
-	}
-	err = json.NewEncoder(paramsFile).Encode(evolutionParams)
-	if err != nil {
-		return err
-	}
-	fmt.Println("Wrote Params file to: " + paramsPath)
-
-	//multiCSVOutput.Load(s.OutputDir)
-	multiCSVOutput.WriteGenerationalCumulative(evolutionParams, fmt.Sprintf("%s/%s", s.OutputDir,
-		"cumulative.csv"))
-	if err != nil {
-		return err
-	}
-
-	multiCSVOutput.WriteAverages(evolutionParams, fmt.Sprintf("%s/%s", s.OutputDir,
-		"averages.csv"))
-	if err != nil {
-		return err
-	}
-
-	multiCSVOutput.WriteBestIndividuals(evolutionParams, s.OutputDir, fmt.Sprintf("%s/%s", s.OutputDir,
-		"best.csv"))
-	if err != nil {
-		return err
-	}
-
-	return err
+	FinalAntagonist          evolution.Individual
+	FinalProtagonist         evolution.Individual
+	Generational             evolution.Generational
 }
 
 func (s *Simulation) RunRScript(absolutePath string, filePath string, topLevelDir string, subInfoDir string,
@@ -205,25 +121,51 @@ func (s *Simulation) StartEngine(engine *evolution.EvolutionEngine) error {
 	finAnt, err := evolutionResult.FinalAntagonist.Clone()
 	finProt, err := evolutionResult.FinalProtagonist.Clone()
 
-	genAverages := make([]GenerationalAverages, len(evolutionResult.CoevolutionaryAverages))
-	for i := range evolutionResult.CoevolutionaryAverages {
-		genAverages[i].AntagonistResult = evolutionResult.CoevolutionaryAverages[i].AntagonistResult
-		genAverages[i].ProtagonistResult = evolutionResult.CoevolutionaryAverages[i].ProtagonistResult
-	}
-
 	s.SimulationStats[engine.Parameters.InternalCount] = SimulationRunStats{
-		TopAntagonist:        topAnt,
-		TopProtagonist:       topProt,
-		FinalAntagonist:      finAnt,
-		FinalProtagonist:     finProt,
-		GenerationalAverages: genAverages,
+		TopAntagonist:    topAnt,
+		TopProtagonist:   topProt,
+		FinalAntagonist:  finAnt,
+		FinalProtagonist: finProt,
+		Generational:     evolutionResult.Generational,
 	}
 
+	runEpochalStatistics, err := s.EpochalInRun(engine.Parameters)
+	if err != nil {
+		return err
+	}
+	err = runEpochalStatistics.ToCSV(s.generateRunPathCSV("epochal", engine.Parameters.InternalCount))
+
+	runGenerationalStatistics, err := s.GenerationalInRun(engine.Parameters)
+	if err != nil {
+		return err
+	}
+	err = runGenerationalStatistics.ToCSV(s.generateRunPathCSV("generational", engine.Parameters.InternalCount))
+
+	runStrategyStatistics, err := s.StrategyInRun(engine.Parameters)
+	if err != nil {
+		return err
+	}
+	err = runStrategyStatistics.ToCSV(s.generateRunPathCSV("strategy", engine.Parameters.InternalCount))
+
+	runBestIndividualStatistics, err := s.BestIndividualsInRun(engine.Parameters)
+	if err != nil {
+		return err
+	}
+	err = runBestIndividualStatistics.ToCSV(s.generateRunPathCSV("best", engine.Parameters.InternalCount))
+	if err != nil {
+		return err
+	}
+
+	evolutionResult.Clean()
 	return nil
 }
 
+func (s *Simulation) generateRunPathCSV(fileName string, run int) string {
+	path := fmt.Sprintf("%s/%s-%d.csv", s.OutputDir, fileName,
+		run)
 
-
+	return path
+}
 
 // PrepareSimulation takes in the given evolution parameters and a count variable and returns the engine that can be
 // started run the simulation. The evolution engine will run count times.
@@ -529,47 +471,4 @@ type IndexProgress struct {
 	StrategiesAntagonistIndex      int `json:"strategiesAntagonistIndex"`
 	StrategiesProtagonistIndex     int `json:"strategiesProtagonistIndex"`
 	NumberOfRunsPerState           int `json:"numberOfRunsPerState"`
-}
-
-type SimulationBestIndividualsAllTime struct {
-	SpecEquation                string  `csv:"specEquation"`
-	SpecRange                   int     `csv:"range"`
-	SpecSeed                    int     `csv:"seed"`
-	AntagonistEquation          string  `csv:"A"`
-	ProtagonistEquation         string  `csv:"P"`
-	AntagonistDelta             float64 `csv:"ADelta"`
-	ProtagonistDelta            float64 `csv:"PDelta"`
-	AntagonistGeneration        int     `csv:"AGeneration"`
-	ProtagonistGeneration       int     `csv:"PGeneration"`
-	AntagonistRun               int     `csv:"ARun"`
-	ProtagonistRun              int     `csv:"PRun"`
-	AntagonistBirthGen          int     `csv:"ABirthGen"`
-	ProtagonistBirthGen         int     `csv:"PBirthGen"`
-	AntagonistAge          int     `csv:"AAge"`
-	ProtagonistAge        int     `csv:"PAge"`
-	AntagonistDominantStrategy  string  `csv:"AFaveStrategy"`
-	ProtagonistDominantStrategy string  `csv:"PFaveStrategy"`
-	AntagonistStrategyList      string  `csv:"AStrategies"`
-	ProtagonistStrategyList     string  `csv:"PStrategies"`
-}
-
-func (s *SimulationBestIndividualsAllTime) WriteCSV(outputPath string) error {
-	sims := []*SimulationBestIndividualsAllTime{s}
-
-	outputFileCSV, err := os.Create(outputPath)
-	if err != nil {
-		return err
-	}
-	defer outputFileCSV.Close()
-
-	writer := gocsv.DefaultCSVWriter(outputFileCSV)
-	if writer.Error() != nil {
-		return writer.Error()
-	}
-	err = gocsv.Marshal(sims, outputFileCSV)
-	if err != nil {
-		return err
-	}
-
-	return err
 }

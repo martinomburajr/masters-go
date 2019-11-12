@@ -17,6 +17,7 @@ type EvolutionResult struct {
 	FinalProtagonist    *Individual
 
 	CoevolutionaryAverages []GenerationalCoevolutionaryAverages
+	Generational           Generational
 
 	SortedGenerationIndividuals []*Generation
 	OutputFile                  string
@@ -31,6 +32,13 @@ type GenerationalCoevolutionaryAverages struct {
 	Generation        *Generation
 	AntagonistResult  float64
 	ProtagonistResult float64
+}
+
+type Generational struct {
+	Antagonists        []*Individual
+	Protagonists       []*Individual
+	AntagonistResults  []float64
+	ProtagonistResults []float64
 }
 
 func (e *EvolutionResult) Analyze(generations []*Generation, isMoreFitnessBetter bool,
@@ -55,6 +63,15 @@ func (e *EvolutionResult) Analyze(generations []*Generation, isMoreFitnessBetter
 	}
 	e.SortedGenerationIndividuals = sortedGenerations
 
+	e.Generational.Antagonists = make([]*Individual, params.GenerationsCount)
+	for i, v := range sortedGenerations {
+		e.Generational.Antagonists[i] = v.Antagonists[0]
+	}
+	e.Generational.Protagonists = make([]*Individual, params.GenerationsCount)
+	for i, v := range sortedGenerations {
+		e.Generational.Protagonists[i] = v.Protagonists[0]
+	}
+
 	// Calculate Top Individuals
 	topAntagonist, topProtagonist, err := GetTopIndividualInAllGenerations(sortedGenerations, isMoreFitnessBetter)
 	if err != nil {
@@ -69,11 +86,31 @@ func (e *EvolutionResult) Analyze(generations []*Generation, isMoreFitnessBetter
 		return err
 	}
 	e.CoevolutionaryAverages = coevolutionaryAverages
+
+	e.Generational.AntagonistResults = make([]float64, params.GenerationsCount)
+	e.Generational.ProtagonistResults = make([]float64, params.GenerationsCount)
+	for i, v := range coevolutionaryAverages {
+		e.Generational.AntagonistResults[i] = v.AntagonistResult
+		e.Generational.ProtagonistResults[i] = v.ProtagonistResult
+	}
 	e.HasBeenAnalyzed = true
 
-	_, err = e.WriteToFile(params.StatisticsOutput.OutputPath, params)
+	//_, err = e.WriteToFile(params.StatisticsOutput.OutputPath, params)
 
 	return err
+}
+
+func (e *EvolutionResult) Clean() {
+	e.Generational.Antagonists = nil
+	e.Generational.Protagonists = nil
+	e.Generational.ProtagonistResults = nil
+	e.Generational.AntagonistResults = nil
+	e.FinalAntagonist = nil
+	e.FinalProtagonist = nil
+	e.TopProtagonist = nil
+	e.TopAntagonist = nil
+	e.CoevolutionaryAverages = nil
+	e.SortedGenerationIndividuals = nil
 }
 
 func (e *EvolutionResult) PrintAverageGenerationSummary() (strings.Builder, error) {
@@ -470,26 +507,27 @@ func interactiveGetIndividualXInGenY(reader *bufio.Reader, sortedIndividuals []*
 }
 
 func interactiveWriteToFile(reader *bufio.Reader, evolutionResult *EvolutionResult, params EvolutionParams) (string, error) {
-	var fileName string
-	isNotValidFileName := true
-
-	for isNotValidFileName {
-		fmt.Print("---->File name to output statistics: ")
-		filePath, _ := reader.ReadString('\n')
-		// convert CRLF to LF
-		filePath = strings.Replace(filePath, "\n", "", -1)
-		_, err := os.Create(filePath)
-		if err != nil {
-			isNotValidFileName = true
-			fmt.Print(fmt.Sprintf("Cannot write to %s | %s", filePath, err.Error()))
-		} else {
-			fileName = filePath
-			isNotValidFileName = false
-		}
-	}
-	path, err := evolutionResult.WriteToFile(fileName, params)
-	return path, err
+//	var fileName string
+//	isNotValidFileName := true
+//
+//	for isNotValidFileName {
+//		fmt.Print("---->File name to output statistics: ")
+//		filePath, _ := reader.ReadString('\n')
+//		// convert CRLF to LF
+//		filePath = strings.Replace(filePath, "\n", "", -1)
+//		_, err := os.Create(filePath)
+//		if err != nil {
+//			isNotValidFileName = true
+//			fmt.Print(fmt.Sprintf("Cannot write to %s | %s", filePath, err.Error()))
+//		} else {
+//			fileName = filePath
+//			isNotValidFileName = false
+//		}
+//	}
+//	//path, err := evolutionResult.WriteToFile(fileName, params)
+//	return "path", err
 	//return fmt.Sprintf("Feature not yet implemented. Will not write to %s", fileName), nil
+	return "", nil
 }
 
 func interactiveSearchForTreeShape(reader *bufio.Reader, sortedGenerations []*Generation, params EvolutionParams) (

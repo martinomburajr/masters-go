@@ -129,24 +129,10 @@ func (e *Epoch) Start(perfectTreeMap map[string]PerfectTree) error {
 		perfectTreeMap[e.protagonist.Parent.Id] = perfectTreeProtagonist
 	}
 
+	e.antagonist.Parent.Deltas = append(e.antagonist.Parent.Deltas, antagonistFitnessDelta)
+	e.protagonist.Parent.Deltas = append(e.protagonist.Parent.Deltas, protagonistFitnessDelta)
 	e.antagonist.Parent.Fitness = append(e.antagonist.Parent.Fitness, antagonistFitness)
 	e.protagonist.Parent.Fitness = append(e.protagonist.Parent.Fitness, protagonistFitness)
-
-	// KILL THE CHILDREN!
-	//e.antagonist = nil
-	//e.protagonist = nil
-
-	//antString := e.antagonist.ToString()
-	//fmt.Println(antString.String())
-	//proString := e.protagonist.ToString()
-	//fmt.Println(proString.String())
-
-	//program, err := e.generation.engine.Parameters.StartIndividual.Clone()
-	//if err != nil {
-	//	return err
-	//}
-	//e.antagonist.Program = &program
-	//e.protagonist.Program = &Program{}
 	return nil
 }
 
