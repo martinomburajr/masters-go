@@ -13,8 +13,8 @@ library(knitr)
 # library(kableExtra)
 # devtools::install_github("haozhu233/kableExtra")
 
-generationalFilePath <- ""
-epochalFilePath <- ""
+workDir <- ""
+statsDir <- ""
 
 if (length(args)==0) {
     stop("At least one argument must be supplied (input file).n", call.=FALSE)
@@ -22,69 +22,157 @@ if (length(args)==0) {
     # 1 - Path to Generational File
     # 2 - Path to Epochal File
     # 3 - Stats File
-    generationalFilePath = args[3]
-    epochalFilePath = args[4]
-    statsDir = args[5]
-    print(statsDir)
+    workDir = args[3]
+    # epochalFilePath = args[4]
+    # statsDir = args[5]
+    print(workDir)
+    statsDir <- workDir
     dir.create(file.path(statsDir, ""), showWarnings = FALSE)
     setwd(file.path(statsDir, ""))
 }
 
+
+generationalFileNames <- c()
+generationalFileNames2 <- c()
+epochalFileNames <- c()
+bestFileNames <- c()
+
+
+
+
 ####################################### CODE BEGINS ##########################
-datasetGenerational <- read_csv(generationalFilePath)
-datasetEpochal <- read.csv(epochalFilePath)
 
-# Plots out the average between the average of all antagonists in a given geernation, and the average of all
-# protagonists in the same generation.
-generational_average_plot <- function(result) {
-    # result <- data.frame()
+######################################## EPOCH
+epochal_plot <- function(result, fileName) {
     p <- ggplot(data = result,
-                mapping = aes(
-                    x=result$gen,
-                    y=result$avgA))
+    mapping = aes(
+    x=result$epoch,
+    y=result$A))
 
-    p + labs(title = sprintf("%s %d", "Averages for ", result$run),
-        x = "Generation", y = "Fitness") +
+    p + labs(title = sprintf("%s %d", "Epoch for ", result$run),
+    x = "Epoch", y = "Fitness") +
 
-    # geom_point(
-    #     aes(y=result$avgP,
-    #            color=result$avgP)) +
-        # # topAntagonistReference Plot
-    geom_line(
-        aes(y=result$avgA, colour="red")) +
+        geom_line(
+        aes(y=result$A, colour="red")) +
 
-        # topProtagonistReference Plot
-    geom_line(
-        aes(y=result$avgP, colour="green")) +
+        geom_line(
+        aes(y=result$P, colour="green"))
 
-    geom_line(colour="red",
-        aes(x=result$gen,y=result$topA)) +
 
-    # topProtagonistReference Plot
-    geom_line(colour="green",
-        aes(x=result$gen,y=result$topP))
+    # finalAntagonist Plot
+        geom_line(colour="red",
+        aes(x=result$epoch,y=result$finA)) +
 
-    ggsave('averages_generational.png', width=8, height=4, units='in', dpi="retina")
+    # finalProtagonist Plot
+        geom_line(colour="green",
+        aes(x=result$epoch,y=result$finP))
+
+
+    fileName <- paste(fileName, "epochal.png", sep="-")
+    ggsave(fileName, width=8, height=4, units='in', dpi="retina")
     # dev.off()
 }
 
 
-generational_density_plot <- function(result) {
-    p <- ggplot(data=result, mapping=aes(x=result$avgA, y=result$gen))
-    p + geom_density(kernel="gaussian", mapping=aes(x=result$avgA, y=result$gen))
-    ggsave('generational_density.png', width=8, height=4, units='in', dpi="retina")
+######################################## EPOCH-DELTA
+
+epochal_plot_aDelta <- function(result, fileName) {
+    p <- ggplot(data = result,
+    mapping = aes(
+    x=result$epoch,
+    y=result$ADelta))
+
+    p + labs(title = sprintf("%s %d", "Epoch for ", result$run),
+    x = "Epoch", y = "Delta") +
+
+    geom_line(
+    aes(y=result$ADelta, colour="red")) +
+
+    geom_line(
+    aes(y=result$finADelta, colour="blue"))
+    aes(x=result$epoch,y=result$finA))
+
+    fileName <- paste(fileName, "epochal-delta-A.png", sep="-")
+    ggsave(fileName, width=8, height=4, units='in', dpi="retina")
+    # dev.off()
 }
 
-generational_histogram_plot <- function(result) {
+
+epochal_plot_pDelta <- function(result, fileName) {
+    p <- ggplot(data = result,
+    mapping = aes(
+    x=result$epoch,
+    y=result$PDelta))
+
+    p + labs(title = sprintf("%s %d", "Epoch for ", result$run),
+    x = "Epoch", y = "Delta") +
+
+    geom_line(
+    aes(y=result$pDelta, colour="red")) +
+
+    geom_line(
+    aes(y=result$finPDelta, colour="blue"))
+
+
+    aes(x=result$epoch,y=result$finP))
+
+    fileName <- paste(fileName, "epochal-delta-P.png", sep="-")
+    ggsave(fileName, width=8, height=4, units='in', dpi="retina")
+    # dev.off()
+}
+
+# Plots out the average between the average of all antagonists in a given geernation, and the average of all
+# protagonists in the same generation.
+generational_average_plot <- function(result, fileName) {
+    # result <- data.frame()
+    p <- ggplot(data = result,
+                mapping = aes(
+                    x=result$gen,
+                    y=result$AGenFitAvg))
+
+    p + labs(title = sprintf("%s %d", "Averages for ", result$run),
+        x = "Generation", y = "Fitness") +
+
+    geom_line(
+        aes(y=result$AGenFitAvg, colour="red")) +
+
+        # topProtagonistReference Plot
+    geom_line(
+        aes(y=result$PGenFitAvg, colour="green")) +
+
+    geom_line(colour="red",
+        aes(x=result$gen,y=result$AGenBestFitAvg)) +
+
+    # topProtagonistReference Plot
+    geom_line(colour="green",
+        aes(x=result$gen,y=result$PGenBestFitAvg))
+
+
+    fileName <- paste(fileName, "generational.png", sep="-")
+    ggsave(fileName, width=8, height=4, units='in', dpi="retina")
+    # dev.off()
+}
+
+
+generational_density_plot <- function(result, filename) {
+    p <- ggplot(data=result, mapping=aes(x=result$AGenFitAvg, y=result$gen))
+    p + geom_density(kernel="gaussian", mapping=aes(x=result$AGenFitAvg, y=result$gen))
+
+    outputPath <- paste(filename, "generational_density.png.png", sep="-")
+    ggsave('outputPath', width=8, height=4, units='in', dpi="retina")
+}
+
+generational_histogram_plot <- function(result, filename) {
     # plotAvgA <- ggplot(data=result, mapping=aes(x=result$avgA))
     # plotAvgA + geom_histogram(binwidth=0.1, mapping=aes(x=result$avgA))
     # ggsave('generational_histogram-avgA.png', plot=plotAvgA,  width=8, height=4, units='in', dpi="retina")
 
 
-    plotAvgP <- ggplot(data=result, mapping=aes(x=result$avgP))
-    plotAvgP + geom_histogram(binwidth=0.1, mapping=aes(x=result$avgP), fill="green", colour="black")
+    plotAvgP <- ggplot(data=result, mapping=aes(x=result$PGenFitAvg))
+    plotAvgP + geom_histogram(binwidth=0.1, mapping=aes(x=result$PGenFitAvg), fill="green", colour="black")
                 # geom_histogram(binwidth=0.1, mapping=aes(x=result$avgA), fill="red")
-    ggsave('generational_histogram-avgP.png',  width=8, height=4, units='in', dpi="retina")
+    outputPath <- paste(filename, "generational_histogram-avgP.png", sep="-")
+    ggsave(outputPath,  width=8, height=4, units='in', dpi="retina")
 }
 
 plot_table <- function(result) {
@@ -175,13 +263,66 @@ plot_table <- function(result) {
     # ggsave('data.png', width=8, height=4, units='in', dpi="retina")
 }
 
-run_stats <- function(datasetGenerational) {
-    # generational_average_plot(datasetGenerational)
-    generational_histogram_plot(datasetGenerational)
-    # generational_density_plot(datasetGenerational)
-    # plot_table(datasetGenerational)
+runGenerational <- function(generationalFiles) {
+    print("Running Generational Files")
+    print(length(generationalFiles))
+    for (generationalFile in generationalFiles) {
+        filePath <- paste(workDir, generationalFile)
+        print(filePath)
+        generationalData = read_csv(filePath)
+
+        # functions
+        generational_average_plot(generationalData,  generationalFile)
+    }
 }
 
-run_stats(datasetGenerational)
+# runGenerational(generationalFileNames2)
+
+getAllFiles <- function(workDir) {
+    files <- list.files(workDir)
+    count <- 1
+    epochalcount <- 1
+    bestcount <- 1
+    for (file in files) {
+        if (grepl("generational", file)) {
+            generationalFileNames[count] <- file
+
+            filePath <- paste(workDir, file, sep="/")
+            print(filePath)
+            generationalData = read_csv(filePath)
+
+            generational_average_plot(generationalData,  file)
+            count <- count + 1
+        }
+        if (grepl("epochal", file)) {
+            epochalFileNames[epochalcount] <- file
+
+            filePath <- paste(workDir, file, sep="/")
+            epochalData = read_csv(filePath)
+            epochal_plot(epochalData, file)
+            epochal_plot_pDelta(epochalData, file)
+            epochal_plot_aDelta(epochalData, file)
+
+            epochalcount <- epochalcount + 1
+        }
+        if (grepl("best", file)) {
+            bestFileNames[bestcount] <- file
+            bestcount <- bestcount + 1
+        }
+    }
+    generationalFileNames2 <- generationalFileNames
+    print(length(generationalFileNames))
+}
+
+getAllFiles(workDir)
+
+# run_stats <- function(datasetGenerational) {
+#     generational_average_plot(datasetGenerational)
+#     generational_histogram_plot(datasetGenerational)
+#     # generational_density_plot(datasetGenerational)
+#     # plot_table(datasetGenerational)
+# }
+
+# run_stats(datasetGenerational)
 
 

@@ -115,9 +115,15 @@ func CleansePopulation(individuals []*Individual, treeReplacer DualTree) ([]*Ind
 			}
 			newIndividual := individuals[i].CloneWithTree(tree)
 			newIndividual.Fitness = make([]float64, 0)
+			newIndividual.Deltas = make([]float64, 0)
 			newIndividual.HasCalculatedFitness = false
 			newIndividual.HasAppliedStrategy = false
 			newIndividual.AverageFitness = 0
+			newIndividual.AverageDelta = 0
+			newIndividual.BestFitness = 0
+			newIndividual.BestDelta = 0
+			newIndividual.FitnessVariance = 0
+			newIndividual.FitnessStdDev = 0
 			newIndividual.Program.T = &tree
 			newIndividual.Strategy = individuals[i].Strategy
 			individuals[i] = &newIndividual
@@ -127,9 +133,16 @@ func CleansePopulation(individuals []*Individual, treeReplacer DualTree) ([]*Ind
 				return nil, err
 			}
 			newIndividual.Fitness = make([]float64, 0)
+			newIndividual.Deltas = make([]float64, 0)
+			newIndividual.FitnessVariance = 0
+			newIndividual.FitnessStdDev = 0
 			newIndividual.HasCalculatedFitness = false
 			newIndividual.HasAppliedStrategy = false
 			newIndividual.AverageFitness = 0
+			newIndividual.AverageFitness = 0
+			newIndividual.AverageDelta = 0
+			newIndividual.BestFitness = 0
+			newIndividual.BestDelta = 0
 			newIndividual.Strategy = individuals[i].Strategy
 			individuals[i] = &newIndividual
 			individuals[i].Program = &Program{}

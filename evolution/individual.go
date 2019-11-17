@@ -28,8 +28,8 @@ type Individual struct {
 	Age                      int
 	BestFitness              float64 // Best fitness from all epochs
 	AverageFitness           float64 // Measures average fitness throughout epoch
-	BestFitnessDelta         float64
-	AverageFitnessDelta	 		float64
+	BestDelta                float64
+	AverageDelta             float64
 	// BirthGen represents the generation where this individual was spawned
 
 	Program *Program // The best program generated
@@ -154,8 +154,6 @@ func Crossover(individual Individual, individual2 Individual, params EvolutionPa
 		return child1, child2, nil
 	}
 }
-
-
 
 // StrategySwapper takes two slices containing variable length strategies.
 // The swapLength must be smaller than the length of the largest, but less than the length of the smallest.
@@ -310,7 +308,7 @@ func (i *Individual) ToString() strings.Builder {
 	sb.WriteString(fmt.Sprintf("AGE:  %d\n", i.Age))
 	sb.WriteString(fmt.Sprintf("FITNESS:  %f\n", i.AverageFitness))
 	sb.WriteString(fmt.Sprintf("FITNESS-ARR:  %v\n", i.Fitness))
-	sb.WriteString(fmt.Sprintf("SPEC-DELTA:  %v\n", i.BestFitnessDelta))
+	sb.WriteString(fmt.Sprintf("SPEC-DELTA:  %v\n", i.BestDelta))
 	sb.WriteString(fmt.Sprintf("BIRTH GEN:  %d\n", i.BirthGen))
 	strategiesSummary := FormatStrategiesTotal(i.Strategy)
 	sb.WriteString(fmt.Sprintf("Strategy Summary:\n%s\n", strategiesSummary.String()))
@@ -368,7 +366,6 @@ func KindToString(kind int) string {
 		return "UNKNOWN"
 	}
 }
-
 
 func DominantStrategy(individual Individual) string {
 	domStrat := map[string]int{}

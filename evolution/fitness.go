@@ -389,10 +389,11 @@ func thresholdedRatioFitness(spec SpecMulti, antagonist, protagonist *Program,
 	protagonistFitness, antagonistFitnessDelta, protagonistFitnessDelta float64, err error) {
 
 	fitnessPenalization := spec[0].DivideByZeroPenalty
+	badDeltaValue := math.Inf(1)
 
 	antagonistExpression, protagonistExpression, err := generateExpressions(antagonist, protagonist)
 	if err != nil {
-		return -2, -2, -2, -2, err
+		return fitnessPenalization, fitnessPenalization, fitnessPenalization, fitnessPenalization, err
 	}
 	deltaProtagonist := 0.0
 	deltaAntagonist := 0.0
@@ -494,6 +495,7 @@ func thresholdedRatioFitness(spec SpecMulti, antagonist, protagonist *Program,
 			antagonistFitness = -1 * ((deltaAntagonistThreshold - deltaAntagonist) / deltaAntagonistThreshold)
 		}
 		protagonistFitness = fitnessPenalization
+		deltaProtagonist = badDeltaValue
 		return antagonistFitness, protagonistFitness, deltaAntagonist, deltaProtagonist, nil
 	} else if !isAntagonistValid && isProtagonistValid {
 		if deltaProtagonist <= deltaProtagonistThreshold {
@@ -508,6 +510,7 @@ func thresholdedRatioFitness(spec SpecMulti, antagonist, protagonist *Program,
 			//protagonistFitness = -1 * (deltaProtagonist / deltaAntagonist)
 		}
 		antagonistFitness = fitnessPenalization
+		deltaAntagonist = badDeltaValue
 		return antagonistFitness, protagonistFitness, deltaAntagonist, deltaProtagonist, nil
 	} else {
 		//antagonists

@@ -1,7 +1,6 @@
 package evolution
 
 import (
-	"fmt"
 	"reflect"
 	"testing"
 )
@@ -513,37 +512,39 @@ func TestStrategySwapperIgnorant(t *testing.T) {
 }
 
 func TestIndividual_Clone(t *testing.T) {
+	prog1 := &Prog1
 	tests := []struct {
 		name    string
 		fields  Individual
 		want    Individual
 		wantErr bool
 	}{
-		//{"", Individual{Strategy:[]Strategy{"1","2","3"}, AverageFitness: 10}, Individual{Strategy:[]Strategy{"1","2",
-		//	"3"}, AverageFitness: 10}, false},
+		{"",
+			Individual{Strategy:[]Strategy{"1","2","3"}, AverageFitness: 10},
+			Individual{Strategy:[]Strategy{"1","2", "3"}, AverageFitness: 10},
+			false},
+		{"",
+			Individual{Strategy:[]Strategy{"1","2","3"}, AverageFitness: 10, BirthGen: 3},
+			Individual{Strategy:[]Strategy{"1","2", "3"}, AverageFitness: 10, BirthGen: 3},
+			false},
+		{"",
+			Individual{Strategy:[]Strategy{"1","2","3"}, AverageFitness: 10, BirthGen: 3, Program:prog1},
+			Individual{Strategy:[]Strategy{"1","2","3"}, AverageFitness: 10, BirthGen: 3, Program:prog1},
+			false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			i := Individual{
-				Id:                       tt.fields.Id,
-				Strategy:                 tt.fields.Strategy,
-				Fitness:                  tt.fields.Fitness,
-				HasAppliedStrategy:       tt.fields.HasAppliedStrategy,
-				HasCalculatedFitness:     tt.fields.HasCalculatedFitness,
-				FitnessCalculationMethod: tt.fields.FitnessCalculationMethod,
-				Kind:                     tt.fields.Kind,
-				Age:                      tt.fields.Age,
-				AverageFitness:           tt.fields.AverageFitness,
-				Program:                  tt.fields.Program,
-			}
-			got, err := i.Clone()
-			fmt.Printf("got: %p, want: %p", &got.Strategy, &tt.want.Strategy)
+			got, err := tt.fields.Clone()
+			//fmt.Printf("got: %p, want: %p", got.Strategy, &tt.want.Strategy)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Individual.Clone() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Individual.Clone() = %v, want %v", got, tt.want)
+				containsSubTree, err := got.Program.T.ContainsSubTree(tt.want.Program.T)
+				if treeEqual, _ := containsSubTree, err; !treeEqual {
+					t.Errorf("Individual.Clone() = %v, want %v", got, tt.want)
+				}
 			}
 		})
 	}

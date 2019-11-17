@@ -108,29 +108,39 @@ func (e *Epoch) Start(perfectTreeMap map[string]PerfectTree) error {
 	}
 
 	if perfectTreeMap[e.antagonist.Parent.Id].Program == nil {
-		perfectTreeMap[e.antagonist.Parent.Id] = PerfectTree{FitnessValue: math.MinInt64}
+		perfectTreeMap[e.antagonist.Parent.Id] = PerfectTree{BestFitnessValue: math.MinInt64}
 	}
 	perfectTreeAntagonist := perfectTreeMap[e.antagonist.Parent.Id]
-	if perfectTreeAntagonist.FitnessValue < antagonistFitness {
+	if perfectTreeAntagonist.BestFitnessValue < antagonistFitness {
 		perfectTreeAntagonist.Program = e.antagonist.Program
-		perfectTreeAntagonist.FitnessValue = antagonistFitness
-		perfectTreeAntagonist.FitnessDelta = antagonistFitnessDelta
+		perfectTreeAntagonist.BestFitnessValue = antagonistFitness
+		if antagonistFitnessDelta != math.Inf(1) {
+			perfectTreeAntagonist.BestFitnessDelta = antagonistFitnessDelta
+		}
 		perfectTreeMap[e.antagonist.Parent.Id] = perfectTreeAntagonist
 	}
 
 	if perfectTreeMap[e.protagonist.Parent.Id].Program == nil {
-		perfectTreeMap[e.protagonist.Parent.Id] = PerfectTree{FitnessValue: math.MinInt64}
+		perfectTreeMap[e.protagonist.Parent.Id] = PerfectTree{BestFitnessValue: math.MinInt64}
 	}
 	perfectTreeProtagonist := perfectTreeMap[e.protagonist.Parent.Id]
-	if perfectTreeProtagonist.FitnessValue < protagonistFitness {
+	if perfectTreeProtagonist.BestFitnessValue < protagonistFitness {
 		perfectTreeProtagonist.Program = e.protagonist.Program
-		perfectTreeProtagonist.FitnessValue = protagonistFitness
-		perfectTreeProtagonist.FitnessDelta = protagonistFitnessDelta
+		perfectTreeProtagonist.BestFitnessValue = protagonistFitness
+		if protagonistFitnessDelta != math.Inf(1) {
+			perfectTreeProtagonist.BestFitnessDelta = protagonistFitnessDelta
+		}else {
+			perfectTreeProtagonist.BestFitnessDelta = math.MaxInt16
+		}
 		perfectTreeMap[e.protagonist.Parent.Id] = perfectTreeProtagonist
 	}
 
-	e.antagonist.Parent.Deltas = append(e.antagonist.Parent.Deltas, antagonistFitnessDelta)
-	e.protagonist.Parent.Deltas = append(e.protagonist.Parent.Deltas, protagonistFitnessDelta)
+	if antagonistFitnessDelta != math.Inf(1) {
+		e.antagonist.Parent.Deltas = append(e.antagonist.Parent.Deltas, antagonistFitnessDelta)
+	}
+	if protagonistFitnessDelta != math.Inf(1) {
+		e.protagonist.Parent.Deltas = append(e.protagonist.Parent.Deltas, protagonistFitnessDelta)
+	}
 	e.antagonist.Parent.Fitness = append(e.antagonist.Parent.Fitness, antagonistFitness)
 	e.protagonist.Parent.Fitness = append(e.protagonist.Parent.Fitness, protagonistFitness)
 	return nil
@@ -175,9 +185,9 @@ func (e *Epoch) applyAntagonistStrategy() error {
 
 // applyProtagonistStrategy Apply ProtagonistEquation strategies to program.
 func (e *Epoch) applyProtagonistStrategy(antagonistTree DualTree) error {
-	//if e.protagonist == nil {
-	//	return fmt.Errorf("protagonist cannot be nil")
-	//}
+	if e.protagonist == nil {
+		return fmt.Errorf("protagonist cannot be nil")
+	}
 	if e.protagonist.Strategy == nil {
 		return fmt.Errorf("protagonist stategy cannot be nil")
 	}

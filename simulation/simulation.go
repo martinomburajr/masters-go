@@ -19,6 +19,7 @@ type Simulation struct {
 	Name                  string
 	// Output-Only
 	OutputDir       string
+	RPath string
 	SimulationStats []SimulationRunStats
 }
 
@@ -27,7 +28,6 @@ func (s *Simulation) Begin(params evolution.EvolutionParams) (evolution.Evolutio
 	s.SimulationStats = make([]SimulationRunStats, s.NumberOfRunsPerState)
 
 	//wg := sync.WaitGroup{}
-	var folder string
 	for i := 0; i < s.NumberOfRunsPerState; i++ {
 		//wg.Add(1)
 		//go func(params evolution.EvolutionParams, i int){
@@ -35,15 +35,47 @@ func (s *Simulation) Begin(params evolution.EvolutionParams) (evolution.Evolutio
 		params.InternalCount = i
 		engine := PrepareSimulation(params, i)
 		params = engine.Parameters
-		folder = engine.Parameters.StatisticsOutput.OutputDir
+		s.OutputDir = engine.Parameters.StatisticsOutput.OutputDir
 
+		os.Mkdir(s.OutputDir, 0755)
 		s.StartEngine(engine)
 		//}(params, i)
 	}
+
+	// CUMULATIVE STATISTICS
+	simulationBestIndividuals, err := s.SimulationBestIndividuals(params)
+	if err != nil {
+		return params, nil
+	}
+	err = simulationBestIndividuals.ToCSV(s.generateSimulationPathCSV("best-combined"))
+
+	simulationBestIndividual, err := s.SimulationBestIndividual(params)
+	if err != nil {
+		return params, nil
+	}
+	err = simulationBestIndividual.ToCSV(s.generateSimulationPathCSV("best-all"))
+
+	simulationBestIndividualByAverageDelta, err := s.SimulationBestIndividualByAverageDelta(params)
+	if err != nil {
+		return params, nil
+	}
+	err = simulationBestIndividualByAverageDelta.ToCSV(s.generateSimulationPathCSV("best-deltaAvg"))
+	if err != nil {
+		return params, nil
+	}
+
+	simulationBestIndividualByDelta, err := s.SimulationBestIndividualByDelta(params)
+	if err != nil {
+		return params, nil
+	}
+	err = simulationBestIndividualByDelta.ToCSV(s.generateSimulationPathCSV("best-delta"))
+	if err != nil {
+		return params, nil
+	}
+
+	s.RunRScript(s.RPath, s.OutputDir)
 	//wg.Wait()
 	log.Println("SYNCHRONIZED!")
-	s.OutputDir = folder
-
 
 	return params, nil
 }
@@ -70,6 +102,10 @@ func WriteRunStrategy(runStrat []RunStrategyStatistics, outputPath string) error
 type SimulationRunStats struct {
 	TopAntagonist            evolution.Individual
 	TopProtagonist           evolution.Individual
+	TopAntagonistByDelta            evolution.Individual
+	TopProtagonistByDelta           evolution.Individual
+	TopAntagonistByDeltaAvg            evolution.Individual
+	TopProtagonistByDeltaAvg           evolution.Individual
 	TopAntagonistGeneration  int
 	TopProtagonistGeneration int
 	FinalAntagonist          evolution.Individual
@@ -77,23 +113,20 @@ type SimulationRunStats struct {
 	Generational             evolution.Generational
 }
 
-func (s *Simulation) RunRScript(absolutePath string, filePath string, topLevelDir string, subInfoDir string,
-	subSubNameDir string, run int) chan error {
 
-	workingDir := strings.ReplaceAll(absolutePath, filePath, "")
-	epochalPath := fmt.Sprintf("%s%s/%s/%s/%s-%d.csv", workingDir, topLevelDir, subInfoDir, subSubNameDir, "epochal",
-		run)
-	statsPath := fmt.Sprintf("%s%s/%s/%s/%s", workingDir, topLevelDir, subInfoDir, subSubNameDir, "stats")
-	RLaunchPath := fmt.Sprintf("%s%s", workingDir, "R/runScript.R")
+
+func (s *Simulation) RunRScript(RPath, dirPath string) chan error {
+
+	//workingDir := strings.ReplaceAll(absolutePath, filePath, "")
+	//epochalPath := fmt.Sprintf("%s%s/%s/%s/%s-%d.csv", workingDir, topLevelDir, subInfoDir, subSubNameDir, "epochal",
+	//	run)
+	//statsPath := fmt.Sprintf("%s%s/%s/%s/%s", workingDir, topLevelDir, subInfoDir, subSubNameDir, "stats")
+	//RLaunchPath := fmt.Sprintf("%s%s", workingDir, "R/runScript.R")
 
 	errChan := make(chan error)
 
 	//go func() {
-	cmd := exec.Command("Rscript",
-		RLaunchPath,
-		absolutePath,
-		epochalPath,
-		statsPath)
+	cmd := exec.Command("Rscript", RPath, dirPath)
 	log.Println(fmt.Sprintf("Rscript: %s", cmd.String()))
 	err := cmd.Start()
 	if err != nil {
@@ -129,6 +162,8 @@ func (s *Simulation) StartEngine(engine *evolution.EvolutionEngine) error {
 		Generational:     evolutionResult.Generational,
 	}
 
+	os.Mkdir(fmt.Sprintf("%s%d", s.OutputDir, s.CurrentEvolutionState.InternalCount), 0755)
+
 	runEpochalStatistics, err := s.EpochalInRun(engine.Parameters)
 	if err != nil {
 		return err
@@ -156,13 +191,17 @@ func (s *Simulation) StartEngine(engine *evolution.EvolutionEngine) error {
 		return err
 	}
 
-	evolutionResult.Clean()
 	return nil
 }
 
 func (s *Simulation) generateRunPathCSV(fileName string, run int) string {
-	path := fmt.Sprintf("%s/%s-%d.csv", s.OutputDir, fileName,
-		run)
+	path := fmt.Sprintf("%s%s-%d.csv", s.OutputDir, fileName, run)
+
+	return path
+}
+
+func (s *Simulation) generateSimulationPathCSV(fileName string) string {
+	path := fmt.Sprintf("%s%s.csv", s.OutputDir, fileName)
 
 	return path
 }

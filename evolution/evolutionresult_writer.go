@@ -26,10 +26,10 @@ package evolution
 //		topAntagonist := evolutionResult.SortedGenerationIndividuals[i].Antagonists[0]
 //		topAntagonistEquation, _ := topAntagonist.Program.T.ToMathematicalString()
 //
-//		csvOutput.Generational[i].AverageAntagonist = coevolutionaryAverages[i].AntagonistResults
+//		csvOutput.Generational[i].AverageAntagonist = coevolutionaryAverages[i].AntagonistFitnessAverages
 //		csvOutput.Generational[i].TopAntagonist = topAntagonist.AverageFitness
 //		csvOutput.Generational[i].TopAntagonistBirthGen = topAntagonist.BirthGen
-//		csvOutput.Generational[i].TopAntagonistDelta = topAntagonist.BestFitnessDelta
+//		csvOutput.Generational[i].TopAntagonistDelta = topAntagonist.BestDelta
 //		csvOutput.Generational[i].TopAntagonistEquation = topAntagonistEquation
 //		csvOutput.Generational[i].TopAntagonistFavoriteStrategy = DominantStrategy(*topAntagonist)
 //		csvOutput.Generational[i].TopAntagonistStrategies = StrategiesToString(*topAntagonist)
@@ -40,10 +40,10 @@ package evolution
 //		topProtagonist := evolutionResult.SortedGenerationIndividuals[i].Protagonists[0]
 //		topProtagonistEquation, _ := topProtagonist.Program.T.ToMathematicalString()
 //
-//		csvOutput.Generational[i].AverageProtagonist = coevolutionaryAverages[i].ProtagonistResults
+//		csvOutput.Generational[i].AverageProtagonist = coevolutionaryAverages[i].ProtagonistFitnessAverages
 //		csvOutput.Generational[i].TopProtagonist = topProtagonist.AverageFitness
 //		csvOutput.Generational[i].TopProtagonistBirthGen = topProtagonist.BirthGen
-//		csvOutput.Generational[i].TopProtagonistDelta = topProtagonist.BestFitnessDelta
+//		csvOutput.Generational[i].TopProtagonistDelta = topProtagonist.BestDelta
 //		csvOutput.Generational[i].TopProtagonistEquation = topProtagonistEquation
 //		csvOutput.Generational[i].TopProtagonistFavoriteStrategy = DominantStrategy(*topProtagonist)
 //		csvOutput.Generational[i].TopProtagonistStrategies = StrategiesToString(*topProtagonist)
@@ -66,28 +66,28 @@ package evolution
 //
 //		csvOutput.Epochal[i].TopAntagonist = topAntagonist.Fitness[i]
 //		csvOutput.Epochal[i].TopAntagonistBirthGen = topAntagonist.BirthGen
-//		csvOutput.Epochal[i].TopAntagonistDelta = topAntagonist.BestFitnessDelta
+//		csvOutput.Epochal[i].TopAntagonistDelta = topAntagonist.BestDelta
 //		csvOutput.Epochal[i].TopAntagonistEquation = topAntagonistEq
 //		csvOutput.Epochal[i].TopAntagonistStrategy = StrategiesToString(*topAntagonist)
 //		csvOutput.Epochal[i].TopAntagonistDominantStrategy = DominantStrategy(*topAntagonist)
 //
 //		csvOutput.Epochal[i].TopProtagonist = topProtagonist.Fitness[i]
 //		csvOutput.Epochal[i].TopProtagonistBirthGen = topProtagonist.BirthGen
-//		csvOutput.Epochal[i].TopProtagonistDelta = topProtagonist.BestFitnessDelta
+//		csvOutput.Epochal[i].TopProtagonistDelta = topProtagonist.BestDelta
 //		csvOutput.Epochal[i].TopProtagonistEquation = topProtagonistEq
 //		csvOutput.Epochal[i].TopProtagonistStrategy = StrategiesToString(*topProtagonist)
 //		csvOutput.Epochal[i].TopProtagonistDominantStrategy = DominantStrategy(*topProtagonist)
 //
 //		csvOutput.Epochal[i].FinalAntagonist = finalAntagonist.Fitness[i]
 //		csvOutput.Epochal[i].FinalAntagonistBirthGen = finalAntagonist.BirthGen
-//		csvOutput.Epochal[i].FinalAntagonistDelta = finalAntagonist.BestFitnessDelta
+//		csvOutput.Epochal[i].FinalAntagonistBestDelta = finalAntagonist.BestDelta
 //		csvOutput.Epochal[i].FinalAntagonistEquation = finalAntagonistEq
 //		csvOutput.Epochal[i].FinalAntagonistStrategy = StrategiesToString(*finalAntagonist)
 //		csvOutput.Epochal[i].FinalAntagonistDominantStrategy = DominantStrategy(*finalAntagonist)
 //
 //		csvOutput.Epochal[i].FinalProtagonist = finalProtagonist.Fitness[i]
 //		csvOutput.Epochal[i].FinalProtagonistBirthGen = finalProtagonist.BirthGen
-//		csvOutput.Epochal[i].FinalProtagonistDelta = finalProtagonist.BestFitnessDelta
+//		csvOutput.Epochal[i].FinalProtagonistBestDelta = finalProtagonist.BestDelta
 //		csvOutput.Epochal[i].FinalProtagonistEquation = finalProtagonistEq
 //		csvOutput.Epochal[i].FinalProtagonistStrategy = StrategiesToString(*finalProtagonist)
 //		csvOutput.Epochal[i].FinalProtagonistDominantStrategy = DominantStrategy(*finalProtagonist)
@@ -320,8 +320,8 @@ package evolution
 //		SpecSeed                    int     `csv:"seed"`
 //		AntagonistEquation          string  `csv:"A"`
 //		ProtagonistEquation         string  `csv:"P"`
-//		AntagonistDelta             float64 `csv:"ADelta"`
-//		ProtagonistDelta            float64 `csv:"PDelta"`
+//		AntagonistBestDelta             float64 `csv:"ADelta"`
+//		ProtagonistBestDelta            float64 `csv:"PDelta"`
 //		AntagonistGeneration        int     `csv:"AGeneration"`
 //		ProtagonistGeneration       int     `csv:"PGeneration"`
 //		AntagonistRun               int     `csv:"ARun"`
@@ -356,8 +356,8 @@ package evolution
 //		SpecEquation:                evolutionParams.SpecParam.Expression,
 //		AntagonistEquation:          bestEquation.AntagonistEquation,
 //		ProtagonistEquation:         bestEquation.ProtagonistEquation,
-//		AntagonistDelta:             bestEquation.AntagonistDelta,
-//		ProtagonistDelta:            bestEquation.ProtagonistDelta,
+//		AntagonistBestDelta:             bestEquation.AntagonistBestDelta,
+//		ProtagonistBestDelta:            bestEquation.ProtagonistBestDelta,
 //		AntagonistGeneration:        bestEquation.AntagonistGeneration,
 //		ProtagonistGeneration:       bestEquation.ProtagonistGeneration,
 //		AntagonistBirthGen:          bestEquation.AntagonistBirthGen,
@@ -470,14 +470,14 @@ package evolution
 //
 //type BestEquation struct {
 //	AntagonistEquation   string
-//	AntagonistDelta      float64
+//	AntagonistBestDelta      float64
 //	AntagonistStrategy   string
 //	AntagonistGeneration int
 //	AntagonistBirthGen   int
 //	AntagonistRun        int
 //
 //	ProtagonistEquation   string
-//	ProtagonistDelta      float64
+//	ProtagonistBestDelta      float64
 //	ProtagonistStrategy   string
 //	ProtagonistGeneration int
 //	ProtagonistBirthGen   int
@@ -532,7 +532,7 @@ package evolution
 //				bestAntagonistDelta = antagonistDelta
 //				bestAntagonistEquation = antagonistEquation
 //
-//				bestEquation.AntagonistDelta = bestAntagonistDelta
+//				bestEquation.AntagonistBestDelta = bestAntagonistDelta
 //				bestEquation.AntagonistEquation = bestAntagonistEquation
 //				bestEquation.AntagonistBirthGen = csvFile.Generational[i].TopAntagonistBirthGen
 //				bestEquation.AntagonistGeneration = i
@@ -543,7 +543,7 @@ package evolution
 //				bestProtagonistDelta = protagonistDelta
 //				bestProtagonistEquation = protagonistEquation
 //
-//				bestEquation.ProtagonistDelta = protagonistDelta
+//				bestEquation.ProtagonistBestDelta = protagonistDelta
 //				bestEquation.ProtagonistEquation = bestProtagonistEquation
 //				bestEquation.ProtagonistBirthGen = csvFile.Generational[i].TopProtagonistBirthGen
 //				bestEquation.ProtagonistGeneration = i

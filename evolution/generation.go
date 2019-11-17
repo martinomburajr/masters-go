@@ -117,9 +117,9 @@ func (g *Generation) setupEpochs() ([]Epoch, error) {
 }
 
 type PerfectTree struct {
-	Program      *Program
-	FitnessValue float64
-	FitnessDelta float64
+	Program          *Program
+	BestFitnessValue float64
+	BestFitnessDelta float64
 }
 
 // runEpoch begins the run of a single epoch
@@ -143,14 +143,14 @@ func (g *Generation) runEpochs(epochs []Epoch) ([]Epoch, error) {
 	for i := 0; i < len(g.Antagonists); i++ {
 		perfectAntagonistTree := perfectFitnessMap[g.Antagonists[i].Id]
 		g.Antagonists[i].Program = perfectAntagonistTree.Program
-		g.Antagonists[i].BestFitnessDelta = perfectAntagonistTree.FitnessDelta
-		g.Antagonists[i].BestFitness = perfectAntagonistTree.FitnessValue
+		g.Antagonists[i].BestDelta = perfectAntagonistTree.BestFitnessDelta
+		g.Antagonists[i].BestFitness = perfectAntagonistTree.BestFitnessValue
 	}
 	for i := 0; i < len(g.Protagonists); i++ {
 		perfectProtagonistTree := perfectFitnessMap[g.Protagonists[i].Id]
 		g.Protagonists[i].Program = perfectProtagonistTree.Program
-		g.Protagonists[i].BestFitnessDelta = perfectProtagonistTree.FitnessDelta
-		g.Antagonists[i].BestFitness = perfectProtagonistTree.FitnessValue
+		g.Protagonists[i].BestDelta = perfectProtagonistTree.BestFitnessDelta
+		g.Protagonists[i].BestFitness = perfectProtagonistTree.BestFitnessValue
 	}
 
 	return epochs, nil
@@ -172,15 +172,7 @@ func (g *Generation) Compete() error {
 
 	// Calculate the Fitness for individuals in the Generation
 	for i := 0; i < len(g.Protagonists); i++ {
-		mean, std := stat.MeanStdDev(g.Protagonists[i].Fitness, nil)
-		variance := stat.Variance(g.Protagonists[i].Fitness, nil)
-		g.Protagonists[i].AverageFitness = mean
-		g.Protagonists[i].FitnessStdDev = std
-		g.Protagonists[i].FitnessVariance = variance
-		g.Protagonists[i].HasCalculatedFitness = true
-		g.Protagonists[i].HasAppliedStrategy = true
-		g.Protagonists[i].Age++
-
+		deltaAntMean := stat.Mean(g.Antagonists[i].Deltas, nil)
 		antMean, antStd := stat.MeanStdDev(g.Antagonists[i].Fitness, nil)
 		antVariance := stat.Variance(g.Antagonists[i].Fitness, nil)
 		g.Antagonists[i].AverageFitness = antMean
@@ -188,7 +180,19 @@ func (g *Generation) Compete() error {
 		g.Antagonists[i].FitnessVariance = antVariance
 		g.Antagonists[i].HasCalculatedFitness = true
 		g.Antagonists[i].HasAppliedStrategy = true
-		g.Antagonists[i].Age++
+		g.Antagonists[i].Age += 1
+		g.Antagonists[i].AverageDelta = deltaAntMean
+
+		deltaMean := stat.Mean(g.Protagonists[i].Deltas, nil)
+		mean, std := stat.MeanStdDev(g.Protagonists[i].Fitness, nil)
+		variance := stat.Variance(g.Protagonists[i].Fitness, nil)
+		g.Protagonists[i].AverageFitness = mean
+		g.Protagonists[i].FitnessStdDev = std
+		g.Protagonists[i].FitnessVariance = variance
+		g.Protagonists[i].HasCalculatedFitness = true
+		g.Protagonists[i].HasAppliedStrategy = true
+		g.Protagonists[i].Age += 1
+		g.Protagonists[i].AverageDelta = deltaMean
 	}
 
 	return err

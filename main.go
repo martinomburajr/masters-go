@@ -12,30 +12,31 @@ func main() {
 		NumberOfRunsPerState: 5,
 		Name:                 "simulation-1",
 		OutputDir:            "",
+		RPath: "./R/runScript.R",
 	}
 	params := evolution.EvolutionParams{
 		StatisticsOutput: evolution.StatisticsOutput{
 			OutputPath: "",
 		},
 		SpecParam: evolution.SpecParam{
-			Range:      10,
-			Expression: "5*x*x*x+2*x+7",
-			Seed:       1,
+			Range:      20,
+			Expression: "x*x",
+			Seed:       -10,
 			AvailableVariablesAndOperators: evolution.AvailableVariablesAndOperators{
 				Constants: []string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"},
 				Variables: []string{"x"},
 				Operators: []string{"*", "+", "-", "/"},
 			},
-			DivideByZeroStrategy: evolution.DivByZeroIgnore,
-			DivideByZeroPenalty:  -2,
+			DivideByZeroStrategy: evolution.DivByZeroPenalize,
+			DivideByZeroPenalty:  -5,
 		},
 		GenerationsCount:   50,
-		EachPopulationSize: 10, // Must be an even number to prevent awkward ordering of children.
+		EachPopulationSize: 50, // Must be an even number to prevent awkward ordering of children.
 
 		FitnessStrategy: evolution.FitnessStrategy{
 			Type:                           evolution.FitnessDualThresholdedRatio,
-			AntagonistThresholdMultiplier:  40,
-			ProtagonistThresholdMultiplier: 1.2,
+			AntagonistThresholdMultiplier:  30,
+			ProtagonistThresholdMultiplier: 1,
 		},
 
 		Selection: evolution.Selection{
@@ -48,12 +49,10 @@ func main() {
 				SurvivorPercentage: 0.5,
 			},
 		},
-
 		Reproduction: evolution.Reproduction{
 			ProbabilityOfMutation: 0.01,
 			CrossoverPercentage:   0.2,
 		},
-
 		Strategies: evolution.Strategies{
 			ProtagonistAvailableStrategies: []evolution.Strategy{
 				evolution.StrategyMutateNonTerminal,
