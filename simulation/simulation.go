@@ -133,7 +133,7 @@ func (s *Simulation) RunRScript(RPath, dirPath string) error {
 		//"--args",
 		RPath,
 		dirPath)
-	log.Println(fmt.Sprintf("Rscript: %s", cmd.String()))
+	log.Println(fmt.Sprintf("Rscript: \n\n%s\n\n", cmd.String()))
 	//err := cmd.Start()
 	 err := cmd.Run()
 	if err != nil {
@@ -276,7 +276,7 @@ func PrepareSimulation(params evolution.EvolutionParams, count int) *evolution.E
 
 	fmt.Printf("ProtagonistEquation vs AntagonistEquation Competitive Coevolution:\nMathematical Expression: %s\nSpec:%s\n",
 		starterTreeAsMathematicalExpression,
-		spec.ToString(),
+		//spec.ToString(),
 	)
 
 	// Set extra params

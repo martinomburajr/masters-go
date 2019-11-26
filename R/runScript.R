@@ -47,18 +47,87 @@ epochal_plot <- function(result, fileName) {
         x=result$epoch,
         y=result$A))
 
-    p + labs(title = sprintf("%s %d", "Epoch for ", result$run),
-        x = "Epoch", y = "Fitness") +
+    p + labs(
+        title = sprintf("%s","Epoch Based Fitness Variation of Bug and Test"),
+        subtitle = sprintf("%s%d", "Run:", result$run),
+        caption = sprintf("%s%d", "Run #", result$run),
+        x = "Epoch", y = "Fitness"
+        # tag="Legend"
+        ) +
 
-        geom_line(aes(x=result$epoch, y=result$A), color="red") +
+        geom_line(aes(x=result$epoch,y=result$A, colour="red")) +
+        geom_line(aes(x=result$epoch,y=result$P, colour="green")) +
+        geom_line(aes(x=result$epoch,y=result$finA, colour="orange"), linetype="dashed") +
+        geom_line(aes(x=result$epoch,y=result$finP, colour="blue"), linetype="dashed") +
 
-        geom_line(aes(x=result$epoch, y=result$P), color="green") +
+        scale_color_manual(values = c(
+        'red' = 'red',
+        'green' = 'green'),
+        'orange' = 'orange',
+        'blue' = 'blue')) +
+        labs(color = 'Y series') +
 
-    # finalAntagonist Plot
-        geom_line(aes(x=result$epoch,y=result$finA), color="red", linetype="dashed") +
+        # scale_color_discrete(name = "Individuals",
+        #     labels = c("Best Bug", "Best Test", "FinGen Bug", "FinGen Test")) +
 
-    # finalProtagonist Plot
-        geom_line(aes(x=result$epoch,y=result$finP), color="green", linetype="dashed")
+        theme(
+            plot.title = element_text(size=16),
+            plot.subtitle = element_text(size=12)
+        )
+
+        # theme(
+        #     # Legend title and text labels
+        #     #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        #     # Title font color size and face
+        #     # legend.title = element_text(color, size, face),
+        #     # Title alignment. Number from 0 (left) to 1 (right)
+        #     legend.title.align = NULL,
+        #     # Text label font color size and face
+        #     # legend.text = element_text(color, size, face),
+        #     # Text label alignment. Number from 0 (left) to 1 (right)
+        #     legend.text.align = NULL,
+        #
+        #     # Legend position, margin and background
+        #     #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        #     # Legend position: right, left, bottom, top, none
+        #     legend.position = "bottom",
+        #     # Margin around each legend
+        #     legend.margin = margin(0.2, 0.2, 0.2, 0.2, "cm"),
+        #     # Legend background
+        #     # legend.background = element_rect(fill, color, size, linetype),
+        #
+        #     # Legend direction and justification
+        #     #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        #     # Layout of items in legends ("horizontal" or "vertical")
+        #     legend.direction = "horizontal",
+        #     # Positioning legend inside or outside plot
+        #     # ("center" or two-element numeric vector)
+        #     legend.justification = "center",
+        #
+        #     # Background underneath legend keys
+        #     #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        #     # legend.key = element_rect(fill, color),  # Key background
+        #     legend.key.size = unit(1.2, "lines"),    # key size (unit)
+        #     legend.key.height = NULL,                # key height (unit)
+        #     legend.key.width = NULL,                 # key width (unit)
+        #
+        #     # Spacing between legends.
+        #     #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        #     legend.spacing = unit(0.4, "cm"),
+        #     legend.spacing.x = NULL,                 # Horizontal spacing
+        #     legend.spacing.y = NULL,                 # Vertical spacing
+        #
+        #     # Legend box
+        #     #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        #     # Arrangement of multiple legends ("horizontal" or "vertical")
+        #     legend.box = NULL,
+        #     # Margins around the full legend area
+        #     legend.box.margin = margin(0, 0, 0, 0, "cm"),
+        #     # Background of legend area: element_rect()
+        #     legend.box.background = element_blank(),
+        #     # The spacing between the plotting area and the legend box
+        #     legend.box.spacing = unit(0.4, "cm")
+        # )
 
 
     fileName <- paste(fileName, "epochal.png", sep="-")
@@ -378,16 +447,16 @@ getAllFiles <- function(workDir) {
     bestCombinedCount <- 1
     strategyCount <- 1
     for (file in files) {
-        if (grepl("generational", file)) {
-            generationalFileNames[count] <- file
-
-            filePath <- paste(workDir, file, sep="/")
-            print(filePath)
-            generationalData = read_csv(filePath)
-
-            generational_average_plot(generationalData,  file)
-            count <- count + 1
-        }
+        # if (grepl("generational", file)) {
+        #     generationalFileNames[count] <- file
+        #
+        #     filePath <- paste(workDir, file, sep="/")
+        #     print(filePath)
+        #     generationalData = read_csv(filePath)
+        #
+        #     generational_average_plot(generationalData,  file)
+        #     count <- count + 1
+        # }
         if (grepl("epochal", file)) {
             epochalFileNames[epochalcount] <- file
 
@@ -395,8 +464,8 @@ getAllFiles <- function(workDir) {
             filePath <- paste(workDir, file, sep="/")
             epochalData = read_csv(filePath)
             epochal_plot(epochalData, file)
-            epochal_pDelta_plot(epochalData, file)
-            epochal_aDelta_plot(epochalData, file)
+            # epochal_pDelta_plot(epochalData, file)
+            # epochal_aDelta_plot(epochalData, file)
 
             epochalcount <- epochalcount + 1
         }
@@ -408,22 +477,22 @@ getAllFiles <- function(workDir) {
         #
         #     bestAllCount <- bestAllCount + 1
         # }
-        if (grepl("best-combined", file)) {
-            bestCombinedFileNames[bestCombinedCount] <- file
-            filePath <- paste(workDir, file, sep="/")
-            bestCombinedData = read_csv(filePath)
-            best_combined_avg_plot(bestCombinedData, file)
-
-            bestCombinedCount <- bestCombinedCount + 1
-        }
-        if (grepl("strategy", file)) {
-            strategyFileNames[strategyCount] <- file
-            filePath <- paste(workDir, file, sep="/")
-            strategyData = read_csv(filePath)
-
-            strategy_run_histogram_plot(strategyData, file)
-            strategyCount <- strategyCount + 1
-        }
+        # if (grepl("best-combined", file)) {
+        #     bestCombinedFileNames[bestCombinedCount] <- file
+        #     filePath <- paste(workDir, file, sep="/")
+        #     bestCombinedData = read_csv(filePath)
+        #     best_combined_avg_plot(bestCombinedData, file)
+        #
+        #     bestCombinedCount <- bestCombinedCount + 1
+        # }
+        # if (grepl("strategy", file)) {
+        #     strategyFileNames[strategyCount] <- file
+        #     filePath <- paste(workDir, file, sep="/")
+        #     strategyData = read_csv(filePath)
+        #
+        #     strategy_run_histogram_plot(strategyData, file)
+        #     strategyCount <- strategyCount + 1
+        # }
 
     }
     generationalFileNames2 <- generationalFileNames
