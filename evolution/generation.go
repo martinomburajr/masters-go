@@ -170,6 +170,9 @@ func (g *Generation) Compete() error {
 		return err
 	}
 
+	// TODO Ensure Children of Antagonists are being created, i.e different IDs during crossover
+	// TODO use penalization when SPEc is 0
+
 	// Calculate the Fitness for individuals in the Generation
 	for i := 0; i < len(g.Protagonists); i++ {
 		deltaAntMean := stat.Mean(g.Antagonists[i].Deltas, nil)

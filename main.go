@@ -5,14 +5,21 @@ import (
 	"github.com/martinomburajr/masters-go/evolution"
 	"github.com/martinomburajr/masters-go/simulation"
 	"log"
+	"path/filepath"
 )
 
 func main() {
+
+	absolutePath, err := filepath.Abs(".")
+	if err != nil {
+		log.Println(err)
+		return
+	}
 	simulation := simulation.Simulation{
 		NumberOfRunsPerState: 5,
 		Name:                 "simulation-1",
 		OutputDir:            "",
-		RPath: "./R/runScript.R",
+		RPath:                fmt.Sprintf("%s%s", absolutePath, "/R/runScript.R"),
 	}
 	params := evolution.EvolutionParams{
 		StatisticsOutput: evolution.StatisticsOutput{
@@ -27,11 +34,11 @@ func main() {
 				Variables: []string{"x"},
 				Operators: []string{"*", "+", "-", "/"},
 			},
-			DivideByZeroStrategy: evolution.DivByZeroPenalize,
-			DivideByZeroPenalty:  -5,
+			DivideByZeroStrategy: evolution.DivByZeroSteadyPenalize,
+			DivideByZeroPenalty:  -2,
 		},
 		GenerationsCount:   50,
-		EachPopulationSize: 50, // Must be an even number to prevent awkward ordering of children.
+		EachPopulationSize: 4, // Must be an even number to prevent awkward ordering of children.
 
 		FitnessStrategy: evolution.FitnessStrategy{
 			Type:                           evolution.FitnessDualThresholdedRatio,
@@ -97,12 +104,12 @@ func main() {
 		//ShouldRunInteractiveTerminal: shouldRunInteractive,
 	}
 
-	finalParams, err := simulation.Begin(params)
+	_, err = simulation.Begin(params)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Print(finalParams)
+	//fmt.Print(finalParams)
 
 	//err = simulation.CoalesceFiles(finalParams)
 	//if err != nil {

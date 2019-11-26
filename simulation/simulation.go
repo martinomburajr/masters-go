@@ -9,6 +9,7 @@ import (
 	"math/rand"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -73,7 +74,8 @@ func (s *Simulation) Begin(params evolution.EvolutionParams) (evolution.Evolutio
 		return params, nil
 	}
 
-	s.RunRScript(s.RPath, s.OutputDir)
+	abs, _ := filepath.Abs(s.OutputDir)
+	s.RunRScript(s.RPath, abs)
 	//wg.Wait()
 	log.Println("SYNCHRONIZED!")
 
@@ -115,7 +117,7 @@ type SimulationRunStats struct {
 
 
 
-func (s *Simulation) RunRScript(RPath, dirPath string) chan error {
+func (s *Simulation) RunRScript(RPath, dirPath string) error {
 
 	//workingDir := strings.ReplaceAll(absolutePath, filePath, "")
 	//epochalPath := fmt.Sprintf("%s%s/%s/%s/%s-%d.csv", workingDir, topLevelDir, subInfoDir, subSubNameDir, "epochal",
@@ -123,19 +125,24 @@ func (s *Simulation) RunRScript(RPath, dirPath string) chan error {
 	//statsPath := fmt.Sprintf("%s%s/%s/%s/%s", workingDir, topLevelDir, subInfoDir, subSubNameDir, "stats")
 	//RLaunchPath := fmt.Sprintf("%s%s", workingDir, "R/runScript.R")
 
-	errChan := make(chan error)
+	//errChan := make(chan error)
 
 	//go func() {
-	cmd := exec.Command("Rscript", RPath, dirPath)
+	cmd := exec.Command("Rscript",
+		//"--no-save",
+		//"--args",
+		RPath,
+		dirPath)
 	log.Println(fmt.Sprintf("Rscript: %s", cmd.String()))
-	err := cmd.Start()
+	//err := cmd.Start()
+	 err := cmd.Run()
 	if err != nil {
 		fmt.Println("ERROR: " + err.Error())
-		errChan <- err
+		//errChan <- err
 	}
 	//}()
 
-	return errChan
+	return nil
 }
 
 func (s *Simulation) StartEngine(engine *evolution.EvolutionEngine) error {

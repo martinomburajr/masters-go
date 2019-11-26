@@ -137,9 +137,13 @@ func (e *Epoch) Start(perfectTreeMap map[string]PerfectTree) error {
 
 	if antagonistFitnessDelta != math.Inf(1) {
 		e.antagonist.Parent.Deltas = append(e.antagonist.Parent.Deltas, antagonistFitnessDelta)
+	} else {
+		e.antagonist.Parent.Deltas = append(e.antagonist.Parent.Deltas, 0)
 	}
 	if protagonistFitnessDelta != math.Inf(1) {
 		e.protagonist.Parent.Deltas = append(e.protagonist.Parent.Deltas, protagonistFitnessDelta)
+	}else {
+		e.protagonist.Parent.Deltas = append(e.protagonist.Parent.Deltas, math.MaxInt16)
 	}
 	e.antagonist.Parent.Fitness = append(e.antagonist.Parent.Fitness, antagonistFitness)
 	e.protagonist.Parent.Fitness = append(e.protagonist.Parent.Fitness, protagonistFitness)

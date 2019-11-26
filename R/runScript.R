@@ -4,14 +4,10 @@
 # Created on: 2019/10/24
 
 args = commandArgs(trailingOnly=TRUE)
-# library("rjson")
-# library(expss)
-# library(dplyr)
 library(ggplot2)
 library(readr)
 library(knitr)
-# library(kableExtra)
-# devtools::install_github("haozhu233/kableExtra")
+
 
 workDir <- ""
 statsDir <- ""
@@ -22,9 +18,11 @@ if (length(args)==0) {
     # 1 - Path to Generational File
     # 2 - Path to Epochal File
     # 3 - Stats File
-    workDir = args[3]
+    print(args)
+    workDir = args[1]
     # epochalFilePath = args[4]
     # statsDir = args[5]
+    print("SET WORKING DIRECTORY")
     print(workDir)
     statsDir <- workDir
     dir.create(file.path(statsDir, ""), showWarnings = FALSE)
@@ -36,9 +34,9 @@ generationalFileNames <- c()
 generationalFileNames2 <- c()
 epochalFileNames <- c()
 bestFileNames <- c()
-
-
-
+bestCombinedFileNames <- c()
+bestAllFileNames <- c()
+strategyFileNames <- c()
 
 ####################################### CODE BEGINS ##########################
 
@@ -46,26 +44,21 @@ bestFileNames <- c()
 epochal_plot <- function(result, fileName) {
     p <- ggplot(data = result,
     mapping = aes(
-    x=result$epoch,
-    y=result$A))
+        x=result$epoch,
+        y=result$A))
 
     p + labs(title = sprintf("%s %d", "Epoch for ", result$run),
-    x = "Epoch", y = "Fitness") +
+        x = "Epoch", y = "Fitness") +
 
-        geom_line(
-        aes(y=result$A, colour="red")) +
+        geom_line(aes(x=result$epoch, y=result$A), color="red") +
 
-        geom_line(
-        aes(y=result$P, colour="green"))
-
+        geom_line(aes(x=result$epoch, y=result$P), color="green") +
 
     # finalAntagonist Plot
-        geom_line(colour="red",
-        aes(x=result$epoch,y=result$finA)) +
+        geom_line(aes(x=result$epoch,y=result$finA), color="red", linetype="dashed") +
 
     # finalProtagonist Plot
-        geom_line(colour="green",
-        aes(x=result$epoch,y=result$finP))
+        geom_line(aes(x=result$epoch,y=result$finP), color="green", linetype="dashed")
 
 
     fileName <- paste(fileName, "epochal.png", sep="-")
@@ -74,51 +67,120 @@ epochal_plot <- function(result, fileName) {
 }
 
 
-######################################## EPOCH-DELTA
+#### EPOCH-DELTA
 
-epochal_plot_aDelta <- function(result, fileName) {
+epochal_aDelta_plot <- function(result, fileName) {
     p <- ggplot(data = result,
-    mapping = aes(
-    x=result$epoch,
-    y=result$ADelta))
+    mapping = aes(x=result$epoch, y=result$aDelta))
 
     p + labs(title = sprintf("%s %d", "Epoch for ", result$run),
-    x = "Epoch", y = "Delta") +
+    x = "Epoch", y = "Antagonist Delta") +
 
-    geom_line(
-    aes(y=result$ADelta, colour="red")) +
+        geom_line(
+        aes(x=result$epoch,y=result$ADelta),
+        colour="red"
+        ) +
 
-    geom_line(
-    aes(y=result$finADelta, colour="blue"))
-    aes(x=result$epoch,y=result$finA))
+        geom_line(
+        aes(x=result$epoch,y=result$finADelta),
+        linetype="dashed",
+        colour="red"
+        )
 
     fileName <- paste(fileName, "epochal-delta-A.png", sep="-")
     ggsave(fileName, width=8, height=4, units='in', dpi="retina")
-    # dev.off()
 }
 
-
-epochal_plot_pDelta <- function(result, fileName) {
+epochal_pDelta_plot <- function(result, fileName) {
     p <- ggplot(data = result,
-    mapping = aes(
-    x=result$epoch,
-    y=result$PDelta))
+    mapping = aes(x=result$epoch, y=result$PDelta))
 
     p + labs(title = sprintf("%s %d", "Epoch for ", result$run),
-    x = "Epoch", y = "Delta") +
+    x = "Epoch", y = "Protagonist Delta") +
 
     geom_line(
-    aes(y=result$pDelta, colour="red")) +
+        aes(x=result$epoch,y=result$PDelta),
+        colour="green"
+    ) +
 
     geom_line(
-    aes(y=result$finPDelta, colour="blue"))
-
-
-    aes(x=result$epoch,y=result$finP))
+        aes(x=result$epoch,y=result$finPDelta),
+        linetype="dashed",
+        colour="green"
+    )
 
     fileName <- paste(fileName, "epochal-delta-P.png", sep="-")
     ggsave(fileName, width=8, height=4, units='in', dpi="retina")
-    # dev.off()
+}
+
+################################################### BEST
+best_combined_avg_plot <- function(result, fileName) {
+    p <- ggplot(data=result, mapping = aes(
+        x=result$ARun,
+        y=result$AAvg)
+    )
+
+    p + labs(title = sprintf("%s", "Best Individual per Run "),
+    x = "Run", y = "Fitness") +
+
+    geom_line(aes(x=result$ARun,y=result$AAvg),
+    color="red"
+    ) +
+
+    # topProtagonistReference Plot
+    geom_line(aes(x=result$ARun,y=result$PAvg),
+    color="green"
+    ) +
+
+    geom_line(aes(x=result$ARun,y=result$ABestFit),
+    color="red",
+    linetype="dashed"
+    ) +
+
+    # topProtagonistReference Plot
+    geom_line(aes(x=result$ARun,y=result$PBestFit),
+    color="green",
+    linetype="dashed"
+    )
+
+    fileName <- paste(fileName, "best-combined_avg.png", sep="-")
+    ggsave(fileName, width=8, height=4, units='in', dpi="retina")
+}
+
+    ## Pass in best-all.csv
+best_all_function_plot <- function(result, fileName) {
+    p <- ggplot(data = data.frame(x = result$seed), mapping = aes(x = x))
+
+    specEquation <- function(x){eval(parse(text=result$spec))}
+    ultAntagonistEquation <- function(x){eval(parse(text=result$AEquation))}
+    ultProtagonistEquation <- function(x){eval(parse(text=result$PEquation))}
+
+    #spec
+    p + layer(geom = "path",        # Default. Can be omitted.
+            stat = "function",
+            fun = specEquation,          # Give function
+            mapping = aes(color = "specEquation") # Give a meaningful name to color
+            ) +
+
+    layer(geom = "path",        # Default. Can be omitted.
+        stat = "function",
+        fun = ultAntagonistEquation,          # Give function
+        mapping = aes(color = "ultAntagonistEquation") # Give a meaningful name to color
+    ) +
+
+    layer(geom = "path",        # Default. Can be omitted.
+        stat = "function",
+        fun = ultProtagonistEquation,          # Give function
+        mapping = aes(color = "ultProtagonistEquation") # Give a meaningful name to color
+    ) +
+
+    scale_x_continuous(limits=c(result$seed,result$seed + result$range)) +
+    scale_color_manual(name = "Functions",
+        values = c("black", "red", "green"),
+        labels = c(specEquation, ultAntagonistEquation, ultProtagonistEquation))
+
+    fileName <- paste(fileName, "best-all.png", sep="-")
+    ggsave(fileName, width=8, height=4, units='in', dpi="retina")
 }
 
 # Plots out the average between the average of all antagonists in a given geernation, and the average of all
@@ -133,20 +195,25 @@ generational_average_plot <- function(result, fileName) {
     p + labs(title = sprintf("%s %d", "Averages for ", result$run),
         x = "Generation", y = "Fitness") +
 
-    geom_line(
-        aes(y=result$AGenFitAvg, colour="red")) +
+    geom_line(aes(x=result$gen,y=result$AGenFitAvg),
+        color="red"
+    ) +
 
         # topProtagonistReference Plot
-    geom_line(
-        aes(y=result$PGenFitAvg, colour="green")) +
+    geom_line(aes(x=result$gen,y=result$PGenFitAvg),
+        color="green"
+    ) +
 
-    geom_line(colour="red",
-        aes(x=result$gen,y=result$AGenBestFitAvg)) +
+    geom_line(aes(x=result$gen,y=result$AGenBestFitAvg),
+        color="red",
+        linetype="dashed"
+    ) +
 
     # topProtagonistReference Plot
-    geom_line(colour="green",
-        aes(x=result$gen,y=result$PGenBestFitAvg))
-
+    geom_line(aes(x=result$gen,y=result$PGenBestFitAvg),
+        color="green",
+        linetype="dashed"
+    )
 
     fileName <- paste(fileName, "generational.png", sep="-")
     ggsave(fileName, width=8, height=4, units='in', dpi="retina")
@@ -163,16 +230,40 @@ generational_density_plot <- function(result, filename) {
 }
 
 generational_histogram_plot <- function(result, filename) {
-    # plotAvgA <- ggplot(data=result, mapping=aes(x=result$avgA))
-    # plotAvgA + geom_histogram(binwidth=0.1, mapping=aes(x=result$avgA))
-    # ggsave('generational_histogram-avgA.png', plot=plotAvgA,  width=8, height=4, units='in', dpi="retina")
 
+}
 
-    plotAvgP <- ggplot(data=result, mapping=aes(x=result$PGenFitAvg))
-    plotAvgP + geom_histogram(binwidth=0.1, mapping=aes(x=result$PGenFitAvg), fill="green", colour="black")
-                # geom_histogram(binwidth=0.1, mapping=aes(x=result$avgA), fill="red")
-    outputPath <- paste(filename, "generational_histogram-avgP.png", sep="-")
-    ggsave(outputPath,  width=8, height=4, units='in', dpi="retina")
+################################################## STRATEGY
+
+strategy_run_histogram_plot <- function(result, filename) {
+    p <- ggplot(data=result, mapping=aes(x=result$A))
+    p + geom_histogram(
+        alpha=0.7,
+        stat="count",
+        position="identity",
+        # mapping=aes(y=result$P, color="yellow")
+    ) +
+    geom_histogram(
+        alpha=0.7,
+        stat="count",
+        position="identity",
+        # mapping=aes(y=result$P, color="yellow")
+    ) +
+    geom_density(alpha=0.4) +
+    # geom_vline(
+    #     aes(xintercept=7.5),
+    #     color="black",
+    #     linetype="dashed",
+    #     size=1) +
+    # labs(x=feature, y = "Density")
+
+    #     fill="red", colour="black", alpha=0.2) +
+    #     # geom_histogram(stat="count", mapping=aes(result$A), fill="red", colour="black", alpha=0.2) +
+    # geom_density() +
+    labs(title="Frequency of Strategy in Best Individuals", x="Strategy", y="Frequency")
+
+    outputPath <- paste(filename, "histogram-bestP.png", sep="-")
+    ggsave(outputPath,  width=12, height=6, units='in', dpi="retina")
 }
 
 plot_table <- function(result) {
@@ -283,6 +374,9 @@ getAllFiles <- function(workDir) {
     count <- 1
     epochalcount <- 1
     bestcount <- 1
+    bestAllCount <- 1
+    bestCombinedCount <- 1
+    strategyCount <- 1
     for (file in files) {
         if (grepl("generational", file)) {
             generationalFileNames[count] <- file
@@ -297,18 +391,40 @@ getAllFiles <- function(workDir) {
         if (grepl("epochal", file)) {
             epochalFileNames[epochalcount] <- file
 
+            print(file)
             filePath <- paste(workDir, file, sep="/")
             epochalData = read_csv(filePath)
             epochal_plot(epochalData, file)
-            epochal_plot_pDelta(epochalData, file)
-            epochal_plot_aDelta(epochalData, file)
+            epochal_pDelta_plot(epochalData, file)
+            epochal_aDelta_plot(epochalData, file)
 
             epochalcount <- epochalcount + 1
         }
-        if (grepl("best", file)) {
-            bestFileNames[bestcount] <- file
-            bestcount <- bestcount + 1
+        # if (grepl("best-all", file)) {
+        #     bestAllFileNames[bestAllCount] <- file
+        #     filePath <- paste(workDir, file, sep="/")
+        #     bestAllData = read_csv(filePath)
+        #     best_all_function_plot(bestAllData, file)
+        #
+        #     bestAllCount <- bestAllCount + 1
+        # }
+        if (grepl("best-combined", file)) {
+            bestCombinedFileNames[bestCombinedCount] <- file
+            filePath <- paste(workDir, file, sep="/")
+            bestCombinedData = read_csv(filePath)
+            best_combined_avg_plot(bestCombinedData, file)
+
+            bestCombinedCount <- bestCombinedCount + 1
         }
+        if (grepl("strategy", file)) {
+            strategyFileNames[strategyCount] <- file
+            filePath <- paste(workDir, file, sep="/")
+            strategyData = read_csv(filePath)
+
+            strategy_run_histogram_plot(strategyData, file)
+            strategyCount <- strategyCount + 1
+        }
+
     }
     generationalFileNames2 <- generationalFileNames
     print(length(generationalFileNames))

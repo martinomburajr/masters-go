@@ -1,0 +1,16 @@
+A,P,AFinal,PFinal,AGen,PGen,count,run
+DivXD,DivXD,DivXD,AddTreeWithAdd,0,0,0,0
+SkipD,SkipD,SkipD,ReplaceBranchR,0,0,1,0
+MultXD,MultXD,MultXD,AddToLeafR,0,0,2,0
+ReplaceBranchR,ReplaceBranchR,ReplaceBranchR,ReplaceBranchXR,0,0,3,0
+AddToLeafR,AddToLeafR,AddToLeafR,AddXD,0,0,4,0
+MultXD,MultXD,MultXD,AddTreeWithMult,0,0,5,0
+AddTreeWithMult,AddTreeWithMult,AddTreeWithMult,MutateNonTerminalR,0,0,6,0
+DivXD,DivXD,DivXD,AddTreeWithMult,0,0,7,0
+SkipD,SkipD,SkipD,DivXD,0,0,8,0
+AddTreeWithMult,AddTreeWithMult,AddTreeWithMult,AddTreeWithAdd,0,0,9,0
+SubXD,SubXD,SubXD,SubXD,0,0,10,0
+MutateNonTerminalR,MutateNonTerminalR,MutateNonTerminalR,MultXD,0,0,11,0
+AddToLeafR,AddToLeafR,AddToLeafR,ReplaceBranchR,0,0,12,0
+AddTreeWithAdd,AddTreeWithAdd,AddTreeWithAdd,MutateTerminalR,0,0,13,0
+MutateNonTerminalR,MutateNonTerminalR,SubXD,ReplaceBranchXR,0,0,14,0
