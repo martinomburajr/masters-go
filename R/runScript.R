@@ -7,6 +7,7 @@ args = commandArgs(trailingOnly=TRUE)
 library(ggplot2)
 library(readr)
 library(knitr)
+library(dplyr)
 
 
 workDir <- ""
@@ -42,97 +43,46 @@ strategyFileNames <- c()
 
 ######################################## EPOCH
 epochal_plot <- function(result, fileName) {
-    p <- ggplot(data = result,
-    mapping = aes(
-        x=result$epoch,
-        y=result$A))
+    data = data.frame(
+        value = result$epoch,
+        A = result$A,
+        P = result$P,
+        finA = result$finA,
+        finP = result$finP
+    )
 
-    p + labs(
-        title = sprintf("%s","Epoch Based Fitness Variation of Bug and Test"),
-        subtitle = sprintf("%s%d", "Run:", result$run),
-        caption = sprintf("%s%d", "Run #", result$run),
-        x = "Epoch", y = "Fitness"
-        # tag="Legend"
-        ) +
+    gg <- ggplot(data, aes(x=value))
+    gg <- gg + geom_line(aes(y=A, color = "BestBug", linetype = 'BestBug'), size = 1) # setup color name
+    gg <- gg + geom_line(aes(y=P, color = "BestTest", linetype = 'BestTest'),  size = 1)
+    gg <- gg + geom_line(aes(y=finA, color = "FinalBug", linetype = 'FinalBug'),  size = 1.2)
+    gg <- gg + geom_line(aes(y=finP, color = "FinalTest", linetype = 'FinalTest'),  size = 1.2)
+    gg <- gg + geom_point(aes(y=A), size=0.6)
+    gg <- gg + geom_point(aes(y=P), size=0.6)
+    gg <- gg + geom_point(aes(y=finP), size=0.6)
+    gg <- gg + geom_point(aes(y=finA), size=0.6)
+    gg <- gg + scale_linetype_manual(values=c(BestBug='solid', BestTest='solid', FinalBug="dotted", FinalTest="dotted"), name =
+    "Line Type")
+    gg <- gg + scale_colour_manual(values=c(BestBug="red", BestTest="green", FinalBug="red", FinalTest="green"), name = "Plot Color")
 
-        geom_line(aes(x=result$epoch,y=result$A, colour="red")) +
-        geom_line(aes(x=result$epoch,y=result$P, colour="green")) +
-        geom_line(aes(x=result$epoch,y=result$finA, colour="orange"), linetype="dashed") +
-        geom_line(aes(x=result$epoch,y=result$finP, colour="blue"), linetype="dashed") +
+    gg <- gg + guides(color = guide_legend(title="Legend"), linetype = guide_legend(title="Legend"))
 
-        scale_color_manual(values = c(
-        'red' = 'red',
-        'green' = 'green'),
-        'orange' = 'orange',
-        'blue' = 'blue')) +
-        labs(color = 'Y series') +
-
-        # scale_color_discrete(name = "Individuals",
-        #     labels = c("Best Bug", "Best Test", "FinGen Bug", "FinGen Test")) +
-
-        theme(
+    gg <- gg + theme(
             plot.title = element_text(size=16),
-            plot.subtitle = element_text(size=12)
-        )
-
-        # theme(
-        #     # Legend title and text labels
-        #     #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-        #     # Title font color size and face
-        #     # legend.title = element_text(color, size, face),
-        #     # Title alignment. Number from 0 (left) to 1 (right)
-        #     legend.title.align = NULL,
-        #     # Text label font color size and face
-        #     # legend.text = element_text(color, size, face),
-        #     # Text label alignment. Number from 0 (left) to 1 (right)
-        #     legend.text.align = NULL,
-        #
-        #     # Legend position, margin and background
-        #     #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-        #     # Legend position: right, left, bottom, top, none
-        #     legend.position = "bottom",
-        #     # Margin around each legend
-        #     legend.margin = margin(0.2, 0.2, 0.2, 0.2, "cm"),
-        #     # Legend background
-        #     # legend.background = element_rect(fill, color, size, linetype),
-        #
-        #     # Legend direction and justification
-        #     #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-        #     # Layout of items in legends ("horizontal" or "vertical")
-        #     legend.direction = "horizontal",
-        #     # Positioning legend inside or outside plot
-        #     # ("center" or two-element numeric vector)
-        #     legend.justification = "center",
-        #
-        #     # Background underneath legend keys
-        #     #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-        #     # legend.key = element_rect(fill, color),  # Key background
-        #     legend.key.size = unit(1.2, "lines"),    # key size (unit)
-        #     legend.key.height = NULL,                # key height (unit)
-        #     legend.key.width = NULL,                 # key width (unit)
-        #
-        #     # Spacing between legends.
-        #     #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-        #     legend.spacing = unit(0.4, "cm"),
-        #     legend.spacing.x = NULL,                 # Horizontal spacing
-        #     legend.spacing.y = NULL,                 # Vertical spacing
-        #
-        #     # Legend box
-        #     #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-        #     # Arrangement of multiple legends ("horizontal" or "vertical")
-        #     legend.box = NULL,
-        #     # Margins around the full legend area
-        #     legend.box.margin = margin(0, 0, 0, 0, "cm"),
-        #     # Background of legend area: element_rect()
-        #     legend.box.background = element_blank(),
-        #     # The spacing between the plotting area and the legend box
-        #     legend.box.spacing = unit(0.4, "cm")
-        # )
-
+            plot.subtitle = element_text(size=8),
+            plot.caption = element_text(size=6))
+    gg <- gg + labs(
+            color = 'Individuals',
+            title = sprintf("%s","Epoch Based Fitness Variation of Bug and Test"),
+            subtitle = sprintf("%s%d", "Run:", result$run),
+            caption = sprintf("%s\n%s\n%s",
+            "Best: The fittest Bug and Test in the Run",
+            "Final: The last generations best bug and test",
+            "*More Fitness Is Better"),
+            x = "Epoch",
+            y = "Fitness")
 
     fileName <- paste(fileName, "epochal.png", sep="-")
-    ggsave(fileName, width=8, height=4, units='in', dpi="retina")
-    # dev.off()
+    ggsave(fileName, width=8, height=5, units='in', dpi="retina")
 }
 
 
@@ -255,34 +205,44 @@ best_all_function_plot <- function(result, fileName) {
 # Plots out the average between the average of all antagonists in a given geernation, and the average of all
 # protagonists in the same generation.
 generational_average_plot <- function(result, fileName) {
-    # result <- data.frame()
-    p <- ggplot(data = result,
-                mapping = aes(
-                    x=result$gen,
-                    y=result$AGenFitAvg))
-
-    p + labs(title = sprintf("%s %d", "Averages for ", result$run),
-        x = "Generation", y = "Fitness") +
-
-    geom_line(aes(x=result$gen,y=result$AGenFitAvg),
-        color="red"
-    ) +
-
-        # topProtagonistReference Plot
-    geom_line(aes(x=result$gen,y=result$PGenFitAvg),
-        color="green"
-    ) +
-
-    geom_line(aes(x=result$gen,y=result$AGenBestFitAvg),
-        color="red",
-        linetype="dashed"
-    ) +
-
-    # topProtagonistReference Plot
-    geom_line(aes(x=result$gen,y=result$PGenBestFitAvg),
-        color="green",
-        linetype="dashed"
+    data = data.frame(
+    value = result$gen,
+    A = result$AGenFitAvg,
+    P = result$PGenFitAvg,
+    bestA = result$AGenBestFitAvg,
+    bestP = result$PGenBestFitAvg
     )
+
+    gg <- ggplot(data, aes(x=value))
+    gg <- gg + geom_line(aes(y=A, color = "AvgBug", linetype = 'AvgBug'), size = 1) # setup color name
+    gg <- gg + geom_line(aes(y=P, color = "AvgTest", linetype = 'AvgTest'),  size = 1)
+    gg <- gg + geom_line(aes(y=bestA, color = "BestAvgBug", linetype = 'BestAvgBug'),  size = 1.2)
+    gg <- gg + geom_line(aes(y=bestP, color = "BestAvgTest", linetype = 'BestAvgTest'),  size = 1.2)
+    gg <- gg + geom_point(aes(y=A), size=0.6)
+    gg <- gg + geom_point(aes(y=P), size=0.6)
+    gg <- gg + geom_point(aes(y=bestA), size=0.6)
+    gg <- gg + geom_point(aes(y=bestP), size=0.6)
+    gg <- gg + scale_linetype_manual(values=c(AvgBug='solid', AvgTest='solid', BestAvgBug="dotted",
+    BestAvgTest="dotted"), name =
+    "Line Type")
+    gg <- gg + scale_colour_manual(values=c(AvgBug="red", AvgTest="green", BestAvgBug="red", BestAvgTest="green"), name = "Plot Color")
+
+    gg <- gg + guides(color = guide_legend(title="Legend"), linetype = guide_legend(title="Legend"))
+
+    gg <- gg + theme(
+    plot.title = element_text(size=16),
+    plot.subtitle = element_text(size=8),
+    plot.caption = element_text(size=6))
+    gg <- gg + labs(
+    color = 'Individuals',
+    title = sprintf("%s","Generation Based Fitness Variation of Bug and Test"),
+    subtitle = sprintf("%s%d", "Run:", result$run),
+    caption = sprintf("%s\n%s\n%s",
+    "Avg: Avg of all grouped individuals",
+    "BestAvg: Best individuals fitness avg",
+    "*More Fitness Is Better"),
+    x = "Generation",
+    y = "Fitness")
 
     fileName <- paste(fileName, "generational.png", sep="-")
     ggsave(fileName, width=8, height=4, units='in', dpi="retina")
@@ -447,28 +407,28 @@ getAllFiles <- function(workDir) {
     bestCombinedCount <- 1
     strategyCount <- 1
     for (file in files) {
-        # if (grepl("generational", file)) {
-        #     generationalFileNames[count] <- file
-        #
-        #     filePath <- paste(workDir, file, sep="/")
-        #     print(filePath)
-        #     generationalData = read_csv(filePath)
-        #
-        #     generational_average_plot(generationalData,  file)
-        #     count <- count + 1
-        # }
-        if (grepl("epochal", file)) {
-            epochalFileNames[epochalcount] <- file
+        if (grepl("generational", file)) {
+            generationalFileNames[count] <- file
 
-            print(file)
             filePath <- paste(workDir, file, sep="/")
-            epochalData = read_csv(filePath)
-            epochal_plot(epochalData, file)
-            # epochal_pDelta_plot(epochalData, file)
-            # epochal_aDelta_plot(epochalData, file)
+            print(filePath)
+            generationalData = read_csv(filePath)
 
-            epochalcount <- epochalcount + 1
+            generational_average_plot(generationalData,  file)
+            count <- count + 1
         }
+        # if (grepl("epochal", file)) {
+        #     epochalFileNames[epochalcount] <- file
+        #
+        #     print(file)
+        #     filePath <- paste(workDir, file, sep="/")
+        #     epochalData = read_csv(filePath)
+        #     epochal_plot(epochalData, file)
+        #     # epochal_pDelta_plot(epochalData, file)
+        #     # epochal_aDelta_plot(epochalData, file)
+        #
+        #     epochalcount <- epochalcount + 1
+        # }
         # if (grepl("best-all", file)) {
         #     bestAllFileNames[bestAllCount] <- file
         #     filePath <- paste(workDir, file, sep="/")
@@ -511,3 +471,58 @@ getAllFiles(workDir)
 # run_stats(datasetGenerational)
 
 
+
+
+# theme(
+#     # Legend title and text labels
+#     #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#     # Title font color size and face
+#     # legend.title = element_text(color, size, face),
+#     # Title alignment. Number from 0 (left) to 1 (right)
+#     legend.title.align = NULL,
+#     # Text label font color size and face
+#     # legend.text = element_text(color, size, face),
+#     # Text label alignment. Number from 0 (left) to 1 (right)
+#     legend.text.align = NULL,
+#
+#     # Legend position, margin and background
+#     #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#     # Legend position: right, left, bottom, top, none
+#     legend.position = "bottom",
+#     # Margin around each legend
+#     legend.margin = margin(0.2, 0.2, 0.2, 0.2, "cm"),
+#     # Legend background
+#     # legend.background = element_rect(fill, color, size, linetype),
+#
+#     # Legend direction and justification
+#     #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#     # Layout of items in legends ("horizontal" or "vertical")
+#     legend.direction = "horizontal",
+#     # Positioning legend inside or outside plot
+#     # ("center" or two-element numeric vector)
+#     legend.justification = "center",
+#
+#     # Background underneath legend keys
+#     #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#     # legend.key = element_rect(fill, color),  # Key background
+#     legend.key.size = unit(1.2, "lines"),    # key size (unit)
+#     legend.key.height = NULL,                # key height (unit)
+#     legend.key.width = NULL,                 # key width (unit)
+#
+#     # Spacing between legends.
+#     #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#     legend.spacing = unit(0.4, "cm"),
+#     legend.spacing.x = NULL,                 # Horizontal spacing
+#     legend.spacing.y = NULL,                 # Vertical spacing
+#
+#     # Legend box
+#     #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#     # Arrangement of multiple legends ("horizontal" or "vertical")
+#     legend.box = NULL,
+#     # Margins around the full legend area
+#     legend.box.margin = margin(0, 0, 0, 0, "cm"),
+#     # Background of legend area: element_rect()
+#     legend.box.background = element_blank(),
+#     # The spacing between the plotting area and the legend box
+#     legend.box.spacing = unit(0.4, "cm")
+# )

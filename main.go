@@ -34,7 +34,7 @@ func main() {
 				Variables: []string{"x"},
 				Operators: []string{"*", "+", "-", "/"},
 			},
-			DivideByZeroStrategy: evolution.DivByZeroSteadyPenalize,
+			DivideByZeroStrategy: evolution.DivByZeroPenalize,
 			DivideByZeroPenalty:  -2,
 		},
 		GenerationsCount:   50,
