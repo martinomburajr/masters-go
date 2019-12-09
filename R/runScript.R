@@ -563,19 +563,19 @@ getAllFiles <- function(workDir) {
     bestCombinedCount <- 1
     strategyCount <- 1
     for (file in files) {
-        if (grepl("generational", file)) {
-            generationalFileNames[count] <- file
-
-            filePath <- paste(workDir, file, sep="/")
-            print(filePath)
-            generationalData = read_csv(filePath)
-
-            # generational_histogram_plot(generationalData, file)
-            generational_density_plot(generationalData,  file)
-            # generational_density_histogram_plot(generationalData,  file)
-            # generational_average_plot(generationalData,  file)
-            count <- count + 1
-        }
+        # if (grepl("generational", file)) {
+        #     generationalFileNames[count] <- file
+        #
+        #     filePath <- paste(workDir, file, sep="/")
+        #     print(filePath)
+        #     generationalData = read_csv(filePath)
+        #
+        #     generational_histogram_plot(generationalData, file)
+        #     generational_density_plot(generationalData,  file)
+        #     generational_density_histogram_plot(generationalData,  file)
+        #     generational_average_plot(generationalData,  file)
+        #     count <- count + 1
+        # }
         # if (grepl("epochal", file)) {
         #     epochalFileNames[epochalcount] <- file
         #
