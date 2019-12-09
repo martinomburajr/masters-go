@@ -89,44 +89,68 @@ epochal_plot <- function(result, fileName) {
 #### EPOCH-DELTA
 
 epochal_aDelta_plot <- function(result, fileName) {
-    p <- ggplot(data = result,
-    mapping = aes(x=result$epoch, y=result$aDelta))
+    data = data.frame(
+    value = result$epoch,
+    A = result$ADelta
+    )
 
-    p + labs(title = sprintf("%s %d", "Epoch for ", result$run),
-    x = "Epoch", y = "Antagonist Delta") +
+    gg <- ggplot(data, aes(x=value))
+    gg <- gg + geom_line(aes(y=A, color = "BugDelta", linetype = 'BugDelta'), size = 1) # setup color name
+    gg <- gg + geom_point(aes(y=A), size=0.6)
 
-        geom_line(
-        aes(x=result$epoch,y=result$ADelta),
-        colour="red"
-        ) +
+    gg <- gg + scale_linetype_manual(values=c(BugDelta='solid'), name =
+    "Line Type")
+    gg <- gg + scale_colour_manual(values=c(BugDelta="red"), name = "Plot Color")
 
-        geom_line(
-        aes(x=result$epoch,y=result$finADelta),
-        linetype="dashed",
-        colour="red"
-        )
+    gg <- gg + guides(color = guide_legend(title="Legend"), linetype = guide_legend(title="Legend"))
+
+    gg <- gg + theme(
+    plot.title = element_text(size=16),
+    plot.subtitle = element_text(size=8),
+    plot.caption = element_text(size=6))
+    gg <- gg + labs(
+    color = 'Individuals',
+    title = sprintf("%s","Epoch Based Delta Value Variation of Bug"),
+    subtitle = sprintf("%s%d", "Run:", result$run),
+    caption = sprintf("%s\n%s",
+    "Delta: Average difference between spec and individual's value",
+    "Bugs: Attempt to maximize delta"),
+    x = "Epoch",
+    y = "Fitness")
 
     fileName <- paste(fileName, "epochal-delta-A.png", sep="-")
     ggsave(fileName, width=8, height=4, units='in', dpi="retina")
 }
 
 epochal_pDelta_plot <- function(result, fileName) {
-    p <- ggplot(data = result,
-    mapping = aes(x=result$epoch, y=result$PDelta))
-
-    p + labs(title = sprintf("%s %d", "Epoch for ", result$run),
-    x = "Epoch", y = "Protagonist Delta") +
-
-    geom_line(
-        aes(x=result$epoch,y=result$PDelta),
-        colour="green"
-    ) +
-
-    geom_line(
-        aes(x=result$epoch,y=result$finPDelta),
-        linetype="dashed",
-        colour="green"
+    data = data.frame(
+    value = result$epoch,
+    P = result$PDelta
     )
+
+    gg <- ggplot(data, aes(x=value))
+    gg <- gg + geom_line(aes(y=P, color = "TestDelta", linetype = 'TestDelta'),  size = 1)
+    gg <- gg + geom_point(aes(y=P), size=0.6)
+
+    gg <- gg + scale_linetype_manual(values=c(TestDelta='solid'), name =
+    "Line Type")
+    gg <- gg + scale_colour_manual(values=c(TestDelta="green"), name = "Plot Color")
+
+    gg <- gg + guides(color = guide_legend(title="Legend"), linetype = guide_legend(title="Legend"))
+
+    gg <- gg + theme(
+    plot.title = element_text(size=16),
+    plot.subtitle = element_text(size=8),
+    plot.caption = element_text(size=6))
+    gg <- gg + labs(
+    color = 'Individuals',
+    title = sprintf("%s","Epoch Based Delta Value Variation of Test"),
+    subtitle = sprintf("%s%d", "Run:", result$run),
+    caption = sprintf("%s\n%s",
+    "Delta: Average difference between spec and individual's value",
+    "Tests: Attempt to minimize delta"),
+    x = "Epoch",
+    y = "Fitness")
 
     fileName <- paste(fileName, "epochal-delta-P.png", sep="-")
     ggsave(fileName, width=8, height=4, units='in', dpi="retina")
@@ -202,6 +226,13 @@ best_all_function_plot <- function(result, fileName) {
     ggsave(fileName, width=8, height=4, units='in', dpi="retina")
 }
 
+
+################################################ GENERATION #################
+################################################ GENERATION #################
+################################################ GENERATION #################
+################################################ GENERATION #################
+################################################ GENERATION #################
+
 # Plots out the average between the average of all antagonists in a given geernation, and the average of all
 # protagonists in the same generation.
 generational_average_plot <- function(result, fileName) {
@@ -249,50 +280,175 @@ generational_average_plot <- function(result, fileName) {
     # dev.off()
 }
 
+generational_histogram_plot <- function(result, fileName) {
+    data = data.frame(
+        value = result$AGenFitAvg,
+        A = result$AGenFitAvg,
+        P = result$PGenFitAvg
+    )
+    dataP = data.frame(A = result$PGenFitAvg)
+    dataA = data.frame(A = result$AGenFitAvg)
 
-generational_density_plot <- function(result, filename) {
-    p <- ggplot(data=result, mapping=aes(x=result$AGenFitAvg, y=result$gen))
-    p + geom_density(kernel="gaussian", mapping=aes(x=result$AGenFitAvg, y=result$gen))
+    gg <- ggplot(data, aes(A))
+    gg <- gg + geom_histogram(data=dataA, binwidth=0.002, aes(color = "Bug", linetype = 'Bug'), alpha = 0.2)
+    gg <- gg + geom_histogram(data=dataP, binwidth=0.002, aes(color = "Test", linetype = 'Test'), alpha = 0.2)
+    gg <- gg + scale_colour_manual(values=c(Bug="red", Test="green"), name = "Plot Color")
+    #
+    gg <- gg + guides(color = guide_legend(title="Legend"), linetype = guide_legend(title="Legend"))
 
-    outputPath <- paste(filename, "generational_density.png.png", sep="-")
-    ggsave('outputPath', width=8, height=4, units='in', dpi="retina")
+    gg <- gg + theme(
+    plot.title = element_text(size=16),
+    plot.subtitle = element_text(size=8),
+    plot.caption = element_text(size=6))
+    gg <- gg + labs(
+    color = 'Individuals',
+    title = sprintf("%s","Histogram of Bug and Test Fitness"),
+    subtitle = sprintf("%s%d", "Run:", result$run),
+    x = "Fitness",
+    y = "Frequency")
+
+    fileName <- paste(fileName, "gen_histogram.png", sep="-")
+    ggsave(fileName, width=8, height=4, units='in', dpi="retina")
 }
 
-generational_histogram_plot <- function(result, filename) {
+generational_density_plot <- function(result, fileName) {
+    data = data.frame(
+    value = result$AGenFitAvg,
+    A = result$AGenFitAvg,
+    P = result$PGenFitAvg
+    )
+    dataP = data.frame(A = result$PGenFitAvg)
+    dataA = data.frame(A = result$AGenFitAvg)
 
+    gg <- ggplot(data, aes(A))
+    gg <- gg + geom_density(data=dataA, kernel = "gaussian", aes(color = "Bug", linetype = 'Bug'), alpha = 0.2)
+    gg <- gg + geom_density(data=dataP, kernel = "gaussian", aes(color = "Test", linetype = 'Test'), alpha = 0.2)
+
+    gg <- gg + geom_vline(aes(xintercept=mean(A), color = "Bug"), linetype = 'dotted', size=0.7)
+    gg <- gg + geom_vline(aes(xintercept=mean(P), color = "Test"), linetype = 'dotted', size=0.7)
+
+    gg <- gg + scale_linetype_manual(values=c(Bug='solid', Test='solid'), name = "Line Type")
+    gg <- gg + scale_colour_manual(values=c(Bug="red", Test="green"), name = "Plot Color")
+    #
+    gg <- gg + guides(color = guide_legend(title="Legend"), linetype = guide_legend(title="Legend"))
+
+    gg <- gg + theme(
+    plot.title = element_text(size=16),
+    plot.subtitle = element_text(size=8),
+    plot.caption = element_text(size=6))
+    gg <- gg + labs(
+    color = 'Individuals',
+    title = sprintf("%s","Density Distribution of Bug and Test Fitness"),
+    subtitle = sprintf("%s%d", "Run:", result$run),
+    x = "Fitness",
+    y = "Frequency")
+
+    fileName <- paste(fileName, "gen_density.png", sep="-")
+    ggsave(fileName, width=8, height=4, units='in', dpi="retina")
 }
 
-################################################## STRATEGY
+generational_density_histogram_plot <- function(result, fileName) {
+    data = data.frame(
+    value = result$AGenFitAvg,
+    A = result$AGenFitAvg,
+    P = result$PGenFitAvg
+    )
+    dataP = data.frame(A = result$PGenFitAvg)
+    dataA = data.frame(A = result$AGenFitAvg)
 
-strategy_run_histogram_plot <- function(result, filename) {
-    p <- ggplot(data=result, mapping=aes(x=result$A))
-    p + geom_histogram(
-        alpha=0.7,
-        stat="count",
-        position="identity",
-        # mapping=aes(y=result$P, color="yellow")
-    ) +
-    geom_histogram(
-        alpha=0.7,
-        stat="count",
-        position="identity",
-        # mapping=aes(y=result$P, color="yellow")
-    ) +
-    geom_density(alpha=0.4) +
-    # geom_vline(
-    #     aes(xintercept=7.5),
-    #     color="black",
-    #     linetype="dashed",
-    #     size=1) +
-    # labs(x=feature, y = "Density")
+    gg <- ggplot(data, aes(A))
+    gg <- gg + geom_density(data=dataA, kernel = "gaussian", aes(color = "Bug", linetype = 'Bug'), alpha = 0.2)
+    gg <- gg + geom_density(data=dataP, kernel = "gaussian", aes(color = "Test", linetype = 'Test'), alpha = 0.2)
+    gg <- gg + geom_histogram(data=dataA, binwidth=0.018, aes(color = "Bug", linetype = 'Bug'), alpha = 0.2)
+    gg <- gg + geom_histogram(data=dataP, binwidth=0.018, aes(color = "Test", linetype = 'Test'), alpha = 0.2)
+    gg <- gg + scale_colour_manual(values=c(Bug="red", Test="green"), name = "Plot Color")
+    #
+    gg <- gg + guides(color = guide_legend(title="Legend"), linetype = guide_legend(title="Legend"))
 
-    #     fill="red", colour="black", alpha=0.2) +
-    #     # geom_histogram(stat="count", mapping=aes(result$A), fill="red", colour="black", alpha=0.2) +
-    # geom_density() +
-    labs(title="Frequency of Strategy in Best Individuals", x="Strategy", y="Frequency")
+    gg <- gg + theme(
+    plot.title = element_text(size=16),
+    plot.subtitle = element_text(size=8),
+    plot.caption = element_text(size=6))
+    gg <- gg + labs(
+    color = 'Individuals',
+    title = sprintf("%s","Histogram Density Distribution of Bug and Test Fitness"),
+    subtitle = sprintf("%s%d", "Run:", result$run),
+    x = "Fitness",
+    y = "Frequency")
 
-    outputPath <- paste(filename, "histogram-bestP.png", sep="-")
-    ggsave(outputPath,  width=12, height=6, units='in', dpi="retina")
+    fileName <- paste(fileName, "gen_density_histogram.png", sep="-")
+    ggsave(fileName, width=8, height=4, units='in', dpi="retina")
+}
+
+######################################################### STRATEGY ############################
+######################################################### STRATEGY ############################
+######################################################### STRATEGY ############################
+######################################################### STRATEGY ############################
+######################################################### STRATEGY ############################
+######################################################### STRATEGY ############################
+
+strategy_run_histogram_plot <- function(result, fileName) {
+    data = data.frame(
+        value = result$A,
+        A = result$A,
+        P = result$P
+    )
+    dataA = data.frame(A = result$A)
+    dataP = data.frame(A = result$P)
+    alpha <- 0.4
+    binW <- 0.002
+
+    gg <- ggplot(data, aes(A))
+    # gg <- gg + geom_histogram(data=dataA, stat="count", aes(color = "Bug"), alpha = alpha)
+    gg <- gg + geom_histogram(data=dataP, stat="count", aes(color = "Test"), alpha = alpha)
+    gg <- gg + scale_colour_manual(values=c(Bug="red", Test="green"), name = "Plot Color")
+    #
+    gg <- gg + guides(color = guide_legend(title="Legend"), linetype = guide_legend(title="Legend"))
+
+    gg <- gg + theme(
+    plot.title = element_text(size=16),
+    plot.subtitle = element_text(size=8),
+    plot.caption = element_text(size=6))
+    gg <- gg + labs(
+    color = 'Individuals',
+    title = sprintf("%s","Histogram of Bug and Test Strategy Selection"),
+    subtitle = sprintf("%s%d", "Run:", result$run),
+    x = "Fitness",
+    y = "Frequency")
+
+    fileName <- paste(fileName, "strat_histogram.png", sep="-")
+    ggsave(fileName, width=12, height=4, units='in', dpi="retina")
+
+
+
+    # p <- ggplot(data=result, mapping=aes(x=result$A))
+    # p + geom_histogram(
+    #     alpha=0.7,
+    #     stat="count",
+    #     position="identity",
+    #     # mapping=aes(y=result$P, color="yellow")
+    # ) +
+    # geom_histogram(
+    #     alpha=0.7,
+    #     stat="count",
+    #     position="identity",
+    #     # mapping=aes(y=result$P, color="yellow")
+    # ) +
+    # geom_density(alpha=0.4) +
+    # # geom_vline(
+    # #     aes(xintercept=7.5),
+    # #     color="black",
+    # #     linetype="dashed",
+    # #     size=1) +
+    # # labs(x=feature, y = "Density")
+    #
+    # #     fill="red", colour="black", alpha=0.2) +
+    # #     # geom_histogram(stat="count", mapping=aes(result$A), fill="red", colour="black", alpha=0.2) +
+    # # geom_density() +
+    # labs(title="Frequency of Strategy in Best Individuals", x="Strategy", y="Frequency")
+    #
+    # outputPath <- paste(filename, "histogram-bestP.png", sep="-")
+    # ggsave(outputPath,  width=12, height=6, units='in', dpi="retina")
 }
 
 plot_table <- function(result) {
@@ -414,7 +570,10 @@ getAllFiles <- function(workDir) {
             print(filePath)
             generationalData = read_csv(filePath)
 
-            generational_average_plot(generationalData,  file)
+            # generational_histogram_plot(generationalData, file)
+            generational_density_plot(generationalData,  file)
+            # generational_density_histogram_plot(generationalData,  file)
+            # generational_average_plot(generationalData,  file)
             count <- count + 1
         }
         # if (grepl("epochal", file)) {
@@ -423,9 +582,10 @@ getAllFiles <- function(workDir) {
         #     print(file)
         #     filePath <- paste(workDir, file, sep="/")
         #     epochalData = read_csv(filePath)
+        #
         #     epochal_plot(epochalData, file)
-        #     # epochal_pDelta_plot(epochalData, file)
-        #     # epochal_aDelta_plot(epochalData, file)
+        #     epochal_pDelta_plot(epochalData, file)
+        #     epochal_aDelta_plot(epochalData, file)
         #
         #     epochalcount <- epochalcount + 1
         # }
@@ -445,14 +605,14 @@ getAllFiles <- function(workDir) {
         #
         #     bestCombinedCount <- bestCombinedCount + 1
         # }
-        # if (grepl("strategy", file)) {
-        #     strategyFileNames[strategyCount] <- file
-        #     filePath <- paste(workDir, file, sep="/")
-        #     strategyData = read_csv(filePath)
-        #
-        #     strategy_run_histogram_plot(strategyData, file)
-        #     strategyCount <- strategyCount + 1
-        # }
+        if (grepl("strategy", file)) {
+            strategyFileNames[strategyCount] <- file
+            filePath <- paste(workDir, file, sep="/")
+            strategyData = read_csv(filePath)
+
+            strategy_run_histogram_plot(strategyData, file)
+            strategyCount <- strategyCount + 1
+        }
 
     }
     generationalFileNames2 <- generationalFileNames
