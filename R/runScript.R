@@ -394,12 +394,11 @@ strategy_run_histogram_plot <- function(result, fileName) {
     )
     dataA = data.frame(A = result$A)
     dataP = data.frame(A = result$P)
-    alpha <- 0.4
-    binW <- 0.002
+    alpha <- 0.2
 
     gg <- ggplot(data, aes(A))
-    gg <- gg + geom_bar(data=dataA, stat="count", aes(color = "Bug"), alpha = alpha)
-    gg <- gg + geom_bar(data=dataP, stat="count", aes(color = "Test"), alpha = alpha)
+    gg <- gg + geom_bar(data=dataA, stat="count", aes(color = "Bug"), alpha = alpha, fill="red", size=0.8)
+    gg <- gg + geom_bar(data=dataP, stat="count", aes(color = "Test"), alpha = alpha, fill="green", size=0.8)
     gg <- gg + scale_colour_manual(values=c(Bug="red", Test="green"), name = "Plot Color")
     #
     gg <- gg + guides(color = guide_legend(title="Legend"), linetype = guide_legend(title="Legend"))
@@ -416,38 +415,7 @@ strategy_run_histogram_plot <- function(result, fileName) {
     y = "Frequency")
 
     fileName <- paste(fileName, "strat_histogram.png", sep="-")
-    ggsave(fileName, width=12, height=4, units='in', dpi="retina")
-
-
-
-    # p <- ggplot(data=result, mapping=aes(x=result$A))
-    # p + geom_histogram(
-    #     alpha=0.7,
-    #     stat="count",
-    #     position="identity",
-    #     # mapping=aes(y=result$P, color="yellow")
-    # ) +
-    # geom_histogram(
-    #     alpha=0.7,
-    #     stat="count",
-    #     position="identity",
-    #     # mapping=aes(y=result$P, color="yellow")
-    # ) +
-    # geom_density(alpha=0.4) +
-    # # geom_vline(
-    # #     aes(xintercept=7.5),
-    # #     color="black",
-    # #     linetype="dashed",
-    # #     size=1) +
-    # # labs(x=feature, y = "Density")
-    #
-    # #     fill="red", colour="black", alpha=0.2) +
-    # #     # geom_histogram(stat="count", mapping=aes(result$A), fill="red", colour="black", alpha=0.2) +
-    # # geom_density() +
-    # labs(title="Frequency of Strategy in Best Individuals", x="Strategy", y="Frequency")
-    #
-    # outputPath <- paste(filename, "histogram-bestP.png", sep="-")
-    # ggsave(outputPath,  width=12, height=6, units='in', dpi="retina")
+    ggsave(fileName, width=16, height=6, units='in', dpi="retina")
 }
 
 plot_table <- function(result) {
