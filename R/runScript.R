@@ -400,7 +400,7 @@ strategy_run_histogram_plot <- function(result, fileName) {
 
     gg <- ggplot(data, aes(A))
     # gg <- gg + geom_histogram(data=dataA, stat="count", aes(color = "Bug"), alpha = alpha)
-    gg <- gg + geom_histogram(data=dataP, stat="count", aes(color = "Test"), alpha = alpha)
+    gg <- gg + geom_histogram(data=dataP, binwidth=1, aes(color = "Test"), alpha = alpha)
     gg <- gg + scale_colour_manual(values=c(Bug="red", Test="green"), name = "Plot Color")
     #
     gg <- gg + guides(color = guide_legend(title="Legend"), linetype = guide_legend(title="Legend"))
