@@ -85,9 +85,6 @@ epochal_plot <- function(result, fileName) {
     ggsave(fileName, width=8, height=5, units='in', dpi="retina")
 }
 
-
-#### EPOCH-DELTA
-
 epochal_aDelta_plot <- function(result, fileName) {
     data = data.frame(
     value = result$epoch,
@@ -156,7 +153,56 @@ epochal_pDelta_plot <- function(result, fileName) {
     ggsave(fileName, width=8, height=4, units='in', dpi="retina")
 }
 
-################################################### BEST
+################################################### BEST ##################
+################################################### BEST ##################
+################################################### BEST ##################
+################################################### BEST ##################
+################################################### BEST ##################
+
+best_p_spec_plot <- function(result, fileName) {
+    data = data.frame(
+    value = result$epoch,
+    A = result$A,
+    P = result$P,
+    finA = result$finA,
+    finP = result$finP
+    )
+
+    gg <- ggplot(data, aes(x=value))
+    gg <- gg + geom_line(aes(y=A, color = "BestBug", linetype = 'BestBug'), size = 1) # setup color name
+    gg <- gg + geom_line(aes(y=P, color = "BestTest", linetype = 'BestTest'),  size = 1)
+    gg <- gg + geom_line(aes(y=finA, color = "FinalBug", linetype = 'FinalBug'),  size = 1.2)
+    gg <- gg + geom_line(aes(y=finP, color = "FinalTest", linetype = 'FinalTest'),  size = 1.2)
+    gg <- gg + geom_point(aes(y=A), size=0.6)
+    gg <- gg + geom_point(aes(y=P), size=0.6)
+    gg <- gg + geom_point(aes(y=finP), size=0.6)
+    gg <- gg + geom_point(aes(y=finA), size=0.6)
+    gg <- gg + scale_linetype_manual(values=c(BestBug='solid', BestTest='solid', FinalBug="dotted", FinalTest="dotted"), name =
+    "Line Type")
+    gg <- gg + scale_colour_manual(values=c(BestBug="red", BestTest="green", FinalBug="red", FinalTest="green"), name = "Plot Color")
+
+    gg <- gg + guides(color = guide_legend(title="Legend"), linetype = guide_legend(title="Legend"))
+
+    gg <- gg + theme(
+    plot.title = element_text(size=16),
+    plot.subtitle = element_text(size=8),
+    plot.caption = element_text(size=6))
+    gg <- gg + labs(
+    color = 'Individuals',
+    title = sprintf("%s","Epoch Based Fitness Variation of Bug and Test"),
+    subtitle = sprintf("%s%d", "Run:", result$run),
+    caption = sprintf("%s\n%s\n%s",
+    "Best: The fittest Bug and Test in the Run",
+    "Final: The last generations best bug and test",
+    "*More Fitness Is Better"),
+    x = "Epoch",
+    y = "Fitness")
+
+    fileName <- paste(fileName, "epochal.png", sep="-")
+    ggsave(fileName, width=8, height=5, units='in', dpi="retina")
+}
+
+
 best_combined_avg_plot <- function(result, fileName) {
     p <- ggplot(data=result, mapping = aes(
         x=result$ARun,
@@ -411,12 +457,19 @@ strategy_run_histogram_plot <- function(result, fileName) {
     color = 'Individuals',
     title = sprintf("%s","Histogram of Bug and Test Strategy Selection"),
     subtitle = sprintf("%s%d", "Run:", result$run),
-    x = "Fitness",
+    x = "Strategy",
     y = "Frequency")
 
-    fileName <- paste(fileName, "strat_histogram.png", sep="-")
+    fileName <- paste(fileName, "strat_bar.png", sep="-")
     ggsave(fileName, width=16, height=6, units='in', dpi="retina")
 }
+
+
+######################################################### TABLE ###############
+######################################################### TABLE ###############
+######################################################### TABLE ###############
+######################################################### TABLE ###############
+
 
 plot_table <- function(result) {
     #Avg
@@ -506,6 +559,12 @@ plot_table <- function(result) {
     # ggsave('data.png', width=8, height=4, units='in', dpi="retina")
 }
 
+######################################################### EXECUTION ###############
+######################################################### EXECUTION ###############
+######################################################### EXECUTION ###############
+######################################################### EXECUTION ###############
+######################################################### EXECUTION ###############
+
 runGenerational <- function(generationalFiles) {
     print("Running Generational Files")
     print(length(generationalFiles))
@@ -564,22 +623,23 @@ getAllFiles <- function(workDir) {
         #
         #     bestAllCount <- bestAllCount + 1
         # }
-        # if (grepl("best-combined", file)) {
-        #     bestCombinedFileNames[bestCombinedCount] <- file
-        #     filePath <- paste(workDir, file, sep="/")
-        #     bestCombinedData = read_csv(filePath)
-        #     best_combined_avg_plot(bestCombinedData, file)
-        #
-        #     bestCombinedCount <- bestCombinedCount + 1
-        # }
-        if (grepl("strategy", file)) {
-            strategyFileNames[strategyCount] <- file
+        if (grepl("best-combined", file)) {
+            bestCombinedFileNames[bestCombinedCount] <- file
             filePath <- paste(workDir, file, sep="/")
-            strategyData = read_csv(filePath)
+            bestCombinedData = read_csv(filePath)
 
-            strategy_run_histogram_plot(strategyData, file)
-            strategyCount <- strategyCount + 1
+            best_combined_avg_plot(bestCombinedData, file)
+
+            bestCombinedCount <- bestCombinedCount + 1
         }
+        # if (grepl("strategy", file)) {
+        #     strategyFileNames[strategyCount] <- file
+        #     filePath <- paste(workDir, file, sep="/")
+        #     strategyData = read_csv(filePath)
+        #
+        #     strategy_run_histogram_plot(strategyData, file)
+        #     strategyCount <- strategyCount + 1
+        # }
 
     }
     generationalFileNames2 <- generationalFileNames
