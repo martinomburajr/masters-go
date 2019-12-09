@@ -321,7 +321,7 @@ generational_density_plot <- function(result, fileName) {
     dataA = data.frame(A = result$AGenFitAvg)
 
     gg <- ggplot(data, aes(A))
-    gg <- gg + geom_density(data=dataA, kernel = "gaussian", aes(color = "Bug", linetype = 'Bug'), alpha = 0.2)
+        gg <- gg + geom_density(data=dataA, kernel = "gaussian", aes(color = "Bug", linetype = 'Bug'), alpha = 0.2)
     gg <- gg + geom_density(data=dataP, kernel = "gaussian", aes(color = "Test", linetype = 'Test'), alpha = 0.2)
 
     gg <- gg + geom_vline(aes(xintercept=mean(A), color = "Bug"), linetype = 'dotted', size=0.7)
@@ -389,7 +389,6 @@ generational_density_histogram_plot <- function(result, fileName) {
 
 strategy_run_histogram_plot <- function(result, fileName) {
     data = data.frame(
-        value = result$A,
         A = result$A,
         P = result$P
     )
@@ -399,8 +398,8 @@ strategy_run_histogram_plot <- function(result, fileName) {
     binW <- 0.002
 
     gg <- ggplot(data, aes(A))
-    # gg <- gg + geom_histogram(data=dataA, stat="count", aes(color = "Bug"), alpha = alpha)
-    gg <- gg + geom_histogram(data=dataP, binwidth=1, aes(color = "Test"), alpha = alpha)
+    gg <- gg + geom_bar(data=dataA, stat="count", aes(color = "Bug"), alpha = alpha)
+    gg <- gg + geom_bar(data=dataP, stat="count", aes(color = "Test"), alpha = alpha)
     gg <- gg + scale_colour_manual(values=c(Bug="red", Test="green"), name = "Plot Color")
     #
     gg <- gg + guides(color = guide_legend(title="Legend"), linetype = guide_legend(title="Legend"))

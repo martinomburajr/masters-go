@@ -643,7 +643,7 @@ func (s *Simulation) StrategyInRun(params evolution.EvolutionParams) (runStrateg
 			antStrat = string(antagonist.Strategy[j])
 		}
 		if j < len(protagonist.Strategy) {
-			proStrat = string(antagonist.Strategy[j])
+			proStrat = string(protagonist.Strategy[j])
 		}
 		if j < len(finalAntagonist.Strategy) {
 			finAntStrat = string(finalAntagonist.Strategy[j])
