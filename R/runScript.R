@@ -202,35 +202,50 @@ best_p_spec_plot <- function(result, fileName) {
     ggsave(fileName, width=8, height=5, units='in', dpi="retina")
 }
 
+################################################### BEST_COMBINED ##################
+################################################### BEST_COMBINED ##################
+################################################### BEST_COMBINED ##################
+################################################### BEST_COMBINED ##################
+
 
 best_combined_avg_plot <- function(result, fileName) {
-    p <- ggplot(data=result, mapping = aes(
-        x=result$ARun,
-        y=result$AAvg)
+    data = data.frame(
+        value = result$ARun,
+        A = result$AAvg,
+        P = result$PAvg,
+        finA = result$ABestFit,
+        finP = result$PBestFit
     )
 
-    p + labs(title = sprintf("%s", "Best Individual per Run "),
-    x = "Run", y = "Fitness") +
+    gg <- ggplot(data, aes(x=value))
+    gg <- gg + geom_line(aes(y=A, color = "AvgBug", linetype = 'AvgBug'), size = 1) # setup color name
+    gg <- gg + geom_line(aes(y=P, color = "AvgTest", linetype = 'AvgTest'),  size = 1)
+    gg <- gg + geom_line(aes(y=finA, color = "BestBug", linetype = 'BestBug'),  size = 1.2)
+    gg <- gg + geom_line(aes(y=finP, color = "BestTest", linetype = 'BestTest'),  size = 1.2)
+    gg <- gg + geom_point(aes(y=A), size=0.6)
+    gg <- gg + geom_point(aes(y=P), size=0.6)
+    gg <- gg + geom_point(aes(y=finP), size=0.6)
+    gg <- gg + geom_point(aes(y=finA), size=0.6)
+    gg <- gg + scale_linetype_manual(values=c(AvgBug='solid', AvgTest='solid', BestBug="dotted", BestTest="dotted"), name =
+    "Line Type")
+    gg <- gg + scale_colour_manual(values=c(AvgBug="red", AvgTest="green", BestBug="red", BestTest="green"), name = "Plot Color")
 
-    geom_line(aes(x=result$ARun,y=result$AAvg),
-    color="red"
-    ) +
+    gg <- gg + guides(color = guide_legend(title="Legend"), linetype = guide_legend(title="Legend"))
 
-    # topProtagonistReference Plot
-    geom_line(aes(x=result$ARun,y=result$PAvg),
-    color="green"
-    ) +
-
-    geom_line(aes(x=result$ARun,y=result$ABestFit),
-    color="red",
-    linetype="dashed"
-    ) +
-
-    # topProtagonistReference Plot
-    geom_line(aes(x=result$ARun,y=result$PBestFit),
-    color="green",
-    linetype="dashed"
-    )
+    gg <- gg + theme(
+    plot.title = element_text(size=16),
+    plot.subtitle = element_text(size=8),
+    plot.caption = element_text(size=6))
+    gg <- gg + labs(
+    color = 'Individuals',
+    title = sprintf("%s","Generation Average and Best Individual Per Run"),
+    subtitle = sprintf("%s%d", "Run:", result$run),
+    caption = sprintf("%s\n%s\n%s",
+    "Avg: The run average for every generation for each kind of individual",
+    "Best: The fittest Bug and Test in the Run",
+    "*More Fitness Is Better"),
+    x = "Run",
+    y = "Fitness")
 
     fileName <- paste(fileName, "best-combined_avg.png", sep="-")
     ggsave(fileName, width=8, height=4, units='in', dpi="retina")
@@ -238,38 +253,63 @@ best_combined_avg_plot <- function(result, fileName) {
 
     ## Pass in best-all.csv
 best_all_function_plot <- function(result, fileName) {
-    p <- ggplot(data = data.frame(x = result$seed), mapping = aes(x = x))
+    gg <- ggplot(data = data.frame(x = 0), mapping = aes(x = result$range))
 
-    specEquation <- function(x){eval(parse(text=result$spec))}
+    specEquation <- function(x){eval(parse(text=result$specEquation))}
     ultAntagonistEquation <- function(x){eval(parse(text=result$AEquation))}
     ultProtagonistEquation <- function(x){eval(parse(text=result$PEquation))}
 
     #spec
-    p + layer(geom = "path",        # Default. Can be omitted.
-            stat = "function",
-            fun = specEquation,          # Give function
-            mapping = aes(color = "specEquation") # Give a meaningful name to color
-            ) +
-
-    layer(geom = "path",        # Default. Can be omitted.
+    gg <- gg + stat_function(
         stat = "function",
-        fun = ultAntagonistEquation,          # Give function
-        mapping = aes(color = "ultAntagonistEquation") # Give a meaningful name to color
-    ) +
-
-    layer(geom = "path",        # Default. Can be omitted.
+        fun = specEquation,
+        mapping = aes(color="Spec", linetype="Spec"),
+        size=1.3
+    )
+    gg <- gg + stat_function(
         stat = "function",
-        fun = ultProtagonistEquation,          # Give function
-        mapping = aes(color = "ultProtagonistEquation") # Give a meaningful name to color
-    ) +
+        fun = ultAntagonistEquation,
+        mapping = aes(color = "BestBugEquation", linetype="BestBugEquation")
+    )
+    gg <- gg + stat_function(
+        stat = "function",
+        fun = ultProtagonistEquation,
+        mapping = aes(color = "BestTestEquation", linetype="BestTestEquation")
+    )
 
-    scale_x_continuous(limits=c(result$seed,result$seed + result$range)) +
-    scale_color_manual(name = "Functions",
-        values = c("black", "red", "green"),
-        labels = c(specEquation, ultAntagonistEquation, ultProtagonistEquation))
+    gg <- gg + scale_x_continuous(limits=c(result$seed, result$seed + result$range))
+    gg <- gg + scale_linetype_manual(
+        name = "Line Type",
+        values=c(Spec='dotted', BestBugEquation='solid', BestTestEquation="solid")
+    )
+    gg <- gg + scale_color_manual(
+        name = "Functions",
+        values = c(Spec="black", BestBugEquation="red", BestTestEquation="green")
+    )
+
+    gg <- gg + guides(color = guide_legend(title="Legend"), linetype = guide_legend(title="Legend"))
+
+    gg <- gg + theme(
+    plot.title = element_text(size=16),
+    plot.subtitle = element_text(size=12),
+    plot.caption = element_text(size=10))
+    gg <- gg + labs(
+        color = 'Individuals',
+        title = sprintf("%s","Resulting Best Equation For Bug and Test against Spec"),
+        subtitle = sprintf("Spec: %s", result$specEquation),
+        caption = sprintf(
+        "BestBug: %s\nBestTest: %s\nRange: [%d, %d]\n%s",
+        toString(result$AEquation),
+        toString(result$PEquation),
+        result$seed,
+        result$seed + result$range,
+        "*Closer mapping on to spec is better"),
+        x = "X",
+        y = "Y"
+    )
 
     fileName <- paste(fileName, "best-all.png", sep="-")
-    ggsave(fileName, width=8, height=4, units='in', dpi="retina")
+    ggsave(fileName, width=10, height=6, units='in', dpi="retina")
 }
 
 
@@ -615,23 +655,23 @@ getAllFiles <- function(workDir) {
         #
         #     epochalcount <- epochalcount + 1
         # }
-        # if (grepl("best-all", file)) {
-        #     bestAllFileNames[bestAllCount] <- file
-        #     filePath <- paste(workDir, file, sep="/")
-        #     bestAllData = read_csv(filePath)
-        #     best_all_function_plot(bestAllData, file)
-        #
-        #     bestAllCount <- bestAllCount + 1
-        # }
-        if (grepl("best-combined", file)) {
-            bestCombinedFileNames[bestCombinedCount] <- file
+        if (grepl("best-all", file)) {
+            bestAllFileNames[bestAllCount] <- file
             filePath <- paste(workDir, file, sep="/")
-            bestCombinedData = read_csv(filePath)
+            bestAllData = read_csv(filePath)
+            best_all_function_plot(bestAllData, file)
 
-            best_combined_avg_plot(bestCombinedData, file)
-
-            bestCombinedCount <- bestCombinedCount + 1
+            bestAllCount <- bestAllCount + 1
         }
+        # if (grepl("best-combined", file)) {
+        #     bestCombinedFileNames[bestCombinedCount] <- file
+        #     filePath <- paste(workDir, file, sep="/")
+        #     bestCombinedData = read_csv(filePath)
+        #
+        #     best_combined_avg_plot(bestCombinedData, file)
+        #
+        #     bestCombinedCount <- bestCombinedCount + 1
+        # }
         # if (grepl("strategy", file)) {
         #     strategyFileNames[strategyCount] <- file
         #     filePath <- paste(workDir, file, sep="/")
