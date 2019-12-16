@@ -677,7 +677,7 @@ func (s *Simulation) SimulationBestStrategy(params evolution.EvolutionParams) (s
 
 	bestActualIndividuals, err := s.SimulationBestActualIndividuals(params)
 	if err != nil {
-		return nil, err
+		return nil, err	
 	}
 
 	protagonist := bestActualIndividuals.Protagonist

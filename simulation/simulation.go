@@ -330,11 +330,10 @@ func PrepareSimulation(params evolution.EvolutionParams, count int) *evolution.E
 
 	var outputPath string
 	var folder string
-	timeStr := engine.Parameters.InternalCount
+	//timeStr := engine.Parameters.InternalCount
 
 	folder = fmt.Sprintf("data/%s/", engine.Parameters.ToString())
-	outputPath = fmt.Sprintf("%s%d", folder,
-		timeStr)
+	outputPath = fmt.Sprintf("%s", folder)
 
 	engine.Parameters.StatisticsOutput.OutputDir = folder
 	engine.Parameters.StatisticsOutput.OutputPath = outputPath
@@ -371,7 +370,7 @@ func (s *Simulation) BeginToil(indexFile string) error {
 									AntagonistStrategyCountIndex; antagonistStrategyCountIndex < len(
 									AllAntagonistStrategyCount); antagonistStrategyCountIndex++ {
 									for protagonisttStrategyCountIndex := loadedIndex.
-										ProtagonisttStrategyCountIndex; protagonisttStrategyCountIndex < len(
+										ProStratCountInd; protagonisttStrategyCountIndex < len(
 										AllProtagonistStrategyCount); protagonisttStrategyCountIndex++ {
 										//for availableStrategyIndex = 0; availableStrategyIndex < len(AllAvailableStrategy); availableStrategyIndex++ {
 										for fitnessStrategyTypeIndex := loadedIndex.
@@ -444,21 +443,21 @@ func (s *Simulation) BeginToil(indexFile string) error {
 																		indexProgress := IndexProgress{
 																			NumberOfRunsPerState:           numberOfRunsPerState,
 																			AllDepthOfRandomNewTreeIndex:   allDepthOfRandomNewTreeIndex,
-																			AntagonistStrategyCountIndex:   antagonistStrategyCountIndex,
-																			EachPopulationIndex:            eachPopulationIndex,
-																			ExpressionIndex:                expressionIndex,
-																			FitnessStrategyTypeIndex:       fitnessStrategyTypeIndex,
-																			FitStratAntThresMultIndex:      fitStratAntThresMultIndex,
-																			FitStratProtThreshMultIndex:    fitStratProtThreshMultIndex,
-																			GenerationsCountIndex:          generationsCountIndex,
-																			ProtagonisttStrategyCountIndex: protagonisttStrategyCountIndex,
-																			RangesIndex:                    rangesIndex,
-																			ReproductionIndex:              reproductionIndex,
-																			SeedIndex:                      seedIndex,
-																			SelectParentTypeIndex:          selectParentTypeIndex,
-																			SelectSurvivorPercentIndex:     selectSurvivorPercentIndex,
-																			StrategiesAntagonistIndex:      strategiesAntagonistIndex,
-																			StrategiesProtagonistIndex:     strategiesProtagonistIndex,
+																			AntagonistStrategyCountIndex: antagonistStrategyCountIndex,
+																			EachPopulationIndex:          eachPopulationIndex,
+																			ExpressionIndex:              expressionIndex,
+																			FitnessStrategyTypeIndex:     fitnessStrategyTypeIndex,
+																			FitStratAntThresMultIndex:    fitStratAntThresMultIndex,
+																			FitStratProtThreshMultIndex:  fitStratProtThreshMultIndex,
+																			GenerationsCountIndex:        generationsCountIndex,
+																			ProStratCountInd:             protagonisttStrategyCountIndex,
+																			RangesIndex:                  rangesIndex,
+																			ReproductionIndex:            reproductionIndex,
+																			SeedIndex:                    seedIndex,
+																			SelectParentTypeIndex:        selectParentTypeIndex,
+																			SelectSurvivorPercentIndex:   selectSurvivorPercentIndex,
+																			StrategiesAntagonistIndex:    strategiesAntagonistIndex,
+																			StrategiesProtagonistIndex:   strategiesProtagonistIndex,
 																		}
 																		err = WriteIndexProgressToFile(indexProgress, indexFile)
 																		if err != nil {
@@ -491,6 +490,122 @@ func (s *Simulation) BeginToil(indexFile string) error {
 	return nil
 }
 
+// SpewJSON enables the creation of multiple JSON files containing parameter information
+func (s *Simulation) SpewJSON() error {
+	s.NumberOfRunsPerState = 20
+	//var li IndexProgress = IndexProgress{
+	//	ExpressionIndex:              0,
+	//	RangesIndex:                  0,
+	//	SeedIndex:                    0,
+	//	GenerationsCountIndex:        0,
+	//	EachPopulationIndex:          0,
+	//	ReproductionIndex:            0,
+	//	AllDepthOfRandomNewTreeIndex: 0,
+	//	AntagonistStrategyCountIndex: 0,
+	//	ProStratCountInd:             0,
+	//	FitnessStrategyTypeIndex:     0,
+	//	FitStratAntThresMultIndex:    0,
+	//	FitStratProtThreshMultIndex:  0,
+	//	SelectParentTypeIndex:        0,
+	//	SelectSurvivorPercentIndex:   0,
+	//	StrategiesAntagonistIndex:    0,
+	//	StrategiesProtagonistIndex:   0,
+	//	NumberOfRunsPerState:         0,
+	//}
+
+	os.Mkdir("_params", 0775)
+
+	counter := 0
+
+	for expressionIndex := 0; expressionIndex < len(AllExpressions); expressionIndex++ {
+	for rangesIndex := 0; rangesIndex < len(AllRanges); rangesIndex++ {
+	for seedIndex := 0; seedIndex < len(AllSeed); seedIndex++ {
+	for generationsCountIndex := 0; generationsCountIndex < len(AllGenerationsCount); generationsCountIndex++ {
+	for eachPopulationIndex := 0; eachPopulationIndex < len(AllEachPopulationSize); eachPopulationIndex++ {
+	for reproductionIndex := 0; reproductionIndex < len(AllReproduction); reproductionIndex++ {
+	for newTreeIndex := 0; newTreeIndex < len(AllDepthOfRandomNewTree); newTreeIndex++ {
+	for antStratIndex := 0; antStratIndex < len(AllAntagonistStrategyCount); antStratIndex++ {
+	for proStratIndex := 0; proStratIndex < len(AllProtagonistStrategyCount); proStratIndex++ {
+	//for availableStrategyIndex = 0; availableStrategyIndex < len(AllAvailableStrategy); availableStrategyIndex++ {
+	for fitnessStrategyTypeIndex := 0; fitnessStrategyTypeIndex < len(AllFitnessStrategyType); fitnessStrategyTypeIndex++ {
+	for fitStratAntThresMultIndex := 0; fitStratAntThresMultIndex < len(AllFitStratAntThreshMult); fitStratAntThresMultIndex++ {
+	for fitStratProtThreshMultIndex := 0; fitStratProtThreshMultIndex < len(AllFitStratProThreshMult); fitStratProtThreshMultIndex++ {
+	for selectParentTypeIndex := 0; selectParentTypeIndex < len(AllSelectionSurvivorPercentage); selectParentTypeIndex++ {
+	for strategiesAntagonistIndex := 0; strategiesAntagonistIndex < len(AllPossibleStrategies); strategiesAntagonistIndex++ {
+	for strategiesProtagonistIndex := 0; strategiesProtagonistIndex < len(AllPossibleStrategies); strategiesProtagonistIndex++ {
+	for divByZeroPenaltyIndex := 0; divByZeroPenaltyIndex < len(AllDivByZeroPenalty); divByZeroPenaltyIndex++ {
+	for divByZeroStrategyIndex := 0; divByZeroStrategyIndex < len(AllDivByZeroStrategy); divByZeroStrategyIndex++ {
+	for tournSelSizeInd := 0; tournSelSizeInd < len(AllTournamentSizesType); tournSelSizeInd++ {
+	for survPercIndex := 0; survPercIndex < len(AllSelectionSurvivorPercentage); survPercIndex++ {
+
+		// TODO Add Parallelism
+		params := evolution.EvolutionParams{
+			GenerationsCount:   AllGenerationsCount[generationsCountIndex],
+			EachPopulationSize: AllEachPopulationSize[eachPopulationIndex],
+			SpecParam: evolution.SpecParam{
+				Seed:       AllSeed[seedIndex],
+				Expression: AllExpressions[expressionIndex],
+				Range:      AllRanges[rangesIndex],
+				AvailableVariablesAndOperators: evolution.AvailableVariablesAndOperators{
+					Constants: []string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"},
+					Variables: []string{"x"},
+					Operators: []string{"*", "+", "-"},
+				},
+				DivideByZeroStrategy: AllDivByZeroStrategy[divByZeroStrategyIndex],
+				DivideByZeroPenalty:  AllDivByZeroPenalty[divByZeroPenaltyIndex],
+			},
+			Reproduction: AllReproduction[reproductionIndex],
+			Strategies: evolution.Strategies{
+				AntagonistAvailableStrategies:  AllPossibleStrategies[strategiesAntagonistIndex],
+				ProtagonistAvailableStrategies: AllPossibleStrategies[strategiesProtagonistIndex],
+				AntagonistStrategyCount:        AllAntagonistStrategyCount[antStratIndex],
+				ProtagonistStrategyCount:       AllProtagonistStrategyCount[proStratIndex],
+			},
+			Selection: evolution.Selection{
+				Survivor: evolution.SurvivorSelection{
+					Type:               "SteadyState",
+					SurvivorPercentage: AllSelectionSurvivorPercentage[survPercIndex],
+				},
+				Parent: evolution.ParentSelection{
+					Type:           evolution.ParentSelectionTournament,
+					TournamentSize: AllTournamentSizesType[tournSelSizeInd],
+				},
+			},
+			FitnessStrategy: evolution.FitnessStrategy{
+				Type:                           AllFitnessStrategyType[fitnessStrategyTypeIndex],
+				AntagonistThresholdMultiplier:  AllFitStratAntThreshMult[fitStratAntThresMultIndex],
+				ProtagonistThresholdMultiplier: AllFitStratProThreshMult[fitStratProtThreshMultIndex],
+			},
+			StatisticsOutput: evolution.StatisticsOutput{
+				OutputPath: "",
+			},
+		}
+
+		fmt.Printf("Loaded: %s\n", params.ToString())
+
+		engine := PrepareSimulation(params, 0)
+		outputPath := fmt.Sprintf("%s%s",
+			engine.Parameters.
+			StatisticsOutput.
+			OutputPath[:len(engine.Parameters.StatisticsOutput.OutputPath)-1], ".json")
+		outputPath2 := strings.ReplaceAll(outputPath, "data/", "_params/")
+
+		file, err := os.Create(outputPath2)
+		if err != nil {
+			return fmt.Errorf(err.Error())
+		}
+		err = json.NewEncoder(file).Encode(params)
+		if err != nil {
+			return fmt.Errorf(err.Error())
+		}
+		counter++
+
+		}}}}}}}}}}}}}}}}}}}
+
+	fmt.Printf("WROTE %d files", counter)
+	return nil
+}
+
 func WriteIndexProgressToFile(indexProgress IndexProgress, indexFile string) error {
 	file, err := os.Create(indexFile)
 	if err != nil {
@@ -500,21 +615,24 @@ func WriteIndexProgressToFile(indexProgress IndexProgress, indexFile string) err
 }
 
 type IndexProgress struct {
-	ExpressionIndex                int `expressionIndex`
-	RangesIndex                    int `json:"rangesIndex"`
-	SeedIndex                      int `json:"seedIndex"`
-	GenerationsCountIndex          int `json:"generationsCountIndex"`
-	EachPopulationIndex            int `json:"eachPopulationIndex"`
-	ReproductionIndex              int `json:"reproductionIndex"`
-	AllDepthOfRandomNewTreeIndex   int `json:"allDepthOfRandomNewTreeIndex"`
-	AntagonistStrategyCountIndex   int `json:"antagonistStrategyCountIndex"`
-	ProtagonisttStrategyCountIndex int `json:"protagonisttStrategyCountIndex"`
-	FitnessStrategyTypeIndex       int `json:"fitnessStrategyTypeIndex"`
-	FitStratAntThresMultIndex      int `json:"fitStratAntThresMultIndex"`
-	FitStratProtThreshMultIndex    int `json:"fitStratProtThreshMultIndex"`
-	SelectParentTypeIndex          int `json:"selectParentTypeIndex"`
-	SelectSurvivorPercentIndex     int `json:"selectSurvivorPercentIndex"`
-	StrategiesAntagonistIndex      int `json:"strategiesAntagonistIndex"`
-	StrategiesProtagonistIndex     int `json:"strategiesProtagonistIndex"`
+	ExpressionIndex              int `expressionIndex`
+	RangesIndex                  int `json:"rangesIndex"`
+	SeedIndex                    int `json:"seedIndex"`
+	GenerationsCountIndex        int `json:"generationsCountIndex"`
+	EachPopulationIndex          int `json:"eachPopulationIndex"`
+	ReproductionIndex            int `json:"reproductionIndex"`
+	AllDepthOfRandomNewTreeIndex int `json:"allDepthOfRandomNewTreeIndex"`
+	AntagonistStrategyCountIndex int `json:"antagonistStrategyCountIndex"`
+	ProStratCountInd             int `json:"protagonisttStrategyCountIndex"`
+	FitnessStrategyTypeIndex     int `json:"fitnessStrategyTypeIndex"`
+	FitStratAntThresMultIndex    int `json:"fitStratAntThresMultIndex"`
+	FitStratProtThreshMultIndex  int `json:"fitStratProtThreshMultIndex"`
+	SelectParentTypeIndex        int `json:"selectParentTypeIndex"`
+	SelectSurvivorPercentIndex   int `json:"selectSurvivorPercentIndex"`
+	StrategiesAntagonistIndex    int `json:"strategiesAntagonistIndex"`
+	StrategiesProtagonistIndex   int `json:"strategiesProtagonistIndex"`
+	DivByZeroStrategy int `json:"divByZeroStrategy"`
+	DivByZeroPenalty int `json:"divByZeroPenalty"`
+	TournamentSelectionIndex int `json:"tournamentSelectionIndex"`
 	NumberOfRunsPerState           int `json:"numberOfRunsPerState"`
 }

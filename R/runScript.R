@@ -293,7 +293,7 @@ best_all_function_plot <- function(result, fileName) {
     plot.title = element_text(size=16),
     plot.subtitle = element_text(size=12),
     plot.caption = element_text(size=10))
-    gg <- gg + labs(
+    gg <- gg + labs (
         color = 'Individuals',
         title = sprintf("%s","Resulting Best Equation For Bug and Test against Spec"),
         subtitle = sprintf("Spec: %s", result$specEquation),
@@ -680,7 +680,6 @@ getAllFiles <- function(workDir) {
         #     strategy_run_histogram_plot(strategyData, file)
         #     strategyCount <- strategyCount + 1
         # }
-
     }
     generationalFileNames2 <- generationalFileNames
     print(length(generationalFileNames))

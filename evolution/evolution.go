@@ -36,43 +36,7 @@ type EvolutionParams struct {
 	InternalCount int
 }
 
-func (e EvolutionParams) ToString() string {
-	builder := strings.Builder{}
-	//Input Program
-	expressionStr := strings.ReplaceAll(
-		strings.ReplaceAll(
-			strings.ReplaceAll(
-				strings.ReplaceAll(e.SpecParam.Expression, "*", ""),
-				"+", "+"),
-			"-", "-"),
-		"/", "DIV")
-	builder.WriteString(fmt.Sprintf("%sRan%dSeed%d", expressionStr, e.SpecParam.Range, e.SpecParam.Seed))
-	builder.WriteString("-")
-	// GenCount
-	builder.WriteString(fmt.Sprintf("G%d", e.GenerationsCount))
-	builder.WriteString("-")
-	// Population Size
-	builder.WriteString(fmt.Sprintf("P%d", e.EachPopulationSize))
-	builder.WriteString("-")
-	// Fitness
-	fitness := strings.ReplaceAll(e.FitnessStrategy.Type, "Fitness", "")
-	builder.WriteString(strings.ReplaceAll(fmt.Sprintf("F%sa%.2fp%.2f",
-		fitness[:len(fitness)/2], e.FitnessStrategy.AntagonistThresholdMultiplier,
-		e.FitnessStrategy.ProtagonistThresholdMultiplier), ".", ""))
-	builder.WriteString("-")
-	//Parent
-	builder.WriteString(fmt.Sprintf("ParTyp%sTSiz%d", e.Selection.Parent.Type, e.Selection.Parent.TournamentSize))
-	builder.WriteString("-")
-	//Survivor
-	builder.WriteString(strings.ReplaceAll(fmt.Sprintf("SurTyp%sPer%.2f", e.Selection.Survivor.Type,
-		e.Selection.Survivor.SurvivorPercentage), ".", ""))
-	builder.WriteString("-")
-	// ReproductionPercentage
-	builder.WriteString(strings.ReplaceAll(fmt.Sprintf("ReprCro%.2fMut%.2f", e.Reproduction.CrossoverPercentage,
-		e.Reproduction.ProbabilityOfMutation), ".", ""))
 
-	return builder.String()
-}
 
 type StatisticsOutput struct {
 	OutputPath string `json:"outputPath"`
@@ -265,4 +229,69 @@ func (e *EvolutionEngine) validate() error {
 		return fmt.Errorf("a small spec will hamper evolutionary accuracy")
 	}
 	return nil
+}
+
+
+func (e EvolutionParams) ToString() string {
+	builder := strings.Builder{}
+	//Input Program
+	expressionStr := strings.ReplaceAll(
+		strings.ReplaceAll(
+			strings.ReplaceAll(
+				strings.ReplaceAll(e.SpecParam.Expression, "*", ""),
+				"+", "+"),
+			"-", "-"),
+		"/", "DIV")
+	builder.WriteString(fmt.Sprintf("%sR%dS%d", expressionStr, e.SpecParam.Range, e.SpecParam.Seed))
+	builder.WriteString("-")
+	// GenCount
+	builder.WriteString(fmt.Sprintf("G%d", e.GenerationsCount))
+	builder.WriteString("-")
+	// Population Size
+	builder.WriteString(fmt.Sprintf("P%d", e.EachPopulationSize))
+	builder.WriteString("-")
+	// Fitness
+	fitness := strings.ReplaceAll(e.FitnessStrategy.Type, "Fitness", "")
+	builder.WriteString(strings.ReplaceAll(fmt.Sprintf("F%sa%.2fp%.2f",
+		fitness[:len(fitness)/2], e.FitnessStrategy.AntagonistThresholdMultiplier,
+		e.FitnessStrategy.ProtagonistThresholdMultiplier), ".", ""))
+	builder.WriteString("-")
+	//Parent
+	builder.WriteString(fmt.Sprintf("P%sTSz%d", e.Selection.Parent.Type, e.Selection.Parent.TournamentSize))
+	builder.WriteString("-")
+	//Survivor
+	builder.WriteString(strings.ReplaceAll(fmt.Sprintf("S%sPr%.2f", e.Selection.Survivor.Type,
+		e.Selection.Survivor.SurvivorPercentage), ".", ""))
+	builder.WriteString("-")
+	// ReproductionPercentage
+	builder.WriteString(strings.ReplaceAll(fmt.Sprintf("ReprCro%.2fMut%.2f", e.Reproduction.CrossoverPercentage,
+		e.Reproduction.ProbabilityOfMutation), ".", ""))
+	builder.WriteString("-")
+	// StrategyCount
+	builder.WriteString(fmt.Sprintf("StraProCou%dStraAntCou%d", e.Strategies.ProtagonistStrategyCount, e.Strategies.AntagonistStrategyCount))
+	builder.WriteString("-")
+	antStrat := TruncShort(e.Strategies.AntagonistAvailableStrategies)
+	proStrat := TruncShort(e.Strategies.ProtagonistAvailableStrategies)
+	builder.WriteString(fmt.Sprintf("AAvaiSt%sAvaiSt%s", antStrat, proStrat))
+	builder.WriteString("-")
+
+
+	// Spec
+	builder.WriteString(fmt.Sprintf("Div0Pen%div0Strat%s", e.SpecParam.DivideByZeroPenalty,
+		e.SpecParam.DivideByZeroStrategy))
+	builder.WriteString("-")
+	builder.WriteString(fmt.Sprintf("Div0Pen%div0Strat%s", e.SpecParam.DivideByZeroPenalty,
+		e.SpecParam.DivideByZeroStrategy))
+	builder.WriteString("-")
+	return builder.String()
+}
+
+func TruncShort(s []Strategy) string {
+	sb := strings.Builder{}
+
+	for _, str := range s {
+		sb.WriteByte(str[0])
+	}
+
+	return sb.String()
 }
