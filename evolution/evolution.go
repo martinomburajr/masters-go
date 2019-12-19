@@ -10,8 +10,8 @@ type EvolutionParams struct {
 	// StartIndividual - Output Only - This is set by the SpecParam Expression. Do not set it manually
 	StartIndividual Program
 	// Spec - Output Only - This is set by the SpecParam Expression. Do not set it manually
-	Spec             SpecMulti `json:"generationCount"`
-	SpecParam        SpecParam `json:"spec"`
+	Spec             SpecMulti `json:"spec"`
+	SpecParam        SpecParam `json:"specParam"`
 	GenerationsCount int       `json:"generationCount"`
 	// EachPopulationSize represents the size of each protagonist or antagonist population.
 	// This value must be even otherwise pairwise operations such as crossover will fail
@@ -31,7 +31,7 @@ type EvolutionParams struct {
 	// ShouldRunInteractiveTerminal ensures the interactive terminal is run at the end of the evolution that allows
 	// users to query all individuals in all generations.
 	ShouldRunInteractiveTerminal bool             `json:"shouldRunInteractiveTerminal"`
-	StatisticsOutput             StatisticsOutput `json:"shouldRunInteractiveTerminal"`
+	StatisticsOutput             StatisticsOutput `json:"statisticsOutput"`
 	// InternalCount - Output Only (Helps with file name assignments)
 	InternalCount int
 }
@@ -257,32 +257,32 @@ func (e EvolutionParams) ToString() string {
 		e.FitnessStrategy.ProtagonistThresholdMultiplier), ".", ""))
 	builder.WriteString("-")
 	//Parent
-	builder.WriteString(fmt.Sprintf("P%sTSz%d", e.Selection.Parent.Type, e.Selection.Parent.TournamentSize))
+	builder.WriteString(fmt.Sprintf("P%sTSz%d", e.Selection.Parent.Type[0:2], e.Selection.Parent.TournamentSize))
 	builder.WriteString("-")
 	//Survivor
-	builder.WriteString(strings.ReplaceAll(fmt.Sprintf("S%sPr%.2f", e.Selection.Survivor.Type,
+	builder.WriteString(strings.ReplaceAll(fmt.Sprintf("S%sPr%.2f", e.Selection.Survivor.Type[0:2],
 		e.Selection.Survivor.SurvivorPercentage), ".", ""))
 	builder.WriteString("-")
 	// ReproductionPercentage
-	builder.WriteString(strings.ReplaceAll(fmt.Sprintf("ReprCro%.2fMut%.2f", e.Reproduction.CrossoverPercentage,
+	builder.WriteString(strings.ReplaceAll(fmt.Sprintf("Cro%.2fMut%.2f", e.Reproduction.CrossoverPercentage,
 		e.Reproduction.ProbabilityOfMutation), ".", ""))
 	builder.WriteString("-")
 	// StrategyCount
-	builder.WriteString(fmt.Sprintf("StraProCou%dStraAntCou%d", e.Strategies.ProtagonistStrategyCount, e.Strategies.AntagonistStrategyCount))
+	builder.WriteString(fmt.Sprintf("PSc%dASc%d", e.Strategies.ProtagonistStrategyCount,
+		e.Strategies.AntagonistStrategyCount))
 	builder.WriteString("-")
-	antStrat := TruncShort(e.Strategies.AntagonistAvailableStrategies)
-	proStrat := TruncShort(e.Strategies.ProtagonistAvailableStrategies)
-	builder.WriteString(fmt.Sprintf("AAvaiSt%sAvaiSt%s", antStrat, proStrat))
+	//antStrat := TruncShort(e.Strategies.AntagonistAvailableStrategies)
+	//proStrat := TruncShort(e.Strategies.ProtagonistAvailableStrategies)
+	//builder.WriteString(fmt.Sprintf("AAvaiSt%sAvaiSt%s", antStrat, proStrat))
 	builder.WriteString("-")
 
 
 	// Spec
-	builder.WriteString(fmt.Sprintf("Div0Pen%div0Strat%s", e.SpecParam.DivideByZeroPenalty,
+	builder.WriteString(fmt.Sprintf("D0P%dD0S%s", e.SpecParam.DivideByZeroPenalty,
 		e.SpecParam.DivideByZeroStrategy))
 	builder.WriteString("-")
-	builder.WriteString(fmt.Sprintf("Div0Pen%div0Strat%s", e.SpecParam.DivideByZeroPenalty,
+	builder.WriteString(fmt.Sprintf("D0P%dD0S%s", e.SpecParam.DivideByZeroPenalty,
 		e.SpecParam.DivideByZeroStrategy))
-	builder.WriteString("-")
 	return builder.String()
 }
 

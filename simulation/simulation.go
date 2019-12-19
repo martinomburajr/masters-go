@@ -15,13 +15,13 @@ import (
 )
 
 type Simulation struct {
-	CurrentEvolutionState evolution.EvolutionParams
-	NumberOfRunsPerState  int
-	Name                  string
+	CurrentEvolutionState evolution.EvolutionParams `json:"currentEvolutionState"`
+	NumberOfRunsPerState  int `json:"numberOfRunsPerState"`
+	Name                  string `json:"name"`
 	// Output-Only
-	OutputDir       string
-	RPath string
-	SimulationStats []SimulationRunStats
+	OutputDir       string `json:"outputDir"`
+	RPath string `json:"rPath"`
+	SimulationStats []SimulationRunStats `json:"simulationStats"`
 }
 
 func (s *Simulation) Begin(params evolution.EvolutionParams) (evolution.EvolutionParams, error) {

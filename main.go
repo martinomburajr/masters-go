@@ -8,6 +8,7 @@ import (
 	"github.com/martinomburajr/masters-go/simulation"
 	"log"
 	"os"
+	"path/filepath"
 )
 
 func main() {
@@ -16,12 +17,12 @@ func main() {
 	//	log.Println(err)
 	//	return
 	//}
-	s := simulation.Simulation{}
-	err := s.SpewJSON()
-	if err != nil {
-		log.Println(err)
-		return
-	}
+	//s := simulation.Simulation{}
+	//err := s.SpewJSON()
+	//if err != nil {
+	//	log.Println(err)
+	//	return
+	//}
 
 	simulation, params, err := ParseInputArguments()
 	if err != nil {
@@ -134,7 +135,7 @@ func ParseInputArguments() (simulation.Simulation, evolution.EvolutionParams, er
 
 	if *simulationPtr == "" {
 		return simulation.Simulation{}, evolution.EvolutionParams{},
-		fmt.Errorf("simulation .json file must be specified")
+ 		fmt.Errorf("simulation .json file must be specified")
 	}
 	if *paramsPtr == "" {
 		return simulation.Simulation{}, evolution.EvolutionParams{},
@@ -147,6 +148,7 @@ func ParseInputArguments() (simulation.Simulation, evolution.EvolutionParams, er
 		return simulation.Simulation{}, evolution.EvolutionParams{},
 			fmt.Errorf(err.Error())
 	}
+
 
 	paramsFile, err := os.Open(*paramsPtr)
 	if err != nil {
@@ -162,6 +164,15 @@ func ParseInputArguments() (simulation.Simulation, evolution.EvolutionParams, er
 		return simulation.Simulation{}, evolution.EvolutionParams{},
 			fmt.Errorf(err.Error())
 	}
+
+	absolutePath, err := filepath.Abs(".")
+	if err != nil {
+		log.Println(err)
+		return simulation.Simulation{}, evolution.EvolutionParams{},
+			fmt.Errorf(err.Error())
+	}
+
+	sim.RPath = fmt.Sprintf("%s%s", absolutePath, "/R/runScript.R")
 
 	err = json.NewDecoder(paramsFile).Decode(&params)
 	if err != nil {

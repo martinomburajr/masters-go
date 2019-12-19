@@ -1,0 +1,8 @@
+{
+
+  "numberOfRunsPerState": 5,
+  "name":                 "simulation-1",
+  "outputDir":            "",
+  "rPath":                "/R/runScript.R"
+
+}

@@ -11,8 +11,7 @@ var AllGenerationsCount = []int{100}
 var AllEachPopulationSize = []int{250}
 
 var AllReproduction = []evolution.Reproduction{
-	evolution.Reproduction{ProbabilityOfMutation: 0.1, CrossoverPercentage: 0.2},
-	evolution.Reproduction{ProbabilityOfMutation: 0.1, CrossoverPercentage: 0.8},
+	evolution.Reproduction{ProbabilityOfMutation: 0.1, CrossoverPercentage: 0.3},
 }
 var AllDepthOfRandomNewTree = []int{1, 3}
 var AllAntagonistStrategyCount = []int{5, 20}
