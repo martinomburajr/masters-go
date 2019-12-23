@@ -293,7 +293,7 @@ func PrepareSimulation(params evolution.EvolutionParams, count int) *evolution.E
 	// ########################### OUTPUT STATISTICS  #######################################################3
 	fmt.Printf("Generation Count: %d\n", engine.Parameters.GenerationsCount)
 	fmt.Printf("Each Individual Count: %d\n", engine.Parameters.EachPopulationSize)
-	fmt.Printf("Iteration Count: %d\n", count)
+	fmt.Printf("Iteration Count: (%d)\n", count)
 
 	switch engine.Parameters.FitnessCalculatorType {
 	case 0:

@@ -667,7 +667,8 @@ func Splitter(expressionSet []SymbolicExpression) ([]*DualTreeNode, error) {
 
 	nodeSet := make([]*DualTreeNode, len(expressionSet))
 	for e := range expressionSet {
-		nodeSet[e] = expressionSet[e].ToDualTreeNode(RandString(5))
+		s := RandString(5)
+		nodeSet[e] = expressionSet[e].ToDualTreeNode(s)
 	}
 
 	initialTrees := make([]*DualTreeNode, 0)

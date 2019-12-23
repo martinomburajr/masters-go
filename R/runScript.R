@@ -629,32 +629,32 @@ getAllFiles <- function(workDir) {
     bestCombinedCount <- 1
     strategyCount <- 1
     for (file in files) {
-        # if (grepl("generational", file)) {
-        #     generationalFileNames[count] <- file
-        #
-        #     filePath <- paste(workDir, file, sep="/")
-        #     print(filePath)
-        #     generationalData = read_csv(filePath)
-        #
-        #     generational_histogram_plot(generationalData, file)
-        #     generational_density_plot(generationalData,  file)
-        #     generational_density_histogram_plot(generationalData,  file)
-        #     generational_average_plot(generationalData,  file)
-        #     count <- count + 1
-        # }
-        # if (grepl("epochal", file)) {
-        #     epochalFileNames[epochalcount] <- file
-        #
-        #     print(file)
-        #     filePath <- paste(workDir, file, sep="/")
-        #     epochalData = read_csv(filePath)
-        #
-        #     epochal_plot(epochalData, file)
-        #     epochal_pDelta_plot(epochalData, file)
-        #     epochal_aDelta_plot(epochalData, file)
-        #
-        #     epochalcount <- epochalcount + 1
-        # }
+        if (grepl("generational", file)) {
+            generationalFileNames[count] <- file
+
+            filePath <- paste(workDir, file, sep="/")
+            print(filePath)
+            generationalData = read_csv(filePath)
+
+            generational_histogram_plot(generationalData, file)
+            generational_density_plot(generationalData,  file)
+            generational_density_histogram_plot(generationalData,  file)
+            generational_average_plot(generationalData,  file)
+            count <- count + 1
+        }
+        if (grepl("epochal", file)) {
+            epochalFileNames[epochalcount] <- file
+
+            print(file)
+            filePath <- paste(workDir, file, sep="/")
+            epochalData = read_csv(filePath)
+
+            epochal_plot(epochalData, file)
+            epochal_pDelta_plot(epochalData, file)
+            epochal_aDelta_plot(epochalData, file)
+
+            epochalcount <- epochalcount + 1
+        }
         if (grepl("best-all", file)) {
             bestAllFileNames[bestAllCount] <- file
             filePath <- paste(workDir, file, sep="/")
@@ -663,23 +663,23 @@ getAllFiles <- function(workDir) {
 
             bestAllCount <- bestAllCount + 1
         }
-        # if (grepl("best-combined", file)) {
-        #     bestCombinedFileNames[bestCombinedCount] <- file
-        #     filePath <- paste(workDir, file, sep="/")
-        #     bestCombinedData = read_csv(filePath)
-        #
-        #     best_combined_avg_plot(bestCombinedData, file)
-        #
-        #     bestCombinedCount <- bestCombinedCount + 1
-        # }
-        # if (grepl("strategy", file)) {
-        #     strategyFileNames[strategyCount] <- file
-        #     filePath <- paste(workDir, file, sep="/")
-        #     strategyData = read_csv(filePath)
-        #
-        #     strategy_run_histogram_plot(strategyData, file)
-        #     strategyCount <- strategyCount + 1
-        # }
+        if (grepl("best-combined", file)) {
+            bestCombinedFileNames[bestCombinedCount] <- file
+            filePath <- paste(workDir, file, sep="/")
+            bestCombinedData = read_csv(filePath)
+
+            best_combined_avg_plot(bestCombinedData, file)
+
+            bestCombinedCount <- bestCombinedCount + 1
+        }
+        if (grepl("strategy", file)) {
+            strategyFileNames[strategyCount] <- file
+            filePath <- paste(workDir, file, sep="/")
+            strategyData = read_csv(filePath)
+
+            strategy_run_histogram_plot(strategyData, file)
+            strategyCount <- strategyCount + 1
+        }
     }
     generationalFileNames2 <- generationalFileNames
     print(length(generationalFileNames))

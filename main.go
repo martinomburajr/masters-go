@@ -9,122 +9,22 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
+	"sync"
+	"time"
 )
 
+const SimulationFilePath = "./_simulation/simulation.json"
+
 func main() {
-	//absolutePath, err := filepath.Abs(".")
-	//if err != nil {
-	//	log.Println(err)
-	//	return
-	//}
 	//s := simulation.Simulation{}
 	//err := s.SpewJSON()
 	//if err != nil {
 	//	log.Println(err)
 	//	return
 	//}
-
-	simulation, params, err := ParseInputArguments()
-	if err != nil {
-		log.Println(err)
-		return
-	}
-
-	//simulation := simulation.Simulation{
-	//	NumberOfRunsPerState: 5,
-	//	Name:                 "simulation-1",
-	//	OutputDir:            "",
-	//	RPath:                fmt.Sprintf("%s%s", absolutePath, "/R/runScript.R"),
-	//}
-	//params := evolution.EvolutionParams{
-	//	StatisticsOutput: evolution.StatisticsOutput{
-	//		OutputPath: "",
-	//	},
-	//	SpecParam: evolution.SpecParam{
-	//		Range:      20,
-	//		Expression: "x*x",
-	//		Seed:       -10,
-	//		AvailableVariablesAndOperators: evolution.AvailableVariablesAndOperators{
-	//			Constants: []string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"},
-	//			Variables: []string{"x"},
-	//			Operators: []string{"*", "+", "-", "/"},
-	//		},
-	//		DivideByZeroStrategy: evolution.DivByZeroPenalize,
-	//		DivideByZeroPenalty:  -2,
-	//	},
-	//	GenerationsCount:   50,
-	//	EachPopulationSize: 4, // Must be an even number to prevent awkward ordering of children.
-	//
-	//	FitnessStrategy: evolution.FitnessStrategy{
-	//		Type:                           evolution.FitnessDualThresholdedRatio,
-	//		AntagonistThresholdMultiplier:  30,
-	//		ProtagonistThresholdMultiplier: 1,
-	//	},
-	//
-	//	Selection: evolution.Selection{
-	//		Parent: evolution.ParentSelection{
-	//			Type:           evolution.ParentSelectionTournament,
-	//			TournamentSize: 3,
-	//		},
-	//		Survivor: evolution.SurvivorSelection{
-	//			Type:               "SteadyState",
-	//			SurvivorPercentage: 0.5,
-	//		},
-	//	},
-	//	Reproduction: evolution.Reproduction{
-	//		ProbabilityOfMutation: 0.01,
-	//		CrossoverPercentage:   0.2,
-	//	},
-	//	Strategies: evolution.Strategies{
-	//		ProtagonistAvailableStrategies: []evolution.Strategy{
-	//			evolution.StrategyMutateNonTerminal,
-	//			evolution.StrategyMutateTerminal,
-	//			evolution.StrategyReplaceBranch,
-	//			evolution.StrategyReplaceBranchX,
-	//			evolution.StrategyAddRandomSubTree,
-	//			evolution.StrategyAddToLeaf,
-	//			evolution.StrategyAddTreeWithMult,
-	//			evolution.StrategyAddTreeWithSub,
-	//			evolution.StrategyAddTreeWithAdd,
-	//			evolution.StrategyAddTreeWithDiv,
-	//			evolution.StrategySkip,
-	//			evolution.StrategyMultXD,
-	//			evolution.StrategyAddXD,
-	//			evolution.StrategySubXD,
-	//			evolution.StrategyDivXD,
-	//		},
-	//		AntagonistAvailableStrategies: []evolution.Strategy{
-	//			evolution.StrategyMutateNonTerminal,
-	//			evolution.StrategyMutateTerminal,
-	//			evolution.StrategyReplaceBranch,
-	//			evolution.StrategyReplaceBranchX,
-	//			evolution.StrategyAddRandomSubTree,
-	//			evolution.StrategyAddToLeaf,
-	//			evolution.StrategyAddTreeWithMult,
-	//			evolution.StrategyAddTreeWithSub,
-	//			evolution.StrategyAddTreeWithAdd,
-	//			evolution.StrategyAddTreeWithDiv,
-	//			evolution.StrategySkip,
-	//			evolution.StrategySkip,
-	//			evolution.StrategyMultXD,
-	//			evolution.StrategyAddXD,
-	//			evolution.StrategySubXD,
-	//			evolution.StrategyDivXD,
-	//		},
-	//		AntagonistStrategyCount:  15,
-	//		ProtagonistStrategyCount: 15,
-	//		DepthOfRandomNewTrees:    1,
-	//	},
-	//	//FitnessCalculatorType: 0,
-	//	//ShouldRunInteractiveTerminal: shouldRunInteractive,
-	//}
-
-	_, err = simulation.Begin(params)
-	if err != nil {
-		log.Fatal(err)
-	}
+	scheduler()
 }
-
 
 // ParseInputArguments allows the user to pass in the simulation and evolution parameters into the system to begin
 // processing.
@@ -135,11 +35,11 @@ func ParseInputArguments() (simulation.Simulation, evolution.EvolutionParams, er
 
 	if *simulationPtr == "" {
 		return simulation.Simulation{}, evolution.EvolutionParams{},
- 		fmt.Errorf("simulation .json file must be specified")
+			fmt.Errorf("simulation .json file must be specified")
 	}
 	if *paramsPtr == "" {
 		return simulation.Simulation{}, evolution.EvolutionParams{},
-		fmt.Errorf("parameter .json file must be specified")
+			fmt.Errorf("parameter .json file must be specified")
 	}
 
 	// Parse
@@ -148,7 +48,6 @@ func ParseInputArguments() (simulation.Simulation, evolution.EvolutionParams, er
 		return simulation.Simulation{}, evolution.EvolutionParams{},
 			fmt.Errorf(err.Error())
 	}
-
 
 	paramsFile, err := os.Open(*paramsPtr)
 	if err != nil {
@@ -180,5 +79,199 @@ func ParseInputArguments() (simulation.Simulation, evolution.EvolutionParams, er
 			fmt.Errorf(err.Error())
 	}
 
+	paramsPtr = nil
+	simulationPtr = nil
+
 	return sim, params, nil
+}
+
+func SetArguments(simulationFilePath, paramsFilePath string) (simulation.Simulation, evolution.EvolutionParams, error) {
+	// Parse
+	simulationFile, err := os.Open(simulationFilePath)
+	if err != nil {
+		return simulation.Simulation{}, evolution.EvolutionParams{},
+			fmt.Errorf(err.Error())
+	}
+
+	paramsFile, err := os.Open(paramsFilePath)
+	if err != nil {
+		return simulation.Simulation{}, evolution.EvolutionParams{},
+			fmt.Errorf(err.Error())
+	}
+
+	var sim simulation.Simulation
+	var params evolution.EvolutionParams
+
+	err = json.NewDecoder(simulationFile).Decode(&sim)
+	if err != nil {
+		return simulation.Simulation{}, evolution.EvolutionParams{},
+			fmt.Errorf(err.Error())
+	}
+
+	absolutePath, err := filepath.Abs(".")
+	if err != nil {
+		log.Println(err)
+		return simulation.Simulation{}, evolution.EvolutionParams{},
+			fmt.Errorf(err.Error())
+	}
+
+	sim.RPath = fmt.Sprintf("%s%s", absolutePath, "/R/runScript.R")
+
+	err = json.NewDecoder(paramsFile).Decode(&params)
+	if err != nil {
+		return simulation.Simulation{}, evolution.EvolutionParams{},
+			fmt.Errorf(err.Error())
+	}
+
+	return sim, params, nil
+}
+
+func scheduler() {
+	// 1. Get files in the _params folder
+	var paramFiles []string
+	var paramFilePath []string
+	var dataFiles []string
+
+	absolutePath, err := filepath.Abs(".")
+	if err != nil {
+		log.Println(err)
+	}
+
+	filepath.Walk(fmt.Sprintf("%s/%s", absolutePath, "_params"),
+		func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			} else {
+				dF := strings.Replace(path, absolutePath+"/_params/", "", -1)
+				dF = strings.Replace(dF, ".json", "", -1)
+				paramFiles = append(paramFiles, dF)
+				paramFilePath = append(paramFilePath, path)
+			}
+			return nil
+		})
+
+	filepath.Walk(fmt.Sprintf("%s/%s", absolutePath, "data"),
+		func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			} else {
+				if info.IsDir() {
+					dF := strings.Replace(path, absolutePath+"/data/", "", -1)
+					dataFiles = append(dataFiles, dF)
+				}
+			}
+			return nil
+		})
+
+	paramFiles = paramFiles[1:]
+	dataFiles = dataFiles[1:]
+	paramFilePath = paramFilePath[1:]
+
+	doneChan := make(chan string, len(paramFiles))
+	errChan := make(chan error)
+
+	wg := sync.WaitGroup{}
+
+	for i, paramFile := range paramFiles {
+		wg.Add(1)
+		go func(i int, paramFile string, group *sync.WaitGroup) {
+			defer group.Done()
+			if !contains(paramFile, dataFiles) {
+				// create folder and add the started flag
+				// add the complete flag
+				dataDir := fmt.Sprintf("%s/data/%s",absolutePath,paramFile)
+				err := os.Mkdir(dataDir, 0775)
+				if err != nil {
+					errChan <- err
+					log.Println(err.Error())
+				}
+
+				startedPath := fmt.Sprintf("%s/data/%s/%s",absolutePath,paramFile,"started.txt")
+
+				// skip if the started file is there
+				//if folderContainsFile(startedPath, dataDir) {
+				//	return
+				//}
+
+				file, err := os.Create(startedPath)
+				if err != nil {
+					errChan <- err
+					log.Println(err.Error())
+				}
+				_, err = file.WriteString(time.Now().Format(time.RFC3339))
+				if err != nil {
+					errChan <- err
+					log.Println(err.Error())
+				}
+
+				simulationn, params, err := SetArguments(SimulationFilePath, paramFilePath[i])
+				if err != nil {
+					errChan <- err
+					log.Println(err)
+					return
+				}
+
+				_, err = simulationn.Begin(params)
+				if err != nil {
+					errChan <- err
+					//log.Fatal(err)
+				}
+
+				// add the complete flag
+				completePath := fmt.Sprintf("%s/data/%s/%s",absolutePath,paramFile,"completed.txt")
+				file2, err := os.Create(completePath)
+				if err != nil {
+					errChan <- err
+					log.Println(err.Error())
+				}
+				_, err = file2.WriteString(time.Now().Format(time.RFC3339))
+				if err != nil {
+					errChan <- err
+					log.Println(err.Error())
+				}
+
+				m := fmt.Sprintf("%s\n%s", "Parsing Complete", paramFile)
+				log.Println(m)
+				doneChan <- m
+			} else {
+				m := fmt.Sprintf("%s\n%s", "SKIPPING", paramFile)
+				log.Println(m)
+				doneChan <- m
+			}
+
+		}(i, paramFile, &wg)
+	}
+	wg.Done()
+
+	log.Println("WAIT GROUP COMPLETE")
+
+	for g := range errChan {
+		log.Println(g.Error())
+	}
+}
+
+func contains(str string, arr []string) bool {
+	for i := range arr {
+		if str == arr[i] {
+			return true
+		}
+	}
+	return false
+}
+
+
+func folderContainsFile(file, folder string) bool {
+	contains := false
+	filepath.Walk(folder,
+		func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			} else {
+				if strings.Contains(path, file) {
+					contains = true
+				}
+			}
+			return nil
+		})
+	return contains
 }
