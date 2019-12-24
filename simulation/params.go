@@ -8,7 +8,7 @@ var AllExpressions = []string{
 var AllRanges = []int{25}
 var AllSeed = []int{-10}
 var AllGenerationsCount = []int{100}
-var AllEachPopulationSize = []int{250}
+var AllEachPopulationSize = []int{4}
 
 var AllReproduction = []evolution.Reproduction{
 	evolution.Reproduction{ProbabilityOfMutation: 0.1, CrossoverPercentage: 0.3},

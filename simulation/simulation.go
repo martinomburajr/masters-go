@@ -16,12 +16,13 @@ import (
 
 type Simulation struct {
 	CurrentEvolutionState evolution.EvolutionParams `json:"currentEvolutionState"`
-	NumberOfRunsPerState  int `json:"numberOfRunsPerState"`
-	Name                  string `json:"name"`
+	NumberOfRunsPerState  int                       `json:"numberOfRunsPerState"`
+	Name                  string                    `json:"name"`
 	// Output-Only
-	OutputDir       string `json:"outputDir"`
-	RPath string `json:"rPath"`
+	OutputDir       string               `json:"outputDir"`
+	RPath           string               `json:"rPath"`
 	SimulationStats []SimulationRunStats `json:"simulationStats"`
+	DataPath        string
 }
 
 func (s *Simulation) Begin(params evolution.EvolutionParams) (evolution.EvolutionParams, error) {
@@ -38,7 +39,6 @@ func (s *Simulation) Begin(params evolution.EvolutionParams) (evolution.Evolutio
 		params = engine.Parameters
 		s.OutputDir = engine.Parameters.StatisticsOutput.OutputDir
 
-		os.Mkdir(s.OutputDir, 0755)
 		s.StartEngine(engine)
 		//}(params, i)
 	}
@@ -74,7 +74,7 @@ func (s *Simulation) Begin(params evolution.EvolutionParams) (evolution.Evolutio
 		return params, nil
 	}
 
-	abs, _ := filepath.Abs(s.OutputDir)
+	abs, _ := filepath.Abs(s.DataPath)
 	s.RunRScript(s.RPath, abs)
 	//wg.Wait()
 	log.Println("SYNCHRONIZED!")
@@ -202,13 +202,13 @@ func (s *Simulation) StartEngine(engine *evolution.EvolutionEngine) error {
 }
 
 func (s *Simulation) generateRunPathCSV(fileName string, run int) string {
-	path := fmt.Sprintf("%s%s-%d.csv", s.OutputDir, fileName, run)
+	path := fmt.Sprintf("%s/%s-%d.csv", s.DataPath, fileName, run)
 
 	return path
 }
 
 func (s *Simulation) generateSimulationPathCSV(fileName string) string {
-	path := fmt.Sprintf("%s%s.csv", s.OutputDir, fileName)
+	path := fmt.Sprintf("%s/%s.csv", s.DataPath, fileName)
 
 	return path
 }
@@ -490,8 +490,10 @@ func (s *Simulation) BeginToil(indexFile string) error {
 	return nil
 }
 
-// SpewJSON enables the creation of multiple JSON files containing parameter information
-func (s *Simulation) SpewJSON() error {
+// SpewJSON enables the creation of multiple JSON files containing parameter information.
+// baseRelDir is the relative directory to the parameter folder. Should be within the project.
+// Split should be the number of files per folder. It will try split them evenly
+func (s *Simulation) SpewJSON(projectAbsolutePath, baseRelDir string, split int) error {
 	s.NumberOfRunsPerState = 20
 	//var li IndexProgress = IndexProgress{
 	//	ExpressionIndex:              0,
@@ -513,9 +515,12 @@ func (s *Simulation) SpewJSON() error {
 	//	NumberOfRunsPerState:         0,
 	//}
 
-	os.Mkdir("_params", 0775)
+	os.Mkdir(baseRelDir, 0775)
 
 	counter := 0
+	splitCounter := 0
+	splitCounterFolder := 0
+	split = split*2
 
 	for expressionIndex := 0; expressionIndex < len(AllExpressions); expressionIndex++ {
 	for rangesIndex := 0; rangesIndex < len(AllRanges); rangesIndex++ {
@@ -588,9 +593,15 @@ func (s *Simulation) SpewJSON() error {
 			engine.Parameters.
 			StatisticsOutput.
 			OutputPath[:len(engine.Parameters.StatisticsOutput.OutputPath)-1], ".json")
-		outputPath2 := strings.ReplaceAll(outputPath, "data/", "_params/")
 
-		file, err := os.Create(outputPath2)
+
+
+		folder := fmt.Sprintf("%s/%d/", baseRelDir,splitCounterFolder)
+		absFolderPath := fmt.Sprintf("%s/%s", projectAbsolutePath, folder)
+		os.Mkdir(absFolderPath, 0755)
+		outputFilepath := strings.ReplaceAll(outputPath, "data/", folder)
+
+		file, err := os.Create(outputFilepath)
 		if err != nil {
 			return fmt.Errorf(err.Error())
 		}
@@ -598,7 +609,13 @@ func (s *Simulation) SpewJSON() error {
 		if err != nil {
 			return fmt.Errorf(err.Error())
 		}
+
 		counter++
+		splitCounter++
+		if splitCounter == split {
+			splitCounterFolder++
+			splitCounter=0
+		}
 
 		}}}}}}}}}}}}}}}}}}}
 

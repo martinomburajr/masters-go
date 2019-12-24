@@ -270,7 +270,6 @@ func (e EvolutionParams) ToString() string {
 	// StrategyCount
 	builder.WriteString(fmt.Sprintf("PSc%dASc%d", e.Strategies.ProtagonistStrategyCount,
 		e.Strategies.AntagonistStrategyCount))
-	builder.WriteString("-")
 	//antStrat := TruncShort(e.Strategies.AntagonistAvailableStrategies)
 	//proStrat := TruncShort(e.Strategies.ProtagonistAvailableStrategies)
 	//builder.WriteString(fmt.Sprintf("AAvaiSt%sAvaiSt%s", antStrat, proStrat))
@@ -278,11 +277,10 @@ func (e EvolutionParams) ToString() string {
 
 
 	// Spec
-	builder.WriteString(fmt.Sprintf("D0P%dD0S%s", e.SpecParam.DivideByZeroPenalty,
-		e.SpecParam.DivideByZeroStrategy))
-	builder.WriteString("-")
-	builder.WriteString(fmt.Sprintf("D0P%dD0S%s", e.SpecParam.DivideByZeroPenalty,
-		e.SpecParam.DivideByZeroStrategy))
+	divide0Penalty := fmt.Sprintf("D0P%.2fD0S%s", e.SpecParam.DivideByZeroPenalty,
+		e.SpecParam.DivideByZeroStrategy)
+	divide0Penalty = strings.ReplaceAll(divide0Penalty,".","")
+	builder.WriteString(divide0Penalty)
 	return builder.String()
 }
 

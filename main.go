@@ -10,20 +10,37 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
 	"time"
 )
 
 const SimulationFilePath = "./_simulation/simulation.json"
 
 func main() {
-	//s := simulation.Simulation{}
-	//err := s.SpewJSON()
-	//if err != nil {
-	//	log.Println(err)
-	//	return
-	//}
-	scheduler()
+	paramsPtr := flag.String("params", "", "Pass in the file path (.json) for the given parameters")
+	flag.Parse()
+
+	if *paramsPtr == "" {
+		log.Fatal("Params path cannot be empty")
+	}
+
+	paramsFolder := *paramsPtr
+	log.Println("PARAMS Folder: " + paramsFolder)
+
+	//SPEW(paramsFolder)
+
+	scheduler(paramsFolder)
+}
+
+func SPEW(paramsFolder string) {
+	s := simulation.Simulation{}
+	abs, err := filepath.Abs(".")
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	err = s.SpewJSON(abs, paramsFolder, 6)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
 }
 
 // ParseInputArguments allows the user to pass in the simulation and evolution parameters into the system to begin
@@ -85,7 +102,8 @@ func ParseInputArguments() (simulation.Simulation, evolution.EvolutionParams, er
 	return sim, params, nil
 }
 
-func SetArguments(simulationFilePath, paramsFilePath string) (simulation.Simulation, evolution.EvolutionParams, error) {
+func SetArguments(simulationFilePath, paramsFilePath, dataPath string) (simulation.Simulation,
+	evolution.EvolutionParams, error) {
 	// Parse
 	simulationFile, err := os.Open(simulationFilePath)
 	if err != nil {
@@ -116,6 +134,7 @@ func SetArguments(simulationFilePath, paramsFilePath string) (simulation.Simulat
 	}
 
 	sim.RPath = fmt.Sprintf("%s%s", absolutePath, "/R/runScript.R")
+	sim.DataPath = dataPath
 
 	err = json.NewDecoder(paramsFile).Decode(&params)
 	if err != nil {
@@ -126,8 +145,8 @@ func SetArguments(simulationFilePath, paramsFilePath string) (simulation.Simulat
 	return sim, params, nil
 }
 
-func scheduler() {
-	// 1. Get files in the _params folder
+func scheduler(paramsFolder string) {
+	// 1. Get files in the _params3 folder
 	var paramFiles []string
 	var paramFilePath []string
 	var dataFiles []string
@@ -137,15 +156,19 @@ func scheduler() {
 		log.Println(err)
 	}
 
-	filepath.Walk(fmt.Sprintf("%s/%s", absolutePath, "_params"),
+	filepath.Walk(fmt.Sprintf("%s/%s", absolutePath, paramsFolder),
 		func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err
 			} else {
-				dF := strings.Replace(path, absolutePath+"/_params/", "", -1)
-				dF = strings.Replace(dF, ".json", "", -1)
-				paramFiles = append(paramFiles, dF)
-				paramFilePath = append(paramFilePath, path)
+				if info.IsDir() {
+
+				} else {
+					dF := strings.Replace(path, absolutePath+"/"+paramsFolder+"/", "", -1)
+					dF = strings.Replace(dF, ".json", "", -1)
+					paramFiles = append(paramFiles, dF)
+					paramFilePath = append(paramFilePath, path)
+				}
 			}
 			return nil
 		})
@@ -170,28 +193,22 @@ func scheduler() {
 	doneChan := make(chan string, len(paramFiles))
 	errChan := make(chan error)
 
-	wg := sync.WaitGroup{}
+	//wg := sync.WaitGroup{}
 
 	for i, paramFile := range paramFiles {
-		wg.Add(1)
-		go func(i int, paramFile string, group *sync.WaitGroup) {
-			defer group.Done()
+		//wg.Add(1)
+		//go func(i int, paramFile string, group *sync.WaitGroup) {
+		//	defer group.Done()
 			if !contains(paramFile, dataFiles) {
 				// create folder and add the started flag
 				// add the complete flag
 				dataDir := fmt.Sprintf("%s/data/%s",absolutePath,paramFile)
-				err := os.Mkdir(dataDir, 0775)
+				err := os.MkdirAll(dataDir, 0775)
 				if err != nil {
 					errChan <- err
-					log.Println(err.Error())
 				}
 
 				startedPath := fmt.Sprintf("%s/data/%s/%s",absolutePath,paramFile,"started.txt")
-
-				// skip if the started file is there
-				//if folderContainsFile(startedPath, dataDir) {
-				//	return
-				//}
 
 				file, err := os.Create(startedPath)
 				if err != nil {
@@ -204,7 +221,7 @@ func scheduler() {
 					log.Println(err.Error())
 				}
 
-				simulationn, params, err := SetArguments(SimulationFilePath, paramFilePath[i])
+				simulationn, params, err := SetArguments(SimulationFilePath, paramFilePath[i], dataDir)
 				if err != nil {
 					errChan <- err
 					log.Println(err)
@@ -218,7 +235,7 @@ func scheduler() {
 				}
 
 				// add the complete flag
-				completePath := fmt.Sprintf("%s/data/%s/%s",absolutePath,paramFile,"completed.txt")
+ 				completePath := fmt.Sprintf("%s/data/%s/%s",absolutePath,paramFile,"completed.txt")
 				file2, err := os.Create(completePath)
 				if err != nil {
 					errChan <- err
@@ -239,9 +256,9 @@ func scheduler() {
 				doneChan <- m
 			}
 
-		}(i, paramFile, &wg)
+		//}(i, paramFile, &wg)
 	}
-	wg.Done()
+	//wg.Done()
 
 	log.Println("WAIT GROUP COMPLETE")
 

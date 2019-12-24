@@ -9,7 +9,6 @@ library(readr)
 library(knitr)
 library(dplyr)
 
-
 workDir <- ""
 statsDir <- ""
 

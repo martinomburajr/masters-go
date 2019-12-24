@@ -1,0 +1,6 @@
+A,P,AFinal,PFinal,AGen,PGen,count,run
+MultXD,MutateTerminalR,MultXD,MutateTerminalR,0,0,0,2
+MultXD,SubXD,MultXD,SubXD,0,0,1,2
+MultXD,AddToLeafR,MultXD,AddXD,0,0,2,2
+MultXD,MutateNonTerminalR,MultXD,MutateNonTerminalR,0,0,3,2
+MultXD,DeleteNonTerminalR,MultXD,DivXD,0,0,4,2
