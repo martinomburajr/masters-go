@@ -1,0 +1,6 @@
+A,P,AFinal,PFinal,AGen,PGen,count,run
+AddRandomSubTreeR,SubXD,AddRandomSubTreeR,AddRandomSubTreeR,0,0,0,2
+AddTreeWithSub,SkipD,AddTreeWithSub,SkipD,0,0,1,2
+MultXD,SubXD,MultXD,DeleteMaliciousR,0,0,2,2
+ReplaceBranchXR,DeleteTerminalR,ReplaceBranchXR,MutateNonTerminalR,0,0,3,2
+AddToLeafR,MutateTerminalR,AddToLeafR,MutateTerminalR,0,0,4,2

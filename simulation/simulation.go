@@ -11,6 +11,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -115,32 +116,21 @@ type SimulationRunStats struct {
 	Generational             evolution.Generational
 }
 
-
-
 func (s *Simulation) RunRScript(RPath, dirPath string) error {
 
-	//workingDir := strings.ReplaceAll(absolutePath, filePath, "")
-	//epochalPath := fmt.Sprintf("%s%s/%s/%s/%s-%d.csv", workingDir, topLevelDir, subInfoDir, subSubNameDir, "epochal",
-	//	run)
-	//statsPath := fmt.Sprintf("%s%s/%s/%s/%s", workingDir, topLevelDir, subInfoDir, subSubNameDir, "stats")
-	//RLaunchPath := fmt.Sprintf("%s%s", workingDir, "R/runScript.R")
-
-	//errChan := make(chan error)
-
-	//go func() {
-	cmd := exec.Command("Rscript",
-		//"--no-save",
-		//"--args",
-		RPath,
-		dirPath)
-	log.Println(fmt.Sprintf("Rscript: \n\n%s\n\n", cmd.String()))
-	//err := cmd.Start()
-	 err := cmd.Run()
-	if err != nil {
-		fmt.Println("ERROR: " + err.Error())
-		//errChan <- err
-	}
-	//}()
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	go func(wg *sync.WaitGroup) {
+		defer wg.Done()
+		cmd := exec.Command("Rscript", RPath, dirPath)
+		log.Println(fmt.Sprintf("Rscript: \n\n%s\n\n", cmd.String()))
+		 err := cmd.Run()
+		if err != nil {
+			fmt.Println("ERROR: " + err.Error())
+			//errChan <- err
+		}
+	}(&wg)
+	wg.Wait()
 
 	return nil
 }

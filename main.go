@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -193,12 +194,11 @@ func scheduler(paramsFolder string) {
 	doneChan := make(chan string, len(paramFiles))
 	errChan := make(chan error)
 
-	//wg := sync.WaitGroup{}
-
+	wg := sync.WaitGroup{}
+	wg.Add(len(paramFiles))
 	for i, paramFile := range paramFiles {
-		//wg.Add(1)
-		//go func(i int, paramFile string, group *sync.WaitGroup) {
-		//	defer group.Done()
+		go func(i int, paramFile string, group *sync.WaitGroup) {
+			defer group.Done()
 			if !contains(paramFile, dataFiles) {
 				// create folder and add the started flag
 				// add the complete flag
@@ -256,9 +256,9 @@ func scheduler(paramsFolder string) {
 				doneChan <- m
 			}
 
-		//}(i, paramFile, &wg)
+		}(i, paramFile, &wg)
 	}
-	//wg.Done()
+	wg.Done()
 
 	log.Println("WAIT GROUP COMPLETE")
 

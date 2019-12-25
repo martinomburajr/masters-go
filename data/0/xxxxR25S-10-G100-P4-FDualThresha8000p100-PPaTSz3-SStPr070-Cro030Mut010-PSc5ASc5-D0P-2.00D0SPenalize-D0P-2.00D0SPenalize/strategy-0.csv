@@ -1,0 +1,6 @@
+A,P,AFinal,PFinal,AGen,PGen,count,run
+AddToLeafR,AddTreeWithSub,AddToLeafR,AddTreeWithSub,0,0,0,0
+AddTreeWithMult,DeleteTerminalR,AddTreeWithMult,DeleteTerminalR,0,0,1,0
+AddToLeafR,AddToLeafR,AddToLeafR,AddTreeWithAdd,0,0,2,0
+AddToLeafR,ReplaceBranchR,AddToLeafR,ReplaceBranchR,0,0,3,0
+AddTreeWithMult,ReplaceBranchXR,AddTreeWithMult,ReplaceBranchXR,0,0,4,0
