@@ -3,7 +3,11 @@
 # Created by: martinomburajr
 # Created on: 2019/10/24
 
-install.packages(c("ggplot2", "readr", "knitr", "dplyr"))
+# install.packages(c("ggplot2", "readr", "knitr", "dplyr"))
+#
+# list.of.packages <- c("ggplot2", "Rcpp")
+# new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+#
 
 args = commandArgs(trailingOnly=TRUE)
 library(ggplot2)
