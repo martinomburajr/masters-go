@@ -3,10 +3,7 @@
 # Created by: martinomburajr
 # Created on: 2019/10/24
 
-# install.packages("ggplot2")
-# install.packages("readr")
-# install.packages("knitr")
-# install.packages("dplyr")
+install.packages(c("ggplot2", "readr", "knitr", "dplyr"))
 
 args = commandArgs(trailingOnly=TRUE)
 library(ggplot2)

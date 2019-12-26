@@ -176,6 +176,8 @@ func (e *EvolutionEngine) Start() (*EvolutionResult, error) {
 
 		e.Generations[i].Protagonists = protagonistsCleanse
 		e.Generations[i].Antagonists = antagonistsCleanse
+
+		// GENERATIONS BEGIN HERE
 		nextGeneration, err := e.Generations[i].Start(i)
 		if err != nil {
 			return nil, err

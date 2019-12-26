@@ -3,6 +3,7 @@ package evolution
 import (
 	"fmt"
 	"gonum.org/v1/gonum/stat"
+	"sync"
 )
 
 type Generation struct {
@@ -122,6 +123,19 @@ type PerfectTree struct {
 	BestFitnessDelta float64
 }
 
+
+func epochWorker(perfectMap map[string]PerfectTree, epochChan chan Epoch, resultsChan Epoch, errChan chan error) {
+	for epoch := range epochChan {
+		mu := sync.Mutex{}
+		mu.Lock()
+			err := epoch.Start(perfectMap)
+			if err != nil {
+				errChan <- err
+			}
+		mu.Unlock()
+	}
+}
+
 // runEpoch begins the run of a single epoch
 func (g *Generation) runEpochs(epochs []Epoch) ([]Epoch, error) {
 	if epochs == nil {
@@ -131,13 +145,31 @@ func (g *Generation) runEpochs(epochs []Epoch) ([]Epoch, error) {
 		return nil, fmt.Errorf("epochs slice is empty")
 	}
 
+	//errChan := make(chan error)
+	//epochChan := make(chan Epoch, len(epochs))
+	//
+	//wg := sync.WaitGroup{}
 	perfectFitnessMap := map[string]PerfectTree{}
+
+
 	for i := 0; i < len(epochs); i++ {
-		err := epochs[i].Start(perfectFitnessMap)
-		if err != nil {
-			return nil, err
-		}
+		//wg.Add(1)
+
+		//go func(index int, perfectMap map[string]PerfectTree, wg *sync.WaitGroup, errChan *chan error) {
+		//	defer wg.Done()
+			err := epochs[i].Start(perfectFitnessMap)
+			if err != nil {
+				//*errChan <- err
+				return nil, err
+			}
+		//}(i, perfectFitnessMap, &wg, &errChan)
+
 	}
+	//wg.Wait()
+
+	//if len(errChan) > 0 {
+	//	return nil, fmt.Errorf("error with runningEpochs")
+	//}
 
 	// Set individuals with the best representation of their tree
 	for i := 0; i < len(g.Antagonists); i++ {

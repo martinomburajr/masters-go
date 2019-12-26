@@ -30,18 +30,13 @@ func (s *Simulation) Begin(params evolution.EvolutionParams) (evolution.Evolutio
 	os.Mkdir("data", 0755)
 	s.SimulationStats = make([]SimulationRunStats, s.NumberOfRunsPerState)
 
-	//wg := sync.WaitGroup{}
 	for i := 0; i < s.NumberOfRunsPerState; i++ {
-		//wg.Add(1)
-		//go func(params evolution.EvolutionParams, i int){
-		//	defer wg.Done()
 		params.InternalCount = i
 		engine := PrepareSimulation(params, i)
 		params = engine.Parameters
 		s.OutputDir = engine.Parameters.StatisticsOutput.OutputDir
 
 		s.StartEngine(engine)
-		//}(params, i)
 	}
 
 	// CUMULATIVE STATISTICS

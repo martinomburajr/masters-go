@@ -28,7 +28,6 @@ func main() {
 	log.Println("PARAMS Folder: " + paramsFolder)
 
 	//SPEW(paramsFolder)
-
 	scheduler(paramsFolder)
 }
 
@@ -43,66 +42,6 @@ func SPEW(paramsFolder string) {
 		log.Fatal(err.Error())
 	}
 }
-
-// ParseInputArguments allows the user to pass in the simulation and evolution parameters into the system to begin
-// processing.
-func ParseInputArguments() (simulation.Simulation, evolution.EvolutionParams, error) {
-	simulationPtr := flag.String("simulation", "", "Pass in the file path (.json) for the given simulation")
-	paramsPtr := flag.String("params", "", "Pass in the file path (.json) for the given parameters")
-	flag.Parse()
-
-	if *simulationPtr == "" {
-		return simulation.Simulation{}, evolution.EvolutionParams{},
-			fmt.Errorf("simulation .json file must be specified")
-	}
-	if *paramsPtr == "" {
-		return simulation.Simulation{}, evolution.EvolutionParams{},
-			fmt.Errorf("parameter .json file must be specified")
-	}
-
-	// Parse
-	simulationFile, err := os.Open(*simulationPtr)
-	if err != nil {
-		return simulation.Simulation{}, evolution.EvolutionParams{},
-			fmt.Errorf(err.Error())
-	}
-
-	paramsFile, err := os.Open(*paramsPtr)
-	if err != nil {
-		return simulation.Simulation{}, evolution.EvolutionParams{},
-			fmt.Errorf(err.Error())
-	}
-
-	var sim simulation.Simulation
-	var params evolution.EvolutionParams
-
-	err = json.NewDecoder(simulationFile).Decode(&sim)
-	if err != nil {
-		return simulation.Simulation{}, evolution.EvolutionParams{},
-			fmt.Errorf(err.Error())
-	}
-
-	absolutePath, err := filepath.Abs(".")
-	if err != nil {
-		log.Println(err)
-		return simulation.Simulation{}, evolution.EvolutionParams{},
-			fmt.Errorf(err.Error())
-	}
-
-	sim.RPath = fmt.Sprintf("%s%s", absolutePath, "/R/runScript.R")
-
-	err = json.NewDecoder(paramsFile).Decode(&params)
-	if err != nil {
-		return simulation.Simulation{}, evolution.EvolutionParams{},
-			fmt.Errorf(err.Error())
-	}
-
-	paramsPtr = nil
-	simulationPtr = nil
-
-	return sim, params, nil
-}
-
 func SetArguments(simulationFilePath, paramsFilePath, dataPath string) (simulation.Simulation,
 	evolution.EvolutionParams, error) {
 	// Parse
@@ -187,16 +126,16 @@ func scheduler(paramsFolder string) {
 			return nil
 		})
 
-	paramFiles = paramFiles[1:]
+	//paramFiles = paramFiles[1:]
 	dataFiles = dataFiles[1:]
-	paramFilePath = paramFilePath[1:]
+	//paramFilePath = paramFilePath[1:]
 
 	doneChan := make(chan string, len(paramFiles))
 	errChan := make(chan error)
 
 	wg := sync.WaitGroup{}
-	wg.Add(len(paramFiles))
 	for i, paramFile := range paramFiles {
+		wg.Add(1)
 		go func(i int, paramFile string, group *sync.WaitGroup) {
 			defer group.Done()
 			if !contains(paramFile, dataFiles) {
@@ -231,7 +170,6 @@ func scheduler(paramsFolder string) {
 				_, err = simulationn.Begin(params)
 				if err != nil {
 					errChan <- err
-					//log.Fatal(err)
 				}
 
 				// add the complete flag
@@ -274,21 +212,4 @@ func contains(str string, arr []string) bool {
 		}
 	}
 	return false
-}
-
-
-func folderContainsFile(file, folder string) bool {
-	contains := false
-	filepath.Walk(folder,
-		func(path string, info os.FileInfo, err error) error {
-			if err != nil {
-				return err
-			} else {
-				if strings.Contains(path, file) {
-					contains = true
-				}
-			}
-			return nil
-		})
-	return contains
 }

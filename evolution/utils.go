@@ -2,6 +2,7 @@ package evolution
 
 import (
 	"math/rand"
+	"sync"
 	"time"
 )
 
@@ -34,9 +35,14 @@ const (
 //}
 
 func RandString(n int) string {
+
 	b := make([]byte, n)
 	for i := range b {
-		b[i] = letterBytes[rand.Int63() % int64(len(letterBytes))]
+		x := sync.Mutex{}
+		x.Lock()
+			int63 := rand.Int63()
+		x.Unlock()
+		b[i] = letterBytes[ int63 % int64(len(letterBytes))]
 	}
 	return string(b)
 }
