@@ -633,6 +633,8 @@ func interactiveSearchForTreeShape(reader *bufio.Reader, sortedGenerations []*Ge
 		starterTreeAsMathematicalExpression, err := queryTree.ToMathematicalString()
 		builder.WriteString(fmt.Sprintf("Searching for: %s\n", starterTreeAsMathematicalExpression))
 
+		params.SpecParam.ExpressionParsed = starterTreeAsMathematicalExpression
+
 		if err != nil {
 			return "", fmt.Errorf("main | failed to convert starter tree to a mathematical expression")
 		}

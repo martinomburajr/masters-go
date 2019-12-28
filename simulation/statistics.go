@@ -81,7 +81,7 @@ func (s *Simulation) BestIndividualsInRun(params evolution.EvolutionParams) (run
 	finalProtagonistEq, err := run.FinalProtagonist.Program.T.ToMathematicalString()
 
 	runBest[0] = RunBestIndividualStatistic{
-		SpecEquation: params.SpecParam.Expression,
+		SpecEquation: params.SpecParam.ExpressionParsed,
 		SpecRange:    params.SpecParam.Range,
 		SpecSeed:     params.SpecParam.Seed,
 
@@ -159,7 +159,7 @@ func (s *Simulation) SimulationBestIndividuals(params evolution.EvolutionParams)
 		topAntagonistEq, _ := topAntagonist.Program.T.ToMathematicalString()
 		topProtagonistEq, _ := topProtagonist.Program.T.ToMathematicalString()
 		simulationBestIndividuals[i] = SimulationBestIndividual{
-			SpecEquation:                params.SpecParam.Expression,
+			SpecEquation:                params.SpecParam.ExpressionParsed,
 			SpecRange:                   params.SpecParam.Range,
 			SpecSeed:                    params.SpecParam.Seed,
 			AntagonistID: topAntagonist.Id,
@@ -190,8 +190,6 @@ func (s *Simulation) SimulationBestIndividuals(params evolution.EvolutionParams)
 			ProtagonistRun:              topProRun,
 		}
 	}
-
-
 
 	return simulationBestIndividuals, err
 }
@@ -232,7 +230,7 @@ func (s *Simulation) SimulationBestIndividual(params evolution.EvolutionParams) 
 	topProtagonistEq, _ := topProtagonist.Program.T.ToMathematicalString()
 
 	simulationBestIndividuals[0] = SimulationBestIndividual{
-		SpecEquation:                params.SpecParam.Expression,
+		SpecEquation:                params.SpecParam.ExpressionParsed,
 		SpecRange:                   params.SpecParam.Range,
 		SpecSeed:                    params.SpecParam.Seed,
 		AntagonistID: topAntagonist.Id,
@@ -303,7 +301,7 @@ func (s *Simulation) SimulationBestIndividualByAverageDelta(params evolution.Evo
 	topProtagonistEq, _ := topProtagonist.Program.T.ToMathematicalString()
 
 	simulationBestIndividuals[0] = SimulationBestIndividual{
-		SpecEquation:                params.SpecParam.Expression,
+		SpecEquation:                params.SpecParam.ExpressionParsed,
 		SpecRange:                   params.SpecParam.Range,
 		SpecSeed:                    params.SpecParam.Seed,
 		AntagonistID: topAntagonist.Id,
@@ -374,7 +372,7 @@ func (s *Simulation) SimulationBestIndividualByDelta(params evolution.EvolutionP
 	topProtagonistEq, _ := topProtagonist.Program.T.ToMathematicalString()
 
 	simulationBestIndividuals[0] = SimulationBestIndividual{
-		SpecEquation:                params.SpecParam.Expression,
+		SpecEquation:                params.SpecParam.ExpressionParsed,
 		SpecRange:                   params.SpecParam.Range,
 		SpecSeed:                    params.SpecParam.Seed,
 		AntagonistID: topAntagonist.Id,
@@ -441,7 +439,7 @@ func (s *Simulation) GenerationalInRun(params evolution.EvolutionParams) (runGen
 			Generation: i,
 
 			Run:          runIndex,
-			SpecEquation: params.SpecParam.Expression,
+			SpecEquation: params.SpecParam.ExpressionParsed,
 			SpecRange:    params.SpecParam.Range,
 			SpecSeed:     params.SpecParam.Seed,
 
@@ -499,7 +497,7 @@ func (s *Simulation) EpochalInRun(params evolution.EvolutionParams) (runEpochal 
 		runEpochal[i] = RunEpochalStatistic{
 			Epoch:        i,
 			Run:          runIndex,
-			SpecEquation: params.SpecParam.Expression,
+			SpecEquation: params.SpecParam.ExpressionParsed,
 			SpecRange:    params.SpecParam.Range,
 			SpecSeed:     params.SpecParam.Seed,
 
@@ -571,7 +569,7 @@ func (s *Simulation) SimulationBestEpochal(params evolution.EvolutionParams) (be
 	//
 	//		bestEpochs[i] = SimulationBestEpoch{
 	//			Epoch:        i,
-	//			SpecEquation: params.SpecParam.Expression,
+	//			SpecEquation: params.SpecParam.ParsedExpression,
 	//			SpecRange:    params.SpecParam.Range,
 	//			SpecSeed:     params.SpecParam.Seed,
 	//
@@ -696,11 +694,15 @@ func (s *Simulation) SimulationBestStrategy(params evolution.EvolutionParams) (s
 			antStrat = string(antagonist.Strategy[j])
 		}
 		if j < len(protagonist.Strategy) {
-			proStrat = string(antagonist.Strategy[j])
+			proStrat = string(protagonist.Strategy[j])
 		}
+		antEq, _ := antagonist.Program.T.ToMathematicalString()
+		proEq, _ := protagonist.Program.T.ToMathematicalString()
 		simulationStrategy[j] = SimulationStrategyStatistic{
 			Antagonist:            antStrat,
 			Protagonist:           proStrat,
+			AntagonistEquation: antEq,
+			ProtagonistEquation: proEq,
 			ProtagonistRun:        bestActualIndividuals.ProtagonistRun,
 			AntagonistRun:         bestActualIndividuals.AntagonistRun,
 			ProtagonistGeneration: bestActualIndividuals.ProtagonistGeneration,
@@ -900,6 +902,8 @@ func (e *RunStrategyStatistics) ToCSV(outputPath string) error {
 type SimulationStrategyStatistic struct {
 	Antagonist            string `csv:"A"`
 	Protagonist           string `csv:"P"`
+	AntagonistEquation           string `csv:"AEquation"`
+	ProtagonistEquation           string `csv:"PEquation"`
 	AntagonistGeneration  int    `csv:"AGen"`
 	ProtagonistGeneration int    `csv:"PGen"`
 	AntagonistRun         int    `csv:"ARun"`

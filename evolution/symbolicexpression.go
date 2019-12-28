@@ -190,6 +190,7 @@ func ParseString(expression string, validNonTerminals []string, validVariables [
 	nonTerminals = make([]SymbolicExpression, int(math.Floor(float64(len(expression))/2)))
 	mathematicalExpression = make([]SymbolicExpression, len(expression))
 
+
 	countx := 0
 	county := 0
 	for i := 0; i < len(chars); i++ {

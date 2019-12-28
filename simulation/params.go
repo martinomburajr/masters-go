@@ -3,12 +3,13 @@ package simulation
 import "github.com/martinomburajr/masters-go/evolution"
 
 var AllExpressions = []string{
-	"x*x*x*x", "x*x*x*x*3*x+1",
+	"x",
+	"x*x*x+2*x/3*x+9",
 }
-var AllRanges = []int{25}
+var AllRanges = []int{30}
 var AllSeed = []int{-10}
 var AllGenerationsCount = []int{100}
-var AllEachPopulationSize = []int{4}
+var AllEachPopulationSize = []int{250, 1000}
 
 var AllReproduction = []evolution.Reproduction{
 	evolution.Reproduction{ProbabilityOfMutation: 0.1, CrossoverPercentage: 0.3},
@@ -26,15 +27,15 @@ var AllTournamentSizesType = []int{3}
 var AllSelectionSurvivorPercentage = []float64{0.2, 0.7}
 
 var AllDivByZeroStrategy = []string{
+	evolution.DivByZeroIgnore,
 	evolution.DivByZeroPenalize,
-	//evolution.DivByZeroSteadyPenalize
 }
 var AllDivByZeroPenalty = []float64{-2}
 
 var AllPossibleStrategies = [][]evolution.Strategy{
 	AllStrategies,
-	//AllStrategiesDeterministic,
-	//AllStrategiesRandom,
+	AllStrategiesDeterministic,
+	AllStrategiesRandom,
 
 	//AllStrategiesNoDelete,
 	// AllStrategiesNoFell,

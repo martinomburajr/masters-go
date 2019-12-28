@@ -91,6 +91,8 @@ type SpecParam struct {
 	//Expression is the actual expression being tested.
 	// It is the initial function that is converted to the startIndividual
 	Expression                     string `json:"expression"`
+	//OUTPUT
+	ExpressionParsed string `json:"expressionParsed"`
 	Seed                           int    `json:"seed"`
 	AvailableVariablesAndOperators AvailableVariablesAndOperators
 	// AvailableSymbolicExpressions - Output Only
@@ -283,6 +285,9 @@ func (e EvolutionParams) ToString() string {
 		e.SpecParam.DivideByZeroStrategy)
 	divide0Penalty = strings.ReplaceAll(divide0Penalty,".","")
 	builder.WriteString(divide0Penalty)
+	builder.WriteString("-")
+	builder.WriteString(fmt.Sprintf("%s", RandString(4)))
+
 	return builder.String()
 }
 

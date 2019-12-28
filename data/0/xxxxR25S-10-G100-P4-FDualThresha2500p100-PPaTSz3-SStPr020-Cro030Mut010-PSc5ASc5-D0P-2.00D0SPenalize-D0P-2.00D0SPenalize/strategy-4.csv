@@ -1,6 +1,0 @@
-A,P,AFinal,PFinal,AGen,PGen,count,run
-MultXD,MultXD,MultXD,AddXD,0,0,0,4
-MultXD,AddRandomSubTreeR,MultXD,FellTreeD,0,0,1,4
-SubXD,AddTreeWithSub,SubXD,MultXD,0,0,2,4
-MultXD,ReplaceBranchXR,MultXD,ReplaceBranchXR,0,0,3,4
-MultXD,AddXD,MultXD,MultXD,0,0,4,4

@@ -3,12 +3,6 @@
 # Created by: martinomburajr
 # Created on: 2019/10/24
 
-# install.packages(c("ggplot2", "readr", "knitr", "dplyr"))
-#
-# list.of.packages <- c("ggplot2", "Rcpp")
-# new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
-#
-
 args = commandArgs(trailingOnly=TRUE)
 library(ggplot2)
 library(readr)
@@ -24,17 +18,13 @@ if (length(args)==0) {
     # 1 - Path to Generational File
     # 2 - Path to Epochal File
     # 3 - Stats File
-    print(args)
     workDir = args[1]
     # epochalFilePath = args[4]
     # statsDir = args[5]
-    print("SET WORKING DIRECTORY")
-    print(workDir)
     statsDir <- workDir
     dir.create(file.path(statsDir, ""), showWarnings = FALSE)
     setwd(file.path(statsDir, ""))
 }
-
 
 generationalFileNames <- c()
 generationalFileNames2 <- c()
@@ -43,6 +33,7 @@ bestFileNames <- c()
 bestCombinedFileNames <- c()
 bestAllFileNames <- c()
 strategyFileNames <- c()
+strategyCombFileNames <- c()
 
 ####################################### CODE BEGINS ##########################
 
@@ -317,6 +308,113 @@ best_all_function_plot <- function(result, fileName) {
     ggsave(fileName, width=10, height=6, units='in', dpi="retina")
 }
 
+## Pass in best-all.csv
+best_bug_spec_function_plot <- function(result, fileName) {
+    gg <- ggplot(data = data.frame(x = 0), mapping = aes(x = result$range))
+
+    specEquation <- function(x){eval(parse(text=result$specEquation))}
+    ultAntagonistEquation <- function(x){eval(parse(text=result$AEquation))}
+
+    #spec
+    gg <- gg + stat_function(
+    stat = "function",
+    fun = specEquation,
+    mapping = aes(color="Spec", linetype="Spec"),
+    size=1.3
+    )
+    gg <- gg + stat_function(
+    stat = "function",
+    fun = ultAntagonistEquation,
+    mapping = aes(color = "BestBugEquation", linetype="BestBugEquation")
+    )
+
+    gg <- gg + scale_x_continuous(limits=c(result$seed, result$seed + result$range))
+    gg <- gg + scale_linetype_manual(
+    name = "Line Type",
+    values=c(Spec='dotted', BestBugEquation='solid')
+    )
+    gg <- gg + scale_color_manual(
+    name = "Functions",
+    values = c(Spec="black", BestBugEquation="red")
+    )
+
+    gg <- gg + guides(color = guide_legend(title="Legend"), linetype = guide_legend(title="Legend"))
+
+    gg <- gg + theme(
+    plot.title = element_text(size=16),
+    plot.subtitle = element_text(size=12),
+    plot.caption = element_text(size=10))
+    gg <- gg + labs (
+    color = 'Individuals',
+    title = sprintf("%s","Resulting Best Equation For Bug against Spec"),
+    subtitle = sprintf("Spec: %s", result$specEquation),
+    caption = sprintf(
+    "BestBug: %s\nRange: [%d, %d]\n%s",
+    toString(result$AEquation),
+    result$seed,
+    result$seed + result$range,
+    "*Closer mapping on to spec is better"),
+    x = "X",
+    y = "Y"
+    )
+
+    fileName <- paste(fileName, "best-bug-spec-all.png", sep="-")
+    ggsave(fileName, width=10, height=6, units='in', dpi="retina")
+}
+
+## Pass in best-all.csv
+best_test_spec_function_plot <- function(result, fileName) {
+    gg <- ggplot(data = data.frame(x = 0), mapping = aes(x = result$range))
+
+    specEquation <- function(x){eval(parse(text=result$specEquation))}
+    ultProtagonistEquation <- function(x){eval(parse(text=result$PEquation))}
+
+    #spec
+    gg <- gg + stat_function(
+    stat = "function",
+    fun = specEquation,
+    mapping = aes(color="Spec", linetype="Spec"),
+    size=1.3
+    )
+    gg <- gg + stat_function(
+    stat = "function",
+    fun = ultProtagonistEquation,
+    mapping = aes(color = "BestTestEquation", linetype="BestTestEquation")
+    )
+
+    gg <- gg + scale_x_continuous(limits=c(result$seed, result$seed + result$range))
+    gg <- gg + scale_linetype_manual(
+    name = "Line Type",
+    values=c(Spec='dotted', BestTestEquation="solid")
+    )
+    gg <- gg + scale_color_manual(
+    name = "Functions",
+    values = c(Spec="black", BestTestEquation="green")
+    )
+
+    gg <- gg + guides(color = guide_legend(title="Legend"), linetype = guide_legend(title="Legend"))
+
+    gg <- gg + theme(
+    plot.title = element_text(size=16),
+    plot.subtitle = element_text(size=12),
+    plot.caption = element_text(size=10))
+    gg <- gg + labs (
+    color = 'Individuals',
+    title = sprintf("%s","Resulting Best Equation for Test aginst Spec"),
+    subtitle = sprintf("Spec: %s", result$specEquation),
+    caption = sprintf(
+    "BestTest: %s\nRange: [%d, %d]\n%s",
+    toString(result$PEquation),
+    result$seed,
+    result$seed + result$range,
+    "*Closer mapping on to spec is better"),
+    x = "X",
+    y = "Y"
+    )
+
+    fileName <- paste(fileName, "best-test-spec-all.png", sep="-")
+    ggsave(fileName, width=10, height=6, units='in', dpi="retina")
+}
 
 ################################################ GENERATION #################
 ################################################ GENERATION #################
@@ -509,6 +607,101 @@ strategy_run_histogram_plot <- function(result, fileName) {
     ggsave(fileName, width=16, height=6, units='in', dpi="retina")
 }
 
+strategy_best_histogram_plot <- function(result, fileName) {
+    data = data.frame(
+    A = result$A,
+    P = result$P
+    )
+    dataA = data.frame(A = result$A)
+    dataP = data.frame(A = result$P)
+    alpha <- 0.2
+
+    gg <- ggplot(data, aes(A))
+    gg <- gg + geom_bar(data=dataA, stat="count", aes(color = "Bug"), alpha = alpha, fill="red", size=0.8)
+    gg <- gg + geom_bar(data=dataP, stat="count", aes(color = "Test"), alpha = alpha, fill="green", size=0.8)
+    gg <- gg + scale_colour_manual(values=c(Bug="red", Test="green"), name = "Plot Color")
+    #
+    gg <- gg + guides(color = guide_legend(title="Legend"), linetype = guide_legend(title="Legend"))
+
+    gg <- gg + theme(
+    plot.title = element_text(size=16),
+    plot.subtitle = element_text(size=8),
+    plot.caption = element_text(size=6))
+    gg <- gg + labs(
+    color = 'Individuals',
+    title = sprintf("%s","Histogram of Best Bug and Test Strategy in All Runs"),
+    subtitle = sprintf("%s%d", "Run:", result$run),
+    x = "Strategy",
+    y = "Frequency")
+
+    fileName <- paste(fileName, "strat_bar.png", sep="-")
+    ggsave(fileName, width=16, height=6, units='in', dpi="retina")
+}
+
+
+strategy_cum_run_histogram_plot <- function(result, fileName) {
+    data = data.frame(
+    A = result$A,
+    P = result$P
+    )
+    dataA = data.frame(A = result$A)
+    dataP = data.frame(A = result$P)
+    alpha <- 0.2
+
+    gg <- ggplot(data, aes(A))
+    gg <- gg + geom_bar(data=dataA, stat="count", aes(color = "Bug"), alpha = alpha, fill="red", size=0.8)
+    gg <- gg + geom_bar(data=dataP, stat="count", aes(color = "Test"), alpha = alpha, fill="green", size=0.8)
+    gg <- gg + scale_colour_manual(values=c(Bug="red", Test="green"), name = "Plot Color")
+    #
+    gg <- gg + guides(color = guide_legend(title="Legend"), linetype = guide_legend(title="Legend"))
+
+    gg <- gg + theme(
+    plot.title = element_text(size=16),
+    plot.subtitle = element_text(size=8),
+    plot.caption = element_text(size=6))
+    gg <- gg + labs(
+    color = 'Individuals',
+    title = sprintf("%s","Cumulative Histogram of Best Bug and Test Strategy Selection (All Runs)"),
+    subtitle = sprintf("%s%d", "Run:", result$run),
+    caption = sprintf("%s", "Best is defined as the best in all generations (not necessarily the final individual)"),
+    x = "Strategy",
+    y = "Frequency")
+
+    fileName <- paste(fileName, ".png", sep="-")
+    ggsave(fileName, width=20, height=6, units='in', dpi="retina")
+}
+
+strategy_cum_finalIndividual_run_histogram_plot <- function(result, fileName) {
+    data = data.frame(
+    A = result$AFinal,
+    P = result$PFinal
+    )
+    dataA = data.frame(A = result$AFinal)
+    dataP = data.frame(A = result$PFinal)
+    alpha <- 0.2
+
+    gg <- ggplot(data, aes(A))
+    gg <- gg + geom_bar(data=dataA, stat="count", aes(color = "Bug"), alpha = alpha, fill="red", size=0.8)
+    gg <- gg + geom_bar(data=dataP, stat="count", aes(color = "Test"), alpha = alpha, fill="green", size=0.8)
+    gg <- gg + scale_colour_manual(values=c(Bug="red", Test="green"), name = "Plot Color")
+    #
+    gg <- gg + guides(color = guide_legend(title="Legend"), linetype = guide_legend(title="Legend"))
+
+    gg <- gg + theme(
+    plot.title = element_text(size=16),
+    plot.subtitle = element_text(size=8),
+    plot.caption = element_text(size=6))
+    gg <- gg + labs(
+    color = 'Individuals',
+    title = sprintf("%s","Histogram of Final Bug and Test Strategy Selection (All Runs)"),
+    subtitle = sprintf("%s%d", "Run:", result$run),
+    caption = sprintf("%s", "Final is defined as the individuals in the final generation for a given run."),
+    x = "Strategy",
+    y = "Frequency")
+
+    fileName <- paste(fileName, ".png", sep="-")
+    ggsave(fileName, width=20, height=6, units='in', dpi="retina")
+}
 
 ######################################################### TABLE ###############
 ######################################################### TABLE ###############
@@ -633,6 +826,18 @@ getAllFiles <- function(workDir) {
     bestAllCount <- 1
     bestCombinedCount <- 1
     strategyCount <- 1
+    strategyCombCount <- 1
+
+    combinedStrategies <- data.frame(
+        A = character(),
+        P = character(),
+        AFinal = character(),
+        PFinal = character(),
+        AGen = integer(0),
+        PGen =  integer(0),
+        count =  integer(0),
+        run =  integer(0)
+        )
     for (file in files) {
         if (grepl("generational", file)) {
             generationalFileNames[count] <- file
@@ -665,6 +870,8 @@ getAllFiles <- function(workDir) {
             filePath <- paste(workDir, file, sep="/")
             bestAllData = read_csv(filePath)
             best_all_function_plot(bestAllData, file)
+            best_bug_spec_function_plot(bestAllData, file)
+            best_test_spec_function_plot(bestAllData, file)
 
             bestAllCount <- bestAllCount + 1
         }
@@ -677,83 +884,31 @@ getAllFiles <- function(workDir) {
 
             bestCombinedCount <- bestCombinedCount + 1
         }
-        if (grepl("strategy", file)) {
+        if (grepl("strategy-", file)) {
             strategyFileNames[strategyCount] <- file
             filePath <- paste(workDir, file, sep="/")
             strategyData = read_csv(filePath)
 
+            combinedStrategies <- rbind(combinedStrategies, strategyData)
             strategy_run_histogram_plot(strategyData, file)
             strategyCount <- strategyCount + 1
         }
+        if (grepl("strategybest", file)) {
+            strategyFileNames[strategyCount] <- file
+            filePath <- paste(workDir, file, sep="/")
+            strategyData = read_csv(filePath)
+
+            strategy_best_histogram_plot(strategyData, file)
+            strategyCount <- strategyCount + 1
+        }
     }
+    strategy_cum_run_histogram_plot(combinedStrategies, "combined-strategies")
+    strategy_cum_finalIndividual_run_histogram_plot(combinedStrategies, "combined-strategies-finalindividual")
+
     generationalFileNames2 <- generationalFileNames
     print(length(generationalFileNames))
 }
 
+
 getAllFiles(workDir)
 
-# run_stats <- function(datasetGenerational) {
-#     generational_average_plot(datasetGenerational)
-#     generational_histogram_plot(datasetGenerational)
-#     # generational_density_plot(datasetGenerational)
-#     # plot_table(datasetGenerational)
-# }
-
-# run_stats(datasetGenerational)
-
-
-
-
-# theme(
-#     # Legend title and text labels
-#     #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-#     # Title font color size and face
-#     # legend.title = element_text(color, size, face),
-#     # Title alignment. Number from 0 (left) to 1 (right)
-#     legend.title.align = NULL,
-#     # Text label font color size and face
-#     # legend.text = element_text(color, size, face),
-#     # Text label alignment. Number from 0 (left) to 1 (right)
-#     legend.text.align = NULL,
-#
-#     # Legend position, margin and background
-#     #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-#     # Legend position: right, left, bottom, top, none
-#     legend.position = "bottom",
-#     # Margin around each legend
-#     legend.margin = margin(0.2, 0.2, 0.2, 0.2, "cm"),
-#     # Legend background
-#     # legend.background = element_rect(fill, color, size, linetype),
-#
-#     # Legend direction and justification
-#     #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-#     # Layout of items in legends ("horizontal" or "vertical")
-#     legend.direction = "horizontal",
-#     # Positioning legend inside or outside plot
-#     # ("center" or two-element numeric vector)
-#     legend.justification = "center",
-#
-#     # Background underneath legend keys
-#     #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-#     # legend.key = element_rect(fill, color),  # Key background
-#     legend.key.size = unit(1.2, "lines"),    # key size (unit)
-#     legend.key.height = NULL,                # key height (unit)
-#     legend.key.width = NULL,                 # key width (unit)
-#
-#     # Spacing between legends.
-#     #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-#     legend.spacing = unit(0.4, "cm"),
-#     legend.spacing.x = NULL,                 # Horizontal spacing
-#     legend.spacing.y = NULL,                 # Vertical spacing
-#
-#     # Legend box
-#     #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-#     # Arrangement of multiple legends ("horizontal" or "vertical")
-#     legend.box = NULL,
-#     # Margins around the full legend area
-#     legend.box.margin = margin(0, 0, 0, 0, "cm"),
-#     # Background of legend area: element_rect()
-#     legend.box.background = element_blank(),
-#     # The spacing between the plotting area and the legend box
-#     legend.box.spacing = unit(0.4, "cm")
-# )
