@@ -6,27 +6,30 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 type EvolutionResult struct {
-	HasBeenAnalyzed     bool
-	TopAntagonist       *Individual
-	TopProtagonist      *Individual
-	TopAntagonistDelta       *Individual
-	TopProtagonistDelta      *Individual
-	TopAntagonistAvgDelta      *Individual
-	TopProtagonistAvgDelta      *Individual
-	IsMoreFitnessBetter bool
-	FinalAntagonist     *Individual
-	FinalProtagonist    *Individual
+	HasBeenAnalyzed        bool
+	TopAntagonist          *Individual
+	TopProtagonist         *Individual
+	TopAntagonistDelta     *Individual
+	TopProtagonistDelta    *Individual
+	TopAntagonistAvgDelta  *Individual
+	TopProtagonistAvgDelta *Individual
+	IsMoreFitnessBetter    bool
+	FinalAntagonist        *Individual
+	FinalProtagonist       *Individual
 
 	CoevolutionaryAverages []GenerationalCoevolutionaryAverages
 	Generational           Generational
 
-	SortedGenerationIndividuals []*Generation
-	SortedGenerationIndividualsByDelta []*Generation
+	SortedGenerationIndividuals           []*Generation
+	SortedGenerationIndividualsByDelta    []*Generation
 	SortedGenerationIndividualsByDeltaAvg []*Generation
-	OutputFile                  string
+	OutputFile                            string
+
+	Mutex sync.Mutex
 }
 
 type multiIndividualsPerGeneration struct {
@@ -50,10 +53,10 @@ type GenerationalCoevolutionaryAverages struct {
 type Generational struct {
 	Antagonists                    []Individual
 	Protagonists                   []Individual
-	AntagonistsByDelta                    []Individual
-	ProtagonistsByDelta                   []Individual
-	AntagonistsByDeltaAvg                    []Individual
-	ProtagonistsByDeltaAvg                   []Individual
+	AntagonistsByDelta             []Individual
+	ProtagonistsByDelta            []Individual
+	AntagonistsByDeltaAvg          []Individual
+	ProtagonistsByDeltaAvg         []Individual
 	AntagonistFitnessAverages      []float64
 	ProtagonistFitnessAverages     []float64
 	AntagonistBestFitnessAverages  []float64
@@ -66,45 +69,71 @@ type Generational struct {
 
 func (e *EvolutionResult) Analyze(generations []*Generation, isMoreFitnessBetter bool,
 	params EvolutionParams) error {
-	sortedFinalAntagonists, err := SortIndividuals(generations[len(generations)-1].Antagonists, true)
-	if err != nil {
-		return err
-	}
-	sortedFinalProtagonists, err := SortIndividuals(generations[len(generations)-1].Protagonists, true)
-	if err != nil {
-		return err
-	}
 
-	e.FinalAntagonist = sortedFinalAntagonists[0]
-	e.FinalProtagonist = sortedFinalProtagonists[0]
+	wg := sync.WaitGroup{}
+	wg.Add(5)
+	go func(generations []*Generation, e *EvolutionResult, wg *sync.WaitGroup) {
+		defer wg.Done()
+		sortedFinalAntagonists, err := SortIndividuals(generations[len(generations)-1].Antagonists, true)
+		if err != nil {
+			params.ErrorChan <- err
+		}
+		e.Mutex.Lock()
+		e.FinalAntagonist = sortedFinalAntagonists[0]
+		e.Mutex.Unlock()
+	}(generations, e, &wg)
 
+	go func(generations []*Generation, e *EvolutionResult, wg *sync.WaitGroup) {
+		defer wg.Done()
+		sortedFinalProtagonists, err := SortIndividuals(generations[len(generations)-1].Protagonists, true)
+		if err != nil {
+			params.ErrorChan <- err
+		}
+		e.Mutex.Lock()
+		e.FinalProtagonist = sortedFinalProtagonists[0]
+		e.Mutex.Unlock()
+	}(generations, e, &wg)
 
+	go func(generations []*Generation, e *EvolutionResult, wg *sync.WaitGroup) {
+		defer wg.Done()
+		sortedGenerations, err := SortGenerationsThoroughly(generations, isMoreFitnessBetter)
+		if err != nil {
+			params.ErrorChan <- err
+		}
+		e.Mutex.Lock()
+		e.SortedGenerationIndividuals = sortedGenerations
+		e.Mutex.Unlock()
+	}(generations, e, &wg)
 
-	// Perform all sorting functions on each generation for each kind of individual
-	e.IsMoreFitnessBetter = isMoreFitnessBetter
-	sortedGenerations, err := SortGenerationsThoroughly(generations, isMoreFitnessBetter)
-	if err != nil {
-		return err
-	}
+	go func(generations []*Generation, e *EvolutionResult, wg *sync.WaitGroup) {
+		defer wg.Done()
+		sortedGenerationsByDelta, err := SortGenerationsThoroughlyByDelta(generations, true, false)
+		if err != nil {
+			params.ErrorChan <- err
+		}
+		e.Mutex.Lock()
+		e.SortedGenerationIndividualsByDelta = sortedGenerationsByDelta
+		e.Mutex.Unlock()
+	}(generations, e, &wg)
 
-	sortedGenerationsByDelta, err := SortGenerationsThoroughlyByDelta(generations, true, false)
-	if err != nil {
-		return err
-	}
+	go func(generations []*Generation, e *EvolutionResult, wg *sync.WaitGroup) {
+		defer wg.Done()
+		sortedGenerationsByAvgDelta, err := SortGenerationsThoroughlyByAvgDelta(generations, true, false)
+		if err != nil {
+			params.ErrorChan <- err
+		}
+		e.Mutex.Lock()
+		e.SortedGenerationIndividualsByDeltaAvg = sortedGenerationsByAvgDelta
+		e.Mutex.Unlock()
+	}(generations, e, &wg)
+	wg.Wait()
 
-	sortedGenerationsByAvgDelta, err := SortGenerationsThoroughlyByAvgDelta(generations, true, false)
-	if err != nil {
-		return err
-	}
-
-	e.SortedGenerationIndividuals = sortedGenerations
-	e.SortedGenerationIndividualsByDelta = sortedGenerationsByDelta
-	e.SortedGenerationIndividualsByDeltaAvg = sortedGenerationsByAvgDelta
 
 	e.Generational.Antagonists = make([]Individual, params.GenerationsCount)
 	e.Generational.AntagonistsByDeltaAvg = make([]Individual, params.GenerationsCount)
 	e.Generational.AntagonistsByDelta = make([]Individual, params.GenerationsCount)
-	for i, v := range sortedGenerations {
+
+	for i, v := range e.SortedGenerationIndividuals {
 		antagonist := v.Antagonists[0]
 		antagonistByDelta := e.SortedGenerationIndividualsByDelta[i].Antagonists[0]
 		antagonistByAvgDelta := e.SortedGenerationIndividualsByDeltaAvg[i].Antagonists[0]
@@ -119,7 +148,8 @@ func (e *EvolutionResult) Analyze(generations []*Generation, isMoreFitnessBetter
 	e.Generational.Protagonists = make([]Individual, params.GenerationsCount)
 	e.Generational.ProtagonistsByDelta = make([]Individual, params.GenerationsCount)
 	e.Generational.ProtagonistsByDeltaAvg = make([]Individual, params.GenerationsCount)
-	for i, v := range sortedGenerations {
+
+	for i, v := range e.SortedGenerationIndividuals {
 		protagonist := v.Protagonists[0]
 		rotagonistByDelta := e.SortedGenerationIndividualsByDelta[i].Protagonists[0]
 		rotagonistByAvgDelta := e.SortedGenerationIndividualsByDeltaAvg[i].Protagonists[0]
@@ -133,7 +163,7 @@ func (e *EvolutionResult) Analyze(generations []*Generation, isMoreFitnessBetter
 	}
 
 	// Calculate Top Individuals
-	topAntagonist, topProtagonist, err := GetTopIndividualInAllGenerations(sortedGenerations, isMoreFitnessBetter)
+	topAntagonist, topProtagonist, err := GetTopIndividualInAllGenerations(e.SortedGenerationIndividuals, isMoreFitnessBetter)
 	if err != nil {
 		return err
 	}
@@ -141,7 +171,7 @@ func (e *EvolutionResult) Analyze(generations []*Generation, isMoreFitnessBetter
 	e.TopProtagonist = topProtagonist
 
 	// Calculate GenerationalStatistics Averages
-	coevolutionaryAverages, err := GetGenerationalAverages(sortedGenerations)
+	coevolutionaryAverages, err := GetGenerationalAverages(e.SortedGenerationIndividuals)
 	if err != nil {
 		return err
 	}
@@ -156,7 +186,6 @@ func (e *EvolutionResult) Analyze(generations []*Generation, isMoreFitnessBetter
 	e.Generational.AntagonistDeltaAverages = make([]float64, params.GenerationsCount)
 	e.Generational.ProtagonistDeltaAverages = make([]float64, params.GenerationsCount)
 
-
 	for i, v := range coevolutionaryAverages {
 		e.Generational.AntagonistFitnessAverages[i] = v.AntagonistFitnessAverages
 		e.Generational.ProtagonistFitnessAverages[i] = v.ProtagonistFitnessAverages
@@ -169,8 +198,6 @@ func (e *EvolutionResult) Analyze(generations []*Generation, isMoreFitnessBetter
 		//e.Generational.Antagonists[i] = v.
 	}
 	e.HasBeenAnalyzed = true
-
-	//_, err = e.WriteToFile(params.StatisticsOutput.OutputPath, params)
 
 	return err
 }

@@ -2,7 +2,9 @@ package evolution
 
 import (
 	"fmt"
+	"github.com/martinomburajr/masters-go/utils"
 	"strings"
+	"time"
 )
 
 type EvolutionParams struct {
@@ -43,9 +45,8 @@ type EvolutionParams struct {
 	//Channels
 	LoggingChan chan string
 	ErrorChan chan error
+	DoneChan chan bool
 }
-
-
 
 type StatisticsOutput struct {
 	OutputPath string `json:"outputPath"`
@@ -176,6 +177,7 @@ func (e *EvolutionEngine) Start() (*EvolutionResult, error) {
 	// cycle through generationCount
 	e.Generations[0] = &gen0
 	for i := 0; i < e.Parameters.GenerationsCount-1; i++ {
+		started := time.Now()
 		protagonistsCleanse, err := CleansePopulation(e.Generations[i].Protagonists, *e.Parameters.StartIndividual.T)
 		if err != nil {
 			return nil, err
@@ -196,7 +198,11 @@ func (e *EvolutionEngine) Start() (*EvolutionResult, error) {
 
 		e.Generations[i+1] = nextGeneration
 
-		msg := fmt.Sprintf("Spec: %s\nGeneration: %d\n", e.Parameters.SpecParam.ExpressionParsed, i)
+		elapsed := utils.TimeTrack(started)
+		msg := fmt.Sprintf("Spec: %s | Run: %d | Gen: (%d/%d) | Elapsed: %s\n",
+			e.Parameters.SpecParam.ExpressionParsed,
+			e.Parameters.InternalCount, i+1,
+				e.Parameters.GenerationsCount, elapsed.String())
 		e.Parameters.LoggingChan <- msg
 	}
 

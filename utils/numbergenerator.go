@@ -1,6 +1,14 @@
 package utils
 
-import "math/rand"
+import (
+	"math/rand"
+	"time"
+)
+
+func TimeTrack(start time.Time) time.Duration {
+	elapsed := time.Since(start)
+	return elapsed
+}
 
 type NumberGenerator struct {
 	Min int

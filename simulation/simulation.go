@@ -19,11 +19,15 @@ type Simulation struct {
 	CurrentEvolutionState evolution.EvolutionParams `json:"currentEvolutionState"`
 	NumberOfRunsPerState  int                       `json:"numberOfRunsPerState"`
 	Name                  string                    `json:"name"`
+	StatsFiles []string `json:"statsFiles""`
+
+
 	// Output-Only
 	OutputDir       string               `json:"outputDir"`
 	RPath           string               `json:"rPath"`
 	SimulationStats []SimulationRunStats `json:"simulationStats"`
 	DataPath        string
+
 }
 
 func (s *Simulation) Begin(params evolution.EvolutionParams) (evolution.EvolutionParams, error) {
@@ -34,7 +38,8 @@ func (s *Simulation) Begin(params evolution.EvolutionParams) (evolution.Evolutio
 		wg := sync.WaitGroup{}
 		for i := 0; i < s.NumberOfRunsPerState; i++ {
 			wg.Add(1)
-			go func(i int, params evolution.EvolutionParams, s *Simulation, wg *sync.WaitGroup) {
+			go func(i int, params evolution.EvolutionParams, s *Simulation,
+				wg *sync.WaitGroup) {
 				defer wg.Done()
 
 				params.InternalCount = i
@@ -96,13 +101,14 @@ func (s *Simulation) Begin(params evolution.EvolutionParams) (evolution.Evolutio
 
 	abs, _ := filepath.Abs(s.DataPath)
 	if params.RunStats {
-		s.RunRScript(s.RPath, abs, params.ErrorChan)
+		s.RunRScript(s.RPath, abs, s.StatsFiles, params.LoggingChan, params.ErrorChan)
 	}
+
 
 	msg := fmt.Sprintf("SIMULATION COMPLETE:\nFile: %s", params.ToString())
 	params.LoggingChan <- msg
+	params.DoneChan <- true
 
-	log.Println(msg)
 	return params, nil
 }
 
@@ -139,19 +145,27 @@ type SimulationRunStats struct {
 	Generational             evolution.Generational
 }
 
-func (s *Simulation) RunRScript(RPath, dirPath string, errChan chan error) {
+func (s *Simulation) RunRScript(RPath, dirPath string, RFiles []string, logChan chan string, errChan chan error) {
+
 	wg := sync.WaitGroup{}
-	wg.Add(1)
-	go func(wg *sync.WaitGroup) {
-		defer wg.Done()
-		cmd := exec.Command("Rscript", RPath, dirPath)
-		log.Println(fmt.Sprintf("Rscript: \n\n%s\n\n", cmd.String()))
-		err := cmd.Run()
-		if err != nil {
-			fmt.Println("ERROR: " + err.Error())
-			errChan <- err
-		}
-	}(&wg)
+	for _, rFile := range RFiles {
+		wg.Add(1)
+		go func(group *sync.WaitGroup, rFile string, logChan chan string, errChan chan error) {
+			defer group.Done()
+
+			fqdn := fmt.Sprintf("%s/%s", RPath, rFile)
+			cmd := exec.Command("Rscript", fqdn, dirPath)
+			msg := fmt.Sprintf("Rscript: \n%s\n", cmd.String())
+
+			logChan <- msg
+
+			err := cmd.Run()
+			if err != nil {
+				errChan <- err
+			}
+
+		}(&wg, rFile, logChan, errChan)
+	}
 	wg.Wait()
 }
 

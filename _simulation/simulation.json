@@ -3,6 +3,9 @@
   "numberOfRunsPerState": 10,
   "name":                 "simulation-1",
   "outputDir":            "",
-  "rPath":                "/R/runScript.R"
-
+  "rPath":                "/R",
+  "statsFiles": [
+    "best.R", "best-combined.R", "epochs.R",
+    "generations.R", "strategy.R"
+  ]
 }

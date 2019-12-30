@@ -40,7 +40,6 @@ func main() {
 }
 
 
-
 // scheduler runs the actual simulation
 func Scheduler(paramsFolder string, parallelism, logging, runStats bool) {
 	absolutePath, err := filepath.Abs(".")
@@ -56,9 +55,9 @@ func Scheduler(paramsFolder string, parallelism, logging, runStats bool) {
 		absolutePath:  absolutePath,
 		dataFiles:     dataFiles,
 		paramFolder: paramsFolder,
-		errChan:       make(chan error, 10000),
-		logChan:       make(chan string, 10000),
-		doneChan:       make(chan bool,1),
+		errChan:       make(chan error),
+		logChan:       make(chan string),
+		doneChan:       make(chan bool),
 		parallelism:   parallelism,
 		logging:   logging,
 		runStats: runStats,
@@ -66,17 +65,23 @@ func Scheduler(paramsFolder string, parallelism, logging, runStats bool) {
 
 	// Listen to logs and errors
 
-	go func(simulationParm *simulationParams) {
+	go func(simulationParam *simulationParams) {
+		started := time.Now()
 		for {
 			select {
-			case logg := <- simulationParm.logChan:
+			case logg := <- simulationParam.logChan:
 				fmt.Println("LOG: " + logg)
-			case err := <- simulationParm.errChan:
+			case err := <- simulationParam.errChan:
 				fmt.Println("Error: " + err.Error())
 				return
-			case isDone := <- simulationParm.doneChan:
-				fmt.Printf("Simulation Complete: %t\n", isDone)
-				return
+			case isDone := <- simulationParam.doneChan:
+				elapsedTime := time.Since(started)
+
+				msg := fmt.Sprintf("\nElapsed Time: %s\nIsComplete: %t\n", elapsedTime.String(), isDone)
+				fmt.Println(msg)
+
+				close(sim.doneChan)
+				os.Exit(0)
 			}
 		}
 	}(&sim)
@@ -101,11 +106,8 @@ func Scheduler(paramsFolder string, parallelism, logging, runStats bool) {
 		}
 	}
 
-	sim.doneChan <- true
-
 	close(sim.logChan)
 	close(sim.errChan)
-	close(sim.doneChan)
 }
 
 type simulationParams struct {
@@ -150,6 +152,7 @@ func runSimulation(simulationParams simulationParams) {
 		params.RunStats = simulationParams.runStats
 		params.LoggingChan = simulationParams.logChan
 		params.ErrorChan = simulationParams.errChan
+		params.DoneChan = simulationParams.doneChan
 
 		newParams, err := simulationn.Begin(params)
 		if err != nil {
@@ -246,7 +249,7 @@ func SetArguments(simulationFilePath, paramsFilePath, dataPath string) (simulati
 			fmt.Errorf(err.Error())
 	}
 
-	sim.RPath = fmt.Sprintf("%s%s", absolutePath, "/R/runScript.R")
+	sim.RPath = fmt.Sprintf("%s%s", absolutePath, "/R")
 	sim.DataPath = dataPath
 
 	err = json.NewDecoder(paramsFile).Decode(&params)
