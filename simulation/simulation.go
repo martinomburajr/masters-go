@@ -34,15 +34,16 @@ func (s *Simulation) Begin(params evolution.EvolutionParams) (evolution.Evolutio
 		wg := sync.WaitGroup{}
 		for i := 0; i < s.NumberOfRunsPerState; i++ {
 			wg.Add(1)
-			go func(i int, wg *sync.WaitGroup) {
+			go func(i int, params evolution.EvolutionParams, s *Simulation, wg *sync.WaitGroup) {
 				defer wg.Done()
+
 				params.InternalCount = i
 				engine := PrepareSimulation(params, i)
 				params = engine.Parameters
 				s.OutputDir = engine.Parameters.StatisticsOutput.OutputDir
 
 				s.StartEngine(engine)
-			}(i, &wg)
+			}(i,params, s, &wg)
 		}
 		wg.Wait()
 	} else {
@@ -94,10 +95,14 @@ func (s *Simulation) Begin(params evolution.EvolutionParams) (evolution.Evolutio
 	}
 
 	abs, _ := filepath.Abs(s.DataPath)
-	s.RunRScript(s.RPath, abs)
-	//wg.Wait()
-	log.Println("SYNCHRONIZED!")
+	if params.RunStats {
+		s.RunRScript(s.RPath, abs, params.ErrorChan)
+	}
 
+	msg := fmt.Sprintf("SIMULATION COMPLETE:\nFile: %s", params.ToString())
+	params.LoggingChan <- msg
+
+	log.Println(msg)
 	return params, nil
 }
 
@@ -134,7 +139,7 @@ type SimulationRunStats struct {
 	Generational             evolution.Generational
 }
 
-func (s *Simulation) RunRScript(RPath, dirPath string) error {
+func (s *Simulation) RunRScript(RPath, dirPath string, errChan chan error) {
 	wg := sync.WaitGroup{}
 	wg.Add(1)
 	go func(wg *sync.WaitGroup) {
@@ -144,12 +149,10 @@ func (s *Simulation) RunRScript(RPath, dirPath string) error {
 		err := cmd.Run()
 		if err != nil {
 			fmt.Println("ERROR: " + err.Error())
-			//errChan <- err
+			errChan <- err
 		}
 	}(&wg)
 	wg.Wait()
-
-	return nil
 }
 
 func (s *Simulation) StartEngine(engine *evolution.EvolutionEngine) error {
@@ -562,7 +565,8 @@ func (s *Simulation) SpewJSON(projectAbsolutePath, baseRelDir string, split int)
 																						AvailableVariablesAndOperators: evolution.AvailableVariablesAndOperators{
 																							Constants: []string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"},
 																							Variables: []string{"x"},
-																							Operators: []string{"*", "+", "-"},
+																							Operators: []string{"*",
+																								"+", "-", "/"},
 																						},
 																						DivideByZeroStrategy: AllDivByZeroStrategy[divByZeroStrategyIndex],
 																						DivideByZeroPenalty:  AllDivByZeroPenalty[divByZeroPenaltyIndex],

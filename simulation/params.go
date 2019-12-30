@@ -8,19 +8,19 @@ var AllExpressions = []string{
 }
 var AllRanges = []int{30}
 var AllSeed = []int{-10}
-var AllGenerationsCount = []int{100}
-var AllEachPopulationSize = []int{250, 1000}
+var AllGenerationsCount = []int{50}
+var AllEachPopulationSize = []int{5}
 
 var AllReproduction = []evolution.Reproduction{
 	evolution.Reproduction{ProbabilityOfMutation: 0.1, CrossoverPercentage: 0.3},
 }
 var AllDepthOfRandomNewTree = []int{1, 3}
-var AllAntagonistStrategyCount = []int{5, 20}
-var AllProtagonistStrategyCount = []int{5, 20}
+var AllAntagonistStrategyCount = []int{15}
+var AllProtagonistStrategyCount = []int{15}
 
 var AllFitnessStrategyType = []string{evolution.FitnessDualThresholdedRatio}
-var AllFitStratAntThreshMult = []float64{25, 80}
-var AllFitStratProThreshMult = []float64{1, 1.4}
+var AllFitStratAntThreshMult = []float64{50}
+var AllFitStratProThreshMult = []float64{1}
 
 var AllSelectionParentType = []string{evolution.ParentSelectionTournament}
 var AllTournamentSizesType = []int{3}
@@ -34,9 +34,8 @@ var AllDivByZeroPenalty = []float64{-2}
 
 var AllPossibleStrategies = [][]evolution.Strategy{
 	AllStrategies,
-	AllStrategiesDeterministic,
-	AllStrategiesRandom,
-
+	//AllStrategiesDeterministic,
+	//AllStrategiesRandom,
 	//AllStrategiesNoDelete,
 	// AllStrategiesNoFell,
 	//AllStrategiesNoSkip,

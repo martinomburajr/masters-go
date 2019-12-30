@@ -20,6 +20,10 @@ func TestEvolution1(t *testing.T) {
 func BenchmarkEvolution1(b *testing.B) {
 	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
-		//simulation.PrepareSimulation()
+		paramsFolder := "_params"
+		parallelism := true
+		logging := false
+
+		Scheduler(paramsFolder, parallelism, logging, false)
 	}
 }

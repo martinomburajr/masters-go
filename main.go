@@ -9,6 +9,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -26,27 +27,190 @@ func main() {
 		log.Fatal("Params path cannot be empty")
 	}
 
+	fmt.Printf("Current Goroutines: %d", runtime.NumGoroutine())
+
 	paramsFolder := *paramsPtr
 	parallelism := *parallelismPtr
 	log.Println("PARAMS Folder: " + paramsFolder)
 	log.Printf("Parallelism Enabled: %t\n", *parallelismPtr)
 
-	//SPEW(paramsFolder, 10)
-	Scheduler(paramsFolder, parallelism)
+	//SPEW(paramsFolder, 4)
+	parallelism = true
+	Scheduler(paramsFolder, parallelism, true, true)
 }
 
 
 
-// SPEW is used to create the various param files
-func SPEW(paramsFolder string, split int) {
-	s := simulation.Simulation{}
-	abs, err := filepath.Abs(".")
+// scheduler runs the actual simulation
+func Scheduler(paramsFolder string, parallelism, logging, runStats bool) {
+	absolutePath, err := filepath.Abs(".")
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Println(err)
 	}
-	err = s.SpewJSON(abs, paramsFolder, split)
+
+	paramFiles := getParamFiles(absolutePath, paramsFolder)
+	dataFiles := getDataFiles(absolutePath)
+	dataFiles = dataFiles[1:]
+
+	sim := simulationParams{
+		absolutePath:  absolutePath,
+		dataFiles:     dataFiles,
+		paramFolder: paramsFolder,
+		errChan:       make(chan error, 10000),
+		logChan:       make(chan string, 10000),
+		doneChan:       make(chan bool,1),
+		parallelism:   parallelism,
+		logging:   logging,
+		runStats: runStats,
+	}
+
+	// Listen to logs and errors
+
+	go func(simulationParm *simulationParams) {
+		for {
+			select {
+			case logg := <- simulationParm.logChan:
+				fmt.Println("LOG: " + logg)
+			case err := <- simulationParm.errChan:
+				fmt.Println("Error: " + err.Error())
+				return
+			case isDone := <- simulationParm.doneChan:
+				fmt.Printf("Simulation Complete: %t\n", isDone)
+				return
+			}
+		}
+	}(&sim)
+
+
+	if parallelism {
+		wg := sync.WaitGroup{}
+		for _, paramFile := range paramFiles {
+			wg.Add(1)
+
+			go func(sim simulationParams, paramFile string, group *sync.WaitGroup) {
+				defer group.Done()
+				sim.paramFile = paramFile
+				runSimulation(sim)
+			}(sim, paramFile, &wg)
+		}
+		wg.Wait()
+	} else {
+		for _, paramFile := range paramFiles {
+			sim.paramFile = paramFile
+			runSimulation(sim)
+		}
+	}
+
+	sim.doneChan <- true
+
+	close(sim.logChan)
+	close(sim.errChan)
+	close(sim.doneChan)
+}
+
+type simulationParams struct {
+	absolutePath string
+	paramFile    string
+	paramFolder  string
+	dataFiles    []string
+	errChan      chan error
+	logChan      chan string
+
+	parallelism bool
+	logging     bool
+	runStats    bool
+	doneChan    chan bool
+}
+
+func runSimulation(simulationParams simulationParams) {
+	paramFilePath := fmt.Sprintf("%s/%s/%s.json", simulationParams.absolutePath,
+		simulationParams.paramFolder, simulationParams.paramFile)
+
+	if !contains(simulationParams.paramFile, simulationParams.dataFiles) {
+		dataDir := fmt.Sprintf("%s/data/%s", simulationParams.absolutePath, simulationParams.paramFile)
+		err := os.MkdirAll(dataDir, 0775)
+		if err != nil {
+			simulationParams.errChan <- err
+		}
+
+		// started
+		createFileInDataDir(simulationParams, "started.txt", time.Now().Format(time.RFC3339))
+
+		simulationn, params, err := SetArguments(SimulationFilePath, paramFilePath, dataDir)
+		if err != nil {
+			if simulationParams.parallelism {
+				simulationParams.errChan <- err
+			}
+			log.Printf(err.Error())
+			return
+		}
+
+		params.EnableParallelism = simulationParams.parallelism
+		params.EnableLogging = simulationParams.logging
+		params.RunStats = simulationParams.runStats
+		params.LoggingChan = simulationParams.logChan
+		params.ErrorChan = simulationParams.errChan
+
+		newParams, err := simulationn.Begin(params)
+		if err != nil {
+			if simulationParams.parallelism {
+				simulationParams.errChan <- err
+			}
+			log.Printf(err.Error())
+		}
+
+		writeParamFile(simulationParams, newParams, simulationParams.errChan)
+
+		// completed
+		createFileInDataDir(simulationParams, "completed.txt", time.Now().Format(time.RFC3339))
+
+		m := fmt.Sprintf("%s\n%s", "Parsing Complete", simulationParams.paramFile)
+		if simulationParams.parallelism {
+			simulationParams.logChan <- m
+		}else {
+			log.Printf(m)
+		}
+
+	} else {
+		m := fmt.Sprintf("%s\n%s", "SKIPPING", simulationParams.paramFile)
+		if simulationParams.parallelism {
+			ch := len(simulationParams.logChan)
+			fmt.Println(ch)
+			if simulationParams.logChan != nil {
+				simulationParams.logChan <- m
+			}
+		} else {
+			log.Printf(m)
+		}
+
+	}
+}
+
+func createFileInDataDir(simulationParams simulationParams, filename, content string) {
+	completePath := fmt.Sprintf("%s/data/%s/%s", simulationParams.absolutePath, simulationParams.paramFile, filename)
+
+	file, err := os.Create(completePath)
 	if err != nil {
-		log.Fatal(err.Error())
+		simulationParams.errChan <- err
+	}
+	_, err = file.WriteString(content)
+	if err != nil {
+		simulationParams.errChan <- err
+	}
+}
+
+func writeParamFile(sim simulationParams, params evolution.EvolutionParams, errChan chan error) {
+	paramsDataPath := fmt.Sprintf("%s/data/%s/%s", sim.absolutePath, sim.paramFile, "_params.json")
+	paramsFile, err := os.Create(paramsDataPath)
+
+	if err != nil {
+		errChan <- err
+	}
+
+	// pass the params file
+	err = json.NewEncoder(paramsFile).Encode(&params)
+	if err != nil {
+		errChan <- err
 	}
 }
 
@@ -94,17 +258,40 @@ func SetArguments(simulationFilePath, paramsFilePath, dataPath string) (simulati
 	return sim, params, nil
 }
 
-// scheduler runs the actual simulation
-func Scheduler(paramsFolder string, parallelism bool) {
-	// 1. Get files in the _params3 folder
-
-	absolutePath, err := filepath.Abs(".")
+// SPEW is used to create the various param files
+func SPEW(paramsFolder string, split int) {
+	s := simulation.Simulation{}
+	abs, err := filepath.Abs(".")
 	if err != nil {
-		log.Println(err)
+		log.Fatal(err.Error())
 	}
+	err = s.SpewJSON(abs, paramsFolder, split)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+}
 
-	paramFiles, paramFilePath, dataFiles := getParamFiles(absolutePath, paramsFolder)
 
+func getParamFiles(absolutePath string, paramsFolder string) (paramFiles []string) {
+	filepath.Walk(fmt.Sprintf("%s/%s", absolutePath, paramsFolder),
+		func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			} else {
+				if info.IsDir() {
+
+				} else {
+					dF := strings.Replace(path, absolutePath+"/"+paramsFolder+"/", "", -1)
+					dF = strings.Replace(dF, ".json", "", -1)
+					paramFiles = append(paramFiles, dF)
+				}
+			}
+			return nil
+		})
+	return paramFiles
+}
+
+func getDataFiles(absolutePath string) (dataFiles []string) {
 	filepath.Walk(fmt.Sprintf("%s/%s", absolutePath, "data"),
 		func(path string, info os.FileInfo, err error) error {
 			if err != nil {
@@ -118,134 +305,7 @@ func Scheduler(paramsFolder string, parallelism bool) {
 			return nil
 		})
 
-	//paramFiles = paramFiles[1:]
-	dataFiles = dataFiles[1:]
-	//paramFilePath = paramFilePath[1:]
-
-	doneChan := make(chan string, len(paramFiles))
-	errChan := make(chan error)
-
-	if parallelism {
-		wg := sync.WaitGroup{}
-		for i, paramFile := range paramFiles {
-			wg.Add(1)
-			go func(i int, paramFile string, group *sync.WaitGroup) {
-				defer group.Done()
-				runSimulation(paramFile, dataFiles, absolutePath, errChan, paramFilePath, i, parallelism, doneChan)
-			}(i, paramFile, &wg)
-		}
-		wg.Done()
-	} else {
-		for i, paramFile := range paramFiles {
-			runSimulation(paramFile, dataFiles, absolutePath, errChan, paramFilePath, i, parallelism, doneChan)
-		}
-	}
-
-	log.Println("WAIT GROUP COMPLETE")
-
-	for g := range errChan {
-		log.Println(g.Error())
-	}
-}
-
-func runSimulation(paramFile string, dataFiles []string, absolutePath string, errChan chan error, paramFilePath []string, i int, parallelism bool, doneChan chan string) {
-	if !contains(paramFile, dataFiles) {
-		// create folder and add the started flag
-		// add the complete flag
-		dataDir := fmt.Sprintf("%s/data/%s", absolutePath, paramFile)
-		err := os.MkdirAll(dataDir, 0775)
-		if err != nil {
-			errChan <- err
-		}
-
-		startedPath := fmt.Sprintf("%s/data/%s/%s", absolutePath, paramFile, "started.txt")
-
-		file, err := os.Create(startedPath)
-		if err != nil {
-			errChan <- err
-			log.Println(err.Error())
-		}
-		_, err = file.WriteString(time.Now().Format(time.RFC3339))
-		if err != nil {
-			errChan <- err
-			log.Println(err.Error())
-		}
-
-		simulationn, params, err := SetArguments(SimulationFilePath, paramFilePath[i], dataDir)
-		if err != nil {
-			errChan <- err
-			log.Println(err)
-			return
-		}
-		params.EnableParallelism = parallelism
-
-		newParams, err := simulationn.Begin(params)
-		if err != nil {
-			errChan <- err
-		}
-
-		err, errChan = writeParamFile(absolutePath, paramFile, err, errChan, newParams)
-
-		// add the complete flag
-		completePath := fmt.Sprintf("%s/data/%s/%s", absolutePath, paramFile, "completed.txt")
-		file2, err := os.Create(completePath)
-		if err != nil {
-			errChan <- err
-			log.Println(err.Error())
-		}
-		_, err = file2.WriteString(time.Now().Format(time.RFC3339))
-		if err != nil {
-			errChan <- err
-			log.Println(err.Error())
-		}
-
-		m := fmt.Sprintf("%s\n%s", "Parsing Complete", paramFile)
-		log.Println(m)
-		doneChan <- m
-	} else {
-		m := fmt.Sprintf("%s\n%s", "SKIPPING", paramFile)
-		log.Println(m)
-		doneChan <- m
-	}
-}
-
-func writeParamFile(absolutePath string, paramFile string, err error, errChan chan error, params evolution.EvolutionParams) (error, chan error) {
-	paramsDataPath := fmt.Sprintf("%s/data/%s/%s", absolutePath, paramFile, "_params.json")
-	paramsFile, err := os.Create(paramsDataPath)
-	if err != nil {
-		errChan <- err
-		log.Println(err.Error())
-	}
-	// pass the params file
-	err = json.NewEncoder(paramsFile).Encode(&params)
-	if err != nil {
-		errChan <- err
-		log.Println(err.Error())
-	}
-	return err, errChan
-}
-
-func getParamFiles(absolutePath string, paramsFolder string) ([]string, []string, []string) {
-	var paramFiles []string
-	var paramFilePath []string
-	var dataFiles []string
-	filepath.Walk(fmt.Sprintf("%s/%s", absolutePath, paramsFolder),
-		func(path string, info os.FileInfo, err error) error {
-			if err != nil {
-				return err
-			} else {
-				if info.IsDir() {
-
-				} else {
-					dF := strings.Replace(path, absolutePath+"/"+paramsFolder+"/", "", -1)
-					dF = strings.Replace(dF, ".json", "", -1)
-					paramFiles = append(paramFiles, dF)
-					paramFilePath = append(paramFilePath, path)
-				}
-			}
-			return nil
-		})
-	return paramFiles, paramFilePath, dataFiles
+	return dataFiles
 }
 
 func contains(str string, arr []string) bool {

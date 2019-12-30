@@ -5,14 +5,10 @@ sleep 1
 
 params="_params"
 
-for i in {0..1} ; do
+for i in {0..3} ; do
+  echo ${i}
   path="${params}/${i}"
   echo $path
-  launch go run main.go --params=$path &
-  while kill -0 "$PROC_ID" >/dev/null 2>&1; do
-    echo "PROCESS IS RUNNING"
-  done
-  echo "PROCESS TERMINATED"
-  exit 0
-
+  go run main.go --params=$path --parallelism=true &
+  echo "################################################"
 done

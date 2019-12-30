@@ -34,6 +34,15 @@ type EvolutionParams struct {
 	StatisticsOutput             StatisticsOutput `json:"statisticsOutput"`
 	// InternalCount - Output Only (Helps with file name assignments)
 	InternalCount int
+
+
+
+	EnableLogging bool
+	RunStats    bool
+
+	//Channels
+	LoggingChan chan string
+	ErrorChan chan error
 }
 
 
@@ -184,7 +193,11 @@ func (e *EvolutionEngine) Start() (*EvolutionResult, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		e.Generations[i+1] = nextGeneration
+
+		msg := fmt.Sprintf("Spec: %s\nGeneration: %d\n", e.Parameters.SpecParam.ExpressionParsed, i)
+		e.Parameters.LoggingChan <- msg
 	}
 
 	evolutionResult := &EvolutionResult{}
@@ -285,8 +298,8 @@ func (e EvolutionParams) ToString() string {
 		e.SpecParam.DivideByZeroStrategy)
 	divide0Penalty = strings.ReplaceAll(divide0Penalty,".","")
 	builder.WriteString(divide0Penalty)
-	builder.WriteString("-")
-	builder.WriteString(fmt.Sprintf("%s", RandString(4)))
+	//builder.WriteString("-")
+	//builder.WriteString(fmt.Sprintf("%s", RandString(4)))
 
 	return builder.String()
 }

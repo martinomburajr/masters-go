@@ -153,19 +153,16 @@ func (g *Generation) runEpochs(epochs []Epoch) ([]Epoch, error) {
 
 
 	for i := 0; i < len(epochs); i++ {
-		//wg.Add(1)
-
-		//go func(index int, perfectMap map[string]PerfectTree, wg *sync.WaitGroup, errChan *chan error) {
-		//	defer wg.Done()
-			err := epochs[i].Start(perfectFitnessMap)
-			if err != nil {
-				//*errChan <- err
-				return nil, err
-			}
-		//}(i, perfectFitnessMap, &wg, &errChan)
-
+		err := epochs[i].Start(perfectFitnessMap)
+		if err != nil {
+			g.engine.Parameters.ErrorChan <- err
+			return nil, err
+		}
+		//msg := fmt.Sprintf("Epoch: (%d/%d)", i, len(epochs)-1)
+		if g.engine.Parameters.EnableLogging {
+			//g.engine.Parameters.LoggingChan <- msg
+		}
 	}
-	//wg.Wait()
 
 	//if len(errChan) > 0 {
 	//	return nil, fmt.Errorf("error with runningEpochs")
