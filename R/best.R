@@ -303,34 +303,27 @@ getAllFiles <- function(workDir) {
     bestAllCount <- 1
 
     combinedBest <- data.frame(
-    specEquation=character(),
-    A = character(),
-    P = character(),
-    AFinal = character(),
-    PFinal = character(),
-    AGen = integer(0),
-    PGen =  integer(0),
-    count =  integer(0),
-    run =  integer(0)
+        specEquation= character(),
+        AEquation = character(),
+        PEquation = character(),
+        run = integer(0)
     )
     for (file in files) {
         if (grepl("best-all", file)) {
             bestAllFileNames[bestAllCount] <- file
             filePath <- paste(workDir, file, sep="/")
             bestAllData = read_csv(filePath)
-            # best_all_function_plot(bestAllData, file)
-            # best_bug_spec_function_plot(bestAllData, file)
-            # best_test_spec_function_plot(bestAllData, file)
+            best_all_function_plot(bestAllData, file)
+            best_bug_spec_function_plot(bestAllData, file)
+            best_test_spec_function_plot(bestAllData, file)
 
-            combinedBest <- cbind(combinedBest, bestAllData)
+            combinedBest <- merge(combinedBest, bestAllData)
+            print(combinedBest)
 
             bestAllCount <- bestAllCount + 1
         }
     }
-
     print(combinedBest)
-
-    # best_all_tests_plot(combinedBest, "best-all-tests")
 }
 
 

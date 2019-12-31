@@ -294,7 +294,7 @@ epochal_all_test_runs_boxplot <- function(result, fileName) {
     title = sprintf("%s","Epochal Average of Best Test in Each Run"),
     subtitle = sprintf("%s%d", "Run:", result$run),
     caption = sprintf("Cumulative Test Mean: %.2f\nCumulative Test SDev: %.2f",
-    mean(result$A), sd(result$A)),
+    mean(result$P), sd(result$P)),
     x = "Run",
     y = "Fitness")
 
@@ -323,11 +323,11 @@ getAllFiles <- function(workDir) {
             filePath <- paste(workDir, file, sep="/")
             epochalData = read_csv(filePath)
 
-            # epochal_plot(epochalData, file)
-            # epochal_pDelta_plot(epochalData, file)
-            # epochal_aDelta_plot(epochalData, file)
-            # epochal_density_plot(epochalData, file)
-            # epochal_density_histogram_plot(epochalData, file)
+            epochal_plot(epochalData, file)
+            epochal_pDelta_plot(epochalData, file)
+            epochal_aDelta_plot(epochalData, file)
+            epochal_density_plot(epochalData, file)
+            epochal_density_histogram_plot(epochalData, file)
 
             meanDataFrame <- data.frame(AColor=rep(as.character(mean(epochalData$A)), nrow(epochalData)))
             meanDataFrameP <- data.frame(PColor=rep(as.character(mean(epochalData$P)), nrow(epochalData)))

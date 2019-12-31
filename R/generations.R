@@ -172,9 +172,103 @@ generational_density_histogram_plot <- function(result, fileName) {
     ggsave(fileName, width=8, height=4, units='in', dpi="retina")
 }
 
+
+generational_all_bug_runs_boxplot <- function(result, fileName) {
+    # Result is a dataframe containing Runs on X axis and values on Y
+    data = data.frame(
+    A = result$AGenFitAvg,
+    run = result$run
+    )
+    data$discreteX = as.character(result$run)
+
+    gg <- ggplot(data, aes(x=discreteX, y=A, fill="BestBug"))
+    gg <- gg + geom_boxplot(
+    outlier.colour="#A4A4A4",
+    outlier.shape=16,
+    outlier.size=1,
+    notch=FALSE,
+    fill="tomato"
+    )
+    gg <- gg + geom_dotplot(binaxis='y', stackdir='center', dotsize=0.8)
+    gg <- gg + stat_summary(fun.y=mean, geom="point", shape=23, size=3, aes(x=discreteX, fill="BestBug"))
+    gg <- gg + scale_fill_brewer(palette="YlOrRd") + theme_minimal()
+    gg <- gg + scale_colour_manual(values=c(BestBug="red"), name = "Plot Color")
+
+    gg <- gg + guides(
+    fill=guide_legend(title="Legend"),
+    linetype = guide_legend(title="Legend")
+    )
+    gg <- gg + theme(
+    plot.title = element_text(size=16),
+    plot.subtitle = element_text(size=8),
+    plot.caption = element_text(size=6))
+
+    gg <- gg + labs(
+    color = 'Individuals',
+    title = sprintf("%s","Generational Average of Best Bug in Each Run"),
+    subtitle = sprintf("%s%d", "Run:", result$run),
+    caption = sprintf("Cumulative Bug Mean: %.2f\nCumulative Bug SDev: %.2f",
+    mean(result$AGenFitAvg), sd(result$AGenFitAvg)),
+    x = "Run",
+    y = "Fitness")
+
+    fileName <- paste(fileName, ".png", sep="-")
+    ggsave(fileName, width=8, height=4, units='in', dpi="retina")
+}
+
+generational_all_test_runs_boxplot <- function(result, fileName) {
+    # Result is a dataframe containing Runs on X axis and values on Y
+    data = data.frame(
+    P = result$PGenFitAvg,
+    run = result$run
+    )
+    data$discreteX = as.character(result$run)
+
+    gg <- ggplot(data, aes(x=discreteX, y=P, fill="BestTest"))
+    gg <- gg + geom_boxplot(
+    outlier.colour="#A4A4A4",
+    outlier.shape=16,
+    outlier.size=1,
+    notch=FALSE,
+    fill="green"
+    )
+    gg <- gg + geom_dotplot(binaxis='y', stackdir='center', dotsize=0.8)
+    gg <- gg + stat_summary(fun.y=mean, geom="point", shape=23, size=3, aes(x=discreteX, fill="BestTest"))
+    gg <- gg + scale_fill_brewer(palette="YlOrRd") + theme_minimal()
+    gg <- gg + scale_colour_manual(values=c(BestBug="green"), name = "Plot Color")
+
+    gg <- gg + guides(
+    fill=guide_legend(title="Legend"),
+    linetype = guide_legend(title="Legend")
+    )
+    gg <- gg + theme(
+    plot.title = element_text(size=16),
+    plot.subtitle = element_text(size=8),
+    plot.caption = element_text(size=6))
+
+    gg <- gg + labs(
+    color = 'Individuals',
+    title = sprintf("%s","Generational Average of Best Test in Each Run"),
+    subtitle = sprintf("%s%d", "Run:", result$run),
+    caption = sprintf("Cumulative Test Mean: %.2f\nCumulative Test SDev: %.2f",
+    mean(result$PGenFitAvg), sd(result$PGenFitAvg)),
+    x = "Run",
+    y = "Fitness")
+
+    fileName <- paste(fileName, ".png", sep="-")
+    ggsave(fileName, width=8, height=4, units='in', dpi="retina")
+}
+
 getAllFiles <- function(workDir) {
     files <- list.files(workDir)
     count <- 1
+
+    combinedRuns <- data.frame(
+        AGenFitAvg = double(),
+        AGenFitAvg = double(),
+        run = integer(0)
+    )
+
     for (file in files) {
         if (grepl("generational", file)) {
             generationalFileNames[count] <- file
@@ -183,15 +277,18 @@ getAllFiles <- function(workDir) {
             print(filePath)
             generationalData = read_csv(filePath)
 
-            generational_histogram_plot(generationalData, file)
-            generational_density_plot(generationalData,  file)
-            generational_density_histogram_plot(generationalData,  file)
-            generational_average_plot(generationalData,  file)
+            # generational_histogram_plot(generationalData, file)
+            # generational_density_plot(generationalData,  file)
+            # generational_density_histogram_plot(generationalData,  file)
+            # generational_average_plot(generationalData,  file)
+
+            combinedRuns <- rbind(combinedRuns, generationalData)
             count <- count + 1
         }
     }
 
-    print(length(generationalFileNames))
+    generational_all_test_runs_boxplot(combinedRuns, "generational_all_test_runs_boxplot")
+    generational_all_bug_runs_boxplot(combinedRuns, "generational_all_bug_runs_boxplot")
 }
 
 
