@@ -242,11 +242,68 @@ best_test_spec_function_plot <- function(result, fileName) {
     ggsave(fileName, width=10, height=6, units='in', dpi="retina")
 }
 
+best_all_tests_plot <- function(result, fileName) {
+    gg <- ggplot(data = data.frame(x = 0), mapping = aes(x = result$range))
+
+    specEquation <- function(x){eval(parse(text=result$specEquation))}
+    ultProtagonistEquation <- function(x){eval(parse(text=result$PEquation))}
+
+    #spec
+    gg <- gg + stat_function(
+    stat = "function",
+    fun = specEquation,
+    mapping = aes(color="Spec", linetype="Spec"),
+    size=1.3
+    )
+
+    for (row in nrow(result)) {
+        gg <- gg + stat_function(
+        stat = "function",
+        fun = function(x){eval(parse(text=result$PEquation))},
+        mapping = aes(color = "BestTestEquation", linetype="BestTestEquation")
+        )
+    }
+
+    gg <- gg + scale_x_continuous(limits=c(result$seed, result$seed + result$range))
+    gg <- gg + scale_linetype_manual(
+    name = "Line Type",
+    values=c(Spec='dotted', BestTestEquation="solid")
+    )
+    gg <- gg + scale_color_manual(
+    name = "Functions",
+    values = c(Spec="black", BestTestEquation="green")
+    )
+
+    gg <- gg + guides(color = guide_legend(title="Legend"), linetype = guide_legend(title="Legend"))
+
+    gg <- gg + theme(
+    plot.title = element_text(size=16),
+    plot.subtitle = element_text(size=12),
+    plot.caption = element_text(size=10))
+    gg <- gg + labs (
+    color = 'Individuals',
+    title = sprintf("%s","Resulting Best Equation for Test aginst Spec"),
+    subtitle = sprintf("Spec: %s", result$specEquation),
+    caption = sprintf(
+    "BestTest: %s\nRange: [%d, %d]\n%s",
+    toString(result$PEquation),
+    result$seed,
+    result$seed + result$range,
+    "*Closer mapping on to spec is better"),
+    x = "X",
+    y = "Y"
+    )
+
+    fileName <- paste(fileName, "best-test-spec-all.png", sep="-")
+    ggsave(fileName, width=10, height=6, units='in', dpi="retina")
+}
+
 getAllFiles <- function(workDir) {
     files <- list.files(workDir)
     bestAllCount <- 1
 
-    combinedStrategies <- data.frame(
+    combinedBest <- data.frame(
+    specEquation=character(),
     A = character(),
     P = character(),
     AFinal = character(),
@@ -265,10 +322,15 @@ getAllFiles <- function(workDir) {
             best_bug_spec_function_plot(bestAllData, file)
             best_test_spec_function_plot(bestAllData, file)
 
+            combinedBest <- cbind(combinedBest, bestAllData)
+
             bestAllCount <- bestAllCount + 1
         }
-
     }
+
+    print(combinedBest)
+
+    # best_all_tests_plot(combinedBest, "best-all-tests")
 }
 
 

@@ -34,21 +34,26 @@ func (s *Simulation) Begin(params evolution.EvolutionParams) (evolution.Evolutio
 	os.Mkdir("data", 0755)
 	s.SimulationStats = make([]SimulationRunStats, s.NumberOfRunsPerState)
 
+	newParamsChan := make(chan evolution.EvolutionParams, s.NumberOfRunsPerState)
+
 	if params.EnableParallelism {
 		wg := sync.WaitGroup{}
 		for i := 0; i < s.NumberOfRunsPerState; i++ {
 			wg.Add(1)
-			go func(i int, params evolution.EvolutionParams, s *Simulation,
-				wg *sync.WaitGroup) {
+			go func(i int, params evolution.EvolutionParams, newParamsChan chan evolution.EvolutionParams,
+				s *Simulation, wg *sync.WaitGroup)  {
 				defer wg.Done()
 
 				params.InternalCount = i
 				engine := PrepareSimulation(params, i)
 				params = engine.Parameters
+
+				newParamsChan <- params
+
 				s.OutputDir = engine.Parameters.StatisticsOutput.OutputDir
 
 				s.StartEngine(engine)
-			}(i,params, s, &wg)
+			}(i, params, newParamsChan, s, &wg)
 		}
 		wg.Wait()
 	} else {
@@ -60,6 +65,11 @@ func (s *Simulation) Begin(params evolution.EvolutionParams) (evolution.Evolutio
 
 			s.StartEngine(engine)
 		}
+	}
+
+	close(newParamsChan)
+	for i := range newParamsChan {
+		params = i
 	}
 
 	// CUMULATIVE STATISTICS
@@ -103,7 +113,6 @@ func (s *Simulation) Begin(params evolution.EvolutionParams) (evolution.Evolutio
 	if params.RunStats {
 		s.RunRScript(s.RPath, abs, s.StatsFiles, params.LoggingChan, params.ErrorChan)
 	}
-
 
 	msg := fmt.Sprintf("SIMULATION COMPLETE:\nFile: %s", params.ToString())
 	params.LoggingChan <- msg

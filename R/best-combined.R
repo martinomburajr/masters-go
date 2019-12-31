@@ -59,7 +59,7 @@ best_combined_avg_plot <- function(result, fileName) {
     plot.caption = element_text(size=6))
     gg <- gg + labs(
     color = 'Individuals',
-    title = sprintf("%s","Generation Average and Best Individual Per Run"),
+    title = sprintf("%s","Average and Best Individual Per Run"),
     subtitle = sprintf("%s%d", "Run:", result$run),
     caption = sprintf("%s\n%s\n%s",
     "Avg: The run average for every generation for each kind of individual",

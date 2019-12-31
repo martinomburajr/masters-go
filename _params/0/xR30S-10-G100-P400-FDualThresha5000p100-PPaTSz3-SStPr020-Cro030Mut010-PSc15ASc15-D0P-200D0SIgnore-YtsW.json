@@ -39,8 +39,8 @@
     "divideByZeroStrategy": "Ignore",
     "divideByZeroPenalty": -2
   },
-  "generationCount": 50,
-  "eachPopulationSize": 20,
+  "generationCount": 20,
+  "eachPopulationSize": 10,
   "enableParallelism": false,
   "strategies": {
     "antagonistAvailableStrategies": [
