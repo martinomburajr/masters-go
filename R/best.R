@@ -318,9 +318,9 @@ getAllFiles <- function(workDir) {
             bestAllFileNames[bestAllCount] <- file
             filePath <- paste(workDir, file, sep="/")
             bestAllData = read_csv(filePath)
-            best_all_function_plot(bestAllData, file)
-            best_bug_spec_function_plot(bestAllData, file)
-            best_test_spec_function_plot(bestAllData, file)
+            # best_all_function_plot(bestAllData, file)
+            # best_bug_spec_function_plot(bestAllData, file)
+            # best_test_spec_function_plot(bestAllData, file)
 
             combinedBest <- cbind(combinedBest, bestAllData)
 
