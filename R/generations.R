@@ -277,10 +277,10 @@ getAllFiles <- function(workDir) {
             print(filePath)
             generationalData = read_csv(filePath)
 
-            # generational_histogram_plot(generationalData, file)
-            # generational_density_plot(generationalData,  file)
-            # generational_density_histogram_plot(generationalData,  file)
-            # generational_average_plot(generationalData,  file)
+            generational_histogram_plot(generationalData, file)
+            generational_density_plot(generationalData,  file)
+            generational_density_histogram_plot(generationalData,  file)
+            generational_average_plot(generationalData,  file)
 
             combinedRuns <- rbind(combinedRuns, generationalData)
             count <- count + 1

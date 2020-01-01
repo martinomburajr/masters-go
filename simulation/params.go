@@ -9,12 +9,12 @@ var AllExpressions = []string{
 var AllRanges = []int{30}
 var AllSeed = []int{-10}
 var AllGenerationsCount = []int{50}
-var AllEachPopulationSize = []int{5}
+var AllEachPopulationSize = []int{250}
 
 var AllReproduction = []evolution.Reproduction{
 	evolution.Reproduction{ProbabilityOfMutation: 0.1, CrossoverPercentage: 0.3},
 }
-var AllDepthOfRandomNewTree = []int{1, 3}
+var AllDepthOfRandomNewTree = []int{0, 3}
 var AllAntagonistStrategyCount = []int{15}
 var AllProtagonistStrategyCount = []int{15}
 
@@ -34,8 +34,8 @@ var AllDivByZeroPenalty = []float64{-2}
 
 var AllPossibleStrategies = [][]evolution.Strategy{
 	AllStrategies,
-	//AllStrategiesDeterministic,
-	//AllStrategiesRandom,
+	AllStrategiesDeterministic,
+	AllStrategiesRandom,
 	//AllStrategiesNoDelete,
 	// AllStrategiesNoFell,
 	//AllStrategiesNoSkip,

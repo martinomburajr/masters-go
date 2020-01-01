@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -21,6 +22,8 @@ func main() {
 	paramsPtr := flag.String("params", "", "Pass in the file path (.json) for the given parameters")
 
 	parallelismPtr := flag.Bool("parallelism", true, "Set to false to disable parallelism")
+
+	folderPtr := flag.Int64("folder", 0, "Folder")
 	flag.Parse()
 
 	if *paramsPtr == "" {
@@ -30,18 +33,19 @@ func main() {
 	fmt.Printf("Current Goroutines: %d", runtime.NumGoroutine())
 
 	paramsFolder := *paramsPtr
-	parallelism := *parallelismPtr
+	//parallelism := *parallelismPtr
+	folder := *folderPtr
 	log.Println("PARAMS Folder: " + paramsFolder)
+	log.Println("Folder: " + strconv.FormatInt(folder, 10))
 	log.Printf("Parallelism Enabled: %t\n", *parallelismPtr)
 
 	//SPEW(paramsFolder, 4)
-	parallelism = true
-	Scheduler(paramsFolder, parallelism, true, true)
+	parallelism := true
+	Scheduler(paramsFolder, parallelism, folder,true, true)
 }
 
-
 // scheduler runs the actual simulation
-func Scheduler(paramsFolder string, parallelism, logging, runStats bool) {
+func Scheduler(paramsFolder string, parallelism bool, folderNumer int64, logging, runStats bool) {
 	absolutePath, err := filepath.Abs(".")
 	if err != nil {
 		log.Println(err)
@@ -52,6 +56,7 @@ func Scheduler(paramsFolder string, parallelism, logging, runStats bool) {
 	dataFiles = dataFiles[1:]
 
 	sim := simulationParams{
+		folderNumber: folderNumer,
 		absolutePath:  absolutePath,
 		dataFiles:     dataFiles,
 		paramFolder: paramsFolder,
@@ -66,11 +71,23 @@ func Scheduler(paramsFolder string, parallelism, logging, runStats bool) {
 	// Listen to logs and errors
 
 	go func(simulationParam *simulationParams) {
+		file, err := os.Create("logs.logs")
+		if err != nil {
+			simulationParam.errChan <- err
+		}
 		started := time.Now()
 		for {
 			select {
 			case logg := <- simulationParam.logChan:
-				fmt.Println("LOG: " + logg)
+				sb := strings.Builder{}
+				sb.WriteString("\nLOG ==> Folder: ")
+				sb.WriteString(strconv.FormatInt(simulationParam.folderNumber, 10))
+				sb.WriteString(" | ")
+				sb.WriteString(logg)
+				loggg := sb.String()
+
+				fmt.Fprintf(file, loggg)
+				fmt.Fprintf(os.Stdout, loggg)
 			case err := <- simulationParam.errChan:
 				fmt.Println("Error: " + err.Error())
 				return
@@ -118,10 +135,11 @@ type simulationParams struct {
 	errChan      chan error
 	logChan      chan string
 
-	parallelism bool
-	logging     bool
-	runStats    bool
-	doneChan    chan bool
+	parallelism  bool
+	logging      bool
+	runStats     bool
+	doneChan     chan bool
+	folderNumber int64
 }
 
 func runSimulation(simulationParams simulationParams) {

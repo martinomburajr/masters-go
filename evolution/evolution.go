@@ -39,13 +39,13 @@ type EvolutionParams struct {
 
 
 
-	EnableLogging bool
-	RunStats    bool
+	EnableLogging bool `json:"-"`
+	RunStats    bool `json:"-"`
 
 	//Channels
-	LoggingChan chan string
-	ErrorChan chan error
-	DoneChan chan bool
+	LoggingChan chan string `json:"-"`
+	ErrorChan chan error `json:"-"`
+	DoneChan chan bool `json:"-"`
 }
 
 type StatisticsOutput struct {
@@ -199,10 +199,10 @@ func (e *EvolutionEngine) Start() (*EvolutionResult, error) {
 		e.Generations[i+1] = nextGeneration
 
 		elapsed := utils.TimeTrack(started)
-		msg := fmt.Sprintf("Spec: %s | Run: %d | Gen: (%d/%d) | Elapsed: %s\n",
+		msg := fmt.Sprintf("\nSpec: %s\t | Run: %d | Gen: (%d/%d) | TSz: %d | Elapsed: %s",
 			e.Parameters.SpecParam.ExpressionParsed,
 			e.Parameters.InternalCount, i+1,
-				e.Parameters.GenerationsCount, elapsed.String())
+				e.Parameters.GenerationsCount, e.Parameters.Strategies.DepthOfRandomNewTrees, elapsed.String())
 		e.Parameters.LoggingChan <- msg
 	}
 

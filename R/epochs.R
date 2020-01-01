@@ -275,8 +275,7 @@ epochal_all_test_runs_boxplot <- function(result, fileName) {
     fill="green"
     )
     gg <- gg + geom_dotplot(binaxis='y', stackdir='center', dotsize=0.8)
-    gg <- gg + stat_summary(fun.y=mean, geom="point", shape=23, size=3, aes(x=discreteX, fill="BestTest",
-    colour="BestTest"))
+    gg <- gg + stat_summary(fun.y=mean, geom="point", shape=23, size=3, aes(x=discreteX, fill="BestTest"))
     gg <- gg + scale_fill_brewer(palette="YlOrRd") + theme_minimal()
     gg <- gg + scale_colour_manual(values=c(BestBug="green"), name = "Plot Color")
 

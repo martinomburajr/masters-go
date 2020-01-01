@@ -37,8 +37,7 @@ func (g *Generation) Start(generationCount int) (*Generation, error) {
 		return nil, err
 	}
 
-	nextGenProtagonists, err := JudgementDay(parentSelectionProtagonist, IndividualProtagonist, generationCount,
-		g.engine.Parameters)
+	nextGenProtagonists, err := JudgementDay(parentSelectionProtagonist, IndividualProtagonist, generationCount, g.engine.Parameters)
 	if err != nil {
 		return nil, err
 	}
@@ -158,9 +157,12 @@ func (g *Generation) runEpochs(epochs []Epoch) ([]Epoch, error) {
 			g.engine.Parameters.ErrorChan <- err
 			return nil, err
 		}
-		//msg := fmt.Sprintf("Epoch: (%d/%d)", i, len(epochs)-1)
-		if g.engine.Parameters.EnableLogging {
-			//g.engine.Parameters.LoggingChan <- msg
+
+		if i % (len(epochs)/10) == 0 {
+			if g.engine.Parameters.EnableLogging {
+				msg := fmt.Sprintf("\n  ==> Epoch: (%d/%d)", i+1, len(epochs))
+				g.engine.Parameters.LoggingChan <- msg
+			}
 		}
 	}
 
