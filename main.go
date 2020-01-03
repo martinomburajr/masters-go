@@ -9,7 +9,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -19,29 +18,40 @@ import (
 const SimulationFilePath = "./_simulation/simulation.json"
 
 func main() {
-	paramsPtr := flag.String("params", "", "Pass in the file path (.json) for the given parameters")
-
+	paramsPtr := flag.String( "params", "", "Pass in the file path (.json) for the given parameters")
 	parallelismPtr := flag.Bool("parallelism", true, "Set to false to disable parallelism")
-
+	loggingPtr := flag.Bool("logging", true, "Should Log to stdout and logs.logs file")
+	runStatsPtr := flag.Bool("runstats", true, "Can run R based statistics")
+	spewPtr := flag.Int64("spew", 0, "Creates the set of parameter files, if the value is less than 1, " +
+		"it will not spew")
 	folderPtr := flag.Int64("folder", 0, "Folder")
+
+
 	flag.Parse()
 
 	if *paramsPtr == "" {
 		log.Fatal("Params path cannot be empty")
 	}
 
-	fmt.Printf("Current Goroutines: %d", runtime.NumGoroutine())
-
 	paramsFolder := *paramsPtr
-	//parallelism := *parallelismPtr
+	parallelism := *parallelismPtr
 	folder := *folderPtr
-	log.Println("PARAMS Folder: " + paramsFolder)
+	spew := *spewPtr
+	logging := *loggingPtr
+	runStats := *runStatsPtr
+	log.Println("Parameter Folder Folder: " + paramsFolder)
+	log.Println("Spew Count: " + strconv.FormatInt(spew, 10))
 	log.Println("Folder: " + strconv.FormatInt(folder, 10))
 	log.Printf("Parallelism Enabled: %t\n", *parallelismPtr)
+	log.Printf("Logging Enabled: %t\n", *loggingPtr)
+	log.Printf("RunStats Enabled: %t\n", *runStatsPtr)
 
-	//SPEW(paramsFolder, 4)
-	parallelism := true
-	Scheduler(paramsFolder, parallelism, folder,true, true)
+	if spew > 0 {
+		SPEW(paramsFolder, int(spew))
+		return
+	}
+
+	Scheduler(paramsFolder, parallelism, folder,logging, runStats)
 }
 
 // scheduler runs the actual simulation
@@ -71,16 +81,14 @@ func Scheduler(paramsFolder string, parallelism bool, folderNumer int64, logging
 	// Listen to logs and errors
 
 	go func(simulationParam *simulationParams) {
-		file, err := os.Create("logs.logs")
-		if err != nil {
-			simulationParam.errChan <- err
-		}
+		file := setupLogFile(simulationParam)
 		started := time.Now()
 		for {
 			select {
-			case logg := <- simulationParam.logChan:
+			case logg := <-simulationParam.logChan:
 				sb := strings.Builder{}
-				sb.WriteString("\nLOG ==> Folder: ")
+				sb.WriteString("\n" + time.Now().Format(time.RFC3339))
+				sb.WriteString(" ==> Folder: ")
 				sb.WriteString(strconv.FormatInt(simulationParam.folderNumber, 10))
 				sb.WriteString(" | ")
 				sb.WriteString(logg)
@@ -88,10 +96,10 @@ func Scheduler(paramsFolder string, parallelism bool, folderNumer int64, logging
 
 				fmt.Fprintf(file, loggg)
 				fmt.Fprintf(os.Stdout, loggg)
-			case err := <- simulationParam.errChan:
+			case err := <-simulationParam.errChan:
 				fmt.Println("Error: " + err.Error())
 				return
-			case isDone := <- simulationParam.doneChan:
+			case isDone := <-simulationParam.doneChan:
 				elapsedTime := time.Since(started)
 
 				msg := fmt.Sprintf("\nElapsed Time: %s\nIsComplete: %t\n", elapsedTime.String(), isDone)
@@ -103,10 +111,9 @@ func Scheduler(paramsFolder string, parallelism bool, folderNumer int64, logging
 		}
 	}(&sim)
 
-
 	if parallelism {
-		wg := sync.WaitGroup{}
 		for _, paramFile := range paramFiles {
+			wg := sync.WaitGroup{}
 			wg.Add(1)
 
 			go func(sim simulationParams, paramFile string, group *sync.WaitGroup) {
@@ -114,8 +121,8 @@ func Scheduler(paramsFolder string, parallelism bool, folderNumer int64, logging
 				sim.paramFile = paramFile
 				runSimulation(sim)
 			}(sim, paramFile, &wg)
+			wg.Wait()
 		}
-		wg.Wait()
 	} else {
 		for _, paramFile := range paramFiles {
 			sim.paramFile = paramFile
@@ -125,6 +132,18 @@ func Scheduler(paramsFolder string, parallelism bool, folderNumer int64, logging
 
 	close(sim.logChan)
 	close(sim.errChan)
+}
+
+func setupLogFile(simulationParam *simulationParams) *os.File {
+	logFolder := "logs"
+	logFilePath := fmt.Sprintf("%s/folder-%d-%s-logs.txt", logFolder,simulationParam.folderNumber,
+		simulationParam.paramFile)
+	os.Mkdir(logFolder, 0775)
+	file, err := os.Create(logFilePath)
+	if err != nil {
+		simulationParam.errChan <- err
+	}
+	return file
 }
 
 type simulationParams struct {
@@ -279,7 +298,7 @@ func SetArguments(simulationFilePath, paramsFilePath, dataPath string) (simulati
 	return sim, params, nil
 }
 
-// SPEW is used to create the various param files
+// SPEW is used to create the various param files. Split refers to the number of folders to create
 func SPEW(paramsFolder string, split int) {
 	s := simulation.Simulation{}
 	abs, err := filepath.Abs(".")

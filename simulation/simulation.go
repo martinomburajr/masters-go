@@ -21,7 +21,6 @@ type Simulation struct {
 	Name                  string                    `json:"name"`
 	StatsFiles []string `json:"statsFiles""`
 
-
 	// Output-Only
 	OutputDir       string               `json:"outputDir"`
 	RPath           string               `json:"rPath"`
@@ -33,27 +32,29 @@ type Simulation struct {
 func (s *Simulation) Begin(params evolution.EvolutionParams) (evolution.EvolutionParams, error) {
 	os.Mkdir("data", 0755)
 	s.SimulationStats = make([]SimulationRunStats, s.NumberOfRunsPerState)
-
 	newParamsChan := make(chan evolution.EvolutionParams, s.NumberOfRunsPerState)
+
+	mutex := sync.Mutex{}
 
 	if params.EnableParallelism {
 		wg := sync.WaitGroup{}
 		for i := 0; i < s.NumberOfRunsPerState; i++ {
 			wg.Add(1)
 			go func(i int, params evolution.EvolutionParams, newParamsChan chan evolution.EvolutionParams,
-				s *Simulation, wg *sync.WaitGroup)  {
+				s *Simulation, mutex *sync.Mutex, wg *sync.WaitGroup)  {
 				defer wg.Done()
 
+				mutex.Lock()
 				params.InternalCount = i
 				engine := PrepareSimulation(params, i)
 				params = engine.Parameters
-
 				newParamsChan <- params
-
 				s.OutputDir = engine.Parameters.StatisticsOutput.OutputDir
+				mutex.Unlock()
 
 				s.StartEngine(engine)
-			}(i, params, newParamsChan, s, &wg)
+				engine.Generations = nil // FREE UP MEMORY
+			}(i, params, newParamsChan, s, &mutex, &wg)
 		}
 		wg.Wait()
 	} else {
@@ -386,7 +387,7 @@ func (s *Simulation) SpewJSON(projectAbsolutePath, baseRelDir string, split int)
 	counter := 0
 	splitCounter := 0
 	splitCounterFolder := 0
-	split = split * 2
+	split = split * 1
 
 	for expressionIndex := 0; expressionIndex < len(AllExpressions); expressionIndex++ {
 		for rangesIndex := 0; rangesIndex < len(AllRanges); rangesIndex++ {

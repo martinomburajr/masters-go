@@ -6,10 +6,10 @@ var AllExpressions = []string{
 	"x",
 	"x*x*x+2*x/3*x+9",
 }
-var AllRanges = []int{30}
+var AllRanges = []int{20}
 var AllSeed = []int{-10}
 var AllGenerationsCount = []int{50}
-var AllEachPopulationSize = []int{250}
+var AllEachPopulationSize = []int{6}
 
 var AllReproduction = []evolution.Reproduction{
 	evolution.Reproduction{ProbabilityOfMutation: 0.1, CrossoverPercentage: 0.3},

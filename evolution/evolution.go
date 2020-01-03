@@ -3,6 +3,7 @@ package evolution
 import (
 	"fmt"
 	"github.com/martinomburajr/masters-go/utils"
+	"runtime"
 	"strings"
 	"time"
 )
@@ -195,14 +196,18 @@ func (e *EvolutionEngine) Start() (*EvolutionResult, error) {
 		if err != nil {
 			return nil, err
 		}
-
 		e.Generations[i+1] = nextGeneration
 
 		elapsed := utils.TimeTrack(started)
-		msg := fmt.Sprintf("\nSpec: %s\t | Run: %d | Gen: (%d/%d) | TSz: %d | Elapsed: %s",
+		numGoroutine := runtime.NumGoroutine()
+		msg := fmt.Sprintf("\nSpec: %s\t | Run: %d | Gen: (%d/%d) | TSz: %d | numG#: %d | Elapsed: %s",
 			e.Parameters.SpecParam.ExpressionParsed,
-			e.Parameters.InternalCount, i+1,
-				e.Parameters.GenerationsCount, e.Parameters.Strategies.DepthOfRandomNewTrees, elapsed.String())
+			e.Parameters.InternalCount,
+			i+1,
+			e.Parameters.GenerationsCount,
+			e.Parameters.Strategies.DepthOfRandomNewTrees,
+			numGoroutine,
+			elapsed.String())
 		e.Parameters.LoggingChan <- msg
 	}
 
@@ -280,7 +285,9 @@ func (e EvolutionParams) ToString() string {
 		e.FitnessStrategy.ProtagonistThresholdMultiplier), ".", ""))
 	builder.WriteString("-")
 	//Parent
-	builder.WriteString(fmt.Sprintf("P%sTSz%d", e.Selection.Parent.Type[0:2], e.Selection.Parent.TournamentSize))
+	builder.WriteString(fmt.Sprintf("P%sTornSz%d", e.Selection.Parent.Type[0:2], e.Selection.Parent.TournamentSize))
+	builder.WriteString("-")
+	builder.WriteString(fmt.Sprintf("Tree%d", e.Strategies.DepthOfRandomNewTrees))
 	builder.WriteString("-")
 	//Survivor
 	builder.WriteString(strings.ReplaceAll(fmt.Sprintf("S%sPr%.2f", e.Selection.Survivor.Type[0:2],

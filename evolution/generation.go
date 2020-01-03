@@ -160,7 +160,10 @@ func (g *Generation) runEpochs(epochs []Epoch) ([]Epoch, error) {
 
 		if i % (len(epochs)/10) == 0 {
 			if g.engine.Parameters.EnableLogging {
-				msg := fmt.Sprintf("\n  ==> Epoch: (%d/%d)", i+1, len(epochs))
+				msg := fmt.Sprintf("\n  ==> Run: %d | Epoch: (%d/%d)",
+					g.engine.Parameters.InternalCount,
+					i+1,
+					len(epochs))
 				g.engine.Parameters.LoggingChan <- msg
 			}
 		}

@@ -96,16 +96,16 @@ func GetGenerationalAverages(sortedGenerations []*Generation) ([]GenerationalCoe
 
 		sortedAntagonists := sortedGenerations[i].Antagonists
 		sortedProtagonists := sortedGenerations[i].Protagonists
-		for i := range sortedAntagonists {
-			antBestFitAvg[i] = sortedAntagonists[i].BestFitness
-			antFitAvg[i] = sortedAntagonists[i].AverageFitness
-			antBestDeltAvg[i] = sortedAntagonists[i].BestDelta
-			antDeltAvg[i] = sortedAntagonists[i].AverageDelta
+		for j := range sortedAntagonists {
+			antBestFitAvg[i] = sortedAntagonists[j].BestFitness
+			antFitAvg[i] = sortedAntagonists[j].AverageFitness
+			antBestDeltAvg[i] = sortedAntagonists[j].BestDelta
+			antDeltAvg[i] = sortedAntagonists[j].AverageDelta
 
-			proBestFitAvg[i] = sortedProtagonists[i].BestFitness
-			proFitAvg[i] = sortedProtagonists[i].AverageFitness
-			proBestDeltAvg[i] = sortedProtagonists[i].BestDelta
-			proDeltAvg[i] = sortedProtagonists[i].AverageDelta
+			proBestFitAvg[i] = sortedProtagonists[j].BestFitness
+			proFitAvg[i] = sortedProtagonists[j].AverageFitness
+			proBestDeltAvg[i] = sortedProtagonists[j].BestDelta
+			proDeltAvg[i] = sortedProtagonists[j].AverageDelta
 		}
 
 		antagonistAverage, err := CalculateAverage(antFitAvg)
@@ -271,10 +271,12 @@ func SortIndividuals(individuals []*Individual, isMoreFitnessBetter bool) ([]*In
 		sort.Slice(individuals, func(i, j int) bool {
 			return individuals[i].AverageFitness > individuals[j].AverageFitness
 		})
+		break
 	case false:
 		sort.Slice(individuals, func(i, j int) bool {
 			return individuals[i].AverageFitness < individuals[j].AverageFitness
 		})
+		break
 	default:
 		// Default to More is better
 		sort.Slice(individuals, func(i, j int) bool {

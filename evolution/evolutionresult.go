@@ -74,55 +74,56 @@ func (e *EvolutionResult) Analyze(generations []*Generation, isMoreFitnessBetter
 	wg.Add(5)
 	go func(generations []*Generation, e *EvolutionResult, wg *sync.WaitGroup) {
 		defer wg.Done()
+		e.Mutex.Lock()
 		sortedFinalAntagonists, err := SortIndividuals(generations[len(generations)-1].Antagonists, true)
 		if err != nil {
 			params.ErrorChan <- err
 		}
-		e.Mutex.Lock()
 		e.FinalAntagonist = sortedFinalAntagonists[0]
 		e.Mutex.Unlock()
 	}(generations, e, &wg)
 
 	go func(generations []*Generation, e *EvolutionResult, wg *sync.WaitGroup) {
 		defer wg.Done()
+		e.Mutex.Lock()
 		sortedFinalProtagonists, err := SortIndividuals(generations[len(generations)-1].Protagonists, true)
 		if err != nil {
 			params.ErrorChan <- err
 		}
-		e.Mutex.Lock()
+
 		e.FinalProtagonist = sortedFinalProtagonists[0]
 		e.Mutex.Unlock()
 	}(generations, e, &wg)
 
 	go func(generations []*Generation, e *EvolutionResult, wg *sync.WaitGroup) {
 		defer wg.Done()
+		e.Mutex.Lock()
 		sortedGenerations, err := SortGenerationsThoroughly(generations, isMoreFitnessBetter)
 		if err != nil {
 			params.ErrorChan <- err
 		}
-		e.Mutex.Lock()
 		e.SortedGenerationIndividuals = sortedGenerations
 		e.Mutex.Unlock()
 	}(generations, e, &wg)
 
 	go func(generations []*Generation, e *EvolutionResult, wg *sync.WaitGroup) {
 		defer wg.Done()
+		e.Mutex.Lock()
 		sortedGenerationsByDelta, err := SortGenerationsThoroughlyByDelta(generations, true, false)
 		if err != nil {
 			params.ErrorChan <- err
 		}
-		e.Mutex.Lock()
 		e.SortedGenerationIndividualsByDelta = sortedGenerationsByDelta
 		e.Mutex.Unlock()
 	}(generations, e, &wg)
 
 	go func(generations []*Generation, e *EvolutionResult, wg *sync.WaitGroup) {
 		defer wg.Done()
+		e.Mutex.Lock()
 		sortedGenerationsByAvgDelta, err := SortGenerationsThoroughlyByAvgDelta(generations, true, false)
 		if err != nil {
 			params.ErrorChan <- err
 		}
-		e.Mutex.Lock()
 		e.SortedGenerationIndividualsByDeltaAvg = sortedGenerationsByAvgDelta
 		e.Mutex.Unlock()
 	}(generations, e, &wg)
