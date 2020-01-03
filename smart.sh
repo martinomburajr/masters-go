@@ -25,7 +25,7 @@ sleep 2
 
 printf "${blu}\n\nInitializing Run: ...\n${end}"
 sleep 2
-for i in {0..5} ; do
+for i in {0..2} ; do
   ./masters-go --params="_params/${i}" --parallelism=true --folder=${i} --logging=true --runstats=true &
   sleep 5
   printf "${yel}##################################### RUN: ${i} COMPLETE:
