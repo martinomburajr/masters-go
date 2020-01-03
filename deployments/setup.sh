@@ -8,9 +8,9 @@ sudo mv go /usr/local
 go get -d
 export PATH=$PATH:/usr/local/go/bin
 
-sudo Rscript -e 'install.packages("ggplot2")'
-sudo Rscript -e 'install.packages("readr")'
-sudo Rscript -e 'install.packages("knitr")'
-sudo Rscript -e 'install.packages("dplyr")'
+sudo Rscript -e 'install.packages("ggplot2",repos = "http://cran.us.r-project.org")'
+sudo Rscript -e 'install.packages("readr",repos = "http://cran.us.r-project.org")'
+sudo Rscript -e 'install.packages("knitr",repos = "http://cran.us.r-project.org")'
+sudo Rscript -e 'install.packages("dplyr",repos = "http://cran.us.r-project.org")'
 
 logout
