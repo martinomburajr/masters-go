@@ -117,7 +117,6 @@ func (s *Simulation) Begin(params evolution.EvolutionParams) (evolution.Evolutio
 
 	msg := fmt.Sprintf("SIMULATION COMPLETE:\nFile: %s", params.ToString())
 	params.LoggingChan <- msg
-	params.DoneChan <- true
 
 	return params, nil
 }

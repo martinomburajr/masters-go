@@ -38,15 +38,14 @@ type EvolutionParams struct {
 	// InternalCount - Output Only (Helps with file name assignments)
 	InternalCount int
 
-
-
 	EnableLogging bool `json:"-"`
-	RunStats    bool `json:"-"`
+	RunStats      bool `json:"-"`
 
 	//Channels
 	LoggingChan chan string `json:"-"`
-	ErrorChan chan error `json:"-"`
-	DoneChan chan bool `json:"-"`
+	ErrorChan   chan error  `json:"-"`
+	DoneChan    chan bool   `json:"-"`
+	ParamFile   string `json:"-"`
 }
 
 type StatisticsOutput struct {
@@ -200,7 +199,8 @@ func (e *EvolutionEngine) Start() (*EvolutionResult, error) {
 
 		elapsed := utils.TimeTrack(started)
 		numGoroutine := runtime.NumGoroutine()
-		msg := fmt.Sprintf("\nSpec: %s\t | Run: %d | Gen: (%d/%d) | TSz: %d | numG#: %d | Elapsed: %s",
+		msg := fmt.Sprintf("\nFile: %s\t | Spec: %s\t | Run: %d | Gen: (%d/%d) | TSz: %d | numG#: %d | Elapsed: %s",
+			e.Parameters.ParamFile,
 			e.Parameters.SpecParam.ExpressionParsed,
 			e.Parameters.InternalCount,
 			i+1,

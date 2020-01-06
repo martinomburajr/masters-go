@@ -8,6 +8,7 @@ import (
 	"github.com/martinomburajr/masters-go/simulation"
 	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -89,7 +90,7 @@ func Scheduler(paramsFolder string, parallelism bool, folderNumer int64, logging
 				sb := strings.Builder{}
 				sb.WriteString("\n" + time.Now().Format(time.RFC3339))
 				sb.WriteString(" ==> Folder: ")
-				sb.WriteString(strconv.FormatInt(simulationParam.folderNumber, 10))
+				sb.WriteString(simulationParam.paramFile)
 				sb.WriteString(" | ")
 				sb.WriteString(logg)
 				loggg := sb.String()
@@ -112,26 +113,70 @@ func Scheduler(paramsFolder string, parallelism bool, folderNumer int64, logging
 	}(&sim)
 
 	if parallelism {
-		for _, paramFile := range paramFiles {
-			wg := sync.WaitGroup{}
-			wg.Add(1)
+		wg := sync.WaitGroup{}
+		for i, paramFile := range paramFiles {
+			if i%2 == 0 {
+				if i != 0 {
+					wg.Wait()
 
-			go func(sim simulationParams, paramFile string, group *sync.WaitGroup) {
-				defer group.Done()
+					//wg2 := sync.WaitGroup{}
+					//wg2.Add(1)
+					//go moveFolders(sim, paramFile, "_oldparam", sim.errChan, sim.logChan, &wg2)
+					//wg2.Wait()
+				}
+			} else {
+				wg.Add(1)
+				go func(sim simulationParams, paramFile string, group *sync.WaitGroup) {
+					defer group.Done()
+					sim.paramFile = paramFile
+					runSimulation(sim)
+				}(sim, paramFile, &wg)
+			}
+		}
+		} else {
+			for _, paramFile := range paramFiles {
 				sim.paramFile = paramFile
 				runSimulation(sim)
-			}(sim, paramFile, &wg)
-			wg.Wait()
+			}
 		}
-	} else {
-		for _, paramFile := range paramFiles {
-			sim.paramFile = paramFile
-			runSimulation(sim)
-		}
-	}
 
+		sim.doneChan <- true
 	close(sim.logChan)
 	close(sim.errChan)
+}
+
+func moveFolders(sim simulationParams, completedPath, destination string, errChan chan error, logChan chan string,
+	wg *sync.WaitGroup) {
+	defer wg.Done()
+	err := os.Mkdir(destination, 0775)
+	//if err != nil {
+	//	errChan <- err
+	//	return
+	//}
+
+	movableDirs := make([]string, 0)
+
+	dataFilePath := fmt.Sprintf("%s/data/%s", sim.absolutePath, completedPath)
+	err = filepath.Walk(dataFilePath, func(path string, info os.FileInfo, err error) error {
+		if strings.Contains(path, ".png") {
+			//dirs := strings.SplitAfterN(path, "/", 2)
+			movableDirs = append(movableDirs, "")
+		}
+		return err
+	})
+	if err != nil {
+		errChan <- err
+		return
+	}
+
+	paramFolderToMove := ""
+	err = os.Rename(paramFolderToMove, destination)
+	if err != nil {
+		errChan <- err
+		return
+	}
+	msg := fmt.Sprintf("Moved PARAM Folder %s to %s", paramFolderToMove, destination)
+	logChan <- msg
 }
 
 func setupLogFile(simulationParam *simulationParams) *os.File {
@@ -190,6 +235,7 @@ func runSimulation(simulationParams simulationParams) {
 		params.LoggingChan = simulationParams.logChan
 		params.ErrorChan = simulationParams.errChan
 		params.DoneChan = simulationParams.doneChan
+		params.ParamFile = simulationParams.paramFile
 
 		newParams, err := simulationn.Begin(params)
 		if err != nil {
@@ -357,3 +403,40 @@ func contains(str string, arr []string) bool {
 	return false
 }
 
+
+func RunRScripts(basePath string, logChan, errChan chan error)  {
+	s := simulation.Simulation{}
+	RPath := ""
+
+	csvFiles := make([]string, 0)
+
+	err := filepath.Walk(basePath, func(path string, info os.FileInfo, err error) error {
+		if !info.IsDir() {
+			if strings.HasSuffix(basePath, ".csv") {
+				csvFiles = append(csvFiles, path)
+
+
+			}
+		}
+	})
+
+	wg := sync.WaitGroup{}
+	for _, csvFile := range csvFiles {
+		wg.Add(1)
+		go func(group *sync.WaitGroup, rFile string, logChan chan string, errChan chan error) {
+			defer group.Done()
+
+			fqdn := fmt.Sprintf("%s/%s", RPath, rFile)
+			cmd := exec.Command("Rscript", fqdn, dirPath)
+			msg := fmt.Sprintf("Rscript: \n%s\n", cmd.String())
+
+			logChan <- msg
+
+			err := cmd.Run()
+			if err != nil {
+				errChan <- err
+			}
+
+		}(&wg, rFile, logChan, errChan)
+	}
+}
