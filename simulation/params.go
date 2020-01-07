@@ -13,6 +13,7 @@ var AllEachPopulationSize = []int{6}
 
 var AllReproduction = []evolution.Reproduction{
 	evolution.Reproduction{ProbabilityOfMutation: 0.1, CrossoverPercentage: 0.3},
+	evolution.Reproduction{ProbabilityOfMutation: 0.1, CrossoverPercentage: 0.7},
 }
 var AllDepthOfRandomNewTree = []int{0, 3}
 var AllAntagonistStrategyCount = []int{15}
@@ -28,14 +29,15 @@ var AllSelectionSurvivorPercentage = []float64{0.2, 0.7}
 
 var AllDivByZeroStrategy = []string{
 	evolution.DivByZeroIgnore,
-	evolution.DivByZeroPenalize,
+	//evolution.DivByZeroPenalize,
 }
 var AllDivByZeroPenalty = []float64{-2}
 
 var AllPossibleStrategies = [][]evolution.Strategy{
 	AllStrategies,
-	AllStrategiesDeterministic,
-	AllStrategiesRandom,
+	//AllStrategiesDeterministic,
+	//AllStrategiesRandom,
+
 	//AllStrategiesNoDelete,
 	// AllStrategiesNoFell,
 	//AllStrategiesNoSkip,

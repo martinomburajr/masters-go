@@ -3,6 +3,8 @@ package evolution
 import (
 	"fmt"
 	"github.com/martinomburajr/masters-go/utils"
+	"math"
+	"os"
 	"runtime"
 	"strings"
 	"time"
@@ -209,6 +211,28 @@ func (e *EvolutionEngine) Start() (*EvolutionResult, error) {
 			numGoroutine,
 			elapsed.String())
 		e.Parameters.LoggingChan <- msg
+
+		if float64(i) == math.Floor(float64(e.Parameters.GenerationsCount) * 0.25) {
+			go WriteToDataFolder(e.Parameters.StatisticsOutput.OutputPath,
+				"25.txt",
+				time.Now().Format(time.RFC3339),
+				e.Parameters.LoggingChan,
+				e.Parameters.ErrorChan)
+		}
+		if float64(i) == math.Floor(float64(e.Parameters.GenerationsCount) * 0.5) {
+			go WriteToDataFolder(e.Parameters.StatisticsOutput.OutputPath,
+				"50.txt",
+				time.Now().Format(time.RFC3339),
+				e.Parameters.LoggingChan,
+				e.Parameters.ErrorChan)
+		}
+		if float64(i) == math.Floor(float64(e.Parameters.GenerationsCount) * 0.75) {
+			go WriteToDataFolder(e.Parameters.StatisticsOutput.OutputPath,
+				"75.txt",
+				time.Now().Format(time.RFC3339),
+				e.Parameters.LoggingChan,
+				e.Parameters.ErrorChan)
+		}
 	}
 
 	evolutionResult := &EvolutionResult{}
@@ -219,6 +243,24 @@ func (e *EvolutionEngine) Start() (*EvolutionResult, error) {
 	}
 
 	return evolutionResult, nil
+}
+
+func WriteToDataFolder(dataFolderPath string, fileName string, fileValue string, logChan chan string,
+	errChan chan error) {
+	filepath := fmt.Sprintf("%s/%s", dataFolderPath, fileName)
+	os.Mkdir(dataFolderPath, 0775)
+
+	file, err := os.Create(filepath)
+	if err != nil {
+		errChan <- err
+	}
+
+	n, err := fmt.Fprintf(file, "%s", fileValue)
+	if err != nil {
+		errChan <- err
+	}else {
+		logChan <- fmt.Sprintf("25 PERCENT: => Wrote %d bytes to file %s", n, filepath)
+	}
 }
 
 // Todo Implement EvolutionProcess validate

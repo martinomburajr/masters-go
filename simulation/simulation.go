@@ -47,6 +47,8 @@ func (s *Simulation) Begin(params evolution.EvolutionParams) (evolution.Evolutio
 				mutex.Lock()
 				params.InternalCount = i
 				engine := PrepareSimulation(params, i)
+				engine.Parameters.StatisticsOutput = params.StatisticsOutput
+
 				params = engine.Parameters
 				newParamsChan <- params
 				s.OutputDir = engine.Parameters.StatisticsOutput.OutputDir
@@ -486,6 +488,133 @@ func (s *Simulation) SpewJSON(projectAbsolutePath, baseRelDir string, split int)
 																				}
 
 																			}
+																		}
+																	}
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	fmt.Printf("WROTE %d files", counter)
+	return nil
+}
+
+
+// SpewJSON enables the creation of multiple JSON files containing parameter information.
+// baseRelDir is the relative directory to the parameter folder. Should be within the project.
+// Split should be the number of files per folder. It will try split them evenly
+func (s *Simulation) SpewJSONNoSplit(projectAbsolutePath, paramsDir string) error {
+	s.NumberOfRunsPerState = 20
+	//os.Mkdir(baseRelDir, 0775)
+
+	counter := 0
+
+	for expressionIndex := 0; expressionIndex < len(AllExpressions); expressionIndex++ {
+		for rangesIndex := 0; rangesIndex < len(AllRanges); rangesIndex++ {
+			for seedIndex := 0; seedIndex < len(AllSeed); seedIndex++ {
+				for generationsCountIndex := 0; generationsCountIndex < len(AllGenerationsCount); generationsCountIndex++ {
+					for eachPopulationIndex := 0; eachPopulationIndex < len(AllEachPopulationSize); eachPopulationIndex++ {
+						for reproductionIndex := 0; reproductionIndex < len(AllReproduction); reproductionIndex++ {
+							for newTreeIndex := 0; newTreeIndex < len(AllDepthOfRandomNewTree); newTreeIndex++ {
+								for antStratIndex := 0; antStratIndex < len(AllAntagonistStrategyCount); antStratIndex++ {
+									for proStratIndex := 0; proStratIndex < len(AllProtagonistStrategyCount); proStratIndex++ {
+										//for availableStrategyIndex = 0; availableStrategyIndex < len(AllAvailableStrategy); availableStrategyIndex++ {
+										for fitnessStrategyTypeIndex := 0; fitnessStrategyTypeIndex < len(AllFitnessStrategyType); fitnessStrategyTypeIndex++ {
+											for fitStratAntThresMultIndex := 0; fitStratAntThresMultIndex < len(AllFitStratAntThreshMult); fitStratAntThresMultIndex++ {
+												for fitStratProtThreshMultIndex := 0; fitStratProtThreshMultIndex < len(AllFitStratProThreshMult); fitStratProtThreshMultIndex++ {
+													for selectParentTypeIndex := 0; selectParentTypeIndex < len(AllSelectionSurvivorPercentage); selectParentTypeIndex++ {
+														for strategiesAntagonistIndex := 0; strategiesAntagonistIndex < len(AllPossibleStrategies); strategiesAntagonistIndex++ {
+															for strategiesProtagonistIndex := 0; strategiesProtagonistIndex < len(AllPossibleStrategies); strategiesProtagonistIndex++ {
+																for divByZeroPenaltyIndex := 0; divByZeroPenaltyIndex < len(AllDivByZeroPenalty); divByZeroPenaltyIndex++ {
+																	for divByZeroStrategyIndex := 0; divByZeroStrategyIndex < len(AllDivByZeroStrategy); divByZeroStrategyIndex++ {
+																		for tournSelSizeInd := 0; tournSelSizeInd < len(AllTournamentSizesType); tournSelSizeInd++ {
+																			for survPercIndex := 0; survPercIndex < len(AllSelectionSurvivorPercentage); survPercIndex++ {
+
+																				// TODO Add Parallelism
+																				params := evolution.EvolutionParams{
+																					GenerationsCount:   AllGenerationsCount[generationsCountIndex],
+																					EachPopulationSize: AllEachPopulationSize[eachPopulationIndex],
+																					SpecParam: evolution.SpecParam{
+																						Seed:       AllSeed[seedIndex],
+																						Expression: AllExpressions[expressionIndex],
+																						Range:      AllRanges[rangesIndex],
+																						AvailableVariablesAndOperators: evolution.AvailableVariablesAndOperators{
+																							Constants: []string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"},
+																							Variables: []string{"x"},
+																							Operators: []string{"*",
+																								"+", "-", "/"},
+																						},
+																						DivideByZeroStrategy: AllDivByZeroStrategy[divByZeroStrategyIndex],
+																						DivideByZeroPenalty:  AllDivByZeroPenalty[divByZeroPenaltyIndex],
+																					},
+																					Reproduction: AllReproduction[reproductionIndex],
+																					Strategies: evolution.Strategies{
+																						AntagonistAvailableStrategies:  AllPossibleStrategies[strategiesAntagonistIndex],
+																						ProtagonistAvailableStrategies: AllPossibleStrategies[strategiesProtagonistIndex],
+																						AntagonistStrategyCount:        AllAntagonistStrategyCount[antStratIndex],
+																						ProtagonistStrategyCount:       AllProtagonistStrategyCount[proStratIndex],
+																						DepthOfRandomNewTrees:          AllDepthOfRandomNewTree[newTreeIndex],
+																					},
+																					Selection: evolution.Selection{
+																						Survivor: evolution.SurvivorSelection{
+																							Type:               "SteadyState",
+																							SurvivorPercentage: AllSelectionSurvivorPercentage[survPercIndex],
+																						},
+																						Parent: evolution.ParentSelection{
+																							Type:           evolution.ParentSelectionTournament,
+																							TournamentSize: AllTournamentSizesType[tournSelSizeInd],
+																						},
+																					},
+																					FitnessStrategy: evolution.FitnessStrategy{
+																						Type:                           AllFitnessStrategyType[fitnessStrategyTypeIndex],
+																						AntagonistThresholdMultiplier:  AllFitStratAntThreshMult[fitStratAntThresMultIndex],
+																						ProtagonistThresholdMultiplier: AllFitStratProThreshMult[fitStratProtThreshMultIndex],
+																					},
+																					StatisticsOutput: evolution.StatisticsOutput{
+																						OutputPath: "",
+																					},
+																					RunStats: true,
+																					EnableLogging: true,
+																				}
+
+																				fmt.Printf("Loaded: %s\n", params.ToString())
+
+																				engine := PrepareSimulation(params, 0)
+																				outputPath := fmt.Sprintf("%s%s",
+																					engine.Parameters.
+																						StatisticsOutput.
+																						OutputPath[:len(engine.Parameters.StatisticsOutput.OutputPath)-1], ".json")
+
+																				folder := fmt.Sprintf("%s/%d",
+																					paramsDir, counter)
+																				absFolderPath := fmt.Sprintf("%s/%s", projectAbsolutePath, folder)
+																				os.Mkdir(absFolderPath, 0755)
+																				outputFilepath := strings.ReplaceAll(
+																					outputPath, "data/", folder +"/")
+
+																				file, err := os.Create(outputFilepath)
+																				if err != nil {
+																					return fmt.Errorf(err.Error())
+																				}
+																				err = json.NewEncoder(file).Encode(params)
+																				if err != nil {
+																					return fmt.Errorf(err.Error())
+																				}
+
+																				counter++
+																												}
 																		}
 																	}
 																}
