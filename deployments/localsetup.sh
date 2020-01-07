@@ -15,4 +15,4 @@ scp -i ~/.ssh/id_rsa "$ZIP"  martin.omburajr@"$IP":~/
 
 echo "Connecting To Remote: $IP"
 sleep 1
-ssh -i ~/.ssh/id_rsa martin.omburajr@"$IP":~/
+ssh -i ~/.ssh/id_rsa "martin.omburajr@$IP":~/
