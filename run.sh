@@ -1,15 +1,32 @@
-#!/usr/bin/env bash
+#! /bin/bash
 
-# Check if directory exists
-if [ -d "./data" ]
-then
-  echo "Deleting Data Directory"
-  rm -rf ./data
-else
-  echo "Directory data does NOT exists."
-fi
+#!/bin/bash
+red=$'\e[1;31m' # Error
+grn=$'\e[1;32m' # Success
+yel=$'\e[1;33m' # Warnings
+blu=$'\e[1;34m' # Info
+mag=$'\e[1;35m' # Title
+cyn=$'\e[1;36m'
+end=$'\e[0m'
 
-# Run Go Application
-go run main.go
+printf "${mag}\n\
+##########################################################\n \
+                Starting Simulation!\n\
+##########################################################\n
+${end}\n"
 
-exit
+
+printf "${blu}Building Go Binary: ...\n${end}"
+sleep 1
+rm -rf ./masters-go
+go build -a -v -o masters-go
+wait
+sleep 2
+
+printf "${blu}\n\nInitializing Run: ...\n${end}"
+sleep 2
+for i in {0..3} ; do
+  ./masters-go --params="_params" --parallelism=true --dataDir="data" --logging=true --runstats=true &
+  sleep 5
+  printf "${yel}##################################### RUN: ${i} COMPLETE########################################\n${end}"
+done

@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -117,9 +118,10 @@ func (s *Simulation) Begin(params evolution.EvolutionParams) (evolution.Evolutio
 		s.RunRScript(s.RPath, abs, s.StatsFiles, params.LoggingChan, params.ErrorChan)
 	}
 
-	msg := fmt.Sprintf("SIMULATION COMPLETE:\nFile: %s", params.ToString())
-	params.LoggingChan <- msg
+	//msg := fmt.Sprintf("SIMULATION COMPLETE:\nFile: %s", params.ToString())
+	params.DoneChan <- true
 
+	fmt.Printf("SIMUlATION COMPLETE: Number of Goroutines %d", runtime.NumGoroutine())
 	return params, nil
 }
 
@@ -157,7 +159,6 @@ type SimulationRunStats struct {
 }
 
 func (s *Simulation) RunRScript(RPath, dirPath string, RFiles []string, logChan chan string, errChan chan error) {
-
 	wg := sync.WaitGroup{}
 	for _, rFile := range RFiles {
 		wg.Add(1)
@@ -178,6 +179,7 @@ func (s *Simulation) RunRScript(RPath, dirPath string, RFiles []string, logChan 
 		}(&wg, rFile, logChan, errChan)
 	}
 	wg.Wait()
+	fmt.Println("COMPLETED RSCRIPTS")
 }
 
 func (s *Simulation) StartEngine(engine *evolution.EvolutionEngine) error {
@@ -328,7 +330,7 @@ func PrepareSimulation(params evolution.EvolutionParams, count int) *evolution.E
 	}
 
 	// ########################### OUTPUT STATISTICS  #######################################################3
-	fmt.Printf("Generation Count: %d\n", engine.Parameters.GenerationsCount)
+	fmt.Printf("\nGeneration Count: %d\n", engine.Parameters.GenerationsCount)
 	fmt.Printf("Each Individual Count: %d\n", engine.Parameters.EachPopulationSize)
 	fmt.Printf("Iteration Count: (%d)\n", count)
 

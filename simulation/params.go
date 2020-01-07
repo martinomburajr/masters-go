@@ -9,15 +9,17 @@ var AllExpressions = []string{
 var AllRanges = []int{20}
 var AllSeed = []int{-10}
 var AllGenerationsCount = []int{50}
-var AllEachPopulationSize = []int{6}
+var AllEachPopulationSize = []int{50}
 
 var AllReproduction = []evolution.Reproduction{
 	evolution.Reproduction{ProbabilityOfMutation: 0.1, CrossoverPercentage: 0.3},
 	evolution.Reproduction{ProbabilityOfMutation: 0.1, CrossoverPercentage: 0.7},
+	evolution.Reproduction{ProbabilityOfMutation: 0.5, CrossoverPercentage: 0.3},
+	evolution.Reproduction{ProbabilityOfMutation: 0.5, CrossoverPercentage: 0.7},
 }
 var AllDepthOfRandomNewTree = []int{0, 3}
-var AllAntagonistStrategyCount = []int{15}
-var AllProtagonistStrategyCount = []int{15}
+var AllAntagonistStrategyCount = []int{6, 25}
+var AllProtagonistStrategyCount = []int{6, 25}
 
 var AllFitnessStrategyType = []string{evolution.FitnessDualThresholdedRatio}
 var AllFitStratAntThreshMult = []float64{50}
@@ -29,7 +31,7 @@ var AllSelectionSurvivorPercentage = []float64{0.2, 0.7}
 
 var AllDivByZeroStrategy = []string{
 	evolution.DivByZeroIgnore,
-	//evolution.DivByZeroPenalize,
+	evolution.DivByZeroPenalize,
 }
 var AllDivByZeroPenalty = []float64{-2}
 
