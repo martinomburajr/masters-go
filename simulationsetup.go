@@ -25,7 +25,10 @@ func Scheduler(paramsFolder, dataDirName string, parallelism bool, numberOfSimul
 	}
 
 	dataFiles := getDataFiles(absolutePath, dataDirName)
-	dataFiles = dataFiles[1:]
+
+	if len(dataFiles) > 0 {
+		dataFiles = dataFiles[1:]
+	}
 
 	sim := simulationParams{
 		absolutePath:               absolutePath,
