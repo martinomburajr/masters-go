@@ -3,9 +3,11 @@ package simulation
 import "github.com/martinomburajr/masters-go/evolution"
 
 var AllExpressions = []string{
+	"x",
 	"1/5-x",
+	"x*x*x*x*x*x*x*x*x",
+	"x*x*x+2*x/3*x+9",
 }
-
 var AllRanges = []int{20}
 var AllSeed = []int{-10}
 var AllGenerationsCount = []int{50}
