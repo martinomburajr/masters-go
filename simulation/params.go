@@ -3,13 +3,13 @@ package simulation
 import "github.com/martinomburajr/masters-go/evolution"
 
 var AllExpressions = []string{
-	"x",
-	"x*x*x+2*x/3*x+9",
+	"1/5-x",
 }
+
 var AllRanges = []int{20}
 var AllSeed = []int{-10}
 var AllGenerationsCount = []int{50}
-var AllEachPopulationSize = []int{50}
+var AllEachPopulationSize = []int{50, 100}
 
 var AllReproduction = []evolution.Reproduction{
 	evolution.Reproduction{ProbabilityOfMutation: 0.1, CrossoverPercentage: 0.3},

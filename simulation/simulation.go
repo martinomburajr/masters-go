@@ -481,6 +481,7 @@ func (s *Simulation) SpewJSON(projectAbsolutePath, baseRelDir string, split int)
 																				if err != nil {
 																					return fmt.Errorf(err.Error())
 																				}
+																				file.Close()
 
 																				counter++
 																				splitCounter++
@@ -521,7 +522,7 @@ func (s *Simulation) SpewJSONNoSplit(projectAbsolutePath, paramsDir string) erro
 	s.NumberOfRunsPerState = 20
 	//os.Mkdir(baseRelDir, 0775)
 
-	counter := 0
+	counter := 1024+512
 
 	for expressionIndex := 0; expressionIndex < len(AllExpressions); expressionIndex++ {
 		for rangesIndex := 0; rangesIndex < len(AllRanges); rangesIndex++ {
@@ -614,6 +615,7 @@ func (s *Simulation) SpewJSONNoSplit(projectAbsolutePath, paramsDir string) erro
 																				if err != nil {
 																					return fmt.Errorf(err.Error())
 																				}
+																				file.Close()
 
 																				counter++
 																												}
@@ -646,6 +648,8 @@ func WriteIndexProgressToFile(indexProgress IndexProgress, indexFile string) err
 		return err
 	}
 	return json.NewEncoder(file).Encode(indexProgress)
+	file.Close()
+	return err
 }
 
 type IndexProgress struct {

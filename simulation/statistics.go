@@ -1109,6 +1109,5 @@ func (s *SimulationBestEpochs) ToCSV(outputPath string) error {
 	if err != nil {
 		return err
 	}
-
 	return err
 }

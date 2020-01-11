@@ -4,11 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/martinomburajr/masters-go/evolution"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
+	"sync"
 )
 
 // GetParamFileStatus returns files that have been thoroughly processed,
@@ -27,55 +26,58 @@ func GetParamFileStatus(absolutePath, paramDirName, dataDirName string, repeatDe
 		paramDataMap[paramFile] = -1
 	}
 
+	mut := sync.Mutex{}
+	mut.Lock()
 	if len(dataFiles) > 0 {
 		dataFiles = dataFiles[1:]
 	}
 
-	for _, dataFile := range dataFiles {
-		// Check if at least has reached 25% of generations
-		has25Txt := strings.Contains(dataFile, "25.txt")
-		if has25Txt {
-			split := strings.Split(dataFile, "/")
-			str := strings.Builder{}
-			str.WriteString(split[0])
-			str.WriteString("/")
-			str.WriteString(split[1])
-			finalString := fmt.Sprintf("%s/%s/%s/%s", absolutePath, dataDirName, str.String(), "25.txt")
-
-			str2 := strings.Builder{}
-			str2.WriteString(split[0])
-			str2.WriteString("/")
-			str2.WriteString(split[1])
-			dataPath := str2.String()
-
-			file, err := os.Open(finalString)
-			if err != nil {
-				return nil, nil, nil
-			}
-			timeStr, err := ioutil.ReadAll(file)
-			if err != nil {
-				return nil, nil, nil
-			}
-			parsedTime, err := time.Parse(time.RFC3339, string(timeStr))
-			if err != nil {
-				return nil, nil, nil
-			}
-
-			subtractedTime := time.Now().Sub(parsedTime)
-			seconds := subtractedTime.Seconds()
-			if seconds > float64(repeatDelay*60) {
-				dataPath2 := fmt.Sprintf("%s/%s/%s", absolutePath, dataDirName, dataPath)
-				os.RemoveAll(dataPath2)
-				paramDataMap[dataPath] = -1
-			} else {
-				paramDataMap[dataPath] = 25
-			}
-		}
-	}
+	//for _, dataFile := range dataFiles {
+	//	// Check if at least has reached 25% of generations
+	//	has25Txt := strings.Contains(dataFile, "25.txt")
+	//	if has25Txt {
+	//		split := strings.Split(dataFile, "/")
+	//		str := strings.Builder{}
+	//		str.WriteString(split[0])
+	//		str.WriteString("/")
+	//		str.WriteString(split[1])
+	//		finalString := fmt.Sprintf("%s/%s/%s/%s", absolutePath, dataDirName, str.String(), "25.txt")
+	//
+	//		str2 := strings.Builder{}
+	//		str2.WriteString(split[0])
+	//		str2.WriteString("/")
+	//		str2.WriteString(split[1])
+	//		dataPath := str2.String()
+	//
+	//		file, err := os.Open(finalString)
+	//		if err != nil {
+	//			return nil, nil, nil
+	//		}
+	//		timeStr, err := ioutil.ReadAll(file)
+	//		if err != nil {
+	//			return nil, nil, nil
+	//		}
+	//		parsedTime, err := time.Parse(time.RFC3339, string(timeStr))
+	//		if err != nil {
+	//			return nil, nil, nil
+	//		}
+	//
+	//		subtractedTime := time.Now().Sub(parsedTime)
+	//		seconds := subtractedTime.Seconds()
+	//		if seconds > float64(repeatDelay*60) {
+	//			dataPath2 := fmt.Sprintf("%s/%s/%s", absolutePath, dataDirName, dataPath)
+	//			os.RemoveAll(dataPath2)
+	//			paramDataMap[dataPath] = -1
+	//		} else {
+	//			paramDataMap[dataPath] = 25
+	//		}
+	//	}
+	//}
 
 	for _, dataFile := range dataFiles {
 		hasCompletedTxt := strings.Contains(dataFile, "completed.txt")
-		if hasCompletedTxt {
+		hasFinalParamsFile := strings.Contains(dataFile, "_params.json")
+		if hasCompletedTxt || hasFinalParamsFile {
 			split := strings.Split(dataFile, "/")
 			str := strings.Builder{}
 			str.WriteString(split[0])
@@ -96,6 +98,7 @@ func GetParamFileStatus(absolutePath, paramDirName, dataDirName string, repeatDe
 			incompleteParamFolder = append(incompleteParamFolder, k)
 		}
 	}
+	mut.Unlock()
 
 	//for _, incompleteFolder := range incompleteParamFolder {
 	//	os.RemoveAll(incompleteFolder)
@@ -168,6 +171,8 @@ func getAllDataFiles(absolutePath string, dataDirName string) (dataFiles []strin
 func createFileInDataDir(simulationParams simulationParams, filename, content string) {
 	completePath := fmt.Sprintf("%s/data/%s/%s", simulationParams.absolutePath, simulationParams.paramFile, filename)
 
+	mut := sync.Mutex{}
+	mut.Lock()
 	file, err := os.Create(completePath)
 	if err != nil {
 		simulationParams.errChan <- err
@@ -176,12 +181,16 @@ func createFileInDataDir(simulationParams simulationParams, filename, content st
 	if err != nil {
 		simulationParams.errChan <- err
 	}
+	file.Close()
+	mut.Unlock()
 }
 
 func writeParamFile(sim simulationParams, params evolution.EvolutionParams, errChan chan error) {
 	paramsDataPath := fmt.Sprintf("%s/data/%s/%s", sim.absolutePath, sim.paramFile, "_params.json")
-	paramsFile, err := os.Create(paramsDataPath)
+	mut := sync.Mutex{}
+	mut.Lock()
 
+	paramsFile, err := os.Create(paramsDataPath)
 	if err != nil {
 		errChan <- err
 	}
@@ -191,4 +200,6 @@ func writeParamFile(sim simulationParams, params evolution.EvolutionParams, errC
 	if err != nil {
 		errChan <- err
 	}
+	paramsFile.Close()
+	mut.Unlock()
 }

@@ -16,6 +16,7 @@ import (
 
 // scheduler runs the actual simulation
 func Scheduler(paramsFolder, dataDirName string, parallelism bool, numberOfSimultaneousParams, repeatDelay int64,
+	canSteal,
 	logging,
 	runStats bool) {
 	absolutePath, err := filepath.Abs(".")
@@ -42,6 +43,10 @@ func Scheduler(paramsFolder, dataDirName string, parallelism bool, numberOfSimul
 
 	// Listen to logs and errors
 	go SetupLogger(sim)
+
+	if canSteal {
+		go StealCompleted(sim.absolutePath, paramsFolder, sim.dataDirName, "_dataBackup", "_paramsBackup", repeatDelay)
+	}
 
 	completeParamFolder, unstartedParams, incompleteParams :=
 		GetParamFileStatus(sim.absolutePath, sim.paramFolder, sim.dataDirName, repeatDelay)
@@ -139,8 +144,8 @@ func SetupLogger(simulationParam simulationParams) {
 				fmt.Println(msg)
 				close(simulationParam.doneChan)
 
-				fmt.Println("GRACEFULLY STAYING UP FOR 2 HOURS")
-				time.Sleep(2 * time.Hour)
+				fmt.Println("GRACEFULLY STAYING UP FOR 12 Minutes")
+				time.Sleep(12 * time.Minute)
 				os.Exit(0)
 			}
 		}

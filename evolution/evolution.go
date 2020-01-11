@@ -7,6 +7,7 @@ import (
 	"os"
 	"runtime"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -247,6 +248,9 @@ func (e *EvolutionEngine) Start() (*EvolutionResult, error) {
 
 func WriteToDataFolder(dataFolderPath string, fileName string, fileValue string, logChan chan string,
 	errChan chan error) {
+	mut := sync.Mutex{}
+	mut.Lock()
+
 	filepath := fmt.Sprintf("%s/%s", dataFolderPath, fileName)
 	os.Mkdir(dataFolderPath, 0775)
 
@@ -261,6 +265,9 @@ func WriteToDataFolder(dataFolderPath string, fileName string, fileValue string,
 	}else {
 		logChan <- fmt.Sprintf("25 PERCENT: => Wrote %d bytes to file %s", n, filepath)
 	}
+
+	file.Close()
+	mut.Unlock()
 }
 
 // Todo Implement EvolutionProcess validate
