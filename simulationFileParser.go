@@ -6,6 +6,7 @@ import (
 	"github.com/martinomburajr/masters-go/evolution"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"sync"
 )
@@ -89,15 +90,21 @@ func GetParamFileStatus(absolutePath, paramDirName, dataDirName string, repeatDe
 		}
 	}
 
-	for k, v := range paramDataMap {
-		if v == 1 {
+	keys := make([]string, 0)
+	for k, _ := range paramDataMap {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		if paramDataMap[k] == 1 {
 			completeParamFolder = append(completeParamFolder, k)
-		} else if v == -1 {
+		} else if paramDataMap[k] == -1 {
 			unstardedParamFolder = append(unstardedParamFolder, k)
-		} else if v == 25 {
+		} else if paramDataMap[k] == 25 {
 			incompleteParamFolder = append(incompleteParamFolder, k)
 		}
 	}
+
 	mut.Unlock()
 
 	//for _, incompleteFolder := range incompleteParamFolder {
