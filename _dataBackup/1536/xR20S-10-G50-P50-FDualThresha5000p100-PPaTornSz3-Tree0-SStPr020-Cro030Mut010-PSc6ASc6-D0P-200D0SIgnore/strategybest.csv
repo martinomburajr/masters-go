@@ -1,0 +1,7 @@
+A,P,AEquation,PEquation,AGen,PGen,ARun,PRun,count,run
+MultXD,MultXD,(((5)*((5)*(x)))-((x)*((x)*(x)))),((0)/(0)),0,0,3,0,0,0
+SubXD,SkipD,(((5)*((5)*(x)))-((x)*((x)*(x)))),((0)/(0)),0,0,3,0,1,0
+AddXD,DivXD,(((5)*((5)*(x)))-((x)*((x)*(x)))),((0)/(0)),0,0,3,0,2,0
+SkipD,DeleteNonTerminalR,(((5)*((5)*(x)))-((x)*((x)*(x)))),((0)/(0)),0,0,3,0,3,0
+MultXD,DeleteTerminalR,(((5)*((5)*(x)))-((x)*((x)*(x)))),((0)/(0)),0,0,3,0,4,0
+SkipD,SkipD,(((5)*((5)*(x)))-((x)*((x)*(x)))),((0)/(0)),0,0,3,0,5,0
