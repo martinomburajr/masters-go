@@ -420,3 +420,22 @@ func StrategiesToString(individual Individual) string {
 	final := sb.String()
 	return final[:len(final)-1]
 }
+
+
+func StrategiesToStringArr(strategies []string) string {
+	sb := strings.Builder{}
+	for _, strategy := range strategies {
+		sb.WriteString(string(strategy))
+		sb.WriteString("|")
+	}
+
+	final := sb.String()
+	return final[:len(final)-1]
+}
+
+func ConvertStrategiesToString(strategies []Strategy) (stringStrategies []string) {
+	for i := range strategies {
+		stringStrategies = append(stringStrategies, string(strategies[i]))
+	}
+	return stringStrategies
+}

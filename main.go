@@ -3,6 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/gocarina/gocsv"
+	"github.com/martinomburajr/masters-go/analysis"
 	"io/ioutil"
 	"log"
 	"os"
@@ -28,8 +30,32 @@ func main() {
 	folderPtr := flag.Int64("folder", 0, "Folder")
 	completedStatsPtr := flag.Bool("showProgress", false, "Shows the progress of completed/unstarted/incomplete files")
 	stealPtr := flag.Bool("steal", true, "Should steal completed files and automatically back them up")
+	coalesceBestPath := flag.String("coalesceBest", "", "Feed in the _dataBackup directory to create a coalescedBest." +
+		"csv")
 
 	flag.Parse()
+
+	if *coalesceBestPath != "" && len(*coalesceBestPath) > 3 {
+		finalCSV, err := analysis.ReadCSVFile(*coalesceBestPath)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		outputFilePath := fmt.Sprintf("%s/%s", *coalesceBestPath, "coalescedBest.csv")
+		outputFile, err := os.Create(outputFilePath)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer outputFile.Close()
+		err = gocsv.MarshalFile(finalCSV, outputFile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		return
+	}
+
+	//fmt.Printf(csvBestAll)
+	time.Sleep(time.Second * 10)
 
 	if *paramsPtr == "" {
 		log.Fatal("Params path cannot be empty")

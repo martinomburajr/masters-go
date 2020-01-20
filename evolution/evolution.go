@@ -18,17 +18,17 @@ type EvolutionParams struct {
 	// Spec - Output Only - This is set by the SpecParam Expression. Do not set it manually
 	Spec             SpecMulti `json:"spec"`
 	SpecParam        SpecParam `json:"specParam"`
-	GenerationsCount int       `json:"generationCount"`
+	GenerationsCount int       `json:"generationCount",csv:"generationCount"`
 	// EachPopulationSize represents the size of each protagonist or antagonist population.
 	// This value must be even otherwise pairwise operations such as crossover will fail
-	EachPopulationSize int  `json:"eachPopulationSize"`
-	EnableParallelism  bool `json:"enableParallelism"`
+	EachPopulationSize int  `json:"eachPopulationSize",csv:"eachPopulationSize"`
+	EnableParallelism  bool `json:"enableParallelism",csv:"enableParallelism"`
 
-	Strategies Strategies `json:"strategies"`
+	Strategies Strategies `json:"strategies",csv:"strategies"`
 
-	FitnessStrategy FitnessStrategy `json:"fitnessStrategy"`
-	Reproduction    Reproduction    `json:"reproduction"`
-	Selection       Selection       `json:"selection"`
+	FitnessStrategy FitnessStrategy `json:"fitnessStrategy",csv:"fitnessStrategy"`
+	Reproduction    Reproduction    `json:"reproduction",csv:"reproduction"`
+	Selection       Selection       `json:"selection",csv:"selection"`
 
 	// FitnessCalculatorType allows user to select the fitness calculator.
 	// The more complex the function 1 is better but slower. 0 for simple polynomials with single digit constants e.
@@ -110,8 +110,8 @@ type SpecParam struct {
 	AvailableVariablesAndOperators AvailableVariablesAndOperators
 	// AvailableSymbolicExpressions - Output Only
 	AvailableSymbolicExpressions AvailableSymbolicExpressions
-	DivideByZeroStrategy         string  `json:"divideByZeroStrategy"`
-	DivideByZeroPenalty          float64 `json:"divideByZeroPenalty"`
+	DivideByZeroStrategy         string  `json:"divideByZeroStrategy",csv:"divideByZeroStrategy"`
+	DivideByZeroPenalty          float64 `json:"divideByZeroPenalty",csv:"divideByZeroPenalty"`
 }
 
 type Reproduction struct {
@@ -119,25 +119,25 @@ type Reproduction struct {
 	// This is a percentage represented as a float64. A value of 1 means all material is swapped.
 	// A value of 0 means no material is swapped (which in effect are the same thing).
 	// Avoid 0 or 1 use values in between
-	CrossoverPercentage   float64 `json:"crossoverPercentage"`
-	ProbabilityOfMutation float64 `json:"probabilityOfMutation"`
+	CrossoverPercentage   float64 `json:"crossoverPercentage",csv:"crossoverPercentage"`
+	ProbabilityOfMutation float64 `json:"probabilityOfMutation",csv:"probabilityOfMutation"`
 }
 type Selection struct {
-	Parent   ParentSelection   `json:"parentSelection"`
-	Survivor SurvivorSelection `json:"survivorSelection"`
+	Parent   ParentSelection   `json:"parentSelection",csv:"parentSelection"`
+	Survivor SurvivorSelection `json:"survivorSelection",csv:"survivorSelection"`
 }
 
 type ParentSelection struct {
-	Type           string `json:"type"`
-	TournamentSize int    `json:"tournamentSize"`
+	Type           string `json:"type",csv:"type"`
+	TournamentSize int    `json:"tournamentSize",csv:"tournamentSize"`
 }
 
 type SurvivorSelection struct {
-	Type string `json:"type"`
+	Type string `json:"type",csv:"type"`
 	// SurvivorPercentage represents how many individulas in the parent vs child population should continue.
 	// 1 means all parents move on. 0 means only children move on. Any number in betwee is a percentage value.
 	// It cannot be greater than 1 or less than 0.
-	SurvivorPercentage float64 `json:"survivorPercentage"`
+	SurvivorPercentage float64 `json:"survivorPercentage",csv:"survivorPercentage"`
 }
 
 type EvolutionEngine struct {

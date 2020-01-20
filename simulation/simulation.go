@@ -167,9 +167,9 @@ func (s *Simulation) RunRScript(RPath, dirPath string, RFiles []string, logChan 
 
 			fqdn := fmt.Sprintf("%s/%s", RPath, rFile)
 			cmd := exec.Command("Rscript", fqdn, dirPath)
-			msg := fmt.Sprintf("Rscript: \n%s\n", cmd.String())
+			//msg := fmt.Sprintf("Rscript: \n%s\n", cmd.String())
 
-			logChan <- msg
+			//logChan <- msg
 
 			err := cmd.Run()
 			if err != nil {
