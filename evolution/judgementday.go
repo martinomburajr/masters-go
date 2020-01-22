@@ -14,15 +14,14 @@ import (
 // 4. Survivor Selection
 // 5. Statistical Output
 // 6. FinalPopulation configuration (incrementing Age, clearing Fitness values for old worthy individuals)
-func JudgementDay(incomingPopulation []*Individual, kind int, generationCount int,
-	opts EvolutionParams) ([]*Individual, error) {
+func JudgementDay(incomingPopulation []*Individual, kind int, generationCount int, opts EvolutionParams) ([]*Individual, error) {
 	survivors := make([]*Individual, len(incomingPopulation))
 
 	// Reproduction
 	// CrossoverTree
 	children := make([]*Individual, opts.EachPopulationSize)
 	for i := 0; i < len(incomingPopulation); i += 2 {
-		child1, child2, err := Crossover(*incomingPopulation[i], *incomingPopulation[i+1], opts)
+		child1, child2, err := FixedPointCrossover(*incomingPopulation[i], *incomingPopulation[i+1], opts)
 		if err != nil {
 			return nil, err
 		}

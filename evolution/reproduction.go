@@ -1,206 +1,486 @@
 package evolution
 
 import (
+	"fmt"
+	"math"
 	"math/rand"
+	"sort"
+	"sync"
 )
 
-// CrossoverTree is a evolutionary technique used to take two parents swap their genetic material and form two new children.
-//func CrossoverTree(individual1 *Individual, individual2 *Individual, maxDepth int, params EvolutionParams) (child1 Individual,
-//	child2 Individual,
-//	err error) {
-//	// Requirements
-//	if individual1 == nil {
-//		return Individual{}, Individual{}, fmt.Errorf("crossover: individual 1 cannot be nil")
-//	}
-//	if individual1.Program == nil {
-//		return Individual{}, Individual{}, fmt.Errorf("crossover: individual1.Program != nil")
-//	}
-//	if individual1.Program.T == nil {
-//		return Individual{}, Individual{}, fmt.Errorf("crossover: individual1.Program.T != nil")
-//	}
-//	if individual1.Program.T.root == nil {
-//		return Individual{}, Individual{}, fmt.Errorf("crossover: individual1.Program.T.root != nil")
-//	}
-//	if individual2 == nil {
-//		return Individual{}, Individual{}, fmt.Errorf("crossover: individual2 cannot be nil")
-//	}
-//	if individual2.Program == nil {
-//		return Individual{}, Individual{}, fmt.Errorf("crossover: individual2.Program != nil")
-//	}
-//	if individual2.Program.T == nil {
-//		return Individual{}, Individual{}, fmt.Errorf("crossover: individual2.Program.T != nil")
-//	}
-//	if individual2.Program.T.root == nil {
-//		return Individual{}, Individual{}, fmt.Errorf("crossover: individual2.Program.T.root != nil")
-//	}
-//	if maxDepth < 0 {
-//		return Individual{}, Individual{}, fmt.Errorf("crossover: max depth cannot be less than 0")
-//	}
-//
-//	// DO!
-//	cloneA, err := individual1.Clone()
-//	if err != nil {
-//		return Individual{}, Individual{}, err
-//	}
-//	cloneB, err := individual2.Clone()
-//	if err != nil {
-//		return Individual{}, Individual{}, err
-//	}
-//
-//	cloneATree := cloneA.Program.T
-//	cloneBTree := cloneB.Program.T
-//
-//	cloneADepth, err := cloneATree.Depth()
-//	if err != nil {
-//		return Individual{}, Individual{}, err
-//	}
-//
-//	cloneBDepth, err := cloneBTree.Depth()
-//	if err != nil {
-//		return Individual{}, Individual{}, err
-//	}
-//
-//	// Check Depths for Swap
-//
-//	// 1. If depths < 1 in case it is just a Tree with only a root
-//	if cloneADepth < 1 {
-//		nodeB, _, err := cloneBTree.RandomTerminalAware()
-//		if err != nil {
-//			return Individual{}, Individual{}, err
-//		}
-//		hoboA, _, err := cloneATree.Replace(cloneATree.root, *nodeB)
-//		if err != nil {
-//			return Individual{}, Individual{}, err
-//		}
-//		_, _, err = cloneBTree.Replace(nodeB, hoboA)
-//		if err != nil {
-//			return Individual{}, Individual{}, err
-//		}
-//		return cloneA, cloneB, err
-//	}
-//
-//	if cloneBDepth < 1 {
-//		nodeA, _, err := cloneATree.RandomTerminalAware()
-//		if err != nil {
-//			return Individual{}, Individual{}, err
-//		}
-//		hoboB, _, err := cloneBTree.Replace(cloneATree.root, *nodeA)
-//		if err != nil {
-//			return Individual{}, Individual{}, err
-//		}
-//		_, _, err = cloneATree.Replace(nodeA, hoboB)
-//		if err != nil {
-//			return Individual{}, Individual{}, err
-//		}
-//		return cloneA, cloneB, err
-//	}
-//
-//	shortestNodeA, _, shortestDepthA, err := cloneATree.GetShortestBranch(maxDepth / 2)
-//	if err != nil {
-//		return Individual{}, Individual{}, nil
-//	}
-//	shortestNodeB, _, shortestDepthB, err := cloneBTree.GetShortestBranch(maxDepth / 2)
-//	if err != nil {
-//		return Individual{}, Individual{}, nil
-//	}
-//
-//	if cloneADepth > maxDepth {
-//		if shortestDepthA >= maxDepth {
-//			// Penalize Parent
-//			penalty := float64(params.DepthPenaltyStrategyPenalization) * float64(shortestDepthA/maxDepth)
-//			if individual1.HasCalculatedFitness {
-//				return Individual{}, Individual{}, fmt.Errorf("cannot be penalized | Fitness uncalculated")
-//			}
-//			individual1.AverageFitness = individual1.AverageFitness + penalty
-//		}
-//	}
-//	if cloneBDepth > maxDepth {
-//		if shortestDepthB >= maxDepth {
-//			// Penalize Parent
-//			penalty := float64(params.DepthPenaltyStrategyPenalization) * float64(shortestDepthB/maxDepth)
-//			if individual2.HasCalculatedFitness {
-//				return Individual{}, Individual{}, fmt.Errorf("cannot be penalized | Fitness uncalculated")
-//			}
-//			individual2.AverageFitness = individual2.AverageFitness + penalty
-//		}
-//	}
-//
-//	if shortestDepthA <= shortestDepthB {
-//		subTreeBAtDepth, err := cloneBTree.GetRandomSubTreeAtDepthAware(cloneBDepth) // confirm
-//		if err != nil {
-//			return Individual{}, Individual{}, err
-//		}
-//		hoboA, _, err := cloneATree.Replace(shortestNodeA, *subTreeBAtDepth.root)
-//		if err != nil {
-//			return Individual{}, Individual{}, err
-//		}
-//		_, _, err = cloneBTree.Replace(subTreeBAtDepth.root, hoboA)
-//		if err != nil {
-//			return Individual{}, Individual{}, err
-//		}
-//	} else {
-//		subTreeAAtDepth, err := cloneATree.GetRandomSubTreeAtDepthAware(cloneADepth) // confirm
-//		if err != nil {
-//			return Individual{}, Individual{}, err
-//		}
-//		hoboB, _, err := cloneBTree.Replace(shortestNodeB, *subTreeAAtDepth.root)
-//		if err != nil {
-//			return Individual{}, Individual{}, err
-//		}
-//		_, _, err = cloneATree.Replace(subTreeAAtDepth.root, hoboB)
-//		if err != nil {
-//			return Individual{}, Individual{}, err
-//		}
-//	}
-//
-//	cloneA.Program.T = cloneATree
-//	cloneB.Program.T = cloneBTree
-//	return cloneA, cloneB, err
-//}
+const (
+	CrossoverSinglePoint = "CrossoverSinglePoint"
+	CrossoverFixedPoint = "CrossoverFixedPoint"
+	CrossoverKPoint = "CrossoverKPoint"
+	CrossoverUniform = "CrossoverUniform"
+)
 
-// getRandomDepthTargetLocation obtains a random depth for each individual that the crossover will target.
-// For example if the depth of individual1 is 10,
-// and the max depth is 15. The remainder will be 5.
-// This function takes the remainder and gets a random number between 0 and 5 of individual2
-func getRandomDepthTargetLocation(individual1DepthRemainderFromMaX int, individual2DepthRemainderFromMax int) (int, int) {
-	var randDepthOfInd1FromRem, randDepthOfInd2FromRem int
-	if individual1DepthRemainderFromMaX != 0 {
-
-		randDepthOfInd1FromRem = rand.Intn(individual1DepthRemainderFromMaX)
+// CrossoverSinglePoint performs a single-point crossover that is dictated by the crossover percentage float.
+// Both parent chromosomes are split at the percentage section specified by crossoverPercentage
+func SinglePointCrossover(parentA, parentB *Individual) (childA Individual,
+	childB Individual,
+	err error) {
+	// Require
+	if parentA.Strategy == nil {
+		return Individual{}, Individual{}, fmt.Errorf("parentA strategy cannot be nil")
 	}
-	if individual2DepthRemainderFromMax != 0 {
-
-		randDepthOfInd2FromRem = rand.Intn(individual2DepthRemainderFromMax)
+	if len(parentA.Strategy) < 1 {
+		return Individual{}, Individual{}, fmt.Errorf("parentA strategy cannot be empty")
 	}
-	return randDepthOfInd1FromRem, randDepthOfInd2FromRem
+	if parentB.Strategy == nil {
+		return Individual{}, Individual{}, fmt.Errorf("parentB strategy cannot be nil")
+	}
+	if len(parentB.Strategy) < 1 {
+		return Individual{}, Individual{}, fmt.Errorf("parentB strategy cannot be empty")
+	}
+
+	// DO
+	switch parentA.Kind {
+	case IndividualAntagonist:
+		childA.Id = GenerateIndividualID("", IndividualAntagonist)
+		childB.Id = GenerateIndividualID("", IndividualAntagonist)
+	case IndividualProtagonist:
+		childA.Id = GenerateIndividualID("", IndividualProtagonist)
+		childB.Id = GenerateIndividualID("", IndividualProtagonist)
+	}
+
+	childA.Strategy = parentA.Strategy
+	childB.Strategy = parentB.Strategy
+
+	mut := sync.Mutex{}
+	mut.Lock()
+	if len(parentA.Strategy) >= len(parentB.Strategy) {
+		prob := rand.Intn(len(parentB.Strategy))
+		for i := 0; i < prob; i++ {
+			childA.Strategy[i] = parentB.Strategy[i]
+			childB.Strategy[i] = parentA.Strategy[i]
+		}
+	}  else {
+		prob := rand.Intn(len(parentA.Strategy))
+		for i := 0; i < prob; i++ {
+			childA.Strategy[i] = parentB.Strategy[i]
+			childB.Strategy[i] = parentA.Strategy[i]
+		}
+	}
+	mut.Unlock()
+
+	return childA, childB, nil
 }
 
-// calculateRemainderDepths returns the remainders. It does no checking to ensure individuals are correct.
-// This has to be done by the user.
-//func calculateRemainderDepths(individual1 *Individual, individual2 *Individual, maxDepth int,
-//	params EvolutionParams) (int, int, error) {
-//
-//	individual1Depth, err := individual1.Program.T.Depth()
-//	if err != nil {
-//		return -1, -1, err
-//	}
-//
-//	individual2Depth, err := individual2.Program.T.Depth()
-//	if err != nil {
-//		return -1, -1, err
-//	}
-//
-//	if params.DepthPenaltyStrategy == DepthPenaltyStrategyIgnore {
-//		i, i2 := depthPenaltyIgnore(maxDepth, individual1Depth, individual2Depth)
-//		return i, i2, nil
-//	}
-//	if params.DepthPenaltyStrategy == DepthPenaltyStrategyPenalize {
-//		return depthPenaltyPenalization(individual1, individual2, individual1Depth, individual2Depth, maxDepth,
-//			params.DepthPenaltyStrategyPenalization)
-//	}
-//	i, i2 := depthPenaltyIgnore(maxDepth, individual1Depth, individual2Depth)
-//	return i, i2, nil
-//}
+// CrossoverSinglePoint performs a single-point crossover that is dictated by the crossover percentage float.
+// Both parent chromosomes are split at the percentage section specified by crossoverPercentage
+func KPointCrossover(parentA, parentB *Individual, kPoint int) (childA Individual,
+	childB Individual,
+	err error) {
+
+	// Require
+	if parentA.Strategy == nil {
+		return Individual{}, Individual{}, fmt.Errorf("parentA strategy cannot be nil")
+	}
+	if len(parentA.Strategy) < 1 {
+		return Individual{}, Individual{}, fmt.Errorf("parentA strategy cannot be empty")
+	}
+	if parentB.Strategy == nil {
+		return Individual{}, Individual{}, fmt.Errorf("parentB strategy cannot be nil")
+	}
+	if len(parentB.Strategy) < 1 {
+		return Individual{}, Individual{}, fmt.Errorf("parentB strategy cannot be empty")
+	}
+
+	//DO
+	switch parentA.Kind {
+	case IndividualAntagonist:
+		childA.Id = GenerateIndividualID("", IndividualAntagonist)
+		childB.Id = GenerateIndividualID("", IndividualAntagonist)
+	case IndividualProtagonist:
+		childA.Id = GenerateIndividualID("", IndividualProtagonist)
+		childB.Id = GenerateIndividualID("", IndividualProtagonist)
+	}
+
+	childA.Strategy = parentA.Strategy
+	childB.Strategy = parentB.Strategy
+
+
+	mut := sync.Mutex{}
+	mut.Lock()
+	// Swap every element
+	if kPoint < 1 || (kPoint > len(parentA.Strategy) && kPoint > len(parentB.Strategy)){
+		if len(parentA.Strategy) >= len(parentB.Strategy) {
+			for i := 0; i < len(parentB.Strategy); i++ {
+				if i % 2 == 0 {
+					childA.Strategy[i] = parentA.Strategy[i]
+					childB.Strategy[i] = parentB.Strategy[i]
+				}else {
+					childA.Strategy[i] = parentB.Strategy[i]
+					childB.Strategy[i] = parentA.Strategy[i]
+				}
+			}
+		} else {
+			for i := 0; i < len(parentA.Strategy); i++ {
+				if i % 2 == 0 {
+					childA.Strategy[i] = parentA.Strategy[i]
+					childB.Strategy[i] = parentB.Strategy[i]
+				}else {
+					childA.Strategy[i] = parentB.Strategy[i]
+					childB.Strategy[i] = parentA.Strategy[i]
+				}
+			}
+		}
+	}else {
+		// USe the smaller chromosome as reference for K. Randomly select K points on the smaller one.
+		if len(parentA.Strategy) >= len(parentB.Strategy) {
+			kPoints := rand.Perm(kPoint)
+			sort.Ints(kPoints)
+
+			shouldSwap := true
+			for i := 0; i < len(parentB.Strategy); i++ {
+				for j := range kPoints {
+					if i == kPoints[j] {
+						shouldSwap = !shouldSwap
+					}
+					if shouldSwap {
+						childA.Strategy[i] = parentB.Strategy[i]
+						childB.Strategy[i] = parentA.Strategy[i]
+					}else {
+						childA.Strategy[i] = parentA.Strategy[i]
+						childB.Strategy[i] = parentB.Strategy[i]
+					}
+				}
+			}
+		} else {
+			kPoints := rand.Perm(kPoint)
+			sort.Ints(kPoints)
+
+			shouldSwap := true
+			for i := 0; i < len(parentA.Strategy); i++ {
+				for j := range kPoints {
+					if i == kPoints[j] {
+						shouldSwap = !shouldSwap
+					}
+					if shouldSwap {
+						childA.Strategy[i] = parentB.Strategy[i]
+						childB.Strategy[i] = parentA.Strategy[i]
+					}else {
+						childA.Strategy[i] = parentA.Strategy[i]
+						childB.Strategy[i] = parentB.Strategy[i]
+					}
+				}
+			}
+		}
+	}
+
+	mut.Unlock()
+	return childA, childB, nil
+}
+
+
+// CrossoverSinglePoint performs a single-point crossover that is dictated by the crossover percentage float.
+// Both parent chromosomes are split at the percentage section specified by crossoverPercentage
+func UniformCrossover(parentA, parentB *Individual) (childA Individual,
+	childB Individual,
+	err error) {
+	// Require
+	if parentA.Strategy == nil {
+		return Individual{}, Individual{}, fmt.Errorf("parentA strategy cannot be nil")
+	}
+	if len(parentA.Strategy) < 1 {
+		return Individual{}, Individual{}, fmt.Errorf("parentA strategy cannot be empty")
+	}
+	if parentB.Strategy == nil {
+		return Individual{}, Individual{}, fmt.Errorf("parentB strategy cannot be nil")
+	}
+	if len(parentB.Strategy) < 1 {
+		return Individual{}, Individual{}, fmt.Errorf("parentB strategy cannot be empty")
+	}
+
+	// DO
+	switch parentA.Kind {
+	case IndividualAntagonist:
+		childA.Id = GenerateIndividualID("", IndividualAntagonist)
+		childB.Id = GenerateIndividualID("", IndividualAntagonist)
+	case IndividualProtagonist:
+		childA.Id = GenerateIndividualID("", IndividualProtagonist)
+		childB.Id = GenerateIndividualID("", IndividualProtagonist)
+	}
+
+	childA.Strategy = parentA.Strategy
+	childB.Strategy = parentB.Strategy
+
+	mut := sync.Mutex{}
+	mut.Lock()
+	if len(parentA.Strategy) >= len(parentB.Strategy) {
+		for i := 0; i < len(parentB.Strategy); i++ {
+			prob := rand.Intn(2)
+			if prob == 0 {
+				childA.Strategy[i] = parentA.Strategy[i]
+				childB.Strategy[i] = parentB.Strategy[i]
+			}else {
+				childA.Strategy[i] = parentB.Strategy[i]
+				childB.Strategy[i] = parentA.Strategy[i]
+			}
+		}
+	}  else {
+		for i := 0; i < len(parentA.Strategy); i++ {
+			prob := rand.Intn(2)
+			if prob == 0 {
+				childA.Strategy[i] = parentA.Strategy[i]
+				childB.Strategy[i] = parentB.Strategy[i]
+			}else {
+				childA.Strategy[i] = parentB.Strategy[i]
+				childB.Strategy[i] = parentA.Strategy[i]
+			}
+		}
+	}
+	mut.Unlock()
+
+	return childA, childB, nil
+}
+
+// FixedPointCrossover will perform crossover on the strategies of a given  set of individuals
+func FixedPointCrossover(individual Individual, individual2 Individual, params EvolutionParams) (Individual, Individual,
+	error) {
+
+	if individual.Id == "" {
+		return Individual{}, Individual{}, fmt.Errorf("crossover | individual1 - individual Id cannot be empty")
+	}
+	if individual.Strategy == nil {
+		return Individual{}, Individual{}, fmt.Errorf("crossover | individual1 - Strategy array cannot be nil")
+	}
+	if len(individual.Strategy) == 0 {
+		return Individual{}, Individual{}, fmt.Errorf("crossover | individual1 - Strategy array cannot be empty")
+	}
+	if individual.HasCalculatedFitness == false {
+		return Individual{}, Individual{}, fmt.Errorf("crossover | individual1 - HasCalculatedFitness should be true")
+	}
+	if individual.HasAppliedStrategy == false {
+		return Individual{}, Individual{}, fmt.Errorf("crossover | individual1 - HasAppliedStrategy should be true")
+	}
+	if individual.Program == nil {
+		return Individual{}, Individual{}, fmt.Errorf("crossover | individual1 - program cannot be nil")
+	}
+	if individual.Program.T == nil {
+		return Individual{}, Individual{}, fmt.Errorf("crossover | individual1 - program Tree cannot be nil")
+	}
+	if individual2.Id == "" {
+		return Individual{}, Individual{}, fmt.Errorf("crossover | individual2 - individual Id cannot be empty")
+	}
+	if individual2.Strategy == nil {
+		return Individual{}, Individual{}, fmt.Errorf("crossover | individual2 - Strategy array cannot be nil")
+	}
+	if len(individual2.Strategy) == 0 {
+		return Individual{}, Individual{}, fmt.Errorf("crossover | individual2 - Strategy array cannot be empty")
+	}
+	if individual2.HasCalculatedFitness == false {
+		return Individual{}, Individual{}, fmt.Errorf("crossover | individual2 - HasCalculatedFitness should be true")
+	}
+	if individual2.HasAppliedStrategy == false {
+		return Individual{}, Individual{}, fmt.Errorf("crossover | individual2 - HasAppliedStrategy should be true")
+	}
+	if individual2.Program == nil {
+		return Individual{}, Individual{}, fmt.Errorf("crossover | individual2 - program cannot be nil")
+	}
+	if individual2.Program.T == nil {
+		return Individual{}, Individual{}, fmt.Errorf("crossover | individual2 - program Tree cannot be nil")
+	}
+
+	individual1Len := len(individual.Strategy)
+	individual2Len := len(individual2.Strategy)
+
+	child1, err := individual.Clone()
+	child1.Id = child1.Id + "c1"
+	if err != nil {
+		return Individual{}, Individual{}, err
+	}
+	child2, err := individual2.Clone()
+	child2.Id = child2.Id + "c2"
+	if err != nil {
+		return Individual{}, Individual{}, err
+	}
+
+	crossoverPercentage := params.Reproduction.CrossoverPercentage
+	if crossoverPercentage == 0 {
+		return child1, child2, err
+	}
+	if crossoverPercentage == 1 {
+		return child2, child1, err
+	}
+
+	individual1ChunkSize := int(math.Ceil(float64(individual1Len) * float64(crossoverPercentage)))
+	individual2ChunkSize := int(float64(individual2Len) * crossoverPercentage)
+
+	if individual1ChunkSize >= individual2ChunkSize {
+		var ind1StartIndex int
+		if individual1Len == individual1ChunkSize {
+			ind1StartIndex = 0
+		} else {
+			ind1StartIndex = rand.Intn((individual1Len + 1) - individual1ChunkSize)
+		}
+		c1, c2 := StrategySwapper(individual.Strategy, individual2.Strategy, individual1ChunkSize, ind1StartIndex)
+		child1.Strategy = c1
+		child2.Strategy = c2
+		return child1, child2, nil
+
+	} else {
+		var ind2StartIndex int
+		if individual2Len == individual2ChunkSize {
+			ind2StartIndex = 0
+		} else {
+			ind2StartIndex = rand.Intn(individual1Len + 1 - individual1ChunkSize)
+		}
+		c1, c2 := StrategySwapper(individual.Strategy, individual2.Strategy, individual1ChunkSize, ind2StartIndex)
+		child1.Strategy = c1
+		child2.Strategy = c2
+		return child1, child2, nil
+	}
+}
+
+// StrategySwapper takes two slices containing variable length strategies.
+// The swapLength must be smaller than the length of the largest, but less than the length of the smallest.
+// A swap length of 0 will return the same arrays a and b untouched.
+func StrategySwapper(a []Strategy, b []Strategy, swapLength int, startIndex int) ([]Strategy, []Strategy) {
+	if a == nil || b == nil {
+		return nil, nil
+	}
+	if len(a) == 0 || len(b) == 0 {
+		return nil, nil
+	}
+	if swapLength == 0 {
+		return a, b
+	}
+	if swapLength < 0 {
+		swapLength = 0
+	}
+	if startIndex < 0 {
+		startIndex = 0
+	}
+
+	aCopy := make([]Strategy, len(a))
+	bCopy := make([]Strategy, len(b))
+
+	copy(aCopy, a)
+	copy(bCopy, b)
+
+	if len(a) >= len(b) {
+		if swapLength > len(b) {
+			swapLength = len(b)
+		}
+		if (swapLength + startIndex) > len(b) {
+			startIndex = 0
+		}
+	} else {
+		if swapLength > len(a) {
+			swapLength = len(a)
+		}
+		if (swapLength + startIndex) > len(a) {
+			startIndex = 0
+		}
+	}
+
+	aHolder := make([]Strategy, swapLength)
+	bHolder := make([]Strategy, swapLength)
+
+	for i := 0; i < swapLength; i++ {
+		aHolder[i] = a[i+startIndex]
+		bHolder[i] = b[i+startIndex]
+	}
+
+	for i := 0; i < swapLength; i++ {
+		aCopy[startIndex+i] = bHolder[i]
+		bCopy[startIndex+i] = aHolder[i]
+	}
+
+	return aCopy, bCopy
+}
+
+// StrategySwapperIgnorant will perform crossover regardless of size
+func StrategySwapperIgnorant(a []Strategy, b []Strategy, swapLength int, startIndex int) ([]Strategy, []Strategy) {
+	if a == nil || b == nil {
+		return nil, nil
+	}
+	if len(a) == 0 || len(b) == 0 {
+		return nil, nil
+	}
+	if swapLength == 0 {
+		return a, b
+	}
+	if swapLength < 0 {
+		swapLength = 0
+	}
+	if startIndex < 0 {
+		startIndex = 0
+	}
+	var aCopy, bCopy, aHolder, bHolder []Strategy
+
+	if len(a) >= len(b) {
+		if swapLength > len(a) {
+			swapLength = len(a)
+		}
+		if startIndex+swapLength >= len(a) {
+			startIndex = 0
+		}
+		aCopy = make([]Strategy, len(a))
+		bCopy = make([]Strategy, len(a))
+		aHolder = make([]Strategy, swapLength)
+		bHolder = make([]Strategy, swapLength)
+		copy(aCopy, a)
+		copy(bCopy, b)
+
+		for i := 0; i < swapLength; i++ {
+			aHolder[i] = a[i+startIndex]
+		}
+		for i := 0; i < swapLength; i++ {
+			bHolder[i] = b[i+startIndex]
+		}
+	} else {
+		if swapLength > len(b) {
+			swapLength = len(b)
+		}
+		if startIndex+swapLength >= len(b) {
+			startIndex = 0
+		}
+		aCopy = make([]Strategy, len(b))
+		bCopy = make([]Strategy, len(b))
+		aHolder = make([]Strategy, swapLength)
+		bHolder = make([]Strategy, swapLength)
+		copy(aCopy, a)
+		copy(bCopy, b)
+
+		for i := 0; i < len(aCopy); i++ {
+			aHolder[i] = a[i+startIndex]
+		}
+		for i := 0; i < len(bCopy); i++ {
+			bHolder[i] = b[i+startIndex]
+		}
+	}
+
+	for i := 0; i < swapLength; i++ {
+		aCopy[startIndex+i] = bHolder[i]
+		bCopy[startIndex+i] = aHolder[i]
+	}
+
+	return aCopy, bCopy
+}
+
+// Mutate will mutate the Strategy in a given individual
+func (i *Individual) Mutate(availableStrategies []Strategy) error {
+	if availableStrategies == nil {
+		return fmt.Errorf("Mutate | availableStrategies param cannot be nil")
+	}
+	if i.Strategy == nil {
+		return fmt.Errorf("Mutate | individual's strategies cannot be nil")
+	}
+	if len(i.Strategy) < 1 {
+		return fmt.Errorf("Mutate | individual's strategies cannot empty")
+	}
+
+	randIndexToMutate := rand.Intn(len(i.Strategy))
+
+	randIndexForStrategies := rand.Intn(len(availableStrategies))
+	i.Strategy[randIndexToMutate] = availableStrategies[randIndexForStrategies]
+	return nil
+}
+
+
 
 func depthPenaltyIgnore(maxDepth int, individual1Depth int, individual2Depth int) (int, int) {
 	if maxDepth < 0 {
@@ -219,168 +499,3 @@ func depthPenaltyIgnore(maxDepth int, individual1Depth int, individual2Depth int
 	}
 	return individual1DepthRemainderFromMaX, individual2DepthRemainderFromMax
 }
-
-// depthPenaltyPenalization applies a penalty to an individual whose depth exceeds maxDepth.
-// Ensure that the individual has calculated its Fitness
-//func depthPenaltyPenalization(individual1 *Individual, individual2 *Individual, individual1Depth int,
-//	individual2Depth int, maxDepth int,
-//	penalization float64) (float64, float64, error) {
-//	if maxDepth < 0 {
-//		maxDepth = 0
-//	}
-//	var individual1DepthRemainderFromMaX, individual2DepthRemainderFromMax int
-//	if individual1Depth >= maxDepth {
-//		if individual1.HasCalculatedFitness {
-//			individual1.AverageFitness = individual1.AverageFitness + penalization
-//		} else {
-//			return -1, -1, fmt.Errorf("crossover | depthPenalty | Fitness of individual %s has not been calculated"+
-//				" before crossover", individual1.Id)
-//		}
-//	} else {
-//		individual1DepthRemainderFromMaX = maxDepth - individual1Depth
-//	}
-//
-//	if individual2Depth >= maxDepth {
-//		if individual2.HasCalculatedFitness {
-//			individual2.AverageFitness = individual2.AverageFitness + penalization
-//		} else {
-//			return -1, -1, fmt.Errorf("crossover | depthPenalty | Fitness of individual %s has not been calculated"+
-//				" before crossover", individual1.Id)
-//		}
-//	} else {
-//		individual2DepthRemainderFromMax = maxDepth - individual2Depth
-//	}
-//	return individual1DepthRemainderFromMaX, individual2DepthRemainderFromMax, nil
-//}
-
-//func depthPenaltyTrim(individual1 *Individual, individual2 *Individual, individual1Depth int,
-//	individual2Depth int, maxDepth int,
-//	penalization float64)(int, int, error) {
-//	if maxDepth < 0 {
-//		maxDepth = 0
-//	}
-//	var individual1DepthRemainderFromMaX, individual2DepthRemainderFromMax int
-//	if individual1Depth >= maxDepth {
-//		if individual1.HasCalculatedFitness {
-//			individual1.
-//		}else {
-//			return -1, -1, fmt.Errorf("crossover | depthPenalty | Fitness of individual %s has not been calculated" +
-//				" before crossover", individual1.Id)
-//		}
-//	}else {
-//		individual1DepthRemainderFromMaX = maxDepth - individual1Depth
-//	}
-//
-//	if individual2Depth >= maxDepth {
-//		if individual2.HasCalculatedFitness {
-//			individual2.AverageFitness = individual2.AverageFitness + int(penalization)
-//		}else {
-//			return -1, -1, fmt.Errorf("crossover | depthPenalty | Fitness of individual %s has not been calculated" +
-//				" before crossover", individual1.Id)
-//		}
-//	}else {
-//		individual2DepthRemainderFromMax = maxDepth - individual2Depth
-//	}
-//	return individual1DepthRemainderFromMaX, individual2DepthRemainderFromMax, nil
-//}
-
-// 1. Depth and Remainder Information
-//individual1DepthRemainderFromMaX, individual2DepthRemainderFromMax, err := calculateRemainderDepths(individual1, individual2, maxDepth, params)
-//if err != nil {
-//	return Individual{}, Individual{}, err
-//}
-//
-//// 3. Calculate a random depth in the treeNode to extract information from
-//randDepthOfInd1FromRem, randDepthOfInd2FromRem := getRandomDepthTargetLocation(individual1DepthRemainderFromMaX, individual2DepthRemainderFromMax)
-//
-//// 4. Get Random SubTree based on depth of each program
-//subTreeAtDepthProg1, err := individual1.Program.T.GetRandomSubTreeAtDepth(randDepthOfInd1FromRem)
-//if err != nil {
-//	return Individual{}, Individual{}, err
-//}
-//subTreeAtDepthProg2, err := individual2.Program.T.GetRandomSubTreeAtDepth(randDepthOfInd2FromRem)
-//if err != nil {
-//	return Individual{}, Individual{}, err
-//}
-//
-//// 5. Get depth of randomly selected subTrees
-//subTreeInd1Depth, err := subTreeAtDepthProg1.Depth()
-//if err != nil {
-//	return Individual{}, Individual{}, err
-//}
-//subTreeInd2Depth, err := subTreeAtDepthProg2.Depth()
-//if err != nil {
-//	return Individual{}, Individual{}, err
-//}
-//
-//// 6. Select Nodes with A Given Depth
-//nodesProg1, err := subTreeAtDepthProg1.DepthAt(subTreeInd1Depth)
-//if err != nil {
-//	return Individual{}, Individual{}, err
-//}
-//nodesProg2, err := subTreeAtDepthProg2.DepthAt(subTreeInd2Depth)
-//if err != nil {
-//	return Individual{}, Individual{}, err
-//}
-//
-//
-//var nodesProg1RandomIndex, nodesProg2RandomIndex int
-//if len(nodesProg1) > 0 {
-//
-//	nodesProg1RandomIndex = rand.Intn(len(nodesProg1))
-//}
-//if len(nodesProg2) > 0 {
-//
-//	nodesProg2RandomIndex = rand.Intn(len(nodesProg2))
-//}
-//
-//// 7. Get random node in subTree
-//// 7.a node1 = rand(nodesInd1SubTree)
-//// 7.b node2 = rand(nodesInd2SubTree)
-//nodeProg1Random := nodesProg1[nodesProg1RandomIndex]
-//nodeProg2Random := nodesProg2[nodesProg2RandomIndex]
-//
-//nodeProg1PieceTree := nodeProg1Random.ToDualTree()
-//nodeProg2PieceTree := nodeProg2Random.ToDualTree()
-//
-//child1 = individual1.Clone()
-//child2 = individual2.Clone()
-//
-//// Child 1
-//node, parent, err := child1.Program.T.Search(nodeProg1PieceTree.root.key)
-//if err != nil {
-//	return Individual{}, Individual{}, err
-//}
-//if node == nil {
-//	return Individual{}, Individual{}, fmt.Errorf("crossover | failed to locate node in the Tree it came from..." +
-//		" weird error")
-//}
-//if parent == nil {
-//	return child1, child2, nil
-//}
-//if parent.right.key == nodeProg1PieceTree.root.key {
-//	parent.right = nodeProg1PieceTree.root
-//} else if parent.left.key == nodeProg1PieceTree.root.key {
-//	parent.left = nodeProg1PieceTree.root
-//}
-//
-//// Child 2
-//node2, parent2, err := child2.Program.T.Search(nodeProg2PieceTree.root.key)
-//if err != nil {
-//	return Individual{}, Individual{}, err
-//}
-//if node2 == nil {
-//	return Individual{}, Individual{}, fmt.Errorf("crossover | failed to locate node in the Tree it came from..." +
-//		" weird error")
-//}
-//if parent2 == nil {
-//	return Individual{}, Individual{}, fmt.Errorf("crossover | failed to locate parent in the Tree it came from.." +
-//		"." +
-//		" weird error")
-//}
-//if parent2.right.key == nodeProg2PieceTree.root.key {
-//	parent2.right = nodeProg2PieceTree.root
-//} else if parent.left.key == nodeProg2PieceTree.root.key {
-//	parent2.left = nodeProg2PieceTree.root
-//}
-//

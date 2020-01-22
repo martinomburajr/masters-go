@@ -18,6 +18,20 @@ type EvolutionParams struct {
 	// Spec - Output Only - This is set by the SpecParam Expression. Do not set it manually
 	Spec             SpecMulti `json:"spec"`
 	SpecParam        SpecParam `json:"specParam"`
+	// MaxGenerations activates the ability for a variable number of generations before the simulation ends.
+	// The value must be greater than 9 for the activation to begin, if not,
+	// the simulation will default to GenerationsCount number of generations. Once this variable is set,
+	// MinGenFitEval and ProtagonistMinGenAvgFit will come into effect. If no adequate solution is found,
+	// MaxGenerations will terminate. This value should default to about 300.
+	MaxGenerations int `json:"maxGenerationsCount",csv:"maxGenerationsCount"`
+	// MinGenerationFitnessEvaluation specifies the number of generations where the ProtMinGenFitnessAvg has been hit
+	// before the simulation can end. This value will be set to 0.
+	// 1 of the number of maxGenerations if it seen to be invalid
+	MinGenFitEval int `json:"minGenFitEval"`
+	// ProtagonistMinimumGenFitness specifies the average value of fitness of the best individual after a completed
+	// generation. This individual must obtain this fitness value or greater e.g. an average of 0.75
+	// for MinGenFitEval number of consecutive generations before the simulation can end.
+	ProtagonistMinGenAvgFit float64 `json:"protagonistMinGenAvgFit"`
 	GenerationsCount int       `json:"generationCount",csv:"generationCount"`
 	// EachPopulationSize represents the size of each protagonist or antagonist population.
 	// This value must be even otherwise pairwise operations such as crossover will fail
@@ -49,6 +63,10 @@ type EvolutionParams struct {
 	ErrorChan   chan error  `json:"-"`
 	DoneChan    chan bool   `json:"-"`
 	ParamFile   string `json:"-"`
+}
+
+type Generations struct {
+
 }
 
 type StatisticsOutput struct {
@@ -115,7 +133,8 @@ type SpecParam struct {
 }
 
 type Reproduction struct {
-	// CrossoverPercentage pertains to the amount of genetic material crossed-over.
+	CrossoverStrategy string `json:"crossoverStrategy",csv:"crossoverStrategy"`
+	// CrossoverPercentrage pertains to the amount of genetic material crossed-over. FOR SPX
 	// This is a percentage represented as a float64. A value of 1 means all material is swapped.
 	// A value of 0 means no material is swapped (which in effect are the same thing).
 	// Avoid 0 or 1 use values in between
@@ -177,64 +196,165 @@ func (e *EvolutionEngine) Start() (*EvolutionResult, error) {
 	gen0.Protagonists = protagonists
 	gen0.Antagonists = antagonists
 
-	// cycle through generationCount
-	e.Generations[0] = &gen0
-	for i := 0; i < e.Parameters.GenerationsCount-1; i++ {
-		started := time.Now()
-		protagonistsCleanse, err := CleansePopulation(e.Generations[i].Protagonists, *e.Parameters.StartIndividual.T)
-		if err != nil {
-			return nil, err
+	MinAllowableGenerationsForContinuous := 9
+
+	// If we would rather do until the protagonist has hit a certain fitness threshold
+	if e.Parameters.MaxGenerations > MinAllowableGenerationsForContinuous {
+		successfulGenerations := 0
+		e.Generations[0] = &gen0
+		if e.Parameters.MinGenFitEval >= (e.Parameters.MaxGenerations / 2){
+			e.Parameters.MinGenFitEval = int(0.1 * float64(e.Parameters.MaxGenerations))
+			e.Parameters.LoggingChan <- fmt.Sprintf("NOTE: Set MinGenFitEval: %d", e.Parameters.MinGenFitEval)
 		}
-		antagonistsCleanse, err := CleansePopulation(e.Generations[i].Antagonists, *e.Parameters.StartIndividual.T)
-		if err != nil {
-			return nil, err
+		if e.Parameters.MinGenFitEval < MinAllowableGenerationsForContinuous {
+			e.Parameters.MinGenFitEval = int(0.1 * float64(e.Parameters.MaxGenerations))
+			e.Parameters.LoggingChan <- fmt.Sprintf("NOTE: Set MinGenFitEval: %d", e.Parameters.MinGenFitEval)
 		}
 
-		e.Generations[i].Protagonists = protagonistsCleanse
-		e.Generations[i].Antagonists = antagonistsCleanse
+		for i := 0; i < e.Parameters.MaxGenerations-1; i++ {
+			started := time.Now()
+			protagonistsCleanse, err := CleansePopulation(e.Generations[i].Protagonists, *e.Parameters.StartIndividual.T)
+			if err != nil {
+				return nil, err
+			}
+			antagonistsCleanse, err := CleansePopulation(e.Generations[i].Antagonists, *e.Parameters.StartIndividual.T)
+			if err != nil {
+				return nil, err
+			}
 
-		// GENERATIONS BEGIN HERE
-		nextGeneration, err := e.Generations[i].Start(i)
-		if err != nil {
-			return nil, err
-		}
-		e.Generations[i+1] = nextGeneration
+			e.Generations[i].Protagonists = protagonistsCleanse
+			e.Generations[i].Antagonists = antagonistsCleanse
 
-		elapsed := utils.TimeTrack(started)
-		numGoroutine := runtime.NumGoroutine()
-		msg := fmt.Sprintf("\nFile: %s\t | Spec: %s\t | Run: %d | Gen: (%d/%d) | TSz: %d | numG#: %d | Elapsed: %s",
-			e.Parameters.ParamFile,
-			e.Parameters.SpecParam.ExpressionParsed,
-			e.Parameters.InternalCount,
-			i+1,
-			e.Parameters.GenerationsCount,
-			e.Parameters.Strategies.DepthOfRandomNewTrees,
-			numGoroutine,
-			elapsed.String())
-		e.Parameters.LoggingChan <- msg
+			// GENERATIONS BEGIN HERE
+			nextGeneration, err := e.Generations[i].Start(i)
+			if err != nil {
+				return nil, err
+			}
 
-		if float64(i) == math.Floor(float64(e.Parameters.GenerationsCount) * 0.25) {
-			go WriteToDataFolder(e.Parameters.StatisticsOutput.OutputPath,
-				"25.txt",
-				time.Now().Format(time.RFC3339),
-				e.Parameters.LoggingChan,
-				e.Parameters.ErrorChan)
+			// Evaluate
+			bestProtagonist := &Individual{}
+			bestProtagonist.AverageFitness = -2.0
+			for j := range e.Generations[i].Protagonists {
+				currProtagonist := e.Generations[i].Protagonists[j]
+				if currProtagonist.AverageFitness >= bestProtagonist.AverageFitness {
+					bestProtagonist = currProtagonist
+				}
+			}
+
+			if bestProtagonist.AverageFitness >= e.Parameters.ProtagonistMinGenAvgFit {
+				successfulGenerations++
+			}else {
+				successfulGenerations = 0
+			}
+
+			// If number of successful Generations has been hit, break
+			if successfulGenerations >= e.Parameters.MinGenFitEval {
+				e.Parameters.LoggingChan <- fmt.Sprintf("###############################\n" +
+					" COMPLETED CYCLE AT GENERATION: %d \n" +
+					"##########################################\n",
+					i)
+				break
+			}
+
+			e.Generations =  append(e.Generations, nextGeneration)
+
+			elapsed := utils.TimeTrack(started)
+			numGoroutine := runtime.NumGoroutine()
+			msg := fmt.Sprintf("\nFile: %s\t | Spec: %s\t | Run: %d | Gen: (%d/%d) | TSz: %d | numG#: %d | Elapsed: %s",
+				e.Parameters.ParamFile,
+				e.Parameters.SpecParam.ExpressionParsed,
+				e.Parameters.InternalCount,
+				i+1,
+				e.Parameters.GenerationsCount,
+				e.Parameters.Strategies.DepthOfRandomNewTrees,
+				numGoroutine,
+				elapsed.String())
+			e.Parameters.LoggingChan <- msg
+
+			if float64(i) == math.Floor(float64(e.Parameters.GenerationsCount) * 0.25) {
+				go WriteToDataFolder(e.Parameters.StatisticsOutput.OutputPath,
+					"25.txt",
+					time.Now().Format(time.RFC3339),
+					e.Parameters.LoggingChan,
+					e.Parameters.ErrorChan)
+			}
+			if float64(i) == math.Floor(float64(e.Parameters.GenerationsCount) * 0.5) {
+				go WriteToDataFolder(e.Parameters.StatisticsOutput.OutputPath,
+					"50.txt",
+					time.Now().Format(time.RFC3339),
+					e.Parameters.LoggingChan,
+					e.Parameters.ErrorChan)
+			}
+			if float64(i) == math.Floor(float64(e.Parameters.GenerationsCount) * 0.75) {
+				go WriteToDataFolder(e.Parameters.StatisticsOutput.OutputPath,
+					"75.txt",
+					time.Now().Format(time.RFC3339),
+					e.Parameters.LoggingChan,
+					e.Parameters.ErrorChan)
+			}
 		}
-		if float64(i) == math.Floor(float64(e.Parameters.GenerationsCount) * 0.5) {
-			go WriteToDataFolder(e.Parameters.StatisticsOutput.OutputPath,
-				"50.txt",
-				time.Now().Format(time.RFC3339),
-				e.Parameters.LoggingChan,
-				e.Parameters.ErrorChan)
-		}
-		if float64(i) == math.Floor(float64(e.Parameters.GenerationsCount) * 0.75) {
-			go WriteToDataFolder(e.Parameters.StatisticsOutput.OutputPath,
-				"75.txt",
-				time.Now().Format(time.RFC3339),
-				e.Parameters.LoggingChan,
-				e.Parameters.ErrorChan)
+	} else {
+		e.Generations[0] = &gen0
+		for i := 0; i < e.Parameters.GenerationsCount-1; i++ {
+			started := time.Now()
+			protagonistsCleanse, err := CleansePopulation(e.Generations[i].Protagonists, *e.Parameters.StartIndividual.T)
+			if err != nil {
+				return nil, err
+			}
+			antagonistsCleanse, err := CleansePopulation(e.Generations[i].Antagonists, *e.Parameters.StartIndividual.T)
+			if err != nil {
+				return nil, err
+			}
+
+			e.Generations[i].Protagonists = protagonistsCleanse
+			e.Generations[i].Antagonists = antagonistsCleanse
+
+			// GENERATIONS BEGIN HERE
+			nextGeneration, err := e.Generations[i].Start(i)
+			if err != nil {
+				return nil, err
+			}
+			e.Generations[i+1] = nextGeneration
+
+			elapsed := utils.TimeTrack(started)
+			numGoroutine := runtime.NumGoroutine()
+			msg := fmt.Sprintf("\nFile: %s\t | Spec: %s\t | Run: %d | Gen: (%d/%d) | TSz: %d | numG#: %d | Elapsed: %s",
+				e.Parameters.ParamFile,
+				e.Parameters.SpecParam.ExpressionParsed,
+				e.Parameters.InternalCount,
+				i+1,
+				e.Parameters.GenerationsCount,
+				e.Parameters.Strategies.DepthOfRandomNewTrees,
+				numGoroutine,
+				elapsed.String())
+			e.Parameters.LoggingChan <- msg
+
+			if float64(i) == math.Floor(float64(e.Parameters.GenerationsCount) * 0.25) {
+				go WriteToDataFolder(e.Parameters.StatisticsOutput.OutputPath,
+					"25.txt",
+					time.Now().Format(time.RFC3339),
+					e.Parameters.LoggingChan,
+					e.Parameters.ErrorChan)
+			}
+			if float64(i) == math.Floor(float64(e.Parameters.GenerationsCount) * 0.5) {
+				go WriteToDataFolder(e.Parameters.StatisticsOutput.OutputPath,
+					"50.txt",
+					time.Now().Format(time.RFC3339),
+					e.Parameters.LoggingChan,
+					e.Parameters.ErrorChan)
+			}
+			if float64(i) == math.Floor(float64(e.Parameters.GenerationsCount) * 0.75) {
+				go WriteToDataFolder(e.Parameters.StatisticsOutput.OutputPath,
+					"75.txt",
+					time.Now().Format(time.RFC3339),
+					e.Parameters.LoggingChan,
+					e.Parameters.ErrorChan)
+			}
 		}
 	}
+
+	// cycle through generationCount
+
 
 	evolutionResult := &EvolutionResult{}
 	err = evolutionResult.Analyze(e.Generations, true,

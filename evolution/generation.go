@@ -32,6 +32,8 @@ func (g *Generation) Start(generationCount int) (*Generation, error) {
 		return nil, err
 	}
 
+	g.ApplySurvivorSelection()
+
 	nextGenAntagonists, err := JudgementDay(parentSelectionAntagonist, IndividualAntagonist, generationCount, g.engine.Parameters)
 	if err != nil {
 		return nil, err
@@ -265,9 +267,91 @@ func (g *Generation) ApplyParentSelection(currentPopulation []*Individual) ([]*I
 // It DOES NOT check to see if the parent selection has already been applied,
 // as in some cases evolutionary programs may choose to run without the parent selection phase.
 // The onus is on the evolutionary architect to keep this consideration in mind.
+func (g *Generation) ApplyReproduction(incomingParents []*Individual, kind int) ([]*Individual, error) {
+	if !g.isComplete {
+		return nil, fmt.Errorf("Generation #Id: %s has not competed, ", g.GenerationID)
+	}
+	children := make([]*Individual, g.engine.Parameters.EachPopulationSize)
+
+	switch  g.engine.Parameters.Reproduction.CrossoverStrategy {
+	case CrossoverSinglePoint:
+		for i := 0; i < len(incomingParents); i += 2 {
+			child1, child2, err := SinglePointCrossover(incomingParents[i], incomingParents[i+1])
+			if err != nil {
+				return nil, err
+			}
+			child1.BirthGen = g.count + 1
+			child2.BirthGen = g.count + 1
+			children[i] = &child1
+			children[i+1] = &child2
+		}
+	case CrossoverFixedPoint:
+		for i := 0; i < len(incomingParents); i += 2 {
+			child1, child2, err := FixedPointCrossover(*incomingParents[i], *incomingParents[i+1], g.engine.Parameters)
+			if err != nil {
+				return nil, err
+			}
+			child1.BirthGen = g.count + 1
+			child2.BirthGen = g.count + 1
+			children[i] = &child1
+			children[i+1] = &child2
+		}
+	case CrossoverKPoint:
+		for i := 0; i < len(incomingParents); i += 2 {
+			child1, child2, err := KPointCrossover(incomingParents[i], incomingParents[i+1])
+			if err != nil {
+				return nil, err
+			}
+			child1.BirthGen = g.count + 1
+			child2.BirthGen = g.count + 1
+			children[i] = &child1
+			children[i+1] = &child2
+		}
+	case CrossoverUniform:
+		for i := 0; i < len(incomingParents); i += 2 {
+			child1, child2, err := UniformCrossover(incomingParents[i], incomingParents[i+1])
+			if err != nil {
+				return nil, err
+			}
+			child1.BirthGen = g.count + 1
+			child2.BirthGen = g.count + 1
+			children[i] = &child1
+			children[i+1] = &child2
+		}
+	default:
+		return nil, fmt.Errorf("no appropriate FixedPointCrossover operation was selected")
+	}
+
+	incomingPopulation, children, err := Mutate(incomingParents, children, kind, opts)
+	if err != nil {
+		return nil, err
+	}
+
+
+	return incomingParents, children, nil
+}
+
+// ApplySurvivorSelection applies the preselected survivor selection Strategy.
+// It DOES NOT check to see if the parent selection has already been applied,
+// as in some cases evolutionary programs may choose to run without the parent selection phase.
+// The onus is on the evolutionary architect to keep this consideration in mind.
 func (g *Generation) ApplySurvivorSelection() ([]*Individual, error) {
 	if !g.isComplete {
 		return nil, fmt.Errorf("Generation #Id: %s has not competed, ", g.GenerationID)
+	}
+
+	switch  g.engine.Parameters.Reproduction.CrossoverStrategy {
+	case CrossoverSinglePoint:
+		JudgementDay()
+		SinglePointCrossover()
+	case CrossoverFixedPoint:
+
+	case CrossoverKPoint:
+		KPointCrossover()
+	case CrossoverUniform:
+		UniformCrossover()
+	default:
+		return nil, fmt.Errorf("no appropriate FixedPointCrossover operation was selected")
 	}
 
 	return nil, nil
@@ -349,15 +433,3 @@ func (g *Generation) GenerateRandomIndividual(kind int, prog Program) ([]*Indivi
 	return individuals, nil
 }
 
-type GenerationResult struct {
-	generation *Generation
-}
-
-// RunNext takes in a current GenerationResult runs a set of parent and survivor selection mechanisms,
-// and returns the new Generation
-func (g *GenerationResult) RunNext() *GenerationResult {
-	return nil
-}
-
-type GenerationEngine struct {
-}

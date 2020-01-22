@@ -250,7 +250,7 @@ func TestGenerateRandomStrategy(t *testing.T) {
 //		//		MaintainCrossoverGeneTransferEquality:true}},
 //		//	Individual{}, Individual{}, false},
 //
-//		//{"params Strategy length crossover% = 0.5 | No Maintain Crossover Equality", args{
+//		//{"params Strategy length crossover% = 0.5 | No Maintain FixedPointCrossover Equality", args{
 //		//	individual:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyAddRandomSubTree, StrategyDeleteTerminal},
 //		//		HasCalculatedFitness: true, HasAppliedStrategy:true,
 //		//		Program:&ProgX},
@@ -262,7 +262,7 @@ func TestGenerateRandomStrategy(t *testing.T) {
 //		//		MaintainCrossoverGeneTransferEquality:false}},
 //		//	Individual{}, Individual{}, false},
 //		//
-//		//{"params Strategy length crossover% = 0.5 | No Maintain Crossover Equality", args{
+//		//{"params Strategy length crossover% = 0.5 | No Maintain FixedPointCrossover Equality", args{
 //		//	individual:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyAddRandomSubTree,
 //		//		StrategyDeleteTerminal, StrategyDeleteMalicious, StrategyReplaceBranch},
 //		//		HasCalculatedFitness: true, HasAppliedStrategy:true,
@@ -274,7 +274,7 @@ func TestGenerateRandomStrategy(t *testing.T) {
 //		//	params:EvolutionParams{StrategyLengthLimit: 20, CrossoverPercentage:0.5,
 //		//		MaintainCrossoverGeneTransferEquality:true}},
 //		//	Individual{}, Individual{}, false},
-//		//{"params Strategy length crossover% = 0.5 | No Maintain Crossover Equality", args{
+//		//{"params Strategy length crossover% = 0.5 | No Maintain FixedPointCrossover Equality", args{
 //		//	individual:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyAddRandomSubTree,
 //		//		StrategyDeleteTerminal, StrategyDeleteMalicious, StrategyReplaceBranch},
 //		//		HasCalculatedFitness: true, HasAppliedStrategy:true,
@@ -285,7 +285,7 @@ func TestGenerateRandomStrategy(t *testing.T) {
 //		//	params:EvolutionParams{StrategyLengthLimit: 20, CrossoverPercentage:0.5,
 //		//		MaintainCrossoverGeneTransferEquality:true}},
 //		//	Individual{}, Individual{}, false},
-//		//{"params Strategy length crossover% = 0.5 | No Maintain Crossover Equality", args{
+//		//{"params Strategy length crossover% = 0.5 | No Maintain FixedPointCrossover Equality", args{
 //		//	individual:Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyAddRandomSubTree,
 //		//		StrategyDeleteTerminal, StrategyDeleteMalicious, StrategyReplaceBranch},
 //		//		HasCalculatedFitness: true, HasAppliedStrategy:true,
@@ -297,7 +297,7 @@ func TestGenerateRandomStrategy(t *testing.T) {
 //		//	params:EvolutionParams{StrategyLengthLimit: 20, CrossoverPercentage:0.5,
 //		//		MaintainCrossoverGeneTransferEquality:false}},
 //		//	Individual{}, Individual{}, false},
-//		{"params Strategy length crossover% = 0.5 | No Maintain Crossover Equality", args{
+//		{"params Strategy length crossover% = 0.5 | No Maintain FixedPointCrossover Equality", args{
 //			individual: Individual{Id: GenerateProgramID(0), Strategy: []Strategy{StrategyAddRandomSubTree,
 //				StrategyDeleteTerminal, StrategyDeleteMalicious, StrategyReplaceBranch},
 //				HasCalculatedFitness: true, HasAppliedStrategy: true,
@@ -312,18 +312,18 @@ func TestGenerateRandomStrategy(t *testing.T) {
 //	}
 //	for _, tt := range tests {
 //		t.Run(tt.name, func(t *testing.T) {
-//			got, got1, err := Crossover(tt.args.individual, tt.args.individual2, tt.args.params)
+//			got, got1, err := FixedPointCrossover(tt.args.individual, tt.args.individual2, tt.args.params)
 //			if (err != nil) != tt.wantErr {
-//				t.Errorf("Crossover() error = %v, wantErr %v", err, tt.wantErr)
+//				t.Errorf("FixedPointCrossover() error = %v, wantErr %v", err, tt.wantErr)
 //				return
 //			}
 //			got.Program.Fitness()
 //			got1.Program.Fitness()
 //			//if !reflect.DeepEqual(got, tt.want) {
-//			//	t.Errorf("Crossover() got = %v, want %v", got, tt.want)
+//			//	t.Errorf("FixedPointCrossover() got = %v, want %v", got, tt.want)
 //			//}
 //			//if !reflect.DeepEqual(got1, tt.want1) {
-//			//	t.Errorf("Crossover() got1 = %v, want %v", got1, tt.want1)
+//			//	t.Errorf("FixedPointCrossover() got1 = %v, want %v", got1, tt.want1)
 //			//}
 //		})
 //	}

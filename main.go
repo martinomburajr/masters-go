@@ -7,6 +7,7 @@ import (
 	"github.com/martinomburajr/masters-go/analysis"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -18,6 +19,8 @@ import (
 const SimulationFilePath = "./_simulation/simulation.json"
 
 func main() {
+	rand.Seed(time.Now().UTC().UnixNano()) //Set seed
+
 	paramsPtr := flag.String("params", "", "Pass in the file path (.json) for the given parameters")
 	dataPtr := flag.String("dataDir", "data", "Pass in the file path (.json) for the given parameters")
 	parallelismPtr := flag.Bool("parallelism", true, "Set to false to disable parallelism")

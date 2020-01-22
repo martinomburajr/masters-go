@@ -6,14 +6,12 @@ import (
 	"github.com/gocarina/gocsv"
 	"github.com/martinomburajr/masters-go/evolution"
 	"log"
-	"math/rand"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"sync"
-	"time"
 )
 
 type Simulation struct {
@@ -253,9 +251,7 @@ func (s *Simulation) generateSimulationPathCSV(fileName string) string {
 // PrepareSimulation takes in the given evolution parameters and a count variable and returns the engine that can be
 // started run the simulation. The evolution engine will run count times.
 func PrepareSimulation(params evolution.EvolutionParams, count int) *evolution.EvolutionEngine {
-	rand.Seed(time.Now().UTC().UnixNano()) //Set seed
-
-	if params.SpecParam.Seed < 0 {
+		if params.SpecParam.Seed < 0 {
 		params.FitnessCalculatorType = 1
 	}
 	params.SpecParam.Expression = strings.ReplaceAll(params.SpecParam.Expression, " ", "")
