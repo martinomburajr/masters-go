@@ -61,29 +61,6 @@ func (e *Epoch) Start(perfectTreeMap map[string]PerfectTree) error {
 
 	antagonistFitness, protagonistFitness, antagonistFitnessDelta, protagonistFitnessDelta := 0.0, 0.0, 0.0, 0.0
 	switch e.generation.engine.Parameters.FitnessStrategy.Type {
-	case FitnessProtagonistThresholdTally:
-		antagonistFitness, protagonistFitness, err = ProtagonistThresholdTally(e.generation.engine.Parameters.Spec,
-			e.protagonist.Program, e.generation.engine.Parameters.FitnessStrategy.AntagonistThresholdMultiplier)
-		if err != nil {
-			return err
-		}
-		break
-	case FitnessThresholdedAntagonistRatio:
-		antagonistFitness, protagonistFitness, err = ThresholdedAntagonistRatioFitness(e.generation.engine.Parameters.Spec, e.antagonist.Program,
-			e.protagonist.Program, e.generation.engine.Parameters.FitnessCalculatorType)
-		if err != nil {
-			return err
-		}
-		break
-	case FitnessRatio:
-		antagonistFitness, protagonistFitness, antagonistFitnessDelta,
-			protagonistFitnessDelta, err = RatioFitness(e.generation.engine.Parameters.Spec, e.antagonist.Program,
-			e.protagonist.Program, e.generation.engine.Parameters.SpecParam.DivideByZeroStrategy)
-		if err != nil {
-			return err
-		}
-		break
-
 	case FitnessDualThresholdedRatio:
 		antagonistFitness, protagonistFitness, antagonistFitnessDelta,
 			protagonistFitnessDelta, err = ThresholdedRatioFitness(e.generation.engine.Parameters.Spec,

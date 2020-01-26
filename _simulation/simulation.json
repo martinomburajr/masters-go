@@ -1,6 +1,6 @@
 {
 
-  "numberOfRunsPerState": 5,
+  "numberOfRunsPerState": 1,
   "name":                 "simulation-1",
   "outputDir":            "",
   "rPath":                "/R",

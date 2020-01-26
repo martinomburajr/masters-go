@@ -88,7 +88,7 @@ func (i *Individual) ToString() strings.Builder {
 }
 
 func GenerateIndividualID(identifier string, individualKind int) string {
-	return fmt.Sprintf("%s-%s%s", KindToString(individualKind), RandString(3), identifier)
+	return fmt.Sprintf("%s-%s%s", KindToString(individualKind), RandString(4), identifier)
 }
 
 // GenerateRandomStrategy creates a random Strategy list that contains some or all of the availableStrategies.

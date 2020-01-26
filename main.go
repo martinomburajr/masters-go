@@ -21,14 +21,14 @@ const SimulationFilePath = "./_simulation/simulation.json"
 func main() {
 	rand.Seed(time.Now().UTC().UnixNano()) //Set seed
 
-	paramsPtr := flag.String("params", "", "Pass in the file path (.json) for the given parameters")
+	paramsPtr := flag.String("params", "_params", "Pass in the file path (.json) for the given parameters")
 	dataPtr := flag.String("dataDir", "data", "Pass in the file path (.json) for the given parameters")
 	parallelismPtr := flag.Bool("parallelism", true, "Set to false to disable parallelism")
 	loggingPtr := flag.Bool("logging", true, "Should Log to stdout and logs.logs file")
-	runStatsPtr := flag.Bool("runstats", true, "Can run R based statistics")
-	workerPtr := flag.Int64("numWorkers", 5, "Number of workers (each attaches to a paramfile)")
+	runStatsPtr := flag.Bool("runStats", true, "Can run R based statistics")
+	workerPtr := flag.Int64("numWorkers", 2, "Number of workers (each attaches to a paramfile)")
 	repeatDelayPtr := flag.Int64("repeatDelay", 45, "Number of minutes to wait on a file that has already been set")
-	spewPtr := flag.Int64("spew", 0, "Creates the set of parameter files, if the value is less than 1, "+
+	spewPtr := flag.Int64("spew", -1, "Creates the set of parameter files, if the value is less than 1, "+
 		"it will not spew")
 	folderPtr := flag.Int64("folder", 0, "Folder")
 	completedStatsPtr := flag.Bool("showProgress", false, "Shows the progress of completed/unstarted/incomplete files")
@@ -58,7 +58,7 @@ func main() {
 	}
 
 	//fmt.Printf(csvBestAll)
-	time.Sleep(time.Second * 10)
+	//time.Sleep(time.Second * 10)
 
 	if *paramsPtr == "" {
 		log.Fatal("Params path cannot be empty")
@@ -76,6 +76,7 @@ func main() {
 	repeatDelay := *repeatDelayPtr
 	steal := *stealPtr
 
+	os.Mkdir(paramsFolder, 0777)
 
 	abs, _ := filepath.Abs(".")
 	if completedStats {
@@ -94,13 +95,8 @@ func main() {
 	log.Printf("Logging Enabled: %t\n", *loggingPtr)
 	log.Printf("RunStats Enabled: %t\n", *runStatsPtr)
 
-
 	if spew > 0 {
-		if spew == 1 {
-			SPEWNoSplit(paramsFolder)
-		} else {
-			SPEW(paramsFolder, int(spew))
-		}
+		SPEWNoSplit(paramsFolder)
 		return
 	}
 
@@ -203,6 +199,6 @@ func StealCompleted(abs string, paramsFolder string, dataDir, backupFolder, back
 			err = os.RemoveAll(parentParam)
 			mut.Unlock()
 		}
-		time.Sleep(time.Second * 2)
+		time.Sleep(time.Second * 10)
 	}
 }

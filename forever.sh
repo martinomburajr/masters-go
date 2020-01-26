@@ -30,4 +30,5 @@ for j in {0..1000} ; do
     sleep 5
     printf "${yel}##################################### RUN: ${i} COMPLETE########################################\n${end}"
   done
+  sleep
 done

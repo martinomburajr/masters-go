@@ -1343,7 +1343,7 @@ func (bst *DualTree) DeleteNonTerminal() error {
 
 // DeleteMalicious selects any element of a tree (
 // including the root) and convert it to a value of 0 potentially deleting all
-// genetic material.
+// genetic material. It only affects terminals
 func (bst *DualTree) DeleteMalicious() error {
 	if bst.root == nil {
 		return fmt.Errorf(" DeleteMalicious | treeNode you are swapping to has nil root")

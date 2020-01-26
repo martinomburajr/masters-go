@@ -1,2 +1,0 @@
-specEquation,range,seed,AID,PID,AAvg,PAvg,ABestFit,PBestFit,AStdDev,PStdDev,AAverageDelta,PAverageDelta,ABestDelta,PBestDelta,AEquation,PEquation,AStrat,PStrat,ADomStrat,PDomStrat,AGen,PGen,ABirthGen,PBirthGen,AAge,PAge,ARun,PRun
-(x),20,-10,ANTAGONIST-sTw,PROTAGONIST-5c1c2c2c1c1c2c1c1c1c2c2c2,0.8897044034918052,1,0.9587118084227911,1,0.0801904437182127,0,3454.1666666666665,0,6055,0,(((5)*((5)*(x)))-((x)*((x)*(x)))),((0)/(0)),MultXD|SubXD|AddXD|SkipD|MultXD|SkipD,MultXD|SkipD|DivXD|DeleteNonTerminalR|DeleteTerminalR|SkipD,MultXD,SkipD,0,0,44,15,45,16,3,0

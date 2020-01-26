@@ -113,7 +113,7 @@ func (p *Program) ApplyStrategy(strategy Strategy, terminals []SymbolicExpressio
 	case StrategyMultXD:
 		rootExpr := SymbolicExpression{arity: 2, value: "*", kind: 1}
 		rightExpr := SymbolicExpression{arity: 0, value: "x", kind: 0}
-		root := rootExpr.ToDualTreeNode(RandString(3))
+		root := rootExpr.ToDualTreeNode(RandString(2))
 		right := rightExpr.ToDualTreeNode(RandString(2))
 		tree := &DualTree{root: root}
 		tree.root.right = right
@@ -123,7 +123,7 @@ func (p *Program) ApplyStrategy(strategy Strategy, terminals []SymbolicExpressio
 	case StrategyAddXD:
 		rootExpr := SymbolicExpression{arity: 2, value: "+", kind: 1}
 		rightExpr := SymbolicExpression{arity: 0, value: "x", kind: 0}
-		root := rootExpr.ToDualTreeNode(RandString(3))
+		root := rootExpr.ToDualTreeNode(RandString(2))
 		right := rightExpr.ToDualTreeNode(RandString(2))
 		tree := &DualTree{root: root}
 		tree.root.right = right
@@ -133,7 +133,7 @@ func (p *Program) ApplyStrategy(strategy Strategy, terminals []SymbolicExpressio
 	case StrategySubXD:
 		rootExpr := SymbolicExpression{arity: 2, value: "-", kind: 1}
 		rightExpr := SymbolicExpression{arity: 0, value: "x", kind: 0}
-		root := rootExpr.ToDualTreeNode(RandString(3))
+		root := rootExpr.ToDualTreeNode(RandString(2))
 		right := rightExpr.ToDualTreeNode(RandString(2))
 		tree := &DualTree{root: root}
 		tree.root.right = right
@@ -143,7 +143,7 @@ func (p *Program) ApplyStrategy(strategy Strategy, terminals []SymbolicExpressio
 	case StrategyDivXD:
 		rootExpr := SymbolicExpression{arity: 2, value: "/", kind: 1}
 		rightExpr := SymbolicExpression{arity: 0, value: "x", kind: 0}
-		root := rootExpr.ToDualTreeNode(RandString(3))
+		root := rootExpr.ToDualTreeNode(RandString(2))
 		right := rightExpr.ToDualTreeNode(RandString(2))
 		tree := &DualTree{root: root}
 		tree.root.right = right

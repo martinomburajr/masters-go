@@ -16,9 +16,13 @@ const (
 )
 
 //func RandString(n int) string {
+//	x := sync.Mutex{}
+//	x.Lock()
+//
 //	sb := strings.Builder{}
 //	sb.Grow(n)
 //	// A src.Int63() generates 63 random bits, enough for letterIdxMax characters!
+//
 //	for i, cache, remain := n-1, src.Int63(), letterIdxMax; i >= 0; {
 //		if remain == 0 {
 //			cache, remain = src.Int63(), letterIdxMax
@@ -30,8 +34,10 @@ const (
 //		cache >>= letterIdxBits
 //		remain--
 //	}
+//	s := sb.String()
+//	x.Unlock()
 //
-//	return sb.String()
+//	return s
 //}
 
 func RandString(n int) string {
