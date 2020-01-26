@@ -426,10 +426,20 @@ func (s *Simulation) GenerationalInRun(params evolution.EvolutionParams) (runGen
 		runIndex = 0
 	}
 
-	runGen = make([]RunGenerationalStatistic, params.GenerationsCount)
+	genCount := 0
+
+	if params.MaxGenerations > evolution.MinAllowableGenerationsForContinuous {
+		genCount = params.MaxGenerations
+	}else {
+		genCount = params.GenerationsCount
+	}
+
+	runGen = make([]RunGenerationalStatistic, genCount)
 	run := s.SimulationStats[runIndex]
 
-	for i := 0; i < params.GenerationsCount; i++ {
+
+
+	for i := 0; i < genCount; i++ {
 		antagonist := run.Generational.Antagonists[i]
 		protagonist := run.Generational.Protagonists[i]
 		AntagonistEq, _ := antagonist.Program.T.ToMathematicalString()

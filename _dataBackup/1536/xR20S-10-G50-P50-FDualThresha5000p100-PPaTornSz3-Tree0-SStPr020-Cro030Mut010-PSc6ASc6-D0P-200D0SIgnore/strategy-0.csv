@@ -1,7 +1,0 @@
-A,P,AFinal,PFinal,AGen,PGen,count,run
-DivXD,MultXD,DivXD,MutateNonTerminalR,0,0,0,0
-DivXD,SkipD,ReplaceBranchXR,SkipD,0,0,1,0
-SkipD,DivXD,SkipD,DivXD,0,0,2,0
-MutateNonTerminalR,DeleteNonTerminalR,AddTreeWithMult,AddXD,0,0,3,0
-ReplaceBranchR,DeleteTerminalR,ReplaceBranchR,DeleteTerminalR,0,0,4,0
-AddRandomSubTreeR,SkipD,AddRandomSubTreeR,SkipD,0,0,5,0

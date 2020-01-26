@@ -4,11 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/martinomburajr/masters-go/evolution"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
 	"sync"
+	"time"
 )
 
 // GetParamFileStatus returns files that have been thoroughly processed,
@@ -33,47 +35,47 @@ func GetParamFileStatus(absolutePath, paramDirName, dataDirName string, repeatDe
 		dataFiles = dataFiles[1:]
 	}
 
-	//for _, dataFile := range dataFiles {
-	//	// Check if at least has reached 25% of generations
-	//	has25Txt := strings.Contains(dataFile, "25.txt")
-	//	if has25Txt {
-	//		split := strings.Split(dataFile, "/")
-	//		str := strings.Builder{}
-	//		str.WriteString(split[0])
-	//		str.WriteString("/")
-	//		str.WriteString(split[1])
-	//		finalString := fmt.Sprintf("%s/%s/%s/%s", absolutePath, dataDirName, str.String(), "25.txt")
-	//
-	//		str2 := strings.Builder{}
-	//		str2.WriteString(split[0])
-	//		str2.WriteString("/")
-	//		str2.WriteString(split[1])
-	//		dataPath := str2.String()
-	//
-	//		file, err := os.Open(finalString)
-	//		if err != nil {
-	//			return nil, nil, nil
-	//		}
-	//		timeStr, err := ioutil.ReadAll(file)
-	//		if err != nil {
-	//			return nil, nil, nil
-	//		}
-	//		parsedTime, err := time.Parse(time.RFC3339, string(timeStr))
-	//		if err != nil {
-	//			return nil, nil, nil
-	//		}
-	//
-	//		subtractedTime := time.Now().Sub(parsedTime)
-	//		seconds := subtractedTime.Seconds()
-	//		if seconds > float64(repeatDelay*60) {
-	//			dataPath2 := fmt.Sprintf("%s/%s/%s", absolutePath, dataDirName, dataPath)
-	//			os.RemoveAll(dataPath2)
-	//			paramDataMap[dataPath] = -1
-	//		} else {
-	//			paramDataMap[dataPath] = 25
-	//		}
-	//	}
-	//}
+	for _, dataFile := range dataFiles {
+		// Check if at least has reached 5% of generations
+		has25Txt := strings.Contains(dataFile, "1.txt")
+		if has25Txt {
+			split := strings.Split(dataFile, "/")
+			str := strings.Builder{}
+			str.WriteString(split[0])
+			str.WriteString("/")
+			str.WriteString(split[1])
+			finalString := fmt.Sprintf("%s/%s/%s/%s", absolutePath, dataDirName, str.String(), "1.txt")
+
+			str2 := strings.Builder{}
+			str2.WriteString(split[0])
+			str2.WriteString("/")
+			str2.WriteString(split[1])
+			dataPath := str2.String()
+
+			file, err := os.Open(finalString)
+			if err != nil {
+				return nil, nil, nil
+			}
+			timeStr, err := ioutil.ReadAll(file)
+			if err != nil {
+				return nil, nil, nil
+			}
+			parsedTime, err := time.Parse(time.RFC3339, string(timeStr))
+			if err != nil {
+				return nil, nil, nil
+			}
+
+			subtractedTime := time.Now().Sub(parsedTime)
+			seconds := subtractedTime.Seconds()
+			if seconds > float64(repeatDelay*60) {
+				dataPath2 := fmt.Sprintf("%s/%s/%s", absolutePath, dataDirName, dataPath)
+				os.RemoveAll(dataPath2)
+				paramDataMap[dataPath] = -1
+			} else {
+				paramDataMap[dataPath] = 25
+			}
+		}
+	}
 
 	for _, dataFile := range dataFiles {
 		hasCompletedTxt := strings.Contains(dataFile, "completed.txt")

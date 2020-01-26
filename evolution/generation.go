@@ -2,8 +2,10 @@ package evolution
 
 import (
 	"fmt"
+	"github.com/martinomburajr/masters-go/evolog"
 	"gonum.org/v1/gonum/stat"
 	"sync"
+	"time"
 )
 // TODO AGE
 // TODO Calculate fitness average for GENERATIONS (seems off!)
@@ -22,27 +24,75 @@ type Generation struct {
 // It creates a new Generation that it links the {nextGeneration} field to. Similar to the way a LinkedList works
 func (g *Generation) Start(generationCount int) (*Generation, error) {
 	err := g.Compete()
-
-	// Parent Selection
-	parentSelectionAntagonist, err := g.ApplyParentSelection(g.Antagonists)
 	if err != nil {
-		return nil, err
-	}
-	parentSelectionProtagonist, err := g.ApplyParentSelection(g.Protagonists)
-	if err != nil {
-		return nil, err
+		g.engine.Parameters.ErrorChan <- err
 	}
 
-	g.ApplySurvivorSelection()
+	wg := sync.WaitGroup{}
+	//wg.Add(2)
 
-	nextGenAntagonists, err := JudgementDay(parentSelectionAntagonist, IndividualAntagonist, generationCount, g.engine.Parameters)
-	if err != nil {
-		return nil, err
-	}
+	antSurvivorChan := make(chan []*Individual)
+	go func(g *Generation, wg *sync.WaitGroup) {
+		//defer wg.Done()
+		antWinnerParents, err := g.ApplyParentSelection(g.Antagonists)
+		if err != nil {
+			g.engine.Parameters.ErrorChan <- err
+		}
+		antSelectedParents, antSelectedChildren, err := g.ApplyReproduction(antWinnerParents, IndividualAntagonist)
+		if err != nil {
+			g.engine.Parameters.ErrorChan <- err
+		}
+		antSurvivors, err := g.ApplySurvivorSelection(antSelectedParents, antSelectedChildren)
+		if err != nil {
+			g.engine.Parameters.ErrorChan <- err
+		}
+		antSurvivorChan <- antSurvivors
+		close(antSurvivorChan)
+	}(g, &wg)
 
-	nextGenProtagonists, err := JudgementDay(parentSelectionProtagonist, IndividualProtagonist, generationCount, g.engine.Parameters)
-	if err != nil {
-		return nil, err
+	proSurvivorChan := make(chan []*Individual)
+	go func(g *Generation, wg *sync.WaitGroup) {
+		//defer wg.Done()
+		proWinnerParents, err := g.ApplyParentSelection(g.Protagonists)
+		if err != nil {
+			g.engine.Parameters.ErrorChan <- err
+		}
+		proSelectedParents, proSelectedChildren, err := g.ApplyReproduction(proWinnerParents, IndividualProtagonist)
+		if err != nil {
+			g.engine.Parameters.ErrorChan <- err
+		}
+		proSurvivors, err := g.ApplySurvivorSelection(proSelectedParents, proSelectedChildren)
+		if err != nil {
+			g.engine.Parameters.ErrorChan <- err
+		}
+		proSurvivorChan <- proSurvivors
+		close(proSurvivorChan)
+	}(g, &wg)
+
+
+	var antSurvivors []*Individual
+	var proSurvivors []*Individual
+
+	for {
+		select {
+		case x := <- antSurvivorChan:
+			if x != nil {
+				antSurvivors = x
+			}
+			break
+		case y := <- proSurvivorChan:
+			if y != nil {
+				proSurvivors = y
+			}
+			break
+		default:
+			if proSurvivors != nil && antSurvivors != nil {
+				break
+			}
+		}
+		if proSurvivors != nil && antSurvivors != nil {
+			break
+		}
 	}
 
 	g.hasSurvivorSelectionHappened = true
@@ -50,8 +100,8 @@ func (g *Generation) Start(generationCount int) (*Generation, error) {
 
 	nextGenID := GenerateGenerationID(g.count + 1)
 	nextGen := &Generation{
-		Antagonists:                  nextGenAntagonists,
-		Protagonists:                 nextGenProtagonists,
+		Antagonists:                  antSurvivors,
+		Protagonists:                 proSurvivors,
 		engine:                       g.engine,
 		GenerationID:                 nextGenID,
 		hasSurvivorSelectionHappened: false,
@@ -161,13 +211,16 @@ func (g *Generation) runEpochs(epochs []Epoch) ([]Epoch, error) {
 			return nil, err
 		}
 
-		if i % (len(epochs)/10) == 0 {
-			if g.engine.Parameters.EnableLogging {
-				msg := fmt.Sprintf("\n  ==> Run: %d | Epoch: (%d/%d)",
-					g.engine.Parameters.InternalCount,
-					i+1,
-					len(epochs))
-				g.engine.Parameters.LoggingChan <- msg
+		if len(epochs) > 10 {
+			if i % (len(epochs)/10) == 0 {
+				if g.engine.Parameters.EnableLogging {
+					msg := fmt.Sprintf("\n  ==> Run: %d | Epoch: (%d/%d)",
+						g.engine.Parameters.InternalCount,
+						i+1,
+						len(epochs))
+					g.engine.Parameters.LoggingChan <-  evolog.Logger{Type: evolog.LoggerEpoch,  Message:msg,
+						Timestamp: time.Now()}
+				}
 			}
 		}
 	}
@@ -268,18 +321,17 @@ func (g *Generation) ApplyParentSelection(currentPopulation []*Individual) ([]*I
 // It DOES NOT check to see if the parent selection has already been applied,
 // as in some cases evolutionary programs may choose to run without the parent selection phase.
 // The onus is on the evolutionary architect to keep this consideration in mind.
-func (g *Generation) ApplyReproduction(incomingParents []*Individual, kind int) ([]*Individual, error) {
-	if !g.isComplete {
-		return nil, fmt.Errorf("Generation #Id: %s has not competed, ", g.GenerationID)
-	}
-	children := make([]*Individual, g.engine.Parameters.EachPopulationSize)
+func (g *Generation) ApplyReproduction(incomingParents []*Individual, kind int) (outgoingParents []*Individual,
+	children []*Individual,
+	err error) {
+	children = make([]*Individual, g.engine.Parameters.EachPopulationSize)
 
 	switch  g.engine.Parameters.Reproduction.CrossoverStrategy {
 	case CrossoverSinglePoint:
 		for i := 0; i < len(incomingParents); i += 2 {
 			child1, child2, err := SinglePointCrossover(incomingParents[i], incomingParents[i+1])
 			if err != nil {
-				return nil, err
+				return nil,nil, err
 			}
 			child1.BirthGen = g.count + 1
 			child2.BirthGen = g.count + 1
@@ -290,7 +342,7 @@ func (g *Generation) ApplyReproduction(incomingParents []*Individual, kind int) 
 		for i := 0; i < len(incomingParents); i += 2 {
 			child1, child2, err := FixedPointCrossover(*incomingParents[i], *incomingParents[i+1], g.engine.Parameters)
 			if err != nil {
-				return nil, err
+				return nil,nil, err
 			}
 			child1.BirthGen = g.count + 1
 			child2.BirthGen = g.count + 1
@@ -299,9 +351,10 @@ func (g *Generation) ApplyReproduction(incomingParents []*Individual, kind int) 
 		}
 	case CrossoverKPoint:
 		for i := 0; i < len(incomingParents); i += 2 {
-			child1, child2, err := KPointCrossover(incomingParents[i], incomingParents[i+1])
+			child1, child2, err := KPointCrossover(incomingParents[i], incomingParents[i+1],
+				g.engine.Parameters.Reproduction.KPointCrossover)
 			if err != nil {
-				return nil, err
+				return nil,nil, err
 			}
 			child1.BirthGen = g.count + 1
 			child2.BirthGen = g.count + 1
@@ -312,7 +365,7 @@ func (g *Generation) ApplyReproduction(incomingParents []*Individual, kind int) 
 		for i := 0; i < len(incomingParents); i += 2 {
 			child1, child2, err := UniformCrossover(incomingParents[i], incomingParents[i+1])
 			if err != nil {
-				return nil, err
+				return nil,nil, err
 			}
 			child1.BirthGen = g.count + 1
 			child2.BirthGen = g.count + 1
@@ -320,42 +373,27 @@ func (g *Generation) ApplyReproduction(incomingParents []*Individual, kind int) 
 			children[i+1] = &child2
 		}
 	default:
-		return nil, fmt.Errorf("no appropriate FixedPointCrossover operation was selected")
+		return nil, nil, fmt.Errorf("no appropriate FixedPointCrossover operation was selected")
 	}
 
-	incomingPopulation, children, err := Mutate(incomingParents, children, kind, opts)
-	if err != nil {
-		return nil, err
-	}
-
-
-	return incomingParents, children, nil
+	return Mutate(incomingParents, children, kind, g.engine.Parameters)
 }
 
 // ApplySurvivorSelection applies the preselected survivor selection Strategy.
 // It DOES NOT check to see if the parent selection has already been applied,
 // as in some cases evolutionary programs may choose to run without the parent selection phase.
 // The onus is on the evolutionary architect to keep this consideration in mind.
-func (g *Generation) ApplySurvivorSelection() ([]*Individual, error) {
-	if !g.isComplete {
-		return nil, fmt.Errorf("Generation #Id: %s has not competed, ", g.GenerationID)
-	}
+func (g *Generation) ApplySurvivorSelection(outgoingParents []*Individual,
+	children []*Individual) ([]*Individual, error) {
 
-	switch  g.engine.Parameters.Reproduction.CrossoverStrategy {
-	case CrossoverSinglePoint:
-		JudgementDay()
-		SinglePointCrossover()
-	case CrossoverFixedPoint:
-
-	case CrossoverKPoint:
-		KPointCrossover()
-	case CrossoverUniform:
-		UniformCrossover()
+	switch g.engine.Parameters.Selection.Survivor.Type {
+	case SurvivorSelectionFitnessBased:
+		return FitnessBasedSurvivorSelection(outgoingParents, children, g.engine.Parameters)
+	case SurvivorSelectionRandom:
+		return RandomSurvivorSelection(outgoingParents, children, g.engine.Parameters)
 	default:
-		return nil, fmt.Errorf("no appropriate FixedPointCrossover operation was selected")
+		return nil, fmt.Errorf("Invalid Survivor Selection Selected")
 	}
-
-	return nil, nil
 }
 
 // GenerateRandomIndividual creates a a random set of individuals based on the parameters passed into the

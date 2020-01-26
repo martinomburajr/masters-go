@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/martinomburajr/masters-go/evolog"
 	"github.com/martinomburajr/masters-go/evolution"
 	"github.com/martinomburajr/masters-go/simulation"
 	"log"
@@ -13,6 +14,16 @@ import (
 	"sync"
 	"time"
 )
+
+var SimulationArgs = simulation.Simulation{
+	NumberOfRunsPerState:  5,
+	Name:                  "",
+	StatsFiles:            []string{
+		"best.R", "best-combined.R", "epochs.R",
+		"generations.R", "strategy.R",
+	},
+	RPath:                 "/R",
+}
 
 // scheduler runs the actual simulation
 func Scheduler(paramsFolder, dataDirName string, parallelism bool, numberOfSimultaneousParams, repeatDelay int64,
@@ -37,7 +48,7 @@ func Scheduler(paramsFolder, dataDirName string, parallelism bool, numberOfSimul
 		numberOfSimultaneousParams: int(numberOfSimultaneousParams),
 		paramFolder:                paramsFolder,
 		errChan:                    make(chan error),
-		logChan:                    make(chan string),
+		logChan:                    make(chan evolog.Logger),
 		doneChan:                   make(chan bool),
 		parallelism:                parallelism,
 		logging:                    logging,
@@ -66,7 +77,6 @@ func Scheduler(paramsFolder, dataDirName string, parallelism bool, numberOfSimul
 		fileCount)
 	log.Printf(msg)
 
-	time.Sleep(3 * time.Second)
 	if len(unstartedParams) == 0 && len(incompleteParams) == 0 {
 		log.Printf("\n\n################################### NO WORK TO DO! ###################################\n\n")
 		return
@@ -104,7 +114,7 @@ func Scheduler(paramsFolder, dataDirName string, parallelism bool, numberOfSimul
 				sim.paramFolder, sim.dataDirName, repeatDelay)
 			log.Printf("\n\n\n################################### COMPLETED CYCLE %d"+
 				"! ###################################\n\n\n", count)
-			time.Sleep(5 * time.Second)
+			//time.Sleep(5 * time.Second)
 			count++
 		}
 	}
@@ -118,19 +128,20 @@ func SetupLogger(simulationParam simulationParams) {
 	file := setupLogFile(simulationParam)
 	started := time.Now()
 	doneCounter := 0
+
 	for {
 		select {
 		case logg := <-simulationParam.logChan:
 			sb := strings.Builder{}
 			sb.WriteString("\n" + time.Now().Format(time.RFC3339))
-			sb.WriteString(" ==> Folder: ")
 			sb.WriteString(simulationParam.paramFile)
 			sb.WriteString(" | ")
-			sb.WriteString(logg)
+			sb.WriteString(logg.Message)
 			loggg := sb.String()
 
+
 			fmt.Fprintf(file, loggg)
-			fmt.Fprintf(os.Stdout, loggg)
+			//fmt.Fprintf(os.Stdout, loggg)
 		case err := <-simulationParam.errChan:
 			fmt.Println("Error: " + err.Error())
 			return
@@ -162,7 +173,7 @@ type simulationParams struct {
 	dataDirName                string
 	dataFiles                  []string
 	errChan                    chan error
-	logChan                    chan string
+	logChan                    chan evolog.Logger
 	numberOfSimultaneousParams int
 
 	parallelism bool
@@ -183,7 +194,7 @@ func runSimulation(simulationParams simulationParams, paramFileToRun string) {
 	paramFilePath := fmt.Sprintf("%s/%s/%s.json", simulationParams.absolutePath,
 		simulationParams.paramFolder, simulationParams.paramFile)
 
-	simulationn, params, err := SetArguments(SimulationFilePath, paramFilePath, dataDir)
+	params, err := SetArguments(&SimulationArgs, paramFilePath, dataDir)
 	if err != nil {
 		if simulationParams.parallelism {
 			simulationParams.errChan <- err
@@ -199,9 +210,9 @@ func runSimulation(simulationParams simulationParams, paramFileToRun string) {
 	params.ErrorChan = simulationParams.errChan
 	params.DoneChan = simulationParams.doneChan
 	params.ParamFile = simulationParams.paramFile
-	params.StatisticsOutput.OutputPath = simulationn.DataPath
+	params.StatisticsOutput.OutputPath = SimulationArgs.DataPath
 
-	newParams, err := simulationn.Begin(params)
+	newParams, err := SimulationArgs.Begin(params)
 	if err != nil {
 		if simulationParams.parallelism {
 			simulationParams.errChan <- err
@@ -217,48 +228,34 @@ func runSimulation(simulationParams simulationParams, paramFileToRun string) {
 }
 
 // SetArguments performs the setup of the simulation and param files
-func SetArguments(simulationFilePath, paramsFilePath, dataPath string) (simulation.Simulation,
-	evolution.EvolutionParams, error) {
-	// Parse
-	simulationFile, err := os.Open(simulationFilePath)
-	if err != nil {
-		return simulation.Simulation{}, evolution.EvolutionParams{},
-			fmt.Errorf(err.Error())
-	}
-
+func SetArguments(simulation *simulation.Simulation, paramsFilePath, dataPath string) (evolution.EvolutionParams,
+	error) {
 	paramsFile, err := os.Open(paramsFilePath)
+	defer paramsFile.Close()
 	if err != nil {
-		return simulation.Simulation{}, evolution.EvolutionParams{},
+		return evolution.EvolutionParams{},
 			fmt.Errorf(err.Error())
 	}
 
-	var sim simulation.Simulation
 	var params evolution.EvolutionParams
-
-	err = json.NewDecoder(simulationFile).Decode(&sim)
-	if err != nil {
-		return simulation.Simulation{}, evolution.EvolutionParams{},
-			fmt.Errorf(err.Error())
-	}
-
 	absolutePath, err := filepath.Abs(".")
 	if err != nil {
 		log.Println(err)
-		return simulation.Simulation{}, evolution.EvolutionParams{},
+		return evolution.EvolutionParams{},
 			fmt.Errorf(err.Error())
 	}
 
-	sim.RPath = fmt.Sprintf("%s%s", absolutePath, "/R")
-	sim.DataPath = dataPath
-	params.StatisticsOutput.OutputPath = sim.DataPath
+	simulation.RPath = fmt.Sprintf("%s%s", absolutePath, "/R")
+	simulation.DataPath = dataPath
+	params.StatisticsOutput.OutputPath = simulation.DataPath
 
 	err = json.NewDecoder(paramsFile).Decode(&params)
 	if err != nil {
-		return simulation.Simulation{}, evolution.EvolutionParams{},
+		return evolution.EvolutionParams{},
 			fmt.Errorf(err.Error())
 	}
 
-	return sim, params, nil
+	return params, nil
 }
 
 func setupLogFile(simulationParam simulationParams) *os.File {

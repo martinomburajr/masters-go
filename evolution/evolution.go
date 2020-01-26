@@ -2,6 +2,8 @@ package evolution
 
 import (
 	"fmt"
+	"github.com/gosuri/uiprogress"
+	"github.com/martinomburajr/masters-go/evolog"
 	"github.com/martinomburajr/masters-go/utils"
 	"math"
 	"os"
@@ -11,6 +13,9 @@ import (
 	"time"
 )
 
+const (
+	MinAllowableGenerationsForContinuous = 9
+)
 type EvolutionParams struct {
 	Name string
 	// StartIndividual - Output Only - This is set by the SpecParam Expression. Do not set it manually
@@ -59,7 +64,7 @@ type EvolutionParams struct {
 	RunStats      bool `json:"-"`
 
 	//Channels
-	LoggingChan chan string `json:"-"`
+	LoggingChan chan evolog.Logger `json:"-"`
 	ErrorChan   chan error  `json:"-"`
 	DoneChan    chan bool   `json:"-"`
 	ParamFile   string `json:"-"`
@@ -140,6 +145,7 @@ type Reproduction struct {
 	// Avoid 0 or 1 use values in between
 	CrossoverPercentage   float64 `json:"crossoverPercentage",csv:"crossoverPercentage"`
 	ProbabilityOfMutation float64 `json:"probabilityOfMutation",csv:"probabilityOfMutation"`
+	KPointCrossover       int `json:"kPointCrossover",csv:"kPointCrossover"`
 }
 type Selection struct {
 	Parent   ParentSelection   `json:"parentSelection",csv:"parentSelection"`
@@ -162,6 +168,7 @@ type SurvivorSelection struct {
 type EvolutionEngine struct {
 	Generations []*Generation   `json:"generations"`
 	Parameters  EvolutionParams `json:"parameters"`
+	ProgressBar *uiprogress.Bar
 }
 
 func (e *EvolutionEngine) Start() (*EvolutionResult, error) {
@@ -193,22 +200,27 @@ func (e *EvolutionEngine) Start() (*EvolutionResult, error) {
 		return nil, err
 	}
 
-	gen0.Protagonists = protagonists
-	gen0.Antagonists = antagonists
+	e.Generations[0].Protagonists = protagonists
+	e.Generations[0].Antagonists = antagonists
 
-	MinAllowableGenerationsForContinuous := 9
 
 	// If we would rather do until the protagonist has hit a certain fitness threshold
 	if e.Parameters.MaxGenerations > MinAllowableGenerationsForContinuous {
 		successfulGenerations := 0
+		e.Generations = make([]*Generation,1)
 		e.Generations[0] = &gen0
 		if e.Parameters.MinGenFitEval >= (e.Parameters.MaxGenerations / 2){
 			e.Parameters.MinGenFitEval = int(0.1 * float64(e.Parameters.MaxGenerations))
-			e.Parameters.LoggingChan <- fmt.Sprintf("NOTE: Set MinGenFitEval: %d", e.Parameters.MinGenFitEval)
+			e.Parameters.LoggingChan <- evolog.Logger{
+				Type: evolog.LoggerGeneration,
+				Message: fmt.Sprintf("NOTE: Set MinGenFitEval: %d", e.Parameters.MinGenFitEval),
+				Timestamp: time.Now(),
+			}
 		}
 		if e.Parameters.MinGenFitEval < MinAllowableGenerationsForContinuous {
 			e.Parameters.MinGenFitEval = int(0.1 * float64(e.Parameters.MaxGenerations))
-			e.Parameters.LoggingChan <- fmt.Sprintf("NOTE: Set MinGenFitEval: %d", e.Parameters.MinGenFitEval)
+			msg := fmt.Sprintf("NOTE: Set MinGenFitEval: %d", e.Parameters.MinGenFitEval)
+			e.Parameters.LoggingChan <- evolog.Logger{Type: evolog.LoggerGeneration,  Message:msg, Timestamp: time.Now()}
 		}
 
 		for i := 0; i < e.Parameters.MaxGenerations-1; i++ {
@@ -249,14 +261,18 @@ func (e *EvolutionEngine) Start() (*EvolutionResult, error) {
 
 			// If number of successful Generations has been hit, break
 			if successfulGenerations >= e.Parameters.MinGenFitEval {
-				e.Parameters.LoggingChan <- fmt.Sprintf("###############################\n" +
+				msg := fmt.Sprintf("###############################\n" +
 					" COMPLETED CYCLE AT GENERATION: %d \n" +
 					"##########################################\n",
 					i)
+
+				e.Parameters.LoggingChan <- evolog.Logger{Type: evolog.LoggerGeneration,  Message:msg,
+					Timestamp: time.Now()}
 				break
 			}
 
 			e.Generations =  append(e.Generations, nextGeneration)
+			e.ProgressBar.Incr()
 
 			elapsed := utils.TimeTrack(started)
 			numGoroutine := runtime.NumGoroutine()
@@ -265,27 +281,34 @@ func (e *EvolutionEngine) Start() (*EvolutionResult, error) {
 				e.Parameters.SpecParam.ExpressionParsed,
 				e.Parameters.InternalCount,
 				i+1,
-				e.Parameters.GenerationsCount,
+				e.Parameters.MaxGenerations,
 				e.Parameters.Strategies.DepthOfRandomNewTrees,
 				numGoroutine,
 				elapsed.String())
-			e.Parameters.LoggingChan <- msg
+			e.Parameters.LoggingChan <- evolog.Logger{Type: evolog.LoggerGeneration,  Message:msg, Timestamp: time.Now()}
 
-			if float64(i) == math.Floor(float64(e.Parameters.GenerationsCount) * 0.25) {
+			if float64(i) == math.Floor(float64(e.Parameters.MaxGenerations) * 0.01) {
+				go WriteToDataFolder(e.Parameters.StatisticsOutput.OutputPath,
+					"1.txt",
+					time.Now().Format(time.RFC3339),
+					e.Parameters.LoggingChan,
+					e.Parameters.ErrorChan)
+			}
+			if float64(i) == math.Floor(float64(e.Parameters.MaxGenerations) * 0.25) {
 				go WriteToDataFolder(e.Parameters.StatisticsOutput.OutputPath,
 					"25.txt",
 					time.Now().Format(time.RFC3339),
 					e.Parameters.LoggingChan,
 					e.Parameters.ErrorChan)
 			}
-			if float64(i) == math.Floor(float64(e.Parameters.GenerationsCount) * 0.5) {
+			if float64(i) == math.Floor(float64(e.Parameters.MaxGenerations) * 0.5) {
 				go WriteToDataFolder(e.Parameters.StatisticsOutput.OutputPath,
 					"50.txt",
 					time.Now().Format(time.RFC3339),
 					e.Parameters.LoggingChan,
 					e.Parameters.ErrorChan)
 			}
-			if float64(i) == math.Floor(float64(e.Parameters.GenerationsCount) * 0.75) {
+			if float64(i) == math.Floor(float64(e.Parameters.MaxGenerations) * 0.75) {
 				go WriteToDataFolder(e.Parameters.StatisticsOutput.OutputPath,
 					"75.txt",
 					time.Now().Format(time.RFC3339),
@@ -327,8 +350,16 @@ func (e *EvolutionEngine) Start() (*EvolutionResult, error) {
 				e.Parameters.Strategies.DepthOfRandomNewTrees,
 				numGoroutine,
 				elapsed.String())
-			e.Parameters.LoggingChan <- msg
+			e.Parameters.LoggingChan <- evolog.Logger{Type: evolog.LoggerGeneration,  Message:msg, Timestamp: time.Now()}
 
+
+			if float64(i) == math.Floor(float64(e.Parameters.GenerationsCount) * 0.01) {
+				go WriteToDataFolder(e.Parameters.StatisticsOutput.OutputPath,
+					"1.txt",
+					time.Now().Format(time.RFC3339),
+					e.Parameters.LoggingChan,
+					e.Parameters.ErrorChan)
+			}
 			if float64(i) == math.Floor(float64(e.Parameters.GenerationsCount) * 0.25) {
 				go WriteToDataFolder(e.Parameters.StatisticsOutput.OutputPath,
 					"25.txt",
@@ -357,7 +388,7 @@ func (e *EvolutionEngine) Start() (*EvolutionResult, error) {
 
 
 	evolutionResult := &EvolutionResult{}
-	err = evolutionResult.Analyze(e.Generations, true,
+	err = evolutionResult.Analyze(e, e.Generations, true,
 		e.Parameters)
 	if err != nil {
 		return nil, err
@@ -366,7 +397,7 @@ func (e *EvolutionEngine) Start() (*EvolutionResult, error) {
 	return evolutionResult, nil
 }
 
-func WriteToDataFolder(dataFolderPath string, fileName string, fileValue string, logChan chan string,
+func WriteToDataFolder(dataFolderPath string, fileName string, fileValue string, logChan chan evolog.Logger,
 	errChan chan error) {
 	mut := sync.Mutex{}
 	mut.Lock()
@@ -383,7 +414,8 @@ func WriteToDataFolder(dataFolderPath string, fileName string, fileValue string,
 	if err != nil {
 		errChan <- err
 	}else {
-		logChan <- fmt.Sprintf("25 PERCENT: => Wrote %d bytes to file %s", n, filepath)
+		msg := fmt.Sprintf("25 PERCENT: => Wrote %d bytes to file %s", n, filepath)
+		logChan <- evolog.Logger{Type: evolog.LoggerGeneration,  Message:msg, Timestamp: time.Now()}
 	}
 
 	file.Close()
