@@ -46,6 +46,8 @@ func SinglePointCrossover(parentA, parentB *Individual) (childA Individual,
 
 	childA.Strategy = parentA.Strategy
 	childB.Strategy = parentB.Strategy
+	childA.Age = 0
+	childB.Age = 0
 
 	mut := sync.Mutex{}
 	mut.Lock()
@@ -99,6 +101,8 @@ func KPointCrossover(parentA, parentB *Individual, kPoint int) (childA Individua
 
 	childA.Strategy = parentA.Strategy
 	childB.Strategy = parentB.Strategy
+	childA.Age = 0
+	childB.Age = 0
 
 
 	mut := sync.Mutex{}
@@ -205,6 +209,8 @@ func UniformCrossover(parentA, parentB *Individual) (childA Individual,
 
 	childA.Strategy = parentA.Strategy
 	childB.Strategy = parentB.Strategy
+	childA.Age = 0
+	childB.Age = 0
 
 	mut := sync.Mutex{}
 	mut.Lock()

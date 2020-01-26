@@ -5,7 +5,8 @@ import (
 	"gonum.org/v1/gonum/stat"
 	"sync"
 )
-
+// TODO AGE
+// TODO Calculate fitness average for GENERATIONS (seems off!)
 type Generation struct {
 	GenerationID                 string
 	Protagonists                 []*Individual //Protagonists in a given Generation
