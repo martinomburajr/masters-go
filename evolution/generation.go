@@ -2,293 +2,190 @@ package evolution
 
 import (
 	"fmt"
-	"github.com/martinomburajr/masters-go/evolog"
-	"gonum.org/v1/gonum/stat"
+	"strings"
 	"sync"
-	"time"
 )
+
 // TODO AGE
 // TODO Calculate fitness average for GENERATIONS (seems off!)
 type Generation struct {
-	GenerationID                 string
-	Protagonists                 []*Individual //Protagonists in a given Generation
-	Antagonists                  []*Individual //Antagonists in a given Generation
+	GenerationID string
+	Protagonists []*Individual //Protagonists in a given Generation
+	Antagonists  []*Individual //Antagonists in a given Generation
+
 	engine                       *EvolutionEngine
 	isComplete                   bool
 	hasParentSelectionHappened   bool
 	hasSurvivorSelectionHappened bool
 	count                        int
+
+	//Individuals
+	BestAntagonist  Individual
+	BestProtagonist Individual
+
+	// Averages of all Antagonists and Protagonists in Generation
+	Correlation float64
+	Covariance  float64
+
+	AntagonistAverage    float64
+	AntagonistStdDev     float64
+	AntagonistVariance   float64
+	AntagonistAvgFitness []float64
+	AntagonistSkew       float64
+	AntagonistExKurtosis float64
+
+	ProtagonistAverage    float64
+	ProtagonistStdDev     float64
+	ProtagonistVariance   float64
+	ProtagonistSkew       float64
+	ProtagonistExKurtosis float64
+	ProtagonistAvgFitness []float64
 }
 
-// Start begins the generational evolutionary cycle.
-// It creates a new Generation that it links the {nextGeneration} field to. Similar to the way a LinkedList works
-func (g *Generation) Start(generationCount int) (*Generation, error) {
-	err := g.Compete()
-	if err != nil {
-		g.engine.Parameters.ErrorChan <- err
-	}
+func (g *Generation) ToString() string {
+	sb := strings.Builder{}
 
+	sb.WriteString(fmt.Sprintf("\n%s\n", g.GenerationID))
+	sb.WriteString(fmt.Sprintf("CorrelationInGeneration: : %.2f\n", g.Correlation))
+	sb.WriteString(fmt.Sprintf("CovarianceInGeneration: : %.2f\n", g.Covariance))
+	sb.WriteString("_______________________________\n")
+	sb.WriteString(fmt.Sprintf("AntagonistStdDevInGeneration : %.2f\n", g.AntagonistStdDev))
+	sb.WriteString(fmt.Sprintf("AntagonistAvg : %.2f\n", g.AntagonistAverage))
+	sb.WriteString(fmt.Sprintf("AntagonistStdDevInGeneration : %.2f\n", g.AntagonistStdDev))
+	sb.WriteString(fmt.Sprintf("AntagonistVarianceInGeneration : %.2f\n", g.AntagonistVariance))
+	sb.WriteString(fmt.Sprintf("AntagonistSkewInGeneration : %.2f\n", g.AntagonistSkew))
+	sb.WriteString(fmt.Sprintf("AntagonistExKurtosisInGeneration : %.2f\n", g.AntagonistExKurtosis))
+	sb.WriteString("<===================================>\n")
+	sb.WriteString(fmt.Sprintf("ProtagonistAverageInGeneration : %.2f\n", g.ProtagonistAverage))
+	sb.WriteString(fmt.Sprintf("ProtagonistStdDevInGeneration : %.2f\n", g.ProtagonistStdDev))
+	sb.WriteString(fmt.Sprintf("ProtagonistVarianceInGeneration : %.2f\n", g.ProtagonistVariance))
+	sb.WriteString(fmt.Sprintf("ProtagonistSkewInGeneration : %.2f\n", g.ProtagonistSkew))
+	sb.WriteString(fmt.Sprintf("ProtagonistExKurtosisInGeneration : %.2f\n\n\n", g.ProtagonistExKurtosis))
+
+	return sb.String()
+}
+
+// initializePopulation randomly creates a set of antagonists and protagonists
+func (g *Generation) InitializePopulation(params EvolutionParams) (antagonists []*Individual,
+	protagonists []*Individual, err error) {
 	wg := sync.WaitGroup{}
-	//wg.Add(2)
+	wg.Add(2)
 
+	go func(wg *sync.WaitGroup, params *EvolutionParams) {
+		defer wg.Done()
+		for i := 0; i < params.EachPopulationSize; i++ {
+			g.Antagonists, err = g.GenerateRandomIndividuals(IndividualAntagonist, *params)
+			if err != nil {
+				params.ErrorChan <- err
+			}
+		}
+	}(&wg, &params)
+
+	go func(wg *sync.WaitGroup, params *EvolutionParams) {
+		defer wg.Done()
+		for i := 0; i < params.EachPopulationSize; i++ {
+			g.Protagonists, err = g.GenerateRandomIndividuals(IndividualProtagonist, *params)
+			if err != nil {
+				params.ErrorChan <- err
+			}
+		}
+	}(&wg, &params)
+	wg.Wait()
+
+	return g.Antagonists, g.Protagonists, nil
+}
+
+// ApplySelection applies all 3 selection methods, parent,
+// reproduction and survivor to return a set of survivor antagonist and protagonists
+func (g *Generation) ApplySelection(antagonists, protagonists []*Individual, errorChan chan error) (
+	antagonistSurvivors []*Individual, protagonistSurvivors []*Individual) {
 	antSurvivorChan := make(chan []*Individual)
-	go func(g *Generation, wg *sync.WaitGroup) {
-		//defer wg.Done()
-		antWinnerParents, err := g.ApplyParentSelection(g.Antagonists)
+	go func(g *Generation) {
+		antWinnerParents, err := g.ApplyParentSelection(antagonists)
 		if err != nil {
-			g.engine.Parameters.ErrorChan <- err
+			errorChan <- err
 		}
 		antSelectedParents, antSelectedChildren, err := g.ApplyReproduction(antWinnerParents, IndividualAntagonist)
 		if err != nil {
-			g.engine.Parameters.ErrorChan <- err
+			errorChan <- err
 		}
 		antSurvivors, err := g.ApplySurvivorSelection(antSelectedParents, antSelectedChildren)
 		if err != nil {
-			g.engine.Parameters.ErrorChan <- err
+			errorChan <- err
 		}
 		antSurvivorChan <- antSurvivors
 		close(antSurvivorChan)
-	}(g, &wg)
-
+	}(g)
 	proSurvivorChan := make(chan []*Individual)
-	go func(g *Generation, wg *sync.WaitGroup) {
-		//defer wg.Done()
-		proWinnerParents, err := g.ApplyParentSelection(g.Protagonists)
+	go func(g *Generation) {
+		proWinnerParents, err := g.ApplyParentSelection(protagonists)
 		if err != nil {
-			g.engine.Parameters.ErrorChan <- err
+			errorChan <- err
 		}
 		proSelectedParents, proSelectedChildren, err := g.ApplyReproduction(proWinnerParents, IndividualProtagonist)
 		if err != nil {
-			g.engine.Parameters.ErrorChan <- err
+			errorChan <- err
 		}
 		proSurvivors, err := g.ApplySurvivorSelection(proSelectedParents, proSelectedChildren)
 		if err != nil {
-			g.engine.Parameters.ErrorChan <- err
+			errorChan <- err
 		}
 		proSurvivorChan <- proSurvivors
 		close(proSurvivorChan)
-	}(g, &wg)
-
-
-	var antSurvivors []*Individual
-	var proSurvivors []*Individual
+	}(g)
 
 	for {
 		select {
-		case x := <- antSurvivorChan:
+		case x := <-antSurvivorChan:
 			if x != nil {
-				antSurvivors = x
+				antagonistSurvivors = x
 			}
 			break
-		case y := <- proSurvivorChan:
+		case y := <-proSurvivorChan:
 			if y != nil {
-				proSurvivors = y
+				protagonistSurvivors = y
 			}
 			break
 		default:
-			if proSurvivors != nil && antSurvivors != nil {
+			if protagonistSurvivors != nil && antagonistSurvivors != nil {
 				break
 			}
 		}
-		if proSurvivors != nil && antSurvivors != nil {
+		if protagonistSurvivors != nil && antagonistSurvivors != nil {
 			break
 		}
 	}
-
 	g.hasSurvivorSelectionHappened = true
 	g.hasParentSelectionHappened = true
-
-	nextGenID := GenerateGenerationID(g.count + 1)
-	nextGen := &Generation{
-		Antagonists:                  antSurvivors,
-		Protagonists:                 proSurvivors,
-		engine:                       g.engine,
-		GenerationID:                 nextGenID,
-		hasSurvivorSelectionHappened: false,
-		isComplete:                   false,
-		hasParentSelectionHappened:   false,
-		count:                        g.count + 1,
-	}
-	//return new Generation
-	return nextGen, nil
+	return antagonistSurvivors, protagonistSurvivors
 }
 
 func GenerateGenerationID(count int) string {
 	return fmt.Sprintf("GEN-%d", count)
 }
 
-// setupEpochs takes in the Generation individuals (
-// protagonists and antagonists) and creates a set of uninitialized epochs
-func (g *Generation) setupEpochs() ([]Epoch, error) {
-	if g.Antagonists == nil {
-		return nil, fmt.Errorf("antagonists cannot be nil in Generation")
-	}
-	if g.Protagonists == nil {
-		return nil, fmt.Errorf("protagonists cannot be nil in Generation")
-	}
-	if len(g.Antagonists) < 1 {
-		return nil, fmt.Errorf("antagonists cannot be empty")
-	}
-	if len(g.Protagonists) < 1 {
-		return nil, fmt.Errorf("protagonists cannot be empty")
-	}
+func (g *Generation) CleansePopulations(params EvolutionParams) {
+	wg := sync.WaitGroup{}
+	wg.Add(2)
 
-	epochs := make([]Epoch, len(g.Antagonists)*len(g.Protagonists))
-	count := 0
-	for i := range g.Antagonists {
-		for j := range g.Protagonists {
-
-			cloneAntagonist, err := g.Antagonists[i].Clone()
-			if err != nil {
-				return nil, err
-			}
-			cloneAntagonist.Parent = g.Antagonists[i]
-
-			cloneProtagonist, err := g.Protagonists[i].Clone()
-			if err != nil {
-				return nil, err
-			}
-			cloneProtagonist.Parent = g.Protagonists[i]
-
-			epochs[count] = Epoch{
-				isComplete:            false,
-				terminalSet:           g.engine.Parameters.SpecParam.AvailableSymbolicExpressions.Terminals,
-				nonTerminalSet:        g.engine.Parameters.SpecParam.AvailableSymbolicExpressions.NonTerminals,
-				hasAntagonistApplied:  false,
-				hasProtagonistApplied: false,
-				antagonist:            &cloneAntagonist,
-				protagonist:           &cloneProtagonist,
-				generation:            g,
-				program:               g.engine.Parameters.StartIndividual,
-				id: CreateEpochID(count, g.GenerationID, g.Antagonists[i].Id,
-					g.Protagonists[j].Id),
-			}
-			count++
-		}
-	}
-	return epochs, nil
-}
-
-type PerfectTree struct {
-	Program          *Program
-	BestFitnessValue float64
-	BestFitnessDelta float64
-}
-
-
-func epochWorker(perfectMap map[string]PerfectTree, epochChan chan Epoch, resultsChan Epoch, errChan chan error) {
-	for epoch := range epochChan {
-		mu := sync.Mutex{}
-		mu.Lock()
-			err := epoch.Start(perfectMap)
-			if err != nil {
-				errChan <- err
-			}
-		mu.Unlock()
-	}
-}
-
-// runEpoch begins the run of a single epoch
-func (g *Generation) runEpochs(epochs []Epoch) ([]Epoch, error) {
-	if epochs == nil {
-		return nil, fmt.Errorf("epochs have not been initialized | epochs is nil")
-	}
-	if len(epochs) < 1 {
-		return nil, fmt.Errorf("epochs slice is empty")
-	}
-
-	//errChan := make(chan error)
-	//epochChan := make(chan Epoch, len(epochs))
-	//
-	//wg := sync.WaitGroup{}
-	perfectFitnessMap := map[string]PerfectTree{}
-
-
-	for i := 0; i < len(epochs); i++ {
-		err := epochs[i].Start(perfectFitnessMap)
+	go func(wg *sync.WaitGroup, errChan chan error) {
+		defer wg.Done()
+		protagonists, err := CleansePopulation(g.Protagonists, *params.StartIndividual.T)
 		if err != nil {
-			g.engine.Parameters.ErrorChan <- err
-			return nil, err
+			errChan <- err
 		}
+		g.Protagonists = protagonists
+	}(&wg, params.ErrorChan)
 
-		if len(epochs) > 10 {
-			if i % (len(epochs)/10) == 0 {
-				if g.engine.Parameters.EnableLogging {
-					msg := fmt.Sprintf("\n  ==> Run: %d | Epoch: (%d/%d)",
-						g.engine.Parameters.InternalCount,
-						i+1,
-						len(epochs))
-					g.engine.Parameters.LoggingChan <-  evolog.Logger{Type: evolog.LoggerEpoch,  Message:msg,
-						Timestamp: time.Now()}
-				}
-			}
+	go func(wg *sync.WaitGroup, errChan chan error) {
+		defer wg.Done()
+		protagonists, err := CleansePopulation(g.Antagonists, *params.StartIndividual.T)
+		if err != nil {
+			errChan <- err
 		}
-	}
-
-	//if len(errChan) > 0 {
-	//	return nil, fmt.Errorf("error with runningEpochs")
-	//}
-
-	// Set individuals with the best representation of their tree
-	for i := 0; i < len(g.Antagonists); i++ {
-		perfectAntagonistTree := perfectFitnessMap[g.Antagonists[i].Id]
-		g.Antagonists[i].Program = perfectAntagonistTree.Program
-		g.Antagonists[i].BestDelta = perfectAntagonistTree.BestFitnessDelta
-		g.Antagonists[i].BestFitness = perfectAntagonistTree.BestFitnessValue
-	}
-	for i := 0; i < len(g.Protagonists); i++ {
-		perfectProtagonistTree := perfectFitnessMap[g.Protagonists[i].Id]
-		g.Protagonists[i].Program = perfectProtagonistTree.Program
-		g.Protagonists[i].BestDelta = perfectProtagonistTree.BestFitnessDelta
-		g.Protagonists[i].BestFitness = perfectProtagonistTree.BestFitnessValue
-	}
-
-	return epochs, nil
-}
-
-// Compete gives protagonist and anatagonists the chance to compete. A competition involves an epoch,
-// that returns the Individuals of the epoch.
-func (g *Generation) Compete() error {
-	setupEpochs, err := g.setupEpochs()
-	if err != nil {
-		return err
-	}
-
-	// Runs the epochs and returns completed epochs that contain Fitness information within each individual.
-	_, err = g.runEpochs(setupEpochs)
-	if err != nil {
-		return err
-	}
-
-	// TODO Ensure Children of Antagonists are being created, i.e different IDs during crossover
-	// TODO use penalization when SPEc is 0
-
-	// Calculate the Fitness for individuals in the Generation
-	for i := 0; i < len(g.Protagonists); i++ {
-		deltaAntMean := stat.Mean(g.Antagonists[i].Deltas, nil)
-		antMean, antStd := stat.MeanStdDev(g.Antagonists[i].Fitness, nil)
-		antVariance := stat.Variance(g.Antagonists[i].Fitness, nil)
-		g.Antagonists[i].AverageFitness = antMean
-		g.Antagonists[i].FitnessStdDev = antStd
-		g.Antagonists[i].FitnessVariance = antVariance
-		g.Antagonists[i].HasCalculatedFitness = true
-		g.Antagonists[i].HasAppliedStrategy = true
-		g.Antagonists[i].Age += 1
-		g.Antagonists[i].AverageDelta = deltaAntMean
-
-		deltaMean := stat.Mean(g.Protagonists[i].Deltas, nil)
-		mean, std := stat.MeanStdDev(g.Protagonists[i].Fitness, nil)
-		variance := stat.Variance(g.Protagonists[i].Fitness, nil)
-		g.Protagonists[i].AverageFitness = mean
-		g.Protagonists[i].FitnessStdDev = std
-		g.Protagonists[i].FitnessVariance = variance
-		g.Protagonists[i].HasCalculatedFitness = true
-		g.Protagonists[i].HasAppliedStrategy = true
-		g.Protagonists[i].Age += 1
-		g.Protagonists[i].AverageDelta = deltaMean
-	}
-
-	return err
+		g.Protagonists = protagonists
+	}(&wg, params.ErrorChan)
+	wg.Wait()
 }
 
 // ApplyParentSelection takes in a given Generation and returns a set of individuals once the preselected parent
@@ -326,15 +223,17 @@ func (g *Generation) ApplyReproduction(incomingParents []*Individual, kind int) 
 	err error) {
 	children = make([]*Individual, g.engine.Parameters.EachPopulationSize)
 
-	switch  g.engine.Parameters.Reproduction.CrossoverStrategy {
+	switch g.engine.Parameters.Reproduction.CrossoverStrategy {
 	case CrossoverSinglePoint:
 		for i := 0; i < len(incomingParents); i += 2 {
 			child1, child2, err := SinglePointCrossover(incomingParents[i], incomingParents[i+1])
 			if err != nil {
-				return nil,nil, err
+				return nil, nil, err
 			}
-			child1.BirthGen = g.count + 1
-			child2.BirthGen = g.count + 1
+			child1.BirthGen = g.count
+			child2.BirthGen = g.count
+			child1.Age = 0
+			child2.Age = 0
 			children[i] = &child1
 			children[i+1] = &child2
 		}
@@ -342,10 +241,12 @@ func (g *Generation) ApplyReproduction(incomingParents []*Individual, kind int) 
 		for i := 0; i < len(incomingParents); i += 2 {
 			child1, child2, err := FixedPointCrossover(*incomingParents[i], *incomingParents[i+1], g.engine.Parameters)
 			if err != nil {
-				return nil,nil, err
+				return nil, nil, err
 			}
-			child1.BirthGen = g.count + 1
-			child2.BirthGen = g.count + 1
+			child1.BirthGen = g.count
+			child2.BirthGen = g.count
+			child1.Age = 0
+			child2.Age = 0
 			children[i] = &child1
 			children[i+1] = &child2
 		}
@@ -354,10 +255,12 @@ func (g *Generation) ApplyReproduction(incomingParents []*Individual, kind int) 
 			child1, child2, err := KPointCrossover(incomingParents[i], incomingParents[i+1],
 				g.engine.Parameters.Reproduction.KPointCrossover)
 			if err != nil {
-				return nil,nil, err
+				return nil, nil, err
 			}
-			child1.BirthGen = g.count + 1
-			child2.BirthGen = g.count + 1
+			child1.BirthGen = g.count
+			child2.BirthGen = g.count
+			child1.Age = 0
+			child2.Age = 0
 			children[i] = &child1
 			children[i+1] = &child2
 		}
@@ -365,10 +268,12 @@ func (g *Generation) ApplyReproduction(incomingParents []*Individual, kind int) 
 		for i := 0; i < len(incomingParents); i += 2 {
 			child1, child2, err := UniformCrossover(incomingParents[i], incomingParents[i+1])
 			if err != nil {
-				return nil,nil, err
+				return nil, nil, err
 			}
-			child1.BirthGen = g.count + 1
-			child2.BirthGen = g.count + 1
+			child1.BirthGen = g.count
+			child2.BirthGen = g.count
+			child1.Age = 0
+			child2.Age = 0
 			children[i] = &child1
 			children[i+1] = &child2
 		}
@@ -395,80 +300,3 @@ func (g *Generation) ApplySurvivorSelection(outgoingParents []*Individual,
 		return nil, fmt.Errorf("Invalid Survivor Selection Selected")
 	}
 }
-
-// GenerateRandomIndividual creates a a random set of individuals based on the parameters passed into the
-// evolution engine. To pass a tree to an individual pass it via the formal parameters and not through the evolution
-// engine
-// parameter section
-// Antagonists are by default
-// set with the StartIndividuals Program as their own
-// program.
-func (g *Generation) GenerateRandomIndividual(kind int, prog Program) ([]*Individual, error) {
-	if g.engine.Parameters.EachPopulationSize < 1 {
-		return nil, fmt.Errorf("number should at least be 1")
-	}
-	if kind == IndividualAntagonist {
-		if g.engine.Parameters.Strategies.AntagonistStrategyCount < 1 {
-			return nil, fmt.Errorf("antagonist maxNumberOfStrategies should at least be 1")
-		}
-		if len(g.engine.Parameters.Strategies.AntagonistAvailableStrategies) < 1 {
-			return nil, fmt.Errorf("antagonist availableStrategies should at least have one Strategy")
-		}
-	} else if kind == IndividualProtagonist {
-		if g.engine.Parameters.Strategies.ProtagonistStrategyCount < 1 {
-			return nil, fmt.Errorf("protagonist maxNumberOfStrategies should at least be 1")
-		}
-		if len(g.engine.Parameters.Strategies.ProtagonistAvailableStrategies) < 1 {
-			return nil, fmt.Errorf("protagonist availableStrategies should at least have one Strategy")
-		}
-	} else {
-		return nil, fmt.Errorf("unknown individual kind")
-	}
-
-	individuals := make([]*Individual, g.engine.Parameters.EachPopulationSize)
-
-	for i := 0; i < g.engine.Parameters.EachPopulationSize; i++ {
-
-		var randomStrategies []Strategy
-
-		if kind == IndividualAntagonist {
-			randomStrategies = GenerateRandomStrategy(g.engine.Parameters.Strategies.AntagonistStrategyCount,
-				g.engine.Parameters.Strategies.AntagonistAvailableStrategies)
-		} else if kind == IndividualProtagonist {
-			randomStrategies = GenerateRandomStrategy(g.engine.Parameters.Strategies.ProtagonistStrategyCount,
-				g.engine.Parameters.Strategies.ProtagonistAvailableStrategies)
-		}
-
-		id := fmt.Sprintf("%s-%d", KindToString(kind), i)
-		var individual *Individual
-
-		if prog.T == nil {
-			individual = &Individual{
-				Kind:     kind,
-				Id:       id,
-				Strategy: randomStrategies,
-				Fitness:  make([]float64, 0),
-				Program:  nil,
-				BirthGen: 0,
-			}
-		} else {
-			prog.ID = GenerateProgramID(i)
-
-			clone, err := prog.Clone()
-			if err != nil {
-				return nil, err
-			}
-			individual = &Individual{
-				Kind:     kind,
-				Id:       id,
-				Strategy: randomStrategies,
-				Fitness:  make([]float64, 0),
-				Program:  &clone,
-			}
-		}
-
-		individuals[i] = individual
-	}
-	return individuals, nil
-}
-

@@ -33,7 +33,7 @@ func main() {
 	folderPtr := flag.Int64("folder", 0, "Folder")
 	completedStatsPtr := flag.Bool("showProgress", false, "Shows the progress of completed/unstarted/incomplete files")
 	stealPtr := flag.Bool("steal", true, "Should steal completed files and automatically back them up")
-	coalesceBestPath := flag.String("coalesceBest", "", "Feed in the _dataBackup directory to create a coalescedBest." +
+	coalesceBestPath := flag.String("coalesceBest", "", "Feed in the _dataBackup directory to create a coalescedBest."+
 		"csv")
 
 	flag.Parse()
@@ -58,7 +58,6 @@ func main() {
 	}
 
 	//fmt.Printf(csvBestAll)
-	//time.Sleep(time.Second * 10)
 
 	if *paramsPtr == "" {
 		log.Fatal("Params path cannot be empty")
@@ -100,7 +99,7 @@ func main() {
 		return
 	}
 
-	Scheduler(paramsFolder, dataDir, parallelism, workers, repeatDelay,steal, logging, runStats)
+	Scheduler(paramsFolder, dataDir, parallelism, workers, repeatDelay, steal, logging, runStats)
 }
 
 func ShowProgress(abs string, paramsFolder string, dataDir string, repeatDelay int64) {
@@ -129,15 +128,15 @@ func StealCompleted(abs string, paramsFolder string, dataDir, backupFolder, back
 	for {
 		completeParamFolder, _, _ :=
 			GetParamFileStatus(abs, paramsFolder, dataDir, repeatDelay)
-			if len(completeParamFolder) < 1 {
-				continue
-			}
+		if len(completeParamFolder) < 1 {
+			continue
+		}
 
 		for _, complete := range completeParamFolder {
 			newDataBackupPath := fmt.Sprintf("%s/%s", backupDataPath, complete)
 			newParamBackupPath := fmt.Sprintf("%s/%s.json", backupParamsPath, complete)
-			oldParamPath := fmt.Sprintf("%s/%s/%s.json", abs,paramsFolder, complete)
-			oldDataPath := fmt.Sprintf("%s/%s/%s", abs,dataDir, complete)
+			oldParamPath := fmt.Sprintf("%s/%s/%s.json", abs, paramsFolder, complete)
+			oldDataPath := fmt.Sprintf("%s/%s/%s", abs, dataDir, complete)
 
 			err := os.MkdirAll(newDataBackupPath, 0775)
 			if err != nil {

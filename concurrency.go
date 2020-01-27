@@ -14,7 +14,7 @@ func WorkerPool(numWorkers, numIterations int, workerFunction func(index int, wa
 		return
 	}
 	numIterations = numIterations + 1
-	numWorkers = numWorkers+1
+	numWorkers = numWorkers + 1
 	wg := sync.WaitGroup{}
 	timesIn := 0
 	didBreak := false

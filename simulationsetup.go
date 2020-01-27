@@ -7,22 +7,20 @@ import (
 	"github.com/martinomburajr/masters-go/evolution"
 	"github.com/martinomburajr/masters-go/simulation"
 	"log"
-	"math/rand"
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
 	"time"
 )
 
 var SimulationArgs = simulation.Simulation{
-	NumberOfRunsPerState:  5,
-	Name:                  "",
-	StatsFiles:            []string{
+	NumberOfRunsPerState: 2,
+	Name:                 "",
+	StatsFiles: []string{
 		"best.R", "best-combined.R", "epochs.R",
 		"generations.R", "strategy.R",
 	},
-	RPath:                 "/R",
+	RPath: "/R",
 }
 
 // scheduler runs the actual simulation
@@ -82,39 +80,16 @@ func Scheduler(paramsFolder, dataDirName string, parallelism bool, numberOfSimul
 		return
 	} else {
 		count := 0
-		for len(completeParamFolder) <= fileCount {
-			//combinedunfinished := append(unstartedParams, incompleteParams...)
-			if len(unstartedParams) <= sim.numberOfSimultaneousParams {
-				sim.numberOfSimultaneousParams = len(unstartedParams)
+		for len(completeParamFolder) <= fileCount && count < fileCount {
+			sim.doneChan <- false
+			if len(unstartedParams) != 0 && unstartedParams != nil {
+				runSimulation(sim, unstartedParams[0])
 			}
-			if len(unstartedParams) != 0 && sim.numberOfSimultaneousParams == 0 {
-				fmt.Printf("\n\nSTARTING NEW WORK\n\n")
-				if len(unstartedParams) > int(numberOfSimultaneousParams) {
-					sim.numberOfSimultaneousParams =  int(numberOfSimultaneousParams)
-				} else {
-					sim.numberOfSimultaneousParams = len(unstartedParams)
-				}
-			}
-			if len(unstartedParams) == 0 {
-				fmt.Printf("\n\n################################### WAITING ON" +
-					" OTHERS TO HOPEFULLY COMPLETE! ###################################\n\n")
-			}
-			WorkerPool(sim.numberOfSimultaneousParams, len(unstartedParams),
-				func(index int, waitGroup *sync.WaitGroup) {
-					if index >= len(unstartedParams) {
-						mut := sync.Mutex{}
-						mut.Lock()
-						index = rand.Intn(len(unstartedParams))
-						mut.Unlock()
-					}
-					runSimulation(sim, unstartedParams[index])
-				})
-
+			sim.doneChan <- true
 			completeParamFolder, unstartedParams, incompleteParams = GetParamFileStatus(sim.absolutePath,
 				sim.paramFolder, sim.dataDirName, repeatDelay)
 			log.Printf("\n\n\n################################### COMPLETED CYCLE %d"+
 				"! ###################################\n\n\n", count)
-			//time.Sleep(5 * time.Second)
 			count++
 		}
 	}
@@ -126,6 +101,8 @@ func Scheduler(paramsFolder, dataDirName string, parallelism bool, numberOfSimul
 
 func SetupLogger(simulationParam simulationParams) {
 	file := setupLogFile(simulationParam)
+	defer file.Close()
+
 	started := time.Now()
 	doneCounter := 0
 
@@ -139,20 +116,29 @@ func SetupLogger(simulationParam simulationParams) {
 			sb.WriteString(logg.Message)
 			loggg := sb.String()
 
-
 			fmt.Fprintf(file, loggg)
-			//fmt.Fprintf(os.Stdout, loggg)
 		case err := <-simulationParam.errChan:
-			fmt.Println("Error: " + err.Error())
-			return
-		case isDone := <-simulationParam.doneChan:
+			msg := fmt.Sprintf("Error: %s" + err.Error())
+			fmt.Println(msg)
+			//return
+		case isDone, ok := <-simulationParam.doneChan:
+			if !ok {
+				elapsedTime := time.Since(started)
+				msg := fmt.Sprintf("\nElapsed Time: %s\nIsComplete: %t\n", elapsedTime.String(), isDone)
+				fmt.Println(msg)
+				close(simulationParam.doneChan)
+
+				fmt.Println("GRACEFULLY STAYING UP FOR 12 Minutes")
+				time.Sleep(12 * time.Minute)
+				os.Exit(0)
+			}
 			if isDone {
 				doneCounter--
-			}else {
+			} else {
 				doneCounter++
 			}
-			fmt.Printf("DONE COUNTER: %d", doneCounter)
-			if doneCounter <= 0 {
+			fmt.Printf("DONE COUNTER: %d\n", doneCounter)
+			if doneCounter < 0 {
 				elapsedTime := time.Since(started)
 				msg := fmt.Sprintf("\nElapsed Time: %s\nIsComplete: %t\n", elapsedTime.String(), isDone)
 				fmt.Println(msg)
@@ -184,7 +170,6 @@ type simulationParams struct {
 
 func runSimulation(simulationParams simulationParams, paramFileToRun string) {
 	simulationParams.paramFile = paramFileToRun
-	simulationParams.doneChan <- false
 
 	dataDir := fmt.Sprintf("%s/data/%s", simulationParams.absolutePath, simulationParams.paramFile)
 	err := os.MkdirAll(dataDir, 0775)
@@ -260,11 +245,12 @@ func SetArguments(simulation *simulation.Simulation, paramsFilePath, dataPath st
 
 func setupLogFile(simulationParam simulationParams) *os.File {
 	logFolder := "logs"
-	logFilePath := fmt.Sprintf("%s/folder-%s-logs.txt", logFolder, simulationParam.paramFile)
+	logFilePath := fmt.Sprintf("%s/folder-logs.txt", logFolder)
+
 	os.Mkdir(logFolder, 0775)
 	file, err := os.Create(logFilePath)
 	if err != nil {
-		simulationParam.errChan <- err
+		//simulationParam.errChan <- err
 	}
 	return file
 }

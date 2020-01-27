@@ -520,16 +520,16 @@ func TestIndividual_Clone(t *testing.T) {
 		wantErr bool
 	}{
 		{"",
-			Individual{Strategy:[]Strategy{"1","2","3"}, AverageFitness: 10},
-			Individual{Strategy:[]Strategy{"1","2", "3"}, AverageFitness: 10},
+			Individual{Strategy: []Strategy{"1", "2", "3"}, AverageFitness: 10},
+			Individual{Strategy: []Strategy{"1", "2", "3"}, AverageFitness: 10},
 			false},
 		{"",
-			Individual{Strategy:[]Strategy{"1","2","3"}, AverageFitness: 10, BirthGen: 3},
-			Individual{Strategy:[]Strategy{"1","2", "3"}, AverageFitness: 10, BirthGen: 3},
+			Individual{Strategy: []Strategy{"1", "2", "3"}, AverageFitness: 10, BirthGen: 3},
+			Individual{Strategy: []Strategy{"1", "2", "3"}, AverageFitness: 10, BirthGen: 3},
 			false},
 		{"",
-			Individual{Strategy:[]Strategy{"1","2","3"}, AverageFitness: 10, BirthGen: 3, Program:prog1},
-			Individual{Strategy:[]Strategy{"1","2","3"}, AverageFitness: 10, BirthGen: 3, Program:prog1},
+			Individual{Strategy: []Strategy{"1", "2", "3"}, AverageFitness: 10, BirthGen: 3, Program: prog1},
+			Individual{Strategy: []Strategy{"1", "2", "3"}, AverageFitness: 10, BirthGen: 3, Program: prog1},
 			false},
 	}
 	for _, tt := range tests {

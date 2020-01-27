@@ -16,6 +16,8 @@ type SimulationBestActualIndividual struct {
 	ProtagonistGeneration int
 	AntagonistRun         int
 	ProtagonistRun        int
+	Correlation           float64
+	Covariance            float64
 }
 
 // SimulationBestActualIndividuals returns the best actual individuals in the entire simulation
@@ -108,6 +110,9 @@ func (s *Simulation) BestIndividualsInRun(params evolution.EvolutionParams) (run
 		AntagonistGeneration:        run.TopAntagonistGeneration,
 		ProtagonistGeneration:       run.TopProtagonistGeneration,
 
+		MeanCorrelation: run.MeanCorrelation,
+		MeanCovariance:  run.MeanCovariance,
+
 		FinalAntagonist:                  run.FinalAntagonist.AverageFitness,
 		FinalProtagonist:                 run.FinalProtagonist.AverageFitness,
 		FinalAntagonistBestFitness:       run.FinalAntagonist.BestFitness,
@@ -162,16 +167,17 @@ func (s *Simulation) SimulationBestIndividuals(params evolution.EvolutionParams)
 			SpecEquation:                params.SpecParam.ExpressionParsed,
 			SpecRange:                   params.SpecParam.Range,
 			SpecSeed:                    params.SpecParam.Seed,
-			AntagonistID: topAntagonist.Id,
-			ProtagonistID: topProtagonist.Id,
+			Covariance:                  0,
+			AntagonistID:                topAntagonist.Id,
+			ProtagonistID:               topProtagonist.Id,
 			Antagonist:                  topAntagonist.AverageFitness,
 			Protagonist:                 topProtagonist.AverageFitness,
 			AntagonistBestFitness:       topAntagonist.BestFitness,
 			ProtagonistBestFitness:      topProtagonist.BestFitness,
 			AntagonistStdDev:            topAntagonist.FitnessStdDev,
 			ProtagonistStdDev:           topProtagonist.FitnessStdDev,
-			AntagonistAverageDelta: topAntagonist.AverageDelta,
-			ProtagonistAverageDelta: topProtagonist.AverageDelta,
+			AntagonistAverageDelta:      topAntagonist.AverageDelta,
+			ProtagonistAverageDelta:     topProtagonist.AverageDelta,
 			AntagonistBestDelta:         topAntagonist.BestDelta,
 			ProtagonistBestDelta:        topProtagonist.BestDelta,
 			AntagonistEquation:          topAntagonistEq,
@@ -180,12 +186,12 @@ func (s *Simulation) SimulationBestIndividuals(params evolution.EvolutionParams)
 			ProtagonistStrategy:         evolution.StrategiesToString(topProtagonist),
 			AntagonistDominantStrategy:  evolution.DominantStrategy(topAntagonist),
 			ProtagonistDominantStrategy: evolution.DominantStrategy(topProtagonist),
+			AntagonistGeneration:        topAntGen,
+			ProtagonistGeneration:       topProGen,
 			AntagonistBirthGen:          topAntagonist.BirthGen,
 			ProtagonistBirthGen:         topProtagonist.BirthGen,
 			AntagonistAge:               topAntagonist.Age,
 			ProtagonistAge:              topProtagonist.Age,
-			AntagonistGeneration:        topAntGen,
-			ProtagonistGeneration:       topProGen,
 			AntagonistRun:               topAntRun,
 			ProtagonistRun:              topProRun,
 		}
@@ -233,8 +239,8 @@ func (s *Simulation) SimulationBestIndividual(params evolution.EvolutionParams) 
 		SpecEquation:                params.SpecParam.ExpressionParsed,
 		SpecRange:                   params.SpecParam.Range,
 		SpecSeed:                    params.SpecParam.Seed,
-		AntagonistID: topAntagonist.Id,
-		ProtagonistID: topProtagonist.Id,
+		AntagonistID:                topAntagonist.Id,
+		ProtagonistID:               topProtagonist.Id,
 		Antagonist:                  topAntagonist.AverageFitness,
 		Protagonist:                 topProtagonist.AverageFitness,
 		AntagonistBestFitness:       topAntagonist.BestFitness,
@@ -243,150 +249,8 @@ func (s *Simulation) SimulationBestIndividual(params evolution.EvolutionParams) 
 		ProtagonistStdDev:           topProtagonist.FitnessStdDev,
 		AntagonistBestDelta:         topAntagonist.BestDelta,
 		ProtagonistBestDelta:        topProtagonist.BestDelta,
-		AntagonistAverageDelta: topAntagonist.AverageDelta,
-		ProtagonistAverageDelta: topProtagonist.AverageDelta,
-		AntagonistEquation:          topAntagonistEq,
-		ProtagonistEquation:         topProtagonistEq,
-		AntagonistStrategy:          evolution.StrategiesToString(topAntagonist),
-		ProtagonistStrategy:         evolution.StrategiesToString(topProtagonist),
-		AntagonistDominantStrategy:  evolution.DominantStrategy(topAntagonist),
-		ProtagonistDominantStrategy: evolution.DominantStrategy(topProtagonist),
-		AntagonistBirthGen:          topAntagonist.BirthGen,
-		ProtagonistBirthGen:         topProtagonist.BirthGen,
-		AntagonistAge:               topAntagonist.Age,
-		ProtagonistAge:              topProtagonist.Age,
-		AntagonistGeneration:        topAntGen,
-		ProtagonistGeneration:       topProGen,
-		AntagonistRun:               topAntRun,
-		ProtagonistRun:              topProRun,
-	}
-
-	return simulationBestIndividuals, err
-}
-
-// SimulationBestIndividual returns the best antagonist and protagonist in all runs
-func (s *Simulation) SimulationBestIndividualByAverageDelta(params evolution.EvolutionParams) (
-	simulationBestIndividuals SimulationBestIndividuals,
-	err error) {
-	if s.SimulationStats == nil {
-		return nil, fmt.Errorf(
-			"ToRunStats | simulationStats is nil")
-	}
-	if len(s.SimulationStats) < 0 {
-		return nil, fmt.Errorf("ToRunStats | simulationStats is empty")
-	}
-
-	simulationBestIndividuals = make([]SimulationBestIndividual, 1)
-
-	topAntagonist := evolution.Individual{AverageDelta: math.MinInt64}
-	topProtagonist := evolution.Individual{AverageDelta: math.MaxInt64}
-	topAntGen := 0
-	topProGen := 0
-	topAntRun := 0
-	topProRun := 0
-	for i, ss := range s.SimulationStats {
-		if ss.TopAntagonistByDeltaAvg.AverageDelta > topAntagonist.AverageDelta {
-			topAntagonist = ss.TopAntagonist
-			topAntGen = ss.TopAntagonistGeneration
-			topAntRun = i
-		}
-		if ss.TopProtagonistByDeltaAvg.AverageDelta < topProtagonist.AverageDelta {
-			topProtagonist = ss.TopProtagonist
-			topProGen = ss.TopProtagonistGeneration
-			topProRun = i
-		}
-	}
-
-	topAntagonistEq, _ := topAntagonist.Program.T.ToMathematicalString()
-	topProtagonistEq, _ := topProtagonist.Program.T.ToMathematicalString()
-
-	simulationBestIndividuals[0] = SimulationBestIndividual{
-		SpecEquation:                params.SpecParam.ExpressionParsed,
-		SpecRange:                   params.SpecParam.Range,
-		SpecSeed:                    params.SpecParam.Seed,
-		AntagonistID: topAntagonist.Id,
-		ProtagonistID: topProtagonist.Id,
-		Antagonist:                  topAntagonist.AverageFitness,
-		Protagonist:                 topProtagonist.AverageFitness,
-		AntagonistBestFitness:       topAntagonist.BestFitness,
-		ProtagonistBestFitness:      topProtagonist.BestFitness,
-		AntagonistStdDev:            topAntagonist.FitnessStdDev,
-		ProtagonistStdDev:           topProtagonist.FitnessStdDev,
-		AntagonistBestDelta:         topAntagonist.BestDelta,
-		ProtagonistBestDelta:        topProtagonist.BestDelta,
-		AntagonistAverageDelta: topAntagonist.AverageDelta,
-		ProtagonistAverageDelta: topProtagonist.AverageDelta,
-		AntagonistEquation:          topAntagonistEq,
-		ProtagonistEquation:         topProtagonistEq,
-		AntagonistStrategy:          evolution.StrategiesToString(topAntagonist),
-		ProtagonistStrategy:         evolution.StrategiesToString(topProtagonist),
-		AntagonistDominantStrategy:  evolution.DominantStrategy(topAntagonist),
-		ProtagonistDominantStrategy: evolution.DominantStrategy(topProtagonist),
-		AntagonistBirthGen:          topAntagonist.BirthGen,
-		ProtagonistBirthGen:         topProtagonist.BirthGen,
-		AntagonistAge:               topAntagonist.Age,
-		ProtagonistAge:              topProtagonist.Age,
-		AntagonistGeneration:        topAntGen,
-		ProtagonistGeneration:       topProGen,
-		AntagonistRun:               topAntRun,
-		ProtagonistRun:              topProRun,
-	}
-
-	return simulationBestIndividuals, err
-}
-
-// SimulationBestIndividual returns the best antagonist and protagonist in all runs
-func (s *Simulation) SimulationBestIndividualByDelta(params evolution.EvolutionParams) (
-	simulationBestIndividuals SimulationBestIndividuals,
-	err error) {
-	if s.SimulationStats == nil {
-		return nil, fmt.Errorf(
-			"ToRunStats | simulationStats is nil")
-	}
-	if len(s.SimulationStats) < 0 {
-		return nil, fmt.Errorf("ToRunStats | simulationStats is empty")
-	}
-
-	simulationBestIndividuals = make([]SimulationBestIndividual, 1)
-
-	topAntagonist := evolution.Individual{BestDelta: math.MinInt64}
-	topProtagonist := evolution.Individual{BestDelta: math.MaxInt64}
-	topAntGen := 0
-	topProGen := 0
-	topAntRun := 0
-	topProRun := 0
-	for i, ss := range s.SimulationStats {
-		if ss.TopAntagonistByDelta.BestDelta > topAntagonist.BestDelta {
-			topAntagonist = ss.TopAntagonist
-			topAntGen = ss.TopAntagonistGeneration
-			topAntRun = i
-		}
-		if ss.TopProtagonistByDelta.BestDelta < topProtagonist.BestDelta {
-			topProtagonist = ss.TopProtagonist
-			topProGen = ss.TopProtagonistGeneration
-			topProRun = i
-		}
-	}
-
-	topAntagonistEq, _ := topAntagonist.Program.T.ToMathematicalString()
-	topProtagonistEq, _ := topProtagonist.Program.T.ToMathematicalString()
-
-	simulationBestIndividuals[0] = SimulationBestIndividual{
-		SpecEquation:                params.SpecParam.ExpressionParsed,
-		SpecRange:                   params.SpecParam.Range,
-		SpecSeed:                    params.SpecParam.Seed,
-		AntagonistID: topAntagonist.Id,
-		ProtagonistID: topProtagonist.Id,
-		Antagonist:                  topAntagonist.AverageFitness,
-		Protagonist:                 topProtagonist.AverageFitness,
-		AntagonistBestFitness:       topAntagonist.BestFitness,
-		ProtagonistBestFitness:      topProtagonist.BestFitness,
-		AntagonistStdDev:            topAntagonist.FitnessStdDev,
-		ProtagonistStdDev:           topProtagonist.FitnessStdDev,
-		AntagonistBestDelta:         topAntagonist.BestDelta,
-		ProtagonistBestDelta:        topProtagonist.BestDelta,
-		AntagonistAverageDelta: topAntagonist.AverageDelta,
-		ProtagonistAverageDelta: topProtagonist.AverageDelta,
+		AntagonistAverageDelta:      topAntagonist.AverageDelta,
+		ProtagonistAverageDelta:     topProtagonist.AverageDelta,
 		AntagonistEquation:          topAntagonistEq,
 		ProtagonistEquation:         topProtagonistEq,
 		AntagonistStrategy:          evolution.StrategiesToString(topAntagonist),
@@ -426,60 +290,59 @@ func (s *Simulation) GenerationalInRun(params evolution.EvolutionParams) (runGen
 		runIndex = 0
 	}
 
-	genCount := 0
-
-	if params.MaxGenerations > evolution.MinAllowableGenerationsForContinuous {
-		genCount = params.MaxGenerations
-	}else {
-		genCount = params.GenerationsCount
-	}
+	genCount := evolution.CalculateGenerationSize(params)
 
 	runGen = make([]RunGenerationalStatistic, genCount)
 	run := s.SimulationStats[runIndex]
 
-
-
 	for i := 0; i < genCount; i++ {
-		antagonist := run.Generational.Antagonists[i]
-		protagonist := run.Generational.Protagonists[i]
-		AntagonistEq, _ := antagonist.Program.T.ToMathematicalString()
-		ProtagonistEq, _ := protagonist.Program.T.ToMathematicalString()
+		topAntagonistInGenerationByAvgFitness := run.Generational.BestAntagonistInEachGenerationByAvgFitness[i]
+		topProtagonistInGenerationByAvgFitness := run.Generational.BestProtagonistInEachGenerationByAvgFitness[i]
+		AntagonistEq, _ := topAntagonistInGenerationByAvgFitness.Program.T.ToMathematicalString()
+		ProtagonistEq, _ := topProtagonistInGenerationByAvgFitness.Program.T.ToMathematicalString()
 
 		runGen[i] = RunGenerationalStatistic{
-			Generation: i,
+			Generation:          i,
+			SpecEquation:        params.SpecParam.ExpressionParsed,
+			SpecRange:           params.SpecParam.Range,
+			SpecSeed:            params.SpecParam.Seed,
+			AntagonistEquation:  AntagonistEq,
+			ProtagonistEquation: ProtagonistEq,
 
-			Run:          runIndex,
-			SpecEquation: params.SpecParam.ExpressionParsed,
-			SpecRange:    params.SpecParam.Range,
-			SpecSeed:     params.SpecParam.Seed,
+			// Generational Stats
+			Correlation:           run.Generational.CorrelationInEachGeneration[i],
+			Covariance:            run.Generational.CovarianceInEachGeneration[i],
+			AntagonistMean:        run.Generational.AntagonistAverageInEachGeneration[i],
+			ProtagonistMean:       run.Generational.ProtagonistAverageInEachGeneration[i],
+			AntagonistVariance:    run.Generational.AntagonistVarianceInEachGeneration[i],
+			ProtagonistVariance:   run.Generational.ProtagonistVarianceInEachGeneration[i],
+			AntagonistSkew:        run.Generational.AntagonistSkewInEachGeneration[i],
+			ProtagonistSkew:       run.Generational.ProtagonistSkewInEachGeneration[i],
+			AntagonistExKurtosis:  run.Generational.AntagonistExKurtosisInEachGeneration[i],
+			ProtagonistExKurtosis: run.Generational.ProtagonistExKurtosisInEachGeneration[i],
 
-			AntagonistGenFitnessAverage:  run.Generational.AntagonistFitnessAverages[i],
-			ProtagonistGenFitnessAverage: run.Generational.ProtagonistFitnessAverages[i],
-			AntagonistGenBestFitnessAverage: run.Generational.AntagonistBestFitnessAverages[i],
-			ProtagonistGenBestFitnessAverage:run.Generational.ProtagonistBestFitnessAverages[i],
-			AntagonistGenDeltaAverage: run.Generational.AntagonistDeltaAverages[i],
-			ProtagonistGenDeltaAverage:run.Generational.ProtagonistDeltaAverages[i],
-			AntagonistGenBestDeltaAverage: run.Generational.AntagonistBestDeltaAverages[i],
-			ProtagonistGenBestDeltaAverage:run.Generational.ProtagonistBestDeltaAverages[i],
+			// Best Individual in Generation Stats
+			TopAntagonistMeanFitness:  topAntagonistInGenerationByAvgFitness.AverageFitness,
+			TopProtagonistMeanFitness: topProtagonistInGenerationByAvgFitness.AverageFitness,
+			AntagonistBestFitness:     topAntagonistInGenerationByAvgFitness.BestFitness,
+			ProtagonistBestFitness:    topProtagonistInGenerationByAvgFitness.BestFitness,
+			AntagonistStdDev:          topAntagonistInGenerationByAvgFitness.FitnessStdDev,
+			ProtagonistStdDev:         topProtagonistInGenerationByAvgFitness.FitnessStdDev,
+			AntagonistAverageDelta:    topAntagonistInGenerationByAvgFitness.AverageDelta,
+			ProtagonistAverageDelta:   topProtagonistInGenerationByAvgFitness.AverageDelta,
+			AntagonistBestDelta:       topAntagonistInGenerationByAvgFitness.BestDelta,
+			ProtagonistBestDelta:      topProtagonistInGenerationByAvgFitness.BestDelta,
 
-			AntagonistBestFitness:        antagonist.BestFitness,
-			ProtagonistBestFitness:       protagonist.BestFitness,
-			AntagonistStdDev:             antagonist.FitnessStdDev,
-			ProtagonistStdDev:            protagonist.FitnessStdDev,
-			AntagonistAverageDelta:       antagonist.AverageDelta,
-			ProtagonistAverageDelta:      protagonist.AverageDelta,
-			AntagonistBestDelta:          antagonist.BestDelta,
-			ProtagonistBestDelta:         protagonist.BestDelta,
-			AntagonistEquation:          AntagonistEq,
-			ProtagonistEquation:         ProtagonistEq,
-			AntagonistStrategy:          evolution.StrategiesToString(antagonist),
-			ProtagonistStrategy:         evolution.StrategiesToString(protagonist),
-			AntagonistDominantStrategy:  evolution.DominantStrategy(antagonist),
-			ProtagonistDominantStrategy: evolution.DominantStrategy(protagonist),
-			AntagonistBirthGen:          antagonist.BirthGen,
-			ProtagonistBirthGen:         protagonist.BirthGen,
-			AntagonistAge:               antagonist.Age,
-			ProtagonistAge:              protagonist.Age,
+			AntagonistStrategy:          evolution.StrategiesToString(topAntagonistInGenerationByAvgFitness),
+			ProtagonistStrategy:         evolution.StrategiesToString(topProtagonistInGenerationByAvgFitness),
+			AntagonistDominantStrategy:  evolution.DominantStrategy(topAntagonistInGenerationByAvgFitness),
+			ProtagonistDominantStrategy: evolution.DominantStrategy(topProtagonistInGenerationByAvgFitness),
+			AntagonistBirthGen:          topAntagonistInGenerationByAvgFitness.BirthGen,
+			ProtagonistBirthGen:         topProtagonistInGenerationByAvgFitness.BirthGen,
+			AntagonistAge:               topAntagonistInGenerationByAvgFitness.Age,
+			ProtagonistAge:              topProtagonistInGenerationByAvgFitness.Age,
+
+			Run: runIndex,
 		}
 	}
 
@@ -489,7 +352,6 @@ func (s *Simulation) GenerationalInRun(params evolution.EvolutionParams) (runGen
 // ######################################## EPOCHAL ################
 
 func (s *Simulation) EpochalInRun(params evolution.EvolutionParams) (runEpochal RunEpochalStatistics, err error) {
-
 	runIndex := params.InternalCount
 	antagonist := s.SimulationStats[runIndex].TopAntagonist
 	protagonist := s.SimulationStats[runIndex].TopProtagonist
@@ -511,16 +373,16 @@ func (s *Simulation) EpochalInRun(params evolution.EvolutionParams) (runEpochal 
 			SpecRange:    params.SpecParam.Range,
 			SpecSeed:     params.SpecParam.Seed,
 
-			AntagonistID: antagonist.Id,
-			ProtagonistID: protagonist.Id,
+			AntagonistID:                antagonist.Id,
+			ProtagonistID:               protagonist.Id,
 			Antagonist:                  antagonist.Fitness[i],
 			Protagonist:                 protagonist.Fitness[i],
-			AntagonistDelta:                  antagonist.Deltas[i],
-			ProtagonistDelta:                 protagonist.Deltas[i],
+			AntagonistDelta:             antagonist.Deltas[i],
+			ProtagonistDelta:            protagonist.Deltas[i],
 			AntagonistStdDev:            antagonist.FitnessStdDev,
 			ProtagonistStdDev:           protagonist.FitnessStdDev,
-			AntagonistAverageDelta:             antagonist.AverageDelta,
-			ProtagonistAverageDelta:            protagonist.AverageDelta,
+			AntagonistAverageDelta:      antagonist.AverageDelta,
+			ProtagonistAverageDelta:     protagonist.AverageDelta,
 			AntagonistBestDelta:         antagonist.BestDelta,
 			ProtagonistBestDelta:        protagonist.BestDelta,
 			AntagonistEquation:          topAntagonistEq,
@@ -585,8 +447,8 @@ func (s *Simulation) SimulationBestEpochal(params evolution.EvolutionParams) (be
 	//
 	//			Antagonist:                  antagonist.AverageFitness,
 	//			Protagonist:                 protagonist.AverageFitness,
-	//			AntagonistStdDev:            antagonist.FitnessStdDev,
-	//			ProtagonistStdDev:           protagonist.FitnessStdDev,
+	//			AntagonistStdDevInGeneration:            antagonist.FitnessStdDev,
+	//			ProtagonistStdDevInGeneration:           protagonist.FitnessStdDev,
 	//			AntagonistBestDelta:         antagonist.BestDelta,
 	//			ProtagonistBestDelta:        protagonist.BestDelta,
 	//			AntagonistEquation:          topAntagonistEq,
@@ -685,7 +547,7 @@ func (s *Simulation) SimulationBestStrategy(params evolution.EvolutionParams) (s
 
 	bestActualIndividuals, err := s.SimulationBestActualIndividuals(params)
 	if err != nil {
-		return nil, err	
+		return nil, err
 	}
 
 	protagonist := bestActualIndividuals.Protagonist
@@ -711,8 +573,8 @@ func (s *Simulation) SimulationBestStrategy(params evolution.EvolutionParams) (s
 		simulationStrategy[j] = SimulationStrategyStatistic{
 			Antagonist:            antStrat,
 			Protagonist:           proStrat,
-			AntagonistEquation: antEq,
-			ProtagonistEquation: proEq,
+			AntagonistEquation:    antEq,
+			ProtagonistEquation:   proEq,
 			ProtagonistRun:        bestActualIndividuals.ProtagonistRun,
 			AntagonistRun:         bestActualIndividuals.AntagonistRun,
 			ProtagonistGeneration: bestActualIndividuals.ProtagonistGeneration,
@@ -762,25 +624,33 @@ type RunGenerationalStatistic struct {
 	SpecRange    int    `csv:"range"`
 	SpecSeed     int    `csv:"seed"`
 
-	AntagonistGenFitnessAverage  float64 `csv:"AGenFitAvg"`
-	ProtagonistGenFitnessAverage float64 `csv:"PGenFitAvg"`
-	AntagonistGenBestFitnessAverage float64 `csv:"AGenBestFitAvg"`
-	ProtagonistGenBestFitnessAverage float64 `csv:"PGenBestFitAvg"`
-	AntagonistGenDeltaAverage float64 `csv:"AGenDeltaAvg"`
-	ProtagonistGenDeltaAverage float64 `csv:"PGenDeltaAvg"`
-	AntagonistGenBestDeltaAverage float64 `csv:"AGenBestDeltaAvg"`
-	ProtagonistGenBestDeltaAverage float64 `csv:"PGenBestDeltaAvg"`
+	AntagonistEquation  string `csv:"topAEquation"`
+	ProtagonistEquation string `csv:"topPEquation"`
 
-	AntagonistBestFitness        float64 `csv:"topABestFit"`
-	ProtagonistBestFitness       float64 `csv:"topPBestFit"`
-	AntagonistStdDev             float64 `csv:"topAStdDev"`
-	ProtagonistStdDev            float64 `csv:"topPStdDev"`
-	AntagonistAverageDelta       float64 `csv:"topAAvgDelta"`
-	ProtagonistAverageDelta      float64 `csv:"topPAvgtDelta"`
-	AntagonistBestDelta          float64 `csv:"topABestDelta"`
-	ProtagonistBestDelta         float64 `csv:"topPBestDelta"`
-	AntagonistEquation           string  `csv:"topAEquation"`
-	ProtagonistEquation         string  `csv:"topPEquation"`
+	// Generation Stats
+	Correlation float64 `csv:"correlation"`
+	Covariance  float64 `csv:"covariance"`
+
+	AntagonistMean        float64 `csv:"AMean"`
+	ProtagonistMean       float64 `csv:"PMean"`
+	AntagonistStdDev      float64 `csv:"AStd"`
+	ProtagonistStdDev     float64 `csv:"PStd"`
+	AntagonistVariance    float64 `csv:"AVar"`
+	ProtagonistVariance   float64 `csv:"PVar"`
+	AntagonistSkew        float64 `csv:"ASkew"`
+	ProtagonistSkew       float64 `csv:"PSkew"`
+	AntagonistExKurtosis  float64 `csv:"AExKur"`
+	ProtagonistExKurtosis float64 `csv:"PExKur"`
+
+	// Top Individual In Generation Stats
+	TopAntagonistMeanFitness    float64 `csv:"topAMean"`
+	TopProtagonistMeanFitness   float64 `csv:"topPMean"`
+	AntagonistBestFitness       float64 `csv:"topABest"`
+	ProtagonistBestFitness      float64 `csv:"topPBest"`
+	AntagonistAverageDelta      float64 `csv:"topAMeanDelta"`
+	ProtagonistAverageDelta     float64 `csv:"topPMeanDelta"`
+	AntagonistBestDelta         float64 `csv:"topABestDelta"`
+	ProtagonistBestDelta        float64 `csv:"topPBestDelta"`
 	AntagonistStrategy          string  `csv:"topAStrat"`
 	ProtagonistStrategy         string  `csv:"topPStrat"`
 	AntagonistDominantStrategy  string  `csv:"topADomStrat"`
@@ -817,17 +687,17 @@ type RunEpochalStatistic struct {
 	SpecRange    int    `csv:"range"`
 	SpecSeed     int    `csv:"seed"`
 
-	AntagonistID string `csv:"AID"`
-	ProtagonistID string `csv:"PID"`
-	Antagonist                  float64 `csv:"A"`
-	Protagonist                 float64 `csv:"P"`
-	AntagonistDelta             float64 `csv:"ADelta"`
-	ProtagonistDelta            float64 `csv:"PDelta"`
-	AntagonistStdDev            float64 `csv:"AStdDev"`
-	ProtagonistStdDev           float64 `csv:"PStdDev"`
+	AntagonistID      string  `csv:"AID"`
+	ProtagonistID     string  `csv:"PID"`
+	Antagonist        float64 `csv:"A"`
+	Protagonist       float64 `csv:"P"`
+	AntagonistDelta   float64 `csv:"ADelta"`
+	ProtagonistDelta  float64 `csv:"PDelta"`
+	AntagonistStdDev  float64 `csv:"AStdDev"`
+	ProtagonistStdDev float64 `csv:"PStdDev"`
 
-	AntagonistAverageDelta             float64 `csv:"AAvgDelta"`
-	ProtagonistAverageDelta            float64 `csv:"PAvgDelta"`
+	AntagonistAverageDelta      float64 `csv:"AAvgDelta"`
+	ProtagonistAverageDelta     float64 `csv:"PAvgDelta"`
 	AntagonistBestDelta         float64 `csv:"ABestDelta"`
 	ProtagonistBestDelta        float64 `csv:"PBestDelta"`
 	AntagonistEquation          string  `csv:"AEquation"`
@@ -912,8 +782,8 @@ func (e *RunStrategyStatistics) ToCSV(outputPath string) error {
 type SimulationStrategyStatistic struct {
 	Antagonist            string `csv:"A"`
 	Protagonist           string `csv:"P"`
-	AntagonistEquation           string `csv:"AEquation"`
-	ProtagonistEquation           string `csv:"PEquation"`
+	AntagonistEquation    string `csv:"AEquation"`
+	ProtagonistEquation   string `csv:"PEquation"`
 	AntagonistGeneration  int    `csv:"AGen"`
 	ProtagonistGeneration int    `csv:"PGen"`
 	AntagonistRun         int    `csv:"ARun"`
@@ -947,10 +817,12 @@ type RunBestIndividualStatistic struct {
 	SpecRange    int    `csv:"range"`
 	SpecSeed     int    `csv:"seed"`
 
-	AntagonistID string `csv:"AID"`
-	ProtagonistID string `csv:"PID"`
+	AntagonistID                string  `csv:"AID"`
+	ProtagonistID               string  `csv:"PID"`
 	Antagonist                  float64 `csv:"AAvg"`
 	Protagonist                 float64 `csv:"PAvg"`
+	MeanCorrelation             float64 `csv:"meanCorrInRun"`
+	MeanCovariance              float64 `csv:"meanCovInRun"`
 	AntagonistBestFitness       float64 `csv:"ABestFit"`
 	ProtagonistBestFitness      float64 `csv:"PBestFit"`
 	AntagonistStdDev            float64 `csv:"AStdDev"`
@@ -1021,8 +893,11 @@ type SimulationBestIndividual struct {
 	SpecRange    int    `csv:"range"`
 	SpecSeed     int    `csv:"seed"`
 
-	AntagonistID string `csv:"AID"`
-	ProtagonistID string `csv:"PID"`
+	Correlation int `csv:"corr"`
+	Covariance  int `csv:"cov"`
+
+	AntagonistID                string  `csv:"AID"`
+	ProtagonistID               string  `csv:"PID"`
 	Antagonist                  float64 `csv:"AAvg"`
 	Protagonist                 float64 `csv:"PAvg"`
 	AntagonistBestFitness       float64 `csv:"ABestFit"`

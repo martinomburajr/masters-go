@@ -101,10 +101,10 @@ func thresholdedRatioFitness(spec SpecMulti, antagonist, protagonist *Program,
 				}
 			} else {
 				diff := (spec[i].Dependent - dependentAntagonistVar)
-				deltaAntagonist += diff*diff
+				deltaAntagonist += diff * diff
 			}
 		}
-		deltaAntagonistThreshold += (math.Abs(spec[i].AntagonistThreshold)*math.Abs(spec[i].AntagonistThreshold))
+		deltaAntagonistThreshold += (math.Abs(spec[i].AntagonistThreshold) * math.Abs(spec[i].AntagonistThreshold))
 		if isProtagonistValid {
 			dependentProtagonistVar, err := protagonist.EvalMulti(independentX, protagonistExpression)
 			if err != nil {
@@ -134,10 +134,10 @@ func thresholdedRatioFitness(spec SpecMulti, antagonist, protagonist *Program,
 				}
 			} else {
 				diff := (spec[i].Dependent - dependentProtagonistVar)
-				deltaProtagonist += diff*diff
+				deltaProtagonist += diff * diff
 			}
 		}
-		deltaProtagonistThreshold += (spec[i].ProtagonistThreshold*spec[i].ProtagonistThreshold)
+		deltaProtagonistThreshold += (spec[i].ProtagonistThreshold * spec[i].ProtagonistThreshold)
 	}
 
 	specLen := float64(len(spec))
@@ -222,7 +222,6 @@ func thresholdedRatioFitness(spec SpecMulti, antagonist, protagonist *Program,
 	}
 }
 
-
 // RMSE (Root Mean Squared Error) Root Mean Square Error (RMSE) is the standard deviation of the residuals
 // (prediction errors). Residuals are a measure of how far from the regression line data points are;
 // RMSE is a measure of how spread out these residuals are. In other words,
@@ -239,7 +238,7 @@ func RMSE(forecast, observed []float64) float64 {
 		sumDiffSquared += diffSquared
 	}
 
-	normalized := sumDiffSquared/float64(size)
+	normalized := sumDiffSquared / float64(size)
 
 	return math.Sqrt(normalized)
 }

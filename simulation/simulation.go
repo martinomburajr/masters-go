@@ -18,15 +18,15 @@ import (
 )
 
 const (
-	ProgressCounterSimulation=14
-	ProgressRunStats=5
+	ProgressCounterSimulation = 10
+	ProgressRunStats          = 5
 )
 
 type Simulation struct {
 	CurrentEvolutionState evolution.EvolutionParams `json:"currentEvolutionState"`
 	NumberOfRunsPerState  int                       `json:"numberOfRunsPerState"`
 	Name                  string                    `json:"name"`
-	StatsFiles []string `json:"statsFiles""`
+	StatsFiles            []string                  `json:"statsFiles"`
 
 	ProgressBar *uiprogress.Bar
 
@@ -35,7 +35,6 @@ type Simulation struct {
 	RPath           string               `json:"rPath"`
 	SimulationStats []SimulationRunStats `json:"simulationStats"`
 	DataPath        string
-
 }
 
 func (s *Simulation) Begin(params evolution.EvolutionParams) (evolution.EvolutionParams, error) {
@@ -49,32 +48,30 @@ func (s *Simulation) Begin(params evolution.EvolutionParams) (evolution.Evolutio
 	if params.EnableParallelism {
 		wg := sync.WaitGroup{}
 		for i := 0; i < s.NumberOfRunsPerState; i++ {
-			time.Sleep(2 * time.Second)
+			time.Sleep(100 * time.Millisecond)
 			wg.Add(1)
-
-
 			progCount := ProgressCounterSimulation + evolution.ProgressCountersEvolutionResult
 
 			if params.RunStats {
 				progCount += ProgressRunStats
 			}
-			if params.MaxGenerations > evolution.MinAllowableGenerationsForContinuous {
+			if params.MaxGenerations > evolution.MinAllowableGenerationsToTerminate {
 				progCount += params.MaxGenerations
 
-			}else {
+			} else {
 				progCount += params.GenerationsCount
 			}
 
 			go func(i int, params evolution.EvolutionParams, newParamsChan chan evolution.EvolutionParams,
-				s *Simulation, mutex *sync.Mutex, wg *sync.WaitGroup, progCount int)  {
+				s *Simulation, mutex *sync.Mutex, wg *sync.WaitGroup, progCount int) {
 				defer wg.Done()
 
 				var bar *uiprogress.Bar
 				bar = uiprogress.AddBar(progCount).AppendCompleted().PrependElapsed().PrependFunc(func(b *uiprogress.
-				Bar) string {
+					Bar) string {
 
 					folderNumber := strings.Split(params.ParamFile, "/")[0]
-					sb := fmt.Sprintf("Folder: %s | Run: %d/%d | ==>", folderNumber, i, s.NumberOfRunsPerState)
+					sb := fmt.Sprintf("Folder: %s \t| Run: %d/%d \t| ==>", folderNumber, i+1, s.NumberOfRunsPerState)
 					return sb
 				})
 				s.ProgressBar = bar
@@ -90,7 +87,10 @@ func (s *Simulation) Begin(params evolution.EvolutionParams) (evolution.Evolutio
 				mutex.Unlock()
 
 				engine.ProgressBar = s.ProgressBar
-				s.StartEngine(engine)
+				err := s.StartEngine(engine)
+				if err != nil {
+					params.ErrorChan <- err
+				}
 				engine.Generations = nil // FREE UP MEMORY
 			}(i, params, newParamsChan, s, &mutex, &wg, progCount)
 		}
@@ -133,33 +133,12 @@ func (s *Simulation) Begin(params evolution.EvolutionParams) (evolution.Evolutio
 	}
 	err = simulationBestIndividual.ToCSV(s.generateSimulationPathCSV("best-all"))
 	s.ProgressBar.Incr()
-	simulationBestIndividualByAverageDelta, err := s.SimulationBestIndividualByAverageDelta(params)
-	if err != nil {
-		return params, nil
-	}
-	s.ProgressBar.Incr()
-	err = simulationBestIndividualByAverageDelta.ToCSV(s.generateSimulationPathCSV("best-deltaAvg"))
-	if err != nil {
-		return params, nil
-	}
-	s.ProgressBar.Incr()
-	simulationBestIndividualByDelta, err := s.SimulationBestIndividualByDelta(params)
-	if err != nil {
-		return params, nil
-	}
-	s.ProgressBar.Incr()
-	err = simulationBestIndividualByDelta.ToCSV(s.generateSimulationPathCSV("best-delta"))
-	if err != nil {
-		return params, nil
-	}
-	s.ProgressBar.Incr()
 	abs, _ := filepath.Abs(s.DataPath)
 	if params.RunStats {
 		s.RunRScript(s.RPath, abs, s.StatsFiles, params.LoggingChan, params.ErrorChan)
 	}
 
 	//msg := fmt.Sprintf("SIMULATION COMPLETE:\nFile: %s", params.ToString())
-	params.DoneChan <- true
 	s.ProgressBar.Incr()
 
 	fmt.Printf("SIMUlATION COMPLETE: Number of Goroutines %d", runtime.NumGoroutine())
@@ -197,6 +176,8 @@ type SimulationRunStats struct {
 	FinalAntagonist          evolution.Individual
 	FinalProtagonist         evolution.Individual
 	Generational             evolution.Generational
+	MeanCorrelation          float64
+	MeanCovariance           float64
 }
 
 func (s *Simulation) RunRScript(RPath, dirPath string, RFiles []string, logChan chan evolog.Logger, errChan chan error) {
@@ -222,28 +203,30 @@ func (s *Simulation) RunRScript(RPath, dirPath string, RFiles []string, logChan 
 	fmt.Println("COMPLETED RSCRIPTS")
 }
 
-
-
 func (s *Simulation) StartEngine(engine *evolution.EvolutionEngine) error {
 	//mut := sync.Mutex{}
-	evolutionResult, err := engine.Start()
+	evolutionResult, err := engine.TopologyRoundRobin()
 	if err != nil {
 		return err
 	}
 
 	engine.ProgressBar.Incr()
-	
-	topAnt, err := evolutionResult.TopAntagonist.Clone()
-	topProt, err := evolutionResult.TopProtagonist.Clone()
+
+	topAnt, err := evolutionResult.TopAntagonistInRun.Clone()
+	topProt, err := evolutionResult.TopProtagonistInRun.Clone()
 	finAnt, err := evolutionResult.FinalAntagonist.Clone()
 	finProt, err := evolutionResult.FinalProtagonist.Clone()
 
 	s.SimulationStats[engine.Parameters.InternalCount] = SimulationRunStats{
-		TopAntagonist:    topAnt,
-		TopProtagonist:   topProt,
-		FinalAntagonist:  finAnt,
-		FinalProtagonist: finProt,
-		Generational:     evolutionResult.Generational,
+		TopAntagonist:            topAnt,
+		TopProtagonist:           topProt,
+		TopAntagonistGeneration:  0,
+		TopProtagonistGeneration: 0,
+		FinalAntagonist:          finAnt,
+		FinalProtagonist:         finProt,
+		Generational:             evolutionResult.Generational,
+		MeanCorrelation:          evolutionResult.Correlation,
+		MeanCovariance:           evolutionResult.Covariance,
 	}
 
 	os.Mkdir(fmt.Sprintf("%s%d", s.OutputDir, s.CurrentEvolutionState.InternalCount), 0755)
@@ -253,7 +236,7 @@ func (s *Simulation) StartEngine(engine *evolution.EvolutionEngine) error {
 		return err
 	}
 	err = runEpochalStatistics.ToCSV(s.generateRunPathCSV("epochal", engine.Parameters.InternalCount))
-	
+
 	engine.ProgressBar.Incr()
 	runGenerationalStatistics, err := s.GenerationalInRun(engine.Parameters)
 	if err != nil {
@@ -266,7 +249,7 @@ func (s *Simulation) StartEngine(engine *evolution.EvolutionEngine) error {
 		return err
 	}
 	err = runStrategyStatistics.ToCSV(s.generateRunPathCSV("strategy", engine.Parameters.InternalCount))
-	
+
 	engine.ProgressBar.Incr()
 	runBestIndividualStatistics, err := s.BestIndividualsInRun(engine.Parameters)
 	if err != nil {
@@ -276,9 +259,9 @@ func (s *Simulation) StartEngine(engine *evolution.EvolutionEngine) error {
 	if err != nil {
 		return err
 	}
-	
+
 	engine.ProgressBar.Incr()
-	
+
 	return nil
 }
 
@@ -297,7 +280,7 @@ func (s *Simulation) generateSimulationPathCSV(fileName string) string {
 // PrepareSimulation takes in the given evolution parameters and a count variable and returns the engine that can be
 // started run the simulation. The evolution engine will run count times.
 func PrepareSimulation(params evolution.EvolutionParams, count int) *evolution.EvolutionEngine {
-		if params.SpecParam.Seed < 0 {
+	if params.SpecParam.Seed < 0 {
 		params.FitnessCalculatorType = 1
 	}
 	params.SpecParam.Expression = strings.ReplaceAll(params.SpecParam.Expression, " ", "")
@@ -355,7 +338,7 @@ func PrepareSimulation(params evolution.EvolutionParams, count int) *evolution.E
 	}
 
 	fmt.Printf(
-		"Simulation:\n" +
+		"Simulation:\n"+
 			"Mathematical Expression: %s",
 		starterTreeAsMathematicalExpression,
 	)
@@ -368,9 +351,9 @@ func PrepareSimulation(params evolution.EvolutionParams, count int) *evolution.E
 
 	genCount := 0
 
-	if params.MaxGenerations > evolution.MinAllowableGenerationsForContinuous {
+	if params.MaxGenerations > evolution.MinAllowableGenerationsToTerminate {
 		genCount = params.MaxGenerations
-	}else {
+	} else {
 		genCount = params.GenerationsCount
 	}
 
@@ -441,102 +424,108 @@ func (s *Simulation) SpewJSONNoSplit(projectAbsolutePath, paramsDir string) erro
 
 	for expressionIndex := 0; expressionIndex < len(AllExpressions); expressionIndex++ {
 		for allMaxGenIndex := 0; allMaxGenIndex < len(AllMaxGenerations); allMaxGenIndex++ {
-		for rangesIndex := 0; rangesIndex < len(AllRanges); rangesIndex++ {
-			for seedIndex := 0; seedIndex < len(AllSeed); seedIndex++ {
-				for generationsCountIndex := 0; generationsCountIndex < len(AllGenerationsCount); generationsCountIndex++ {
-					for eachPopulationIndex := 0; eachPopulationIndex < len(AllEachPopulationSize); eachPopulationIndex++ {
-						for reproductionIndex := 0; reproductionIndex < len(AllReproduction); reproductionIndex++ {
-							for newTreeIndex := 0; newTreeIndex < len(AllDepthOfRandomNewTree); newTreeIndex++ {
-								for antStratIndex := 0; antStratIndex < len(AllAntagonistStrategyCount); antStratIndex++ {
-									for proStratIndex := 0; proStratIndex < len(AllProtagonistStrategyCount); proStratIndex++ {
-										//for availableStrategyIndex = 0; availableStrategyIndex < len(AllAvailableStrategy); availableStrategyIndex++ {
-										for fitnessStrategyTypeIndex := 0; fitnessStrategyTypeIndex < len(AllFitnessStrategyType); fitnessStrategyTypeIndex++ {
-											for fitStratAntThresMultIndex := 0; fitStratAntThresMultIndex < len(AllFitStratAntThreshMult); fitStratAntThresMultIndex++ {
-												for fitStratProtThreshMultIndex := 0; fitStratProtThreshMultIndex < len(AllFitStratProThreshMult); fitStratProtThreshMultIndex++ {
-													//for selectParentTypeIndex := 0; selectParentTypeIndex < len(AllSelectionSurvivorPercentage); selectParentTypeIndex++ {
-														for strategiesAntagonistIndex := 0; strategiesAntagonistIndex < len(AllPossibleStrategies); strategiesAntagonistIndex++ {
-															for strategiesProtagonistIndex := 0; strategiesProtagonistIndex < len(AllPossibleStrategies); strategiesProtagonistIndex++ {
-																for divByZeroPenaltyIndex := 0; divByZeroPenaltyIndex < len(AllDivByZeroPenalty); divByZeroPenaltyIndex++ {
-																	for divByZeroStrategyIndex := 0; divByZeroStrategyIndex < len(AllDivByZeroStrategy); divByZeroStrategyIndex++ {
-																		for tournSelSizeInd := 0; tournSelSizeInd < len(AllTournamentSizesType); tournSelSizeInd++ {
-																			for survivorIndex := 0; survivorIndex < len(AllSurvivorSelection); survivorIndex++ {
+			for rangesIndex := 0; rangesIndex < len(AllRanges); rangesIndex++ {
+				for seedIndex := 0; seedIndex < len(AllSeed); seedIndex++ {
+					for generationsCountIndex := 0; generationsCountIndex < len(AllGenerationsCount); generationsCountIndex++ {
+						for eachPopulationIndex := 0; eachPopulationIndex < len(AllEachPopulationSize); eachPopulationIndex++ {
+							for reproductionIndex := 0; reproductionIndex < len(AllReproduction); reproductionIndex++ {
+								for newTreeIndex := 0; newTreeIndex < len(AllDepthOfRandomNewTree); newTreeIndex++ {
+									for antStratIndex := 0; antStratIndex < len(AllAntagonistStrategyCount); antStratIndex++ {
+										for minProIndex := 0; minProIndex < len(
+											AllMinimumTopProtagonistMeanBeforeTerminate); minProIndex++ {
+											for proStratIndex := 0; proStratIndex < len(
+												AllProtagonistStrategyCount); proStratIndex++ {
+												for minGenIndex := 0; minGenIndex < len(
+													AllMinimumGenerationMeanBeforeTerminate); minGenIndex++ {
+													//for availableStrategyIndex = 0; availableStrategyIndex < len(AllAvailableStrategy); availableStrategyIndex++ {
+													for fitnessStrategyTypeIndex := 0; fitnessStrategyTypeIndex < len(AllFitnessStrategyType); fitnessStrategyTypeIndex++ {
+														for fitStratAntThresMultIndex := 0; fitStratAntThresMultIndex < len(AllFitStratAntThreshMult); fitStratAntThresMultIndex++ {
+															for fitStratProtThreshMultIndex := 0; fitStratProtThreshMultIndex < len(AllFitStratProThreshMult); fitStratProtThreshMultIndex++ {
+																for strategiesAntagonistIndex := 0; strategiesAntagonistIndex < len(AllPossibleStrategies); strategiesAntagonistIndex++ {
+																	for strategiesProtagonistIndex := 0; strategiesProtagonistIndex < len(AllPossibleStrategies); strategiesProtagonistIndex++ {
+																		for divByZeroPenaltyIndex := 0; divByZeroPenaltyIndex < len(AllDivByZeroPenalty); divByZeroPenaltyIndex++ {
+																			for divByZeroStrategyIndex := 0; divByZeroStrategyIndex < len(AllDivByZeroStrategy); divByZeroStrategyIndex++ {
+																				for survivorIndex := 0; survivorIndex < len(AllSurvivorSelection); survivorIndex++ {
+																					for parentIndex := 0; parentIndex < len(AllSelectionParentType); parentIndex++ {
+																						for ProtagonistMinGenAvgFitIndex := 0; ProtagonistMinGenAvgFitIndex < len(AllProtagonistMinGenAvgFit); ProtagonistMinGenAvgFitIndex++ {
+																							// TODO Add Parallelism
+																							params := evolution.EvolutionParams{
+																								SpecParam: evolution.SpecParam{
+																									Seed:       AllSeed[seedIndex],
+																									Expression: AllExpressions[expressionIndex],
+																									Range:      AllRanges[rangesIndex],
+																									AvailableVariablesAndOperators: evolution.AvailableVariablesAndOperators{
+																										Constants: []string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"},
+																										Variables: []string{"x"},
+																										Operators: []string{"*", "+", "-", "/"},
+																									},
+																									DivideByZeroStrategy: AllDivByZeroStrategy[divByZeroStrategyIndex],
+																									DivideByZeroPenalty:  AllDivByZeroPenalty[divByZeroPenaltyIndex],
+																								},
+																								MaxGenerations:                           AllMaxGenerations[allMaxGenIndex],
+																								MinimumTopProtagonistMeanBeforeTerminate: AllMinimumTopProtagonistMeanBeforeTerminate[minProIndex],
+																								MinimumGenerationMeanBeforeTerminate:     AllMinimumGenerationMeanBeforeTerminate[minGenIndex],
+																								ProtagonistMinGenAvgFit:                  AllProtagonistMinGenAvgFit[ProtagonistMinGenAvgFitIndex],
+																								GenerationsCount:                         AllGenerationsCount[generationsCountIndex],
+																								EachPopulationSize:                       AllEachPopulationSize[eachPopulationIndex],
+																								EnableParallelism:                        false,
+																								Strategies: evolution.Strategies{
+																									AntagonistAvailableStrategies:  AllPossibleStrategies[strategiesAntagonistIndex],
+																									ProtagonistAvailableStrategies: AllPossibleStrategies[strategiesProtagonistIndex],
+																									AntagonistStrategyCount:        AllAntagonistStrategyCount[antStratIndex],
+																									ProtagonistStrategyCount:       AllProtagonistStrategyCount[proStratIndex],
+																									DepthOfRandomNewTrees:          AllDepthOfRandomNewTree[newTreeIndex],
+																								},
+																								FitnessStrategy: evolution.FitnessStrategy{
+																									Type:                           AllFitnessStrategyType[fitnessStrategyTypeIndex],
+																									AntagonistThresholdMultiplier:  AllFitStratAntThreshMult[fitStratAntThresMultIndex],
+																									ProtagonistThresholdMultiplier: AllFitStratProThreshMult[fitStratProtThreshMultIndex],
+																								},
+																								Reproduction: AllReproduction[reproductionIndex],
+																								Selection: evolution.Selection{
+																									Survivor: AllSurvivorSelection[survivorIndex],
+																									Parent:   AllSelectionParentType[parentIndex],
+																								},
+																								FolderPercentages: []float64{0.01, 0.25, 0.5, 0.75, 0.95},
+																							}
 
-																				// TODO Add Parallelism
-																				params := evolution.EvolutionParams{
-																					SpecParam: evolution.SpecParam{
-																						Seed:       AllSeed[seedIndex],
-																						Expression: AllExpressions[expressionIndex],
-																						Range:      AllRanges[rangesIndex],
-																						AvailableVariablesAndOperators: evolution.AvailableVariablesAndOperators{
-																							Constants: []string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"},
-																							Variables: []string{"x"},
-																							Operators: []string{"*", "+", "-", "/"},
-																						},
-																						DivideByZeroStrategy: AllDivByZeroStrategy[divByZeroStrategyIndex],
-																						DivideByZeroPenalty:  AllDivByZeroPenalty[divByZeroPenaltyIndex],
-																					},
-																					MaxGenerations:          AllMaxGenerations[allMaxGenIndex],
-																					MinGenFitEval:           10,
-																					ProtagonistMinGenAvgFit: 0.85,
-																					GenerationsCount:        AllGenerationsCount[generationsCountIndex],
-																					EachPopulationSize:      AllEachPopulationSize[eachPopulationIndex],
-																					EnableParallelism:       false,
-																					Strategies: evolution.Strategies{
-																						AntagonistAvailableStrategies:  AllPossibleStrategies[strategiesAntagonistIndex],
-																						ProtagonistAvailableStrategies: AllPossibleStrategies[strategiesProtagonistIndex],
-																						AntagonistStrategyCount:        AllAntagonistStrategyCount[antStratIndex],
-																						ProtagonistStrategyCount:       AllProtagonistStrategyCount[proStratIndex],
-																						DepthOfRandomNewTrees:          AllDepthOfRandomNewTree[newTreeIndex],
-																					},
-																					FitnessStrategy: evolution.FitnessStrategy{
-																						Type:                           AllFitnessStrategyType[fitnessStrategyTypeIndex],
-																						AntagonistThresholdMultiplier:  AllFitStratAntThreshMult[fitStratAntThresMultIndex],
-																						ProtagonistThresholdMultiplier: AllFitStratProThreshMult[fitStratProtThreshMultIndex],
-																					},
-																					Reproduction: AllReproduction[reproductionIndex],
-																					Selection: evolution.Selection{
-																						Survivor: AllSurvivorSelection[survivorIndex],
-																						Parent: evolution.ParentSelection{
-																							Type:           evolution.ParentSelectionTournament,
-																							TournamentSize: AllTournamentSizesType[tournSelSizeInd],
-																						},
-																					},
+																							fmt.Printf("Loaded: %s\n", params.ToString())
+
+																							engine := PrepareSimulation(params, 0)
+																							outputPath := fmt.Sprintf("%s%s",
+																								engine.Parameters.
+																									StatisticsOutput.
+																									OutputPath[:len(engine.Parameters.StatisticsOutput.OutputPath)-1], ".json")
+
+																							folder := fmt.Sprintf("%s/%d",
+																								paramsDir, counter)
+																							absFolderPath := fmt.Sprintf("%s/%s", projectAbsolutePath, folder)
+																							os.Mkdir(absFolderPath, 0755)
+																							outputFilepath := strings.ReplaceAll(
+																								outputPath, "data/", folder+"/")
+
+																							file, err := os.Create(outputFilepath)
+																							if err != nil {
+																								return fmt.Errorf(err.Error())
+																							}
+																							err = json.NewEncoder(file).Encode(params)
+																							if err != nil {
+																								return fmt.Errorf(err.Error())
+																							}
+																							file.Close()
+
+																							counter++
+																						}
+																					}
 																				}
-
-																				fmt.Printf("Loaded: %s\n", params.ToString())
-
-																				engine := PrepareSimulation(params, 0)
-																				outputPath := fmt.Sprintf("%s%s",
-																					engine.Parameters.
-																						StatisticsOutput.
-																						OutputPath[:len(engine.Parameters.StatisticsOutput.OutputPath)-1], ".json")
-
-																				folder := fmt.Sprintf("%s/%d",
-																					paramsDir, counter)
-																				absFolderPath := fmt.Sprintf("%s/%s", projectAbsolutePath, folder)
-																				os.Mkdir(absFolderPath, 0755)
-																				outputFilepath := strings.ReplaceAll(
-																					outputPath, "data/", folder+"/")
-
-																				file, err := os.Create(outputFilepath)
-																				if err != nil {
-																					return fmt.Errorf(err.Error())
-																				}
-																				err = json.NewEncoder(file).Encode(params)
-																				if err != nil {
-																					return fmt.Errorf(err.Error())
-																				}
-																				file.Close()
-
-																				counter++
 																			}
 																		}
 																	}
 																}
 															}
-															}
 														}
 
+													}
 												}
 											}
 										}

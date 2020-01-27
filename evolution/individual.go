@@ -2,6 +2,7 @@ package evolution
 
 import (
 	"fmt"
+	"math"
 	"math/rand"
 	"strings"
 )
@@ -34,44 +35,182 @@ type Individual struct {
 	Program *Program // The best program generated
 }
 
-func (i Individual) Clone() (Individual, error) {
-	if i.Program != nil {
-		programClone, err := i.Program.Clone()
+func (individual Individual) Clone() (Individual, error) {
+	if individual.Program != nil {
+		programClone, err := individual.Program.Clone()
 		if err != nil {
 			return Individual{}, err
 		}
-		i.Program = &programClone
+		individual.Program = &programClone
 	}
-	return i, nil
+	return individual, nil
 }
 
-func (i Individual) CloneWithTree(tree DualTree) Individual {
-	i.Id = GenerateIndividualID("", i.Kind)
+// GenerateRandom creates a a random set of individuals based on the parameters passed into the
+// evolution engine. To pass a tree to an individual pass it via the formal parameters and not through the evolution
+// engine
+// parameter section
+// Antagonists are by default
+// set with the StartIndividuals Program as their own
+// program.
+func (g *Generation) GenerateRandomIndividuals(kind int, params EvolutionParams) ([]*Individual, error) {
+	if params.EachPopulationSize < 1 {
+		return nil, fmt.Errorf("number should at least be 1")
+	}
+	if kind == IndividualAntagonist {
+		if params.Strategies.AntagonistStrategyCount < 1 {
+			return nil, fmt.Errorf("antagonist maxNumberOfStrategies should at least be 1")
+		}
+		if len(params.Strategies.AntagonistAvailableStrategies) < 1 {
+			return nil, fmt.Errorf("antagonist availableStrategies should at least have one Strategy")
+		}
+	} else if kind == IndividualProtagonist {
+		if params.Strategies.ProtagonistStrategyCount < 1 {
+			return nil, fmt.Errorf("protagonist maxNumberOfStrategies should at least be 1")
+		}
+		if len(params.Strategies.ProtagonistAvailableStrategies) < 1 {
+			return nil, fmt.Errorf("protagonist availableStrategies should at least have one Strategy")
+		}
+	} else {
+		return nil, fmt.Errorf("unknown individual kind")
+	}
 
-	programClone := i.Program.CloneWithTree(tree)
-	i.Program = &programClone
-	return i
+	individuals := make([]*Individual, params.EachPopulationSize)
+
+	for i := 0; i < params.EachPopulationSize; i++ {
+
+		var randomStrategies []Strategy
+
+		if kind == IndividualAntagonist {
+			randomStrategies = GenerateRandomStrategy(params.Strategies.AntagonistStrategyCount,
+				params.Strategies.AntagonistAvailableStrategies)
+		} else if kind == IndividualProtagonist {
+			randomStrategies = GenerateRandomStrategy(params.Strategies.ProtagonistStrategyCount,
+				params.Strategies.ProtagonistAvailableStrategies)
+		}
+
+		id := fmt.Sprintf("%s-%d", KindToString(kind), i)
+		var individual *Individual
+
+		if params.StartIndividual.T == nil {
+			individual = &Individual{
+				Kind:     kind,
+				Id:       id,
+				Strategy: randomStrategies,
+				Fitness:  make([]float64, 0),
+				Program:  nil,
+				BirthGen: 0,
+			}
+		} else {
+			params.StartIndividual.ID = GenerateProgramID(i)
+
+			clone, err := params.StartIndividual.Clone()
+			if err != nil {
+				return nil, err
+			}
+			individual = &Individual{
+				Kind:     kind,
+				Id:       id,
+				Strategy: randomStrategies,
+				Fitness:  make([]float64, 0),
+				Program:  &clone,
+			}
+		}
+
+		individuals[i] = individual
+	}
+	return individuals, nil
+}
+
+// ApplyAntagonistStrategy applies the AntagonistEquation strategies to program.
+func (individual *Individual) ApplyAntagonistStrategy(params EvolutionParams) error {
+	if individual.Kind == IndividualProtagonist {
+		return fmt.Errorf("ApplyAntagonistStrategy | cannot apply Antagonist Strategy to Protagonist")
+	}
+	if individual.Strategy == nil {
+		return fmt.Errorf("antagonist stategy cannot be nil")
+	}
+	if len(individual.Strategy) < 1 {
+		return fmt.Errorf("antagonist Strategy cannot be empty")
+	}
+	program, err := params.StartIndividual.Clone()
+	if err != nil {
+		return err
+	}
+	individual.Program = &program
+	for _, strategy := range individual.Strategy {
+		err := individual.Program.ApplyStrategy(strategy,
+			params.SpecParam.AvailableSymbolicExpressions.Terminals,
+			params.SpecParam.AvailableSymbolicExpressions.Terminals,
+			params.Strategies.DepthOfRandomNewTrees)
+		if err != nil {
+			return err
+		}
+	}
+	individual.HasAppliedStrategy = true
+	return nil
+}
+
+// ApplyProtagonistStrategy applies the AntagonistEquation strategies to program.
+func (individual *Individual) ApplyProtagonistStrategy(antagonistTree DualTree, params EvolutionParams) error {
+	if individual.Kind == IndividualAntagonist {
+		return fmt.Errorf("ApplyProtagonistStrategy | cannot apply Protagonist Strategy to Antagonist")
+	}
+	if individual.Strategy == nil {
+		return fmt.Errorf("protagonist stategy cannot be nil")
+	}
+	if len(individual.Strategy) < 1 {
+		return fmt.Errorf("protagonist Strategy cannot be empty")
+	}
+	if antagonistTree.root == nil {
+		return fmt.Errorf("applyProtagonistStrategy | antagonist supplied to protagonist has a nill root Tree")
+	}
+
+	tree, err := antagonistTree.Clone()
+	if err != nil {
+		return err
+	}
+	individual.Program.T = &tree
+
+	for _, strategy := range individual.Strategy {
+		err := individual.Program.ApplyStrategy(strategy,
+			params.SpecParam.AvailableSymbolicExpressions.Terminals,
+			params.SpecParam.AvailableSymbolicExpressions.Terminals,
+			params.Strategies.DepthOfRandomNewTrees)
+		if err != nil {
+			return err
+		}
+	}
+	individual.HasAppliedStrategy = true
+	return nil
+}
+
+func (individual Individual) CloneWithTree(tree DualTree) Individual {
+	individual.Id = GenerateIndividualID("", individual.Kind)
+
+	programClone := individual.Program.CloneWithTree(tree)
+	individual.Program = &programClone
+	return individual
 }
 
 type Antagonist Individual
 type Protagonist Individual
 
-
-func (i *Individual) ToString() strings.Builder {
+func (individual *Individual) ToString() strings.Builder {
 	sb := strings.Builder{}
 
-	sb.WriteString(fmt.Sprintf("####   %s   ####\n", i.Id))
-	sb.WriteString(fmt.Sprintf("AGE:  %d\n", i.Age))
-	sb.WriteString(fmt.Sprintf("FITNESS:  %f\n", i.AverageFitness))
-	sb.WriteString(fmt.Sprintf("FITNESS-ARR:  %v\n", i.Fitness))
-	sb.WriteString(fmt.Sprintf("SPEC-DELTA:  %v\n", i.BestDelta))
-	sb.WriteString(fmt.Sprintf("BIRTH GEN:  %d\n", i.BirthGen))
-	strategiesSummary := FormatStrategiesTotal(i.Strategy)
+	sb.WriteString(fmt.Sprintf("####   %s   ####\n", individual.Id))
+	sb.WriteString(fmt.Sprintf("AGE:  %d\n", individual.Age))
+	sb.WriteString(fmt.Sprintf("FITNESS:  %f\n", individual.AverageFitness))
+	sb.WriteString(fmt.Sprintf("FITNESS-ARR:  %v\n", individual.Fitness))
+	sb.WriteString(fmt.Sprintf("SPEC-DELTA:  %v\n", individual.BestDelta))
+	sb.WriteString(fmt.Sprintf("BIRTH GEN:  %d\n", individual.BirthGen))
+	strategiesSummary := FormatStrategiesTotal(individual.Strategy)
 	sb.WriteString(fmt.Sprintf("Strategy Summary:\n%s\n", strategiesSummary.String()))
-	strategiesList := FormatStrategiesList(i.Strategy)
+	strategiesList := FormatStrategiesList(individual.Strategy)
 	sb.WriteString(fmt.Sprintf("Strategy Summary:%s\n", strategiesList.String()))
-	if i.Program != nil {
-		dualTree := i.Program.T
+	if individual.Program != nil {
+		dualTree := individual.Program.T
 		if dualTree != nil {
 			toString := dualTree.ToString()
 			sb.WriteString(fmt.Sprintf("TREE:  \n%s", toString.String()))
@@ -85,6 +224,201 @@ func (i *Individual) ToString() strings.Builder {
 	}
 
 	return sb
+}
+
+func (individual *Individual) CalculateProtagonistThresholdedFitness(params EvolutionParams) (
+	protagonistFitness float64,
+	delta float64, err error) {
+	if !individual.HasAppliedStrategy {
+		return 0, 0, fmt.Errorf(" CalculateProtagonistThresholdedFitness | has not applied strategies")
+	}
+	if individual.Kind == IndividualAntagonist {
+		return 0, 0, fmt.Errorf(" CalculateProtagonistThresholdedFitness | cannot apply protagonist antagonist" +
+			" fitness to" +
+			" antagonist")
+	}
+
+	fitnessPenalization := params.Spec[0].DivideByZeroPenalty
+	badDeltaValue := math.Inf(1)
+	divByZeroStrategy := params.SpecParam.DivideByZeroStrategy
+
+	protagonistExpression, err := individual.Program.T.ToMathematicalString()
+	if err != nil {
+		return 0, 0, err
+	}
+
+	deltaProtagonist := 0.0
+	deltaProtagonistThreshold := 0.0
+	protagonistDividedByZeroCount := 0
+	isProtagonistValid := true
+	spec := params.Spec
+
+	for i := range spec {
+		independentX := spec[i].Independents
+		independentXVal := spec[i].Independents["x"]
+		if isProtagonistValid {
+			dependentProtagonistVar, err := individual.Program.EvalMulti(independentX, protagonistExpression)
+			if err != nil {
+				switch divByZeroStrategy {
+				case DivByZeroIgnore:
+					dependentProtagonistVar = 0
+
+				case DivByZeroPenalize:
+					isProtagonistValid = false
+					protagonistFitness = fitnessPenalization
+
+				case DivByZeroSetSpecValueZero:
+					dependentProtagonistVar = 0
+
+				case DivByZeroSteadyPenalize:
+					if independentXVal != 0 {
+						if math.IsNaN(dependentProtagonistVar) || dependentProtagonistVar == 0 {
+							isProtagonistValid = false
+							protagonistFitness = fitnessPenalization
+						} else {
+							protagonistDividedByZeroCount++
+						}
+					} else {
+						// Unlikely to ever reach here
+						protagonistDividedByZeroCount++
+					}
+				}
+			} else {
+				diff := spec[i].Dependent - dependentProtagonistVar
+				deltaProtagonist += diff * diff
+			}
+		}
+		deltaProtagonistThreshold += spec[i].ProtagonistThreshold * spec[i].ProtagonistThreshold
+	}
+
+	specLen := float64(len(spec))
+
+	deltaProtagonist = math.Sqrt(deltaProtagonist / specLen)
+	deltaProtagonistThreshold = math.Sqrt(deltaProtagonistThreshold / specLen)
+
+	if isProtagonistValid {
+		if deltaProtagonist <= deltaProtagonistThreshold {
+			if deltaProtagonist == 0 {
+				protagonistFitness = 1
+				protagonistDividedByZeroCount = -1
+			} else {
+				protagonistFitness = (deltaProtagonistThreshold - deltaProtagonist) / deltaProtagonistThreshold
+			}
+		} else {
+			protagonistFitness = -1 * ((deltaProtagonist - deltaProtagonistThreshold) / deltaProtagonist)
+		}
+
+		return protagonistFitness, deltaProtagonist, nil
+	} else {
+		protagonistFitness = fitnessPenalization
+		deltaProtagonist = badDeltaValue
+	}
+
+	if protagonistDividedByZeroCount > 0 {
+		if protagonistFitness > 0 {
+			protagonistFitness = protagonistFitness - (protagonistFitness * 0.1 * float64(
+				protagonistDividedByZeroCount))
+		}
+	}
+	return protagonistFitness, deltaProtagonist, nil
+}
+
+func (individual *Individual) CalculateAntagonistThresholdedFitness(params EvolutionParams) (antagonistFitness float64,
+	delta float64, err error) {
+	if !individual.HasAppliedStrategy {
+		return 0, 0, fmt.Errorf(" CalculateAntagonistThresholdedFitness | has not applied strategies")
+	}
+	if individual.Kind == IndividualProtagonist {
+		return 0, 0, fmt.Errorf(" CalculateAntagonistThresholdedFitness | cannot apply antagonist fitness to" +
+			" protagonist")
+	}
+
+	fitnessPenalization := params.Spec[0].DivideByZeroPenalty
+	badDeltaValue := math.Inf(1)
+	divByZeroStrategy := params.SpecParam.DivideByZeroStrategy
+
+	antagonistExpression, err := individual.Program.T.ToMathematicalString()
+	if err != nil {
+		return 0, 0, err
+	}
+
+	deltaAntagonist := 0.0
+	deltaAntagonistThreshold := 0.0
+	antagonistDividedByZeroCount := 0
+	isAntagonistValid := true
+
+	spec := params.Spec
+
+	for i := range spec {
+		independentX := spec[i].Independents
+		independentXVal := spec[i].Independents["x"]
+		if isAntagonistValid {
+			dependentAntagonistVar, err := individual.Program.EvalMulti(independentX, antagonistExpression)
+			if err != nil {
+				switch divByZeroStrategy {
+				case DivByZeroIgnore:
+					dependentAntagonistVar = 0
+
+				case DivByZeroPenalize:
+					isAntagonistValid = false
+					antagonistFitness = fitnessPenalization
+
+				case DivByZeroSetSpecValueZero:
+					dependentAntagonistVar = 0
+
+				case DivByZeroSteadyPenalize:
+					if independentXVal != 0 {
+						// If the spec does not contain a zero,
+						// yet you still divide by zero. Give maximum penalty!
+						if math.IsNaN(dependentAntagonistVar) || dependentAntagonistVar == 0 {
+							isAntagonistValid = false
+							antagonistFitness = fitnessPenalization
+						} else {
+							antagonistDividedByZeroCount++
+						}
+					} else {
+						// Unlikely to ever reach here
+						antagonistDividedByZeroCount++
+					}
+				}
+			} else {
+				diff := spec[i].Dependent - dependentAntagonistVar
+				deltaAntagonist += diff * diff
+			}
+		}
+		deltaAntagonistThreshold += math.Abs(spec[i].AntagonistThreshold) * math.Abs(spec[i].AntagonistThreshold)
+	}
+
+	specLen := float64(len(spec))
+
+	deltaAntagonist = math.Sqrt(deltaAntagonist / specLen)
+	deltaAntagonistThreshold = math.Sqrt(deltaAntagonistThreshold / specLen)
+
+	if !isAntagonistValid {
+		// TODO is math.Nan the best alternative?
+		return fitnessPenalization, badDeltaValue, nil
+	} else {
+		if deltaAntagonist >= deltaAntagonistThreshold { // good thing
+			if deltaAntagonist == 0 { // This is to punish deltaAntagonist for coalescing near the spec
+				antagonistFitness = -1
+				antagonistDividedByZeroCount = -1
+			} else {
+				// Award fitness if it did not cluster around the spec
+				antagonistFitness = (deltaAntagonist - deltaAntagonistThreshold) / deltaAntagonist
+			}
+		} else {
+			antagonistFitness = -1 * ((deltaAntagonistThreshold - deltaAntagonist) / deltaAntagonistThreshold)
+		}
+
+		if antagonistDividedByZeroCount > 0 {
+			if antagonistFitness > 0 {
+				antagonistFitness = antagonistFitness - (antagonistFitness * 0.1 * float64(
+					antagonistDividedByZeroCount))
+			}
+			// No else statement as if the antagonist is already less than 0, it should remain there.
+		}
+		return antagonistFitness, deltaAntagonist, nil
+	}
 }
 
 func GenerateIndividualID(identifier string, individualKind int) string {
@@ -176,7 +510,6 @@ func StrategiesToString(individual Individual) string {
 	final := sb.String()
 	return final[:len(final)-1]
 }
-
 
 func StrategiesToStringArr(strategies []string) string {
 	sb := strings.Builder{}

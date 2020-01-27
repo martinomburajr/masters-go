@@ -14,17 +14,17 @@ import (
 )
 
 type CSVBestAll struct {
-	FileID                  string `csv:"ID"`
+	FileID                  string                                `csv:"ID"`
 	bestIndividualStatistic simulation.RunBestIndividualStatistic `csv:"bestIndividualStatistic"`
-	params                  evolution.EvolutionParams `csv:"evolutionaryParams"`
+	params                  evolution.EvolutionParams             `csv:"evolutionaryParams"`
 
 	//BEST INDIVIDUAL
 	SpecEquation string `csv:"specEquation"`
 	SpecRange    int    `csv:"range"`
 	SpecSeed     int    `csv:"seed"`
 
-	AntagonistID string `csv:"AID"`
-	ProtagonistID string `csv:"PID"`
+	AntagonistID                string  `csv:"AID"`
+	ProtagonistID               string  `csv:"PID"`
 	Antagonist                  float64 `csv:"AAvg"`
 	Protagonist                 float64 `csv:"PAvg"`
 	AntagonistBestFitness       float64 `csv:"ABestFit"`
@@ -72,23 +72,23 @@ type CSVBestAll struct {
 	Run int `csv:"run"`
 
 	// PARAMS
-	GenerationCount int `csv:"genCount"`
-	EachPopulationSize int `csv:"popCount"`
-	AntStratCount int `csv:"antStratCount"`
-	ProStratCount int `csv:"proStratCount"`
-	AntStrat string `csv:"antStrat"`
-	ProStrat string `csv:"proStrat"`
-	RandTreeDepth int `csv:"randTreeDepth"`
-	AntThreshMult float64 `csv:"antThreshMult"`
-	ProThresMult float64 `csv:"proThresMult"`
-	CrossPercent float64 `csv:"crossPercent"`
-	ProbMutation float64 `csv:"probMutation"`
-	ParentSelect string `csv:"parentSelect"`
-	TournamentSize int `csv:"tournamentSize"`
-	SurvivorSelect string `csv:"survivorSelect"`
-	SurvivorPercent float64 `csv:"survivorPercent"`
-	DivByZero string `csv:"d0"`
-	DivByZeroPen float64 `csv:"d0Pen"`
+	GenerationCount    int     `csv:"genCount"`
+	EachPopulationSize int     `csv:"popCount"`
+	AntStratCount      int     `csv:"antStratCount"`
+	ProStratCount      int     `csv:"proStratCount"`
+	AntStrat           string  `csv:"antStrat"`
+	ProStrat           string  `csv:"proStrat"`
+	RandTreeDepth      int     `csv:"randTreeDepth"`
+	AntThreshMult      float64 `csv:"antThreshMult"`
+	ProThresMult       float64 `csv:"proThresMult"`
+	CrossPercent       float64 `csv:"crossPercent"`
+	ProbMutation       float64 `csv:"probMutation"`
+	ParentSelect       string  `csv:"parentSelect"`
+	TournamentSize     int     `csv:"tournamentSize"`
+	SurvivorSelect     string  `csv:"survivorSelect"`
+	SurvivorPercent    float64 `csv:"survivorPercent"`
+	DivByZero          string  `csv:"d0"`
+	DivByZeroPen       float64 `csv:"d0Pen"`
 }
 
 // ReadFile will read in a .csv file. The baseFolder argument must be the path to the id folder e.g.
@@ -104,7 +104,7 @@ func ReadCSVFile(baseFolder string) ([]CSVBestAll, error) {
 	// Get all dirs
 	totalDirsCount := 0
 	err := filepath.Walk(baseFolder, func(path2 string, info os.FileInfo, err error) error {
-		if info.IsDir() &&  path2 != baseFolder {
+		if info.IsDir() && path2 != baseFolder {
 			totalDirsCount++
 			// DO
 			id := ""
@@ -123,7 +123,6 @@ func ReadCSVFile(baseFolder string) ([]CSVBestAll, error) {
 
 						fmt.Printf("%v", split)
 						bestAllPath = path
-
 
 						splitStrings := strings.Split(bestAllPath, string(filepath.Separator))
 						id = splitStrings[len(splitStrings)-3]
@@ -158,23 +157,23 @@ func ReadCSVFile(baseFolder string) ([]CSVBestAll, error) {
 						var params evolution.EvolutionParams
 						err = json.NewDecoder(paramsJsonFile).Decode(&params)
 						if err != nil {
-							return  err
+							return err
 						}
 
 						bst := *bestIndividualStatistics[0]
 
 						// #### COMBINE
 						csvBest := CSVBestAll{
-							FileID:                  id,
+							FileID: id,
 
 							SpecEquation: bst.SpecEquation,
-							SpecRange: params.SpecParam.Range,
-							SpecSeed: params.SpecParam.Seed,
+							SpecRange:    params.SpecParam.Range,
+							SpecSeed:     params.SpecParam.Seed,
 
 							// PARAMS
-							GenerationCount: params.GenerationsCount,
+							GenerationCount:    params.GenerationsCount,
 							EachPopulationSize: params.EachPopulationSize,
-							ParentSelect: params.Selection.Parent.Type,
+							ParentSelect:       params.Selection.Parent.Type,
 
 							SurvivorSelect: params.Selection.Survivor.Type,
 
@@ -182,69 +181,67 @@ func ReadCSVFile(baseFolder string) ([]CSVBestAll, error) {
 							ProbMutation: params.Reproduction.ProbabilityOfMutation,
 
 							AntStratCount: params.Strategies.AntagonistStrategyCount,
-							AntStrat:  evolution.StrategiesToStringArr(evolution.ConvertStrategiesToString(params.Strategies.
+							AntStrat: evolution.StrategiesToStringArr(evolution.ConvertStrategiesToString(params.Strategies.
 								AntagonistAvailableStrategies)),
 							AntThreshMult: params.FitnessStrategy.AntagonistThresholdMultiplier,
 
-							ProThresMult:params.FitnessStrategy.ProtagonistThresholdMultiplier,
+							ProThresMult:  params.FitnessStrategy.ProtagonistThresholdMultiplier,
 							ProStratCount: params.Strategies.ProtagonistStrategyCount,
 							ProStrat: evolution.StrategiesToStringArr(evolution.ConvertStrategiesToString(params.Strategies.
 								ProtagonistAvailableStrategies)),
 
-							RandTreeDepth:params.Strategies.DepthOfRandomNewTrees,
-							DivByZero: params.SpecParam.DivideByZeroStrategy,
-							DivByZeroPen: params.SpecParam.DivideByZeroPenalty,
-
+							RandTreeDepth: params.Strategies.DepthOfRandomNewTrees,
+							DivByZero:     params.SpecParam.DivideByZeroStrategy,
+							DivByZeroPen:  params.SpecParam.DivideByZeroPenalty,
 
 							// INDIVIDUAL
-							Antagonist: bst.Antagonist,
-							Protagonist: bst.Protagonist,
-							AntagonistAge: bst.AntagonistAge,
-							AntagonistAverageDelta:bst.AntagonistAverageDelta,
-							AntagonistBestDelta:bst.AntagonistBestDelta,
-							AntagonistBestFitness:bst.AntagonistBestFitness,
-							AntagonistBirthGen:bst.AntagonistBirthGen,
-							AntagonistDominantStrategy:bst.AntagonistDominantStrategy,
-							AntagonistEquation:bst.AntagonistEquation,
-							AntagonistGeneration:bst.AntagonistGeneration,
-							AntagonistID:bst.AntagonistID,
-							AntagonistStdDev:bst.AntagonistStdDev,
-							AntagonistStrategy:bst.AntagonistStrategy,
+							Antagonist:                 bst.Antagonist,
+							Protagonist:                bst.Protagonist,
+							AntagonistAge:              bst.AntagonistAge,
+							AntagonistAverageDelta:     bst.AntagonistAverageDelta,
+							AntagonistBestDelta:        bst.AntagonistBestDelta,
+							AntagonistBestFitness:      bst.AntagonistBestFitness,
+							AntagonistBirthGen:         bst.AntagonistBirthGen,
+							AntagonistDominantStrategy: bst.AntagonistDominantStrategy,
+							AntagonistEquation:         bst.AntagonistEquation,
+							AntagonistGeneration:       bst.AntagonistGeneration,
+							AntagonistID:               bst.AntagonistID,
+							AntagonistStdDev:           bst.AntagonistStdDev,
+							AntagonistStrategy:         bst.AntagonistStrategy,
 
-							ProtagonistAge: bst.ProtagonistAge,
-							ProtagonistAverageDelta:bst.ProtagonistAverageDelta,
-							ProtagonistBestDelta:bst.ProtagonistBestDelta,
-							ProtagonistBestFitness:bst.ProtagonistBestFitness,
-							ProtagonistBirthGen:bst.ProtagonistBirthGen,
-							ProtagonistDominantStrategy:bst.ProtagonistDominantStrategy,
-							ProtagonistEquation:bst.ProtagonistEquation,
-							ProtagonistGeneration:bst.ProtagonistGeneration,
-							ProtagonistID:bst.ProtagonistID,
-							ProtagonistStdDev:bst.ProtagonistStdDev,
-							ProtagonistStrategy:bst.ProtagonistStrategy,
+							ProtagonistAge:              bst.ProtagonistAge,
+							ProtagonistAverageDelta:     bst.ProtagonistAverageDelta,
+							ProtagonistBestDelta:        bst.ProtagonistBestDelta,
+							ProtagonistBestFitness:      bst.ProtagonistBestFitness,
+							ProtagonistBirthGen:         bst.ProtagonistBirthGen,
+							ProtagonistDominantStrategy: bst.ProtagonistDominantStrategy,
+							ProtagonistEquation:         bst.ProtagonistEquation,
+							ProtagonistGeneration:       bst.ProtagonistGeneration,
+							ProtagonistID:               bst.ProtagonistID,
+							ProtagonistStdDev:           bst.ProtagonistStdDev,
+							ProtagonistStrategy:         bst.ProtagonistStrategy,
 
-							FinalAntagonist:bst.FinalAntagonist,
-							FinalAntagonistAge: bst.FinalAntagonistAge,
-							FinalAntagonistAverageDelta:bst.FinalAntagonistAverageDelta,
-							FinalAntagonistBestDelta:bst.FinalAntagonistBestDelta,
-							FinalAntagonistBestFitness:bst.FinalAntagonistBestFitness,
-							FinalAntagonistBirthGen:bst.FinalAntagonistBirthGen,
-							FinalAntagonistDominantStrategy:bst.FinalAntagonistDominantStrategy,
-							FinalAntagonistEquation:bst.FinalAntagonistEquation,
-							FinalAntagonistStdDev:bst.FinalAntagonistStdDev,
-							FinalAntagonistStrategy:bst.FinalAntagonistStrategy,
+							FinalAntagonist:                 bst.FinalAntagonist,
+							FinalAntagonistAge:              bst.FinalAntagonistAge,
+							FinalAntagonistAverageDelta:     bst.FinalAntagonistAverageDelta,
+							FinalAntagonistBestDelta:        bst.FinalAntagonistBestDelta,
+							FinalAntagonistBestFitness:      bst.FinalAntagonistBestFitness,
+							FinalAntagonistBirthGen:         bst.FinalAntagonistBirthGen,
+							FinalAntagonistDominantStrategy: bst.FinalAntagonistDominantStrategy,
+							FinalAntagonistEquation:         bst.FinalAntagonistEquation,
+							FinalAntagonistStdDev:           bst.FinalAntagonistStdDev,
+							FinalAntagonistStrategy:         bst.FinalAntagonistStrategy,
 
-
-							FinalProtagonist:bst.FinalProtagonist,
-							FinalProtagonistAge: bst.FinalProtagonistAge,
-							FinalProtagonistAverageDelta:bst.FinalProtagonistAverageDelta,
-							FinalProtagonistBestDelta:bst.FinalProtagonistBestDelta,
-							FinalProtagonistBestFitness:bst.FinalProtagonistBestFitness,
-							FinalProtagonistBirthGen:bst.FinalProtagonistBirthGen,
-							FinalProtagonistDominantStrategy:bst.FinalProtagonistDominantStrategy,
-							FinalProtagonistEquation:bst.FinalProtagonistEquation,
-							FinalProtagonistStdDev:bst.FinalProtagonistStdDev,
-							FinalProtagonistStrategy:bst.FinalProtagonistStrategy,
+							FinalProtagonist:                 bst.FinalProtagonist,
+							FinalProtagonistAge:              bst.FinalProtagonistAge,
+							FinalProtagonistAverageDelta:     bst.FinalProtagonistAverageDelta,
+							FinalProtagonistBestDelta:        bst.FinalProtagonistBestDelta,
+							FinalProtagonistBestFitness:      bst.FinalProtagonistBestFitness,
+							FinalProtagonistBirthGen:         bst.FinalProtagonistBirthGen,
+							FinalProtagonistDominantStrategy: bst.FinalProtagonistDominantStrategy,
+							FinalProtagonistEquation:         bst.FinalProtagonistEquation,
+							FinalProtagonistStdDev:           bst.FinalProtagonistStdDev,
+							FinalProtagonistStrategy:         bst.FinalProtagonistStrategy,
 						}
 
 						mut := sync.Mutex{}
@@ -258,10 +255,10 @@ func ReadCSVFile(baseFolder string) ([]CSVBestAll, error) {
 				return err
 			})
 			if err != nil {
-				return  err
+				return err
 			}
 
-					}
+		}
 		return err
 	})
 	if err != nil {
@@ -270,7 +267,7 @@ func ReadCSVFile(baseFolder string) ([]CSVBestAll, error) {
 
 	finalCSV := make([]CSVBestAll, 0)
 	for i := range accCSV {
-		if i % 2 == 0 {
+		if i%2 == 0 {
 			finalCSV = append(finalCSV, accCSV[i])
 		}
 	}

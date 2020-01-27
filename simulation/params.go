@@ -37,22 +37,28 @@ var AllSurvivorSelection = []evolution.SurvivorSelection{
 		SurvivorPercentage: 0.7,
 	},
 }
+var AllMinimumGenerationMeanBeforeTerminate = []float64{0.05}
+var AllMinimumTopProtagonistMeanBeforeTerminate = []float64{0.1}
+var AllProtagonistMinGenAvgFit = []float64{0.7}
 var AllRanges = []int{20}
 var AllSeed = []int{-10}
 var AllGenerationsCount = []int{50}
-var AllEachPopulationSize = []int{50,100}
+var AllEachPopulationSize = []int{10}
 
 var AllDepthOfRandomNewTree = []int{1}
-var AllAntagonistStrategyCount = []int{15}
-var AllProtagonistStrategyCount = []int{15}
+var AllAntagonistStrategyCount = []int{20}
+var AllProtagonistStrategyCount = []int{20}
 
 var AllFitnessStrategyType = []string{evolution.FitnessDualThresholdedRatio}
-var AllFitStratAntThreshMult = []float64{10}
+var AllFitStratAntThreshMult = []float64{20}
 var AllFitStratProThreshMult = []float64{1}
 
-var AllSelectionParentType = []string{evolution.ParentSelectionTournament}
-var AllTournamentSizesType = []int{3}
-
+var AllSelectionParentType = []evolution.ParentSelection{
+	{
+		Type:           evolution.ParentSelectionTournament,
+		TournamentSize: 3,
+	},
+}
 
 var AllDivByZeroStrategy = []string{
 	evolution.DivByZeroSteadyPenalize,
@@ -84,6 +90,7 @@ var AllStrategies = []evolution.Strategy{
 	evolution.StrategyDivXD,
 	evolution.StrategyAddTreeWithDiv,
 }
+
 //var AllStrategiesDeterministic = []evolution.Strategy{
 //	evolution.StrategySkip,
 //	evolution.StrategyFellTree,
@@ -233,4 +240,3 @@ var AllStrategies = []evolution.Strategy{
 //	evolution.StrategyDivXD,
 //	evolution.StrategyAddTreeWithDiv,
 //}
-

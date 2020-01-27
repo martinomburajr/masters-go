@@ -2,7 +2,7 @@ package evolution
 
 const (
 	SurvivorSelectionFitnessBased = "SurvivorSelectionFitnessBased"
-	SurvivorSelectionRandom = "SurvivorSelectionRandom"
+	SurvivorSelectionRandom       = "SurvivorSelectionRandom"
 )
 
 // FitnessBasedSurvivorSelection returns a set of survivors proportionate to the survivor percentage.
@@ -33,7 +33,7 @@ func FitnessBasedSurvivorSelection(selectedParents, selectedChildren []*Individu
 	return survivors, nil
 }
 
-// RandomSurvivorSelection selects a random set of parents and a random set of children. The numbers are based on 
+// RandomSurvivorSelection selects a random set of parents and a random set of children. The numbers are based on
 func RandomSurvivorSelection(selectedParents, selectedChildren []*Individual,
 	params EvolutionParams) ([]*Individual, error) {
 	survivors := make([]*Individual, params.EachPopulationSize)

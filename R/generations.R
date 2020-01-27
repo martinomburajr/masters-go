@@ -30,10 +30,10 @@ generationalFileNames <- c()
 generational_average_plot <- function(result, fileName) {
     data = data.frame(
     value = result$gen,
-    A = result$AGenFitAvg,
-    P = result$PGenFitAvg,
-    bestA = result$AGenBestFitAvg,
-    bestP = result$PGenBestFitAvg
+    A = result$AMean,
+    P = result$PMean,
+    bestA = result$topAMean,
+    bestP = result$topPMean
     )
 
     gg <- ggplot(data, aes(x=value))
@@ -74,12 +74,12 @@ generational_average_plot <- function(result, fileName) {
 
 generational_histogram_plot <- function(result, fileName) {
     data = data.frame(
-    value = result$AGenFitAvg,
-    A = result$AGenFitAvg,
-    P = result$PGenFitAvg
+    value = result$AMean,
+    A = result$AMean,
+    P = result$PMean
     )
-    dataP = data.frame(A = result$PGenFitAvg)
-    dataA = data.frame(A = result$AGenFitAvg)
+    dataP = data.frame(A = result$PMean)
+    dataA = data.frame(A = result$AMean)
 
     gg <- ggplot(data, aes(A))
     gg <- gg + geom_histogram(data=dataA, binwidth=0.002, aes(color = "Bug", linetype = 'Bug'), alpha = 0.2)
@@ -105,12 +105,12 @@ generational_histogram_plot <- function(result, fileName) {
 
 generational_density_plot <- function(result, fileName) {
     data = data.frame(
-    value = result$AGenFitAvg,
-    A = result$AGenFitAvg,
-    P = result$PGenFitAvg
+    value = result$AMean,
+    A = result$AMean,
+    P = result$PMean
     )
-    dataP = data.frame(A = result$PGenFitAvg)
-    dataA = data.frame(A = result$AGenFitAvg)
+    dataP = data.frame(A = result$PMean)
+    dataA = data.frame(A = result$AMean)
 
     gg <- ggplot(data, aes(A))
     gg <- gg + geom_density(data=dataA, kernel = "gaussian", aes(color = "Bug", linetype = 'Bug'), alpha = 0.2)
@@ -141,12 +141,12 @@ generational_density_plot <- function(result, fileName) {
 
 generational_density_histogram_plot <- function(result, fileName) {
     data = data.frame(
-    value = result$AGenFitAvg,
-    A = result$AGenFitAvg,
-    P = result$PGenFitAvg
+    value = result$AMean,
+    A = result$AMean,
+    P = result$PMean
     )
-    dataP = data.frame(A = result$PGenFitAvg)
-    dataA = data.frame(A = result$AGenFitAvg)
+    dataP = data.frame(A = result$PMean)
+    dataA = data.frame(A = result$AMean)
 
     gg <- ggplot(data, aes(A))
     gg <- gg + geom_density(data=dataA, kernel = "gaussian", aes(color = "Bug", linetype = 'Bug'), alpha = 0.2)
@@ -176,7 +176,7 @@ generational_density_histogram_plot <- function(result, fileName) {
 generational_all_bug_runs_boxplot <- function(result, fileName) {
     # Result is a dataframe containing Runs on X axis and values on Y
     data = data.frame(
-    A = result$AGenFitAvg,
+    A = result$AMean,
     run = result$run
     )
     data$discreteX = as.character(result$run)
@@ -208,7 +208,7 @@ generational_all_bug_runs_boxplot <- function(result, fileName) {
     title = sprintf("%s","Generational Average of Best Bug in Each Run"),
     subtitle = sprintf("%s%d", "Run:", result$run),
     caption = sprintf("Cumulative Bug Mean: %.2f\nCumulative Bug SDev: %.2f",
-    mean(result$AGenFitAvg), sd(result$AGenFitAvg)),
+    mean(result$AMean), sd(result$AMean)),
     x = "Run",
     y = "Fitness")
 
@@ -219,7 +219,7 @@ generational_all_bug_runs_boxplot <- function(result, fileName) {
 generational_all_test_runs_boxplot <- function(result, fileName) {
     # Result is a dataframe containing Runs on X axis and values on Y
     data = data.frame(
-    P = result$PGenFitAvg,
+    P = result$PMean,
     run = result$run
     )
     data$discreteX = as.character(result$run)
@@ -251,7 +251,7 @@ generational_all_test_runs_boxplot <- function(result, fileName) {
     title = sprintf("%s","Generational Average of Best Test in Each Run"),
     subtitle = sprintf("%s%d", "Run:", result$run),
     caption = sprintf("Cumulative Test Mean: %.2f\nCumulative Test SDev: %.2f",
-    mean(result$PGenFitAvg), sd(result$PGenFitAvg)),
+    mean(result$PMean), sd(result$PMean)),
     x = "Run",
     y = "Fitness")
 
@@ -264,8 +264,8 @@ getAllFiles <- function(workDir) {
     count <- 1
 
     combinedRuns <- data.frame(
-        AGenFitAvg = double(),
-        AGenFitAvg = double(),
+        AMean = double(),
+        AMean = double(),
         run = integer(0)
     )
 

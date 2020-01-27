@@ -46,9 +46,9 @@ func RandString(n int) string {
 	for i := range b {
 		x := sync.Mutex{}
 		x.Lock()
-			int63 := rand.Int63()
+		int63 := rand.Int63()
 		x.Unlock()
-		b[i] = letterBytes[ int63 % int64(len(letterBytes))]
+		b[i] = letterBytes[int63%int64(len(letterBytes))]
 	}
 	return string(b)
 }

@@ -6,8 +6,8 @@ import (
 	"sort"
 )
 
-// GetTopIndividualInAllGenerations returns the best protagonist and antagonist in the entire evolutionary process
-func GetTopIndividualInAllGenerations(sortedGenerations []*Generation, isMoreFitnessBetter bool) (topAntagonist *Individual, topProtagonist *Individual, err error) {
+// GetTopIndividualInRun returns the best protagonist and antagonist in the entire evolutionary process
+func GetTopIndividualInRun(sortedGenerations []*Generation, isMoreFitnessBetter bool) (topAntagonist *Individual, topProtagonist *Individual, err error) {
 	if sortedGenerations == nil {
 		return nil, nil, fmt.Errorf("GetGenerationalFitnessAverage | Generation cannot be nil")
 	}
@@ -43,197 +43,6 @@ func GetTopIndividualInAllGenerations(sortedGenerations []*Generation, isMoreFit
 	}
 
 	return topAntagonist, topProtagonist, nil
-}
-
-// GetGenerationalFitnessAverage returns the average for antagonists and protagonists of individual for each generation
-func GetGenerationalFitnessAverage(sortedGenerations []*Generation) ([]GenerationalCoevolutionaryAverages, error) {
-	if sortedGenerations == nil {
-		return nil, fmt.Errorf("GetGenerationalFitnessAverage | Generation cannot be nil")
-	}
-	if len(sortedGenerations) < 1 {
-		return nil, fmt.Errorf("GetGenerationalFitnessAverage | Generation cannot be empty")
-	}
-
-	result := make([]GenerationalCoevolutionaryAverages, len(sortedGenerations))
-	for i := range sortedGenerations {
-		antagonistAverage, err := CalculateAverageFitnessAverage(sortedGenerations[i].Antagonists)
-		if err != nil {
-			return nil, err
-		}
-		protagonistAverage, err := CalculateAverageFitnessAverage(sortedGenerations[i].Protagonists)
-		if err != nil {
-			return nil, err
-		}
-		result[i] = GenerationalCoevolutionaryAverages{
-			AntagonistFitnessAverages:  antagonistAverage,
-			ProtagonistFitnessAverages: protagonistAverage,
-			Generation:                 sortedGenerations[i],
-		}
-	}
-	return result, nil
-}
-
-// GetGenerationalFitnessAverage returns the average for antagonists and protagonists of individual for each generation
-func GetGenerationalAverages(sortedGenerations []*Generation) ([]GenerationalCoevolutionaryAverages, error) {
-	if sortedGenerations == nil {
-		return nil, fmt.Errorf("GetGenerationalFitnessAverage | Generation cannot be nil")
-	}
-	if len(sortedGenerations) < 1 {
-		return nil, fmt.Errorf("GetGenerationalFitnessAverage | Generation cannot be empty")
-	}
-
-	result := make([]GenerationalCoevolutionaryAverages, len(sortedGenerations))
-	for i := range sortedGenerations {
-		antBestFitAvg := make([]float64, len(sortedGenerations))
-		antFitAvg := make([]float64, len(sortedGenerations))
-		antBestDeltAvg := make([]float64, len(sortedGenerations))
-		antDeltAvg := make([]float64, len(sortedGenerations))
-
-		proBestFitAvg := make([]float64, len(sortedGenerations))
-		proFitAvg := make([]float64, len(sortedGenerations))
-		proBestDeltAvg := make([]float64, len(sortedGenerations))
-		proDeltAvg := make([]float64, len(sortedGenerations))
-
-		sortedAntagonists := sortedGenerations[i].Antagonists
-		sortedProtagonists := sortedGenerations[i].Protagonists
-		for j := range sortedAntagonists {
-			antBestFitAvg[i] = sortedAntagonists[j].BestFitness
-			antFitAvg[i] = sortedAntagonists[j].AverageFitness
-			antBestDeltAvg[i] = sortedAntagonists[j].BestDelta
-			antDeltAvg[i] = sortedAntagonists[j].AverageDelta
-
-			proBestFitAvg[i] = sortedProtagonists[j].BestFitness
-			proFitAvg[i] = sortedProtagonists[j].AverageFitness
-			proBestDeltAvg[i] = sortedProtagonists[j].BestDelta
-			proDeltAvg[i] = sortedProtagonists[j].AverageDelta
-		}
-
-		antagonistAverage, err := CalculateAverage(antFitAvg)
-		if err != nil {
-			return nil, err
-		}
-		protagonistAverage, err := CalculateAverage(proFitAvg)
-		if err != nil {
-			return nil, err
-		}
-
-		antagonistBestFitnessAverage, err := CalculateAverage(antBestFitAvg)
-		if err != nil {
-			return nil, err
-		}
-		protagonistBestFitnessAverage, err := CalculateAverage(proBestFitAvg)
-		if err != nil {
-			return nil, err
-		}
-		antagonistBestDeltaAverage, err := CalculateAverage(antBestDeltAvg)
-		if err != nil {
-			return nil, err
-		}
-		protagonistBestDeltaAverage, err := CalculateAverage(proBestDeltAvg)
-		if err != nil {
-			return nil, err
-		}
-		antagonistDeltaAverage, err := CalculateAverage(antDeltAvg)
-		if err != nil {
-			return nil, err
-		}
-		protagonistDeltaAverage, err := CalculateAverage(proDeltAvg)
-		if err != nil {
-			return nil, err
-		}
-		result[i] = GenerationalCoevolutionaryAverages{
-			Generation:                     sortedGenerations[i],
-			AntagonistFitnessAverages:      antagonistAverage,
-			ProtagonistFitnessAverages:     protagonistAverage,
-			AntagonistBestFitnessAverages:  antagonistBestFitnessAverage,
-			ProtagonistBestFitnessAverages: protagonistBestFitnessAverage,
-			AntagonistDeltaAverages:        antagonistDeltaAverage,
-			ProtagonistDeltaAverages:       protagonistDeltaAverage,
-			AntagonistBestDeltaAverages:    antagonistBestDeltaAverage,
-			ProtagonistBestDeltaAverages:   protagonistBestDeltaAverage,
-		}
-	}
-	return result, nil
-}
-
-// GetTopNIndividualsPerGeneration returns the top n individuals in each generation
-func GetTopNIndividualsPerGeneration(sortedGenerations []*Generation, individualKind int, topN int) ([]multiIndividualsPerGeneration,
-	error) {
-	if sortedGenerations == nil {
-		return nil, fmt.Errorf("CalcNthPlaceIndividualAllGenerations | Generation cannot be nil")
-	}
-	if len(sortedGenerations) < 1 {
-		return nil, fmt.Errorf("CalcNthPlaceIndividualAllGenerations | Generation cannot be empty")
-	}
-	if individualKind < 0 {
-		individualKind = 0
-	}
-	if individualKind > 1 {
-		individualKind = 1
-	}
-
-	// Handle Top N
-	if topN < 1 {
-		topN = 1
-	} else if topN >= len(sortedGenerations[0].Antagonists) {
-		topN = len(sortedGenerations[0].Antagonists)
-	}
-
-	resultInfo2DPerGenerations := make([]multiIndividualsPerGeneration, len(sortedGenerations))
-	if individualKind == IndividualAntagonist {
-		for i := range sortedGenerations {
-			resultInfo2DPerGenerations[i].Generation = sortedGenerations[i]
-			resultInfo2DPerGenerations[i].Individuals = sortedGenerations[i].Antagonists[:topN]
-		}
-	} else {
-		for i := range sortedGenerations {
-			resultInfo2DPerGenerations[i].Generation = sortedGenerations[i]
-			resultInfo2DPerGenerations[i].Individuals = sortedGenerations[i].Protagonists[:topN]
-		}
-	}
-
-	return resultInfo2DPerGenerations, nil
-}
-
-// GetTopNIndividualInGenerationX calculates the top N individuals in a specified generation
-func GetTopNIndividualInGenerationX(sortedGenerations []*Generation, individualKind int,
-	isMoreFitnessBetter bool, topN int, generationN int) (multiIndividualsPerGeneration,
-	error) {
-	if sortedGenerations == nil {
-		return multiIndividualsPerGeneration{}, fmt.Errorf("CalcNthPlaceIndividualAllGenerations | Generation cannot be nil")
-	}
-	if len(sortedGenerations) < 1 {
-		return multiIndividualsPerGeneration{}, fmt.Errorf("CalcNthPlaceIndividualAllGenerations | Generation cannot be empty")
-	}
-	if individualKind < 0 {
-		individualKind = 0
-	}
-	if individualKind > 1 {
-		individualKind = 1
-	}
-	if generationN >= len(sortedGenerations) {
-		generationN = len(sortedGenerations) - 1
-	}
-	if generationN < 0 {
-		generationN = 0
-	}
-
-	// Handle Top N
-	if topN < 1 {
-		topN = 1
-	} else if topN >= len(sortedGenerations[0].Antagonists) {
-		topN = len(sortedGenerations[0].Antagonists)
-	}
-
-	resultInfo2DPerGenerations := multiIndividualsPerGeneration{}
-	resultInfo2DPerGenerations.Generation = sortedGenerations[generationN]
-	if individualKind == IndividualAntagonist {
-		resultInfo2DPerGenerations.Individuals = sortedGenerations[generationN].Antagonists[:topN]
-	} else {
-		resultInfo2DPerGenerations.Individuals = sortedGenerations[generationN].Protagonists[:topN]
-	}
-
-	return resultInfo2DPerGenerations, nil
 }
 
 // GetNthPlaceIndividual returns an individual in the nth place. N must be an index and not an actual position e.g.
@@ -363,10 +172,10 @@ func CalculateAverageFitnessAverage(individuals []*Individual) (float64, error) 
 // CalculateAverage averages the fitness values for each individual
 func CalculateAverage(items []float64) (float64, error) {
 	if items == nil {
-		return -1, fmt.Errorf("SortIndividuals | items cannot be nil")
+		return -1, fmt.Errorf("CalculateAverage | items cannot be nil")
 	}
 	if len(items) < 1 {
-		return -1, fmt.Errorf("SortIndividuals | items cannot be empty")
+		return -1, fmt.Errorf("CalculateAverage | items cannot be empty")
 	}
 
 	sum := 0.0
@@ -420,7 +229,6 @@ func SortGenerationsThoroughly(generations []*Generation, isMoreFitnessBetter bo
 	return sortedGenerations, nil
 }
 
-
 // SortGenerationsThoroughlyByDelta sorts each kind of individual in each generation for every generation.
 // This allows for easy querying in later phases.
 func SortGenerationsThoroughlyByDelta(generations []*Generation, shouldAntagonistDeltaBig,
@@ -448,7 +256,6 @@ func SortGenerationsThoroughlyByDelta(generations []*Generation, shouldAntagonis
 	}
 	return sortedGenerations, nil
 }
-
 
 // SortGenerationsThoroughlyByAvgDelta sorts each kind of individual in each generation for every generation.
 // This allows for easy querying in later phases.

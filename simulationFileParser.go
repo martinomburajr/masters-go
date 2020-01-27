@@ -116,8 +116,6 @@ func GetParamFileStatus(absolutePath, paramDirName, dataDirName string, repeatDe
 	return completeParamFolder, unstardedParamFolder, incompleteParamFolder
 }
 
-
-
 func getParamFiles(absolutePath string, paramsFolder string) (paramFiles []string) {
 	paramPath := fmt.Sprintf("%s/%s", absolutePath, paramsFolder)
 	filepath.Walk(paramPath,
@@ -174,8 +172,6 @@ func getAllDataFiles(absolutePath string, dataDirName string) (dataFiles []strin
 
 	return dataFiles
 }
-
-
 
 func createFileInDataDir(simulationParams simulationParams, filename, content string) {
 	completePath := fmt.Sprintf("%s/data/%s/%s", simulationParams.absolutePath, simulationParams.paramFile, filename)

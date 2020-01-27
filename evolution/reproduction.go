@@ -10,9 +10,9 @@ import (
 
 const (
 	CrossoverSinglePoint = "CrossoverSinglePoint"
-	CrossoverFixedPoint = "CrossoverFixedPoint"
-	CrossoverKPoint = "CrossoverKPoint"
-	CrossoverUniform = "CrossoverUniform"
+	CrossoverFixedPoint  = "CrossoverFixedPoint"
+	CrossoverKPoint      = "CrossoverKPoint"
+	CrossoverUniform     = "CrossoverUniform"
 )
 
 // CrossoverSinglePoint performs a single-point crossover that is dictated by the crossover percentage float.
@@ -35,30 +35,40 @@ func SinglePointCrossover(parentA, parentB *Individual) (childA Individual,
 	}
 
 	// DO
-	switch parentA.Kind {
-	case IndividualAntagonist:
-		childA.Id = GenerateIndividualID("", IndividualAntagonist)
-		childB.Id = GenerateIndividualID("", IndividualAntagonist)
-	case IndividualProtagonist:
-		childA.Id = GenerateIndividualID("", IndividualProtagonist)
-		childB.Id = GenerateIndividualID("", IndividualProtagonist)
-	}
-
-	childA.Strategy = parentA.Strategy
-	childB.Strategy = parentB.Strategy
-	childA.Age = 0
-	childB.Age = 0
+	childA, _ = parentA.Clone()
+	childA.Id += "c1"
+	childA.Fitness = nil
+	childA.Program = nil
+	childA.AverageFitness = 0
+	childA.FitnessStdDev = 0
+	childA.FitnessVariance = 0
+	childA.Deltas = nil
+	childB, _ = parentB.Clone()
+	childB.Id += "c1"
+	childB.Fitness = nil
+	childB.Program = nil
+	childB.AverageFitness = 0
+	childB.FitnessStdDev = 0
+	childB.FitnessVariance = 0
+	childB.Deltas = nil
 
 	mut := sync.Mutex{}
 	mut.Lock()
 	if len(parentA.Strategy) >= len(parentB.Strategy) {
-		prob := rand.Intn(len(parentB.Strategy))
+		prob := 0
+		for prob == 0 {
+			prob = rand.Intn(len(parentB.Strategy))
+		}
+
 		for i := 0; i < prob; i++ {
 			childA.Strategy[i] = parentB.Strategy[i]
 			childB.Strategy[i] = parentA.Strategy[i]
 		}
-	}  else {
-		prob := rand.Intn(len(parentA.Strategy))
+	} else {
+		prob := 0
+		for prob == 0 {
+			prob = rand.Intn(len(parentA.Strategy))
+		}
 		for i := 0; i < prob; i++ {
 			childA.Strategy[i] = parentB.Strategy[i]
 			childB.Strategy[i] = parentA.Strategy[i]
@@ -71,9 +81,7 @@ func SinglePointCrossover(parentA, parentB *Individual) (childA Individual,
 
 // CrossoverSinglePoint performs a single-point crossover that is dictated by the crossover percentage float.
 // Both parent chromosomes are split at the percentage section specified by crossoverPercentage
-func KPointCrossover(parentA, parentB *Individual, kPoint int) (childA Individual,
-	childB Individual,
-	err error) {
+func KPointCrossover(parentA, parentB *Individual, kPoint int) (childA Individual, childB Individual, err error) {
 
 	// Require
 	if parentA.Strategy == nil {
@@ -90,47 +98,49 @@ func KPointCrossover(parentA, parentB *Individual, kPoint int) (childA Individua
 	}
 
 	//DO
-	switch parentA.Kind {
-	case IndividualAntagonist:
-		childA.Id = GenerateIndividualID("", IndividualAntagonist)
-		childB.Id = GenerateIndividualID("", IndividualAntagonist)
-	case IndividualProtagonist:
-		childA.Id = GenerateIndividualID("", IndividualProtagonist)
-		childB.Id = GenerateIndividualID("", IndividualProtagonist)
-	}
-
-	childA.Strategy = parentA.Strategy
-	childB.Strategy = parentB.Strategy
-	childA.Age = 0
-	childB.Age = 0
-
+	childA, _ = parentA.Clone()
+	childA.Id += "c1"
+	childA.Fitness = nil
+	childA.Program = nil
+	childA.AverageFitness = 0
+	childA.FitnessStdDev = 0
+	childA.FitnessVariance = 0
+	childA.Deltas = nil
+	childB, _ = parentB.Clone()
+	childB.Id += "c1"
+	childB.Fitness = nil
+	childB.Program = nil
+	childB.AverageFitness = 0
+	childB.FitnessStdDev = 0
+	childB.FitnessVariance = 0
+	childB.Deltas = nil
 
 	mut := sync.Mutex{}
 	mut.Lock()
 	// Swap every element
-	if kPoint < 1 || (kPoint > len(parentA.Strategy) && kPoint > len(parentB.Strategy)){
+	if kPoint < 1 || (kPoint > len(parentA.Strategy) && kPoint > len(parentB.Strategy)) {
 		if len(parentA.Strategy) >= len(parentB.Strategy) {
 			for i := 0; i < len(parentB.Strategy); i++ {
-				if i % 2 == 0 {
+				if i%2 == 0 {
 					childA.Strategy[i] = parentA.Strategy[i]
 					childB.Strategy[i] = parentB.Strategy[i]
-				}else {
+				} else {
 					childA.Strategy[i] = parentB.Strategy[i]
 					childB.Strategy[i] = parentA.Strategy[i]
 				}
 			}
 		} else {
 			for i := 0; i < len(parentA.Strategy); i++ {
-				if i % 2 == 0 {
+				if i%2 == 0 {
 					childA.Strategy[i] = parentA.Strategy[i]
 					childB.Strategy[i] = parentB.Strategy[i]
-				}else {
+				} else {
 					childA.Strategy[i] = parentB.Strategy[i]
 					childB.Strategy[i] = parentA.Strategy[i]
 				}
 			}
 		}
-	}else {
+	} else {
 		// USe the smaller chromosome as reference for K. Randomly select K points on the smaller one.
 		if len(parentA.Strategy) >= len(parentB.Strategy) {
 			kPoints := rand.Perm(kPoint)
@@ -145,7 +155,7 @@ func KPointCrossover(parentA, parentB *Individual, kPoint int) (childA Individua
 					if shouldSwap {
 						childA.Strategy[i] = parentB.Strategy[i]
 						childB.Strategy[i] = parentA.Strategy[i]
-					}else {
+					} else {
 						childA.Strategy[i] = parentA.Strategy[i]
 						childB.Strategy[i] = parentB.Strategy[i]
 					}
@@ -164,7 +174,7 @@ func KPointCrossover(parentA, parentB *Individual, kPoint int) (childA Individua
 					if shouldSwap {
 						childA.Strategy[i] = parentB.Strategy[i]
 						childB.Strategy[i] = parentA.Strategy[i]
-					}else {
+					} else {
 						childA.Strategy[i] = parentA.Strategy[i]
 						childB.Strategy[i] = parentB.Strategy[i]
 					}
@@ -176,7 +186,6 @@ func KPointCrossover(parentA, parentB *Individual, kPoint int) (childA Individua
 	mut.Unlock()
 	return childA, childB, nil
 }
-
 
 // CrossoverSinglePoint performs a single-point crossover that is dictated by the crossover percentage float.
 // Both parent chromosomes are split at the percentage section specified by crossoverPercentage
@@ -197,20 +206,23 @@ func UniformCrossover(parentA, parentB *Individual) (childA Individual,
 		return Individual{}, Individual{}, fmt.Errorf("parentB strategy cannot be empty")
 	}
 
-	// DO
-	switch parentA.Kind {
-	case IndividualAntagonist:
-		childA.Id = GenerateIndividualID("", IndividualAntagonist)
-		childB.Id = GenerateIndividualID("", IndividualAntagonist)
-	case IndividualProtagonist:
-		childA.Id = GenerateIndividualID("", IndividualProtagonist)
-		childB.Id = GenerateIndividualID("", IndividualProtagonist)
-	}
-
-	childA.Strategy = parentA.Strategy
-	childB.Strategy = parentB.Strategy
-	childA.Age = 0
-	childB.Age = 0
+	//DO
+	childA, _ = parentA.Clone()
+	childA.Id += "c1"
+	childA.Fitness = nil
+	childA.Program = nil
+	childA.AverageFitness = 0
+	childA.FitnessStdDev = 0
+	childA.FitnessVariance = 0
+	childA.Deltas = nil
+	childB, _ = parentB.Clone()
+	childB.Id += "c1"
+	childB.Fitness = nil
+	childB.Program = nil
+	childB.AverageFitness = 0
+	childB.FitnessStdDev = 0
+	childB.FitnessVariance = 0
+	childB.Deltas = nil
 
 	mut := sync.Mutex{}
 	mut.Lock()
@@ -220,18 +232,18 @@ func UniformCrossover(parentA, parentB *Individual) (childA Individual,
 			if prob == 0 {
 				childA.Strategy[i] = parentA.Strategy[i]
 				childB.Strategy[i] = parentB.Strategy[i]
-			}else {
+			} else {
 				childA.Strategy[i] = parentB.Strategy[i]
 				childB.Strategy[i] = parentA.Strategy[i]
 			}
 		}
-	}  else {
+	} else {
 		for i := 0; i < len(parentA.Strategy); i++ {
 			prob := rand.Intn(2)
 			if prob == 0 {
 				childA.Strategy[i] = parentA.Strategy[i]
 				childB.Strategy[i] = parentB.Strategy[i]
-			}else {
+			} else {
 				childA.Strategy[i] = parentB.Strategy[i]
 				childB.Strategy[i] = parentA.Strategy[i]
 			}
@@ -468,25 +480,23 @@ func StrategySwapperIgnorant(a []Strategy, b []Strategy, swapLength int, startIn
 }
 
 // Mutate will mutate the Strategy in a given individual
-func (i *Individual) Mutate(availableStrategies []Strategy) error {
+func (individual *Individual) Mutate(availableStrategies []Strategy) error {
 	if availableStrategies == nil {
 		return fmt.Errorf("Mutate | availableStrategies param cannot be nil")
 	}
-	if i.Strategy == nil {
+	if individual.Strategy == nil {
 		return fmt.Errorf("Mutate | individual's strategies cannot be nil")
 	}
-	if len(i.Strategy) < 1 {
+	if len(individual.Strategy) < 1 {
 		return fmt.Errorf("Mutate | individual's strategies cannot empty")
 	}
 
-	randIndexToMutate := rand.Intn(len(i.Strategy))
+	randIndexToMutate := rand.Intn(len(individual.Strategy))
 
 	randIndexForStrategies := rand.Intn(len(availableStrategies))
-	i.Strategy[randIndexToMutate] = availableStrategies[randIndexForStrategies]
+	individual.Strategy[randIndexToMutate] = availableStrategies[randIndexForStrategies]
 	return nil
 }
-
-
 
 func depthPenaltyIgnore(maxDepth int, individual1Depth int, individual2Depth int) (int, int) {
 	if maxDepth < 0 {

@@ -298,6 +298,42 @@ best_all_tests_plot <- function(result, fileName) {
     ggsave(fileName, width=10, height=6, units='in', dpi="retina")
 }
 
+# Plots out the average between the average of all antagonists in a given geernation, and the average of all
+# protagonists in the same generation.
+covcor_average_plot <- function(result, fileName) {
+    data = data.frame(
+    value = result$gen,
+    A = result$meanCorrInRun,
+    P = result$meanCovInRun,
+    )
+
+    gg <- ggplot(data, aes(x=value))
+    gg <- gg + geom_line(aes(y=A, color = "Corr", linetype = 'Corr'), size = 1) # setup color name
+    gg <- gg + geom_line(aes(y=P, color = "Cov", linetype = 'Cov'),  size = 1)
+    gg <- gg + geom_point(aes(y=A), size=0.6)
+    gg <- gg + geom_point(aes(y=P), size=0.6)
+    gg <- gg + scale_linetype_manual(values=c(Corr='solid', Cov='solid'), name =
+    "Line Type")
+    gg <- gg + scale_colour_manual(values=c(Corr="blue", Cov="green",), name = "Plot Color")
+
+    gg <- gg + guides(color = guide_legend(title="Legend"), linetype = guide_legend(title="Legend"))
+
+    gg <- gg + theme(
+    plot.title = element_text(size=16),
+    plot.subtitle = element_text(size=8),
+    plot.caption = element_text(size=6))
+    gg <- gg + labs(
+    color = 'Corr vs. Cov',
+    title = sprintf("%s","Mean Correlation and Mean Covariance"),
+    subtitle = sprintf("%s%d", "Run:", result$run),
+    x = "Run",
+    y = "Index")
+
+    fileName <- paste(fileName, "covcor.png", sep="-")
+    ggsave(fileName, width=8, height=4, units='in', dpi="retina")
+    # dev.off()
+}
+
 getAllFiles <- function(workDir) {
     files <- list.files(workDir)
     bestAllCount <- 1
@@ -316,6 +352,7 @@ getAllFiles <- function(workDir) {
             best_all_function_plot(bestAllData, file)
             best_bug_spec_function_plot(bestAllData, file)
             best_test_spec_function_plot(bestAllData, file)
+            covcor_average_plot(bestAllData, file)
 
             combinedBest <- merge(combinedBest, bestAllData)
             print(combinedBest)
