@@ -55,33 +55,14 @@ func (e *Epoch) Start(perfectTreeMap map[string]PerfectTree, params EvolutionPar
 	}
 	e.protagonist.HasAppliedStrategy = true
 
-	if !e.hasProtagonistApplied && !e.hasAntagonistApplied {
-		return fmt.Errorf("antagonist and protagonist havent applied Strategy to program")
-	}
-
 	antagonistFitness, protagonistFitness, antagonistFitnessDelta, protagonistFitnessDelta := 0.0, 0.0, 0.0, 0.0
-	switch e.generation.engine.Parameters.FitnessStrategy.Type {
-	case FitnessDualThresholdedRatio:
-		antagonistFitness, protagonistFitness, antagonistFitnessDelta,
-			protagonistFitnessDelta, err = ThresholdedRatioFitness(e.generation.engine.Parameters.Spec,
-			e.antagonist.Program,
-			e.protagonist.Program, e.generation.engine.Parameters.SpecParam.DivideByZeroStrategy)
-		if err != nil {
-			return err
-		}
-		break
-	case FitnessMonoThresholdedRatio:
-		antagonistFitness, protagonistFitness, antagonistFitnessDelta, protagonistFitnessDelta,
-			err = ThresholdedRatioFitness(e.generation.
-			engine.Parameters.Spec,
-			e.protagonist.Program,
-			e.protagonist.Program, e.generation.engine.Parameters.SpecParam.DivideByZeroStrategy)
-		if err != nil {
-			return err
-		}
-		break
-	default:
-		err = fmt.Errorf("unknown Fitness Strategy selected")
+
+	antagonistFitness, protagonistFitness, antagonistFitnessDelta,
+		protagonistFitnessDelta, err = ThresholdedRatioFitness(e.generation.engine.Parameters.Spec,
+		e.antagonist.Program,
+		e.protagonist.Program, e.generation.engine.Parameters.SpecParam.DivideByZeroStrategy)
+	if err != nil {
+		return err
 	}
 
 	FitnessResolver(perfectTreeMap, e.antagonist, e.protagonist, antagonistFitness, antagonistFitnessDelta,
@@ -104,6 +85,7 @@ func FitnessResolver(perfectTreeMap map[string]PerfectTree, antagonist, protagon
 		}
 		perfectTreeMap[antagonist.Parent.Id] = perfectTreeAntagonist
 	}
+
 	if perfectTreeMap[protagonist.Parent.Id].Program == nil {
 		perfectTreeMap[protagonist.Parent.Id] = PerfectTree{BestFitnessValue: math.MinInt64}
 	}
@@ -130,6 +112,76 @@ func FitnessResolver(perfectTreeMap map[string]PerfectTree, antagonist, protagon
 	}
 	antagonist.Parent.Fitness = append(antagonist.Parent.Fitness, antagonistFitness)
 	protagonist.Parent.Fitness = append(protagonist.Parent.Fitness, protagonistFitness)
+}
+
+func AntagonistFitnessResolver(perfectTreeMap map[string]PerfectTree, antagonist *Individual,
+	antagonistFitness float64, antagonistFitnessDelta float64) {
+	if perfectTreeMap[antagonist.Parent.Id].Program == nil {
+		perfectTreeMap[antagonist.Parent.Id] = PerfectTree{BestFitnessValue: math.MinInt64}
+	}
+	perfectTreeAntagonist := perfectTreeMap[antagonist.Parent.Id]
+	if perfectTreeAntagonist.BestFitnessValue < antagonistFitness {
+		perfectTreeAntagonist.Program = antagonist.Program
+		perfectTreeAntagonist.BestFitnessValue = antagonistFitness
+		if antagonistFitnessDelta != math.Inf(1) {
+			perfectTreeAntagonist.BestFitnessDelta = antagonistFitnessDelta
+		}
+		perfectTreeMap[antagonist.Parent.Id] = perfectTreeAntagonist
+	}
+
+	if antagonistFitnessDelta != math.Inf(1) {
+		antagonist.Parent.Deltas = append(antagonist.Parent.Deltas, antagonistFitnessDelta)
+	} else {
+		antagonist.Parent.Deltas = append(antagonist.Parent.Deltas, 0)
+	}
+
+	antagonist.Parent.Fitness = append(antagonist.Parent.Fitness, antagonistFitness)
+}
+
+func ProtagonistFitnessResolver(perfectTreeMap map[string]PerfectTree,  protagonist *Individual, protagonistFitness float64, protagonistFitnessDelta float64) {
+	if protagonist.Parent == nil {
+		if perfectTreeMap[protagonist.Id].Program == nil {
+			perfectTreeMap[protagonist.Id] = PerfectTree{BestFitnessValue: math.MinInt64}
+		}
+		perfectTreeProtagonist := perfectTreeMap[protagonist.Id]
+		if perfectTreeProtagonist.BestFitnessValue < protagonistFitness {
+			perfectTreeProtagonist.Program = protagonist.Program
+			perfectTreeProtagonist.BestFitnessValue = protagonistFitness
+			if protagonistFitnessDelta != math.Inf(1) {
+				perfectTreeProtagonist.BestFitnessDelta = protagonistFitnessDelta
+			} else {
+				perfectTreeProtagonist.BestFitnessDelta = math.MaxInt16
+			}
+			perfectTreeMap[protagonist.Id] = perfectTreeProtagonist
+		}
+		if protagonistFitnessDelta != math.Inf(1) {
+			protagonist.Deltas = append(protagonist.Deltas, protagonistFitnessDelta)
+		} else {
+			protagonist.Deltas = append(protagonist.Deltas, math.MaxInt16)
+		}
+		protagonist.Fitness = append(protagonist.Fitness, protagonistFitness)
+	}else {
+		if perfectTreeMap[protagonist.Parent.Id].Program == nil {
+			perfectTreeMap[protagonist.Parent.Id] = PerfectTree{BestFitnessValue: math.MinInt64}
+		}
+		perfectTreeProtagonist := perfectTreeMap[protagonist.Parent.Id]
+		if perfectTreeProtagonist.BestFitnessValue < protagonistFitness {
+			perfectTreeProtagonist.Program = protagonist.Program
+			perfectTreeProtagonist.BestFitnessValue = protagonistFitness
+			if protagonistFitnessDelta != math.Inf(1) {
+				perfectTreeProtagonist.BestFitnessDelta = protagonistFitnessDelta
+			} else {
+				perfectTreeProtagonist.BestFitnessDelta = math.MaxInt16
+			}
+			perfectTreeMap[protagonist.Parent.Id] = perfectTreeProtagonist
+		}
+		if protagonistFitnessDelta != math.Inf(1) {
+			protagonist.Parent.Deltas = append(protagonist.Parent.Deltas, protagonistFitnessDelta)
+		} else {
+			protagonist.Parent.Deltas = append(protagonist.Parent.Deltas, math.MaxInt16)
+		}
+		protagonist.Parent.Fitness = append(protagonist.Parent.Fitness, protagonistFitness)
+	}
 }
 
 // AggregateFitness simply adds all the Fitness values of a given individual to come up with a total number.

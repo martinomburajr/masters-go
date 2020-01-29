@@ -1304,7 +1304,7 @@ func (bst *DualTree) GetShortestBranch(minAcceptableDepth int) (shortestNode *Du
 	return nodeDepth.node, nodeDepth.parent, nodeDepth.depth, nil
 }
 
-//func Swapper(tree1 DualTree, tree2 DualTree, subTree1 DualTree, subTree2 DualTree) (p1 DualTree, p2 DualTree,
+//func Swapper(tree1 DualTree, tree2 DualTree, subTree1 DualTree, subTree2 DualTree) (_p1 DualTree, p2 DualTree,
 //	c1 DualTree, c2 DualTree) {
 //
 //}

@@ -2,6 +2,7 @@ package evolution
 
 import (
 	"github.com/martinomburajr/masters-go/utils"
+	"math/rand"
 	"time"
 )
 
@@ -26,7 +27,7 @@ func (s KRandom) Topology(currentGeneration *Generation,
 	antagonistSurvivors, protagonistSurvivors := currentGeneration.ApplySelection(currentGeneration.Antagonists, currentGeneration.Protagonists, params.ErrorChan)
 
 	newGeneration := &Generation{
-		GenerationID:                 GenerateGenerationID(currentGeneration.count + 1),
+		GenerationID:                 GenerateGenerationID(currentGeneration.count+1, TopologyKRandom),
 		Protagonists:                 protagonistSurvivors,
 		Antagonists:                  antagonistSurvivors,
 		engine:                       currentGeneration.engine,
@@ -41,40 +42,49 @@ func (s KRandom) Topology(currentGeneration *Generation,
 
 func (s *KRandom) createTournamentLedger(antagonists []*Individual, protagonists []*Individual,
 	params EvolutionParams) (tournamentLedger map[*Individual][]*Individual, err error) {
-	kRandomOpponents := make([][]*Individual, params.EachPopulationSize)
-	competitorsLedger := make(map[*Individual]int, params.EachPopulationSize)
 	tournamentLedger = make(map[*Individual][]*Individual, params.EachPopulationSize)
+	opponents := make([][]*Individual, params.EachPopulationSize)
 
-	counter := 0
-	for counter < params.EachPopulationSize {
-		oppositions := make([]*Individual, 0)
-		for k := range competitorsLedger {
-			if competitorsLedger[k] < params.Topology.KRandomK {
-				kClone, err := k.Clone()
-				if err != nil {
-					return nil, err
-				}
-				oppositions = append(oppositions, &kClone)
+	for i := 0; i < params.EachPopulationSize; i++ {
+		opponents[i] = make([]*Individual, params.Topology.KRandomK)
+		for j := 0; j < params.Topology.KRandomK; j++ {
+			randIndex := rand.Intn(params.EachPopulationSize)
+			clone, err := antagonists[randIndex].Clone()
+			if err != nil {
+				return nil, err
 			}
+			clone.Parent = antagonists[randIndex]
+			opponents[i][j] = &clone
 		}
-		kRandomOpponents[counter] = oppositions
-		counter++
 	}
 
 	for i := 0; i < params.EachPopulationSize; i++ {
-		tournamentLedger[protagonists[i]] = kRandomOpponents[i]
+		tournamentLedger[protagonists[i]] = opponents[i]
 	}
 
 	return tournamentLedger, nil
+}
+
+func (s *KRandom) contains(individual *Individual, individuals []*Individual) bool {
+	for i := 0; i < len(individuals); i++ {
+		if individual.Id == individuals[i].Id {
+			return true
+		}
+	}
+	return false
 }
 
 func (s *KRandom) startTournaments(currentGeneration *Generation, tournamentLedger map[*Individual][]*Individual,
 	params EvolutionParams) (err error) {
 	perfectFitnessMap := map[string]PerfectTree{}
 
+	antagonists := make([]*Individual, params.Topology.KRandomK)
+	protagonists := make([]*Individual, 0)
+
 	for protagonist := range tournamentLedger {
 		tournament := tournamentLedger[protagonist]
-		for _, antagonist := range tournament {
+		for j, antagonist := range tournament {
+			antagonists[j] = antagonist
 			err := antagonist.ApplyAntagonistStrategy(params)
 			if err != nil {
 				return err
@@ -85,31 +95,31 @@ func (s *KRandom) startTournaments(currentGeneration *Generation, tournamentLedg
 				return err
 			}
 
-			antagonistFitness, protagonistFitness, antagonistFitnessDelta, protagonistFitnessDelta, err := ThresholdedRatioFitness(params.Spec, antagonist.Program, protagonist.Program,
+			antagonistFitness, protagonistFitness, antagonistFitnessDelta, protagonistFitnessDelta,
+			err := ThresholdedRatioFitness(params.Spec, antagonist.Program, protagonist.Program,
 				params.SpecParam.DivideByZeroStrategy)
-
 			if err != nil {
 				return err
 			}
 
-			antagonist.Fitness = append(antagonist.Fitness, antagonistFitness)
-			protagonist.Fitness = append(protagonist.Fitness, protagonistFitness)
-
-			FitnessResolver(perfectFitnessMap, antagonist, protagonist, antagonistFitness, antagonistFitnessDelta,
-				protagonistFitness,
-				protagonistFitnessDelta)
+			//antagonist.Fitness = append(antagonist.Fitness, antagonistFitness)
+			AntagonistFitnessResolver(perfectFitnessMap, antagonist, antagonistFitness, antagonistFitnessDelta)
+			ProtagonistFitnessResolver(perfectFitnessMap, protagonist, protagonistFitness, protagonistFitnessDelta)
 		}
+		protagonists = append(protagonists, protagonist)
 	}
 
 	// Set individuals with the best representation of their tree
-	for i := 0; i < len(currentGeneration.Antagonists); i++ {
-		perfectAntagonistTree := perfectFitnessMap[currentGeneration.Antagonists[i].Id]
+	for i := 0; i < len(antagonists); i++ {
+		perfectAntagonistTree := perfectFitnessMap[antagonists[i].Id]
+		currentGeneration.Antagonists[i] = antagonists[i].Parent
 		currentGeneration.Antagonists[i].Program = perfectAntagonistTree.Program
 		currentGeneration.Antagonists[i].BestDelta = perfectAntagonistTree.BestFitnessDelta
 		currentGeneration.Antagonists[i].BestFitness = perfectAntagonistTree.BestFitnessValue
 	}
-	for i := 0; i < len(currentGeneration.Protagonists); i++ {
-		perfectProtagonistTree := perfectFitnessMap[currentGeneration.Protagonists[i].Id]
+	for i := 0; i < len(protagonists); i++ {
+		perfectProtagonistTree := perfectFitnessMap[protagonists[i].Id]
+		currentGeneration.Protagonists[i] = protagonists[i]
 		currentGeneration.Protagonists[i].Program = perfectProtagonistTree.Program
 		currentGeneration.Protagonists[i].BestDelta = perfectProtagonistTree.BestFitnessDelta
 		currentGeneration.Protagonists[i].BestFitness = perfectProtagonistTree.BestFitnessValue

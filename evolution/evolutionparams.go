@@ -77,6 +77,11 @@ type EvolutionParams struct {
 type Topology struct {
 	Type     string `json:"type"`
 	KRandomK int    `json:"kRandomK"`
+	SETNoOfTournaments float64    `json:"SETNoOfTournaments"`
+	// HoFGenerationInterval showcases the percentage of an evolutionary cycle that old individuals should be
+	// introduced. A negative number introduces the previous winner from the old generation in every subsequent
+	// generation
+	HoFGenerationInterval float64 `json:"generationInterval"`
 }
 
 type Generations struct {

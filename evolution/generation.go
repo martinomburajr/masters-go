@@ -9,6 +9,7 @@ import (
 // TODO AGE
 // TODO Calculate fitness average for GENERATIONS (seems off!)
 type Generation struct {
+	Mutex sync.Mutex
 	GenerationID string
 	Protagonists []*Individual //Protagonists in a given Generation
 	Antagonists  []*Individual //Antagonists in a given Generation
@@ -73,22 +74,23 @@ func (g *Generation) InitializePopulation(params EvolutionParams) (antagonists [
 
 	go func(wg *sync.WaitGroup, params *EvolutionParams) {
 		defer wg.Done()
-		for i := 0; i < params.EachPopulationSize; i++ {
-			g.Antagonists, err = g.GenerateRandomIndividuals(IndividualAntagonist, *params)
-			if err != nil {
-				params.ErrorChan <- err
-			}
+		g.Mutex.Lock()
+		g.Antagonists, err = g.GenerateRandomIndividuals(IndividualAntagonist, *params)
+		if err != nil {
+			params.ErrorChan <- err
 		}
+		g.Mutex.Unlock()
+
 	}(&wg, &params)
 
 	go func(wg *sync.WaitGroup, params *EvolutionParams) {
 		defer wg.Done()
-		for i := 0; i < params.EachPopulationSize; i++ {
-			g.Protagonists, err = g.GenerateRandomIndividuals(IndividualProtagonist, *params)
-			if err != nil {
-				params.ErrorChan <- err
-			}
+		g.Mutex.Lock()
+		g.Protagonists, err = g.GenerateRandomIndividuals(IndividualProtagonist, *params)
+		if err != nil {
+			params.ErrorChan <- err
 		}
+		g.Mutex.Unlock()
 	}(&wg, &params)
 	wg.Wait()
 
@@ -100,7 +102,7 @@ func (g *Generation) InitializePopulation(params EvolutionParams) (antagonists [
 func (g *Generation) ApplySelection(antagonists, protagonists []*Individual, errorChan chan error) (
 	antagonistSurvivors []*Individual, protagonistSurvivors []*Individual) {
 	antSurvivorChan := make(chan []*Individual)
-	go func(g *Generation) {
+	go func(g *Generation, antagonists []*Individual) {
 		antWinnerParents, err := g.ApplyParentSelection(antagonists)
 		if err != nil {
 			errorChan <- err
@@ -115,9 +117,10 @@ func (g *Generation) ApplySelection(antagonists, protagonists []*Individual, err
 		}
 		antSurvivorChan <- antSurvivors
 		close(antSurvivorChan)
-	}(g)
+	}(g, antagonists)
+
 	proSurvivorChan := make(chan []*Individual)
-	go func(g *Generation) {
+	go func(g *Generation, protagonists []*Individual) {
 		proWinnerParents, err := g.ApplyParentSelection(protagonists)
 		if err != nil {
 			errorChan <- err
@@ -132,7 +135,7 @@ func (g *Generation) ApplySelection(antagonists, protagonists []*Individual, err
 		}
 		proSurvivorChan <- proSurvivors
 		close(proSurvivorChan)
-	}(g)
+	}(g, protagonists)
 
 	for {
 		select {
@@ -160,13 +163,22 @@ func (g *Generation) ApplySelection(antagonists, protagonists []*Individual, err
 	return antagonistSurvivors, protagonistSurvivors
 }
 
-func GenerateGenerationID(count int) string {
-	return fmt.Sprintf("GEN-%d", count)
+func GenerateGenerationID(count int, topology string) string {
+	return fmt.Sprintf("GEN-%-s-%d", topology, count)
 }
 
 func (g *Generation) CleansePopulations(params EvolutionParams) {
 	wg := sync.WaitGroup{}
 	wg.Add(2)
+
+	go func(wg *sync.WaitGroup, errChan chan error) {
+		defer wg.Done()
+		antagonists, err := CleansePopulation(g.Antagonists, *params.StartIndividual.T)
+		if err != nil {
+			errChan <- err
+		}
+		g.Antagonists = antagonists
+	}(&wg, params.ErrorChan)
 
 	go func(wg *sync.WaitGroup, errChan chan error) {
 		defer wg.Done()
@@ -177,14 +189,6 @@ func (g *Generation) CleansePopulations(params EvolutionParams) {
 		g.Protagonists = protagonists
 	}(&wg, params.ErrorChan)
 
-	go func(wg *sync.WaitGroup, errChan chan error) {
-		defer wg.Done()
-		protagonists, err := CleansePopulation(g.Antagonists, *params.StartIndividual.T)
-		if err != nil {
-			errChan <- err
-		}
-		g.Protagonists = protagonists
-	}(&wg, params.ErrorChan)
 	wg.Wait()
 }
 
@@ -299,4 +303,80 @@ func (g *Generation) ApplySurvivorSelection(outgoingParents []*Individual,
 	default:
 		return nil, fmt.Errorf("Invalid Survivor Selection Selected")
 	}
+}
+
+// GenerateRandom creates a a random set of individuals based on the parameters passed into the
+// evolution engine. To pass a tree to an individual pass it via the formal parameters and not through the evolution
+// engine
+// parameter section
+// Antagonists are by default
+// set with the StartIndividuals Program as their own
+// program.
+func (g *Generation) GenerateRandomIndividuals(kind int, params EvolutionParams) ([]*Individual, error) {
+	if params.EachPopulationSize < 1 {
+		return nil, fmt.Errorf("number should at least be 1")
+	}
+	if kind == IndividualAntagonist {
+		if params.Strategies.AntagonistStrategyCount < 1 {
+			return nil, fmt.Errorf("antagonist maxNumberOfStrategies should at least be 1")
+		}
+		if len(params.Strategies.AntagonistAvailableStrategies) < 1 {
+			return nil, fmt.Errorf("antagonist availableStrategies should at least have one Strategy")
+		}
+	} else if kind == IndividualProtagonist {
+		if params.Strategies.ProtagonistStrategyCount < 1 {
+			return nil, fmt.Errorf("protagonist maxNumberOfStrategies should at least be 1")
+		}
+		if len(params.Strategies.ProtagonistAvailableStrategies) < 1 {
+			return nil, fmt.Errorf("protagonist availableStrategies should at least have one Strategy")
+		}
+	} else {
+		return nil, fmt.Errorf("unknown individual kind")
+	}
+
+	individuals := make([]*Individual, params.EachPopulationSize)
+
+	for i := 0; i < params.EachPopulationSize; i++ {
+
+		var randomStrategies []Strategy
+
+		if kind == IndividualAntagonist {
+			randomStrategies = GenerateRandomStrategy(params.Strategies.AntagonistStrategyCount,
+				params.Strategies.AntagonistAvailableStrategies)
+		} else if kind == IndividualProtagonist {
+			randomStrategies = GenerateRandomStrategy(params.Strategies.ProtagonistStrategyCount,
+				params.Strategies.ProtagonistAvailableStrategies)
+		}
+
+		id := fmt.Sprintf("%s-%d", KindToString(kind), i)
+		var individual *Individual
+
+		if params.StartIndividual.T == nil {
+			individual = &Individual{
+				Kind:     kind,
+				Id:       id,
+				Strategy: randomStrategies,
+				Fitness:  make([]float64, 0),
+				Program:  nil,
+				BirthGen: 0,
+			}
+		} else {
+			params.StartIndividual.ID = GenerateProgramID(i)
+
+			clone, err := params.StartIndividual.Clone()
+			if err != nil {
+				return nil, err
+			}
+			individual = &Individual{
+				Kind:     kind,
+				Id:       id,
+				Strategy: randomStrategies,
+				Fitness:  make([]float64, 0),
+				Program:  &clone,
+			}
+		}
+
+		individuals[i] = individual
+	}
+	return individuals, nil
 }

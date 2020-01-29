@@ -30,6 +30,7 @@ type Individual struct {
 	AverageFitness           float64 // Measures average fitness throughout epoch
 	BestDelta                float64
 	AverageDelta             float64
+	NoOfCompetitions         int
 	// BirthGen represents the generation where this individual was spawned
 
 	Program *Program // The best program generated
@@ -46,80 +47,26 @@ func (individual Individual) Clone() (Individual, error) {
 	return individual, nil
 }
 
-// GenerateRandom creates a a random set of individuals based on the parameters passed into the
-// evolution engine. To pass a tree to an individual pass it via the formal parameters and not through the evolution
-// engine
-// parameter section
-// Antagonists are by default
-// set with the StartIndividuals Program as their own
-// program.
-func (g *Generation) GenerateRandomIndividuals(kind int, params EvolutionParams) ([]*Individual, error) {
-	if params.EachPopulationSize < 1 {
-		return nil, fmt.Errorf("number should at least be 1")
-	}
-	if kind == IndividualAntagonist {
-		if params.Strategies.AntagonistStrategyCount < 1 {
-			return nil, fmt.Errorf("antagonist maxNumberOfStrategies should at least be 1")
+// CloneCleanse removes performance based information but keeps the strategy intact.
+func (individual Individual) CloneCleanse() (Individual, error) {
+	if individual.Program != nil {
+		programClone, err := individual.Program.Clone()
+		if err != nil {
+			return Individual{}, err
 		}
-		if len(params.Strategies.AntagonistAvailableStrategies) < 1 {
-			return nil, fmt.Errorf("antagonist availableStrategies should at least have one Strategy")
-		}
-	} else if kind == IndividualProtagonist {
-		if params.Strategies.ProtagonistStrategyCount < 1 {
-			return nil, fmt.Errorf("protagonist maxNumberOfStrategies should at least be 1")
-		}
-		if len(params.Strategies.ProtagonistAvailableStrategies) < 1 {
-			return nil, fmt.Errorf("protagonist availableStrategies should at least have one Strategy")
-		}
-	} else {
-		return nil, fmt.Errorf("unknown individual kind")
+		individual.Program = &programClone
 	}
 
-	individuals := make([]*Individual, params.EachPopulationSize)
+	individual.Id += "**"
+	individual.Fitness = nil
+	individual.Deltas = nil
+	individual.AverageFitness = 0
+	individual.AverageDelta = 0
+	individual.Program = &Program{}
+	individual.FitnessStdDev = 0
+	individual.FitnessVariance = 0
 
-	for i := 0; i < params.EachPopulationSize; i++ {
-
-		var randomStrategies []Strategy
-
-		if kind == IndividualAntagonist {
-			randomStrategies = GenerateRandomStrategy(params.Strategies.AntagonistStrategyCount,
-				params.Strategies.AntagonistAvailableStrategies)
-		} else if kind == IndividualProtagonist {
-			randomStrategies = GenerateRandomStrategy(params.Strategies.ProtagonistStrategyCount,
-				params.Strategies.ProtagonistAvailableStrategies)
-		}
-
-		id := fmt.Sprintf("%s-%d", KindToString(kind), i)
-		var individual *Individual
-
-		if params.StartIndividual.T == nil {
-			individual = &Individual{
-				Kind:     kind,
-				Id:       id,
-				Strategy: randomStrategies,
-				Fitness:  make([]float64, 0),
-				Program:  nil,
-				BirthGen: 0,
-			}
-		} else {
-			params.StartIndividual.ID = GenerateProgramID(i)
-
-			clone, err := params.StartIndividual.Clone()
-			if err != nil {
-				return nil, err
-			}
-			individual = &Individual{
-				Kind:     kind,
-				Id:       id,
-				Strategy: randomStrategies,
-				Fitness:  make([]float64, 0),
-				Program:  &clone,
-			}
-		}
-
-		individuals[i] = individual
-	}
-	return individuals, nil
+	return individual, nil
 }
 
 // ApplyAntagonistStrategy applies the AntagonistEquation strategies to program.
@@ -141,13 +88,19 @@ func (individual *Individual) ApplyAntagonistStrategy(params EvolutionParams) er
 	for _, strategy := range individual.Strategy {
 		err := individual.Program.ApplyStrategy(strategy,
 			params.SpecParam.AvailableSymbolicExpressions.Terminals,
-			params.SpecParam.AvailableSymbolicExpressions.Terminals,
+			params.SpecParam.AvailableSymbolicExpressions.NonTerminals,
 			params.Strategies.DepthOfRandomNewTrees)
 		if err != nil {
 			return err
 		}
 	}
 	individual.HasAppliedStrategy = true
+	if individual.Parent != nil {
+		individual.Parent.NoOfCompetitions++
+	}else {
+		individual.NoOfCompetitions++
+	}
+
 	return nil
 }
 
@@ -175,13 +128,19 @@ func (individual *Individual) ApplyProtagonistStrategy(antagonistTree DualTree, 
 	for _, strategy := range individual.Strategy {
 		err := individual.Program.ApplyStrategy(strategy,
 			params.SpecParam.AvailableSymbolicExpressions.Terminals,
-			params.SpecParam.AvailableSymbolicExpressions.Terminals,
+			params.SpecParam.AvailableSymbolicExpressions.NonTerminals,
 			params.Strategies.DepthOfRandomNewTrees)
 		if err != nil {
 			return err
 		}
 	}
 	individual.HasAppliedStrategy = true
+	individual.HasAppliedStrategy = true
+	if individual.Parent != nil {
+		individual.Parent.NoOfCompetitions++
+	}else {
+		individual.NoOfCompetitions++
+	}
 	return nil
 }
 

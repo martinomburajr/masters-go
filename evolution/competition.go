@@ -9,7 +9,7 @@ const (
 	TopologyRoundRobin                  = "TopologyRoundRobin"
 	TopologyKRandom                     = "TopologyKRandom"
 	TopologyHallOfFame                  = "TopologyHallOfFame"
-	TopologySingleEliminationTournament = "ApplyTopologySingleEliminationTournament"
+	TopologySingleEliminationTournament = "TopologySET"
 )
 
 type ITopology interface {
@@ -23,7 +23,7 @@ type IEvolve interface {
 func (engine *EvolutionEngine) Evolve(params EvolutionParams) (*EvolutionResult, error) {
 	switch engine.Parameters.Topology.Type {
 	case TopologyHallOfFame:
-		hallOfFame := HallOfFame{Engine: engine}
+		hallOfFame := &HallOfFame{Engine: engine}
 		evolutionResult, err := hallOfFame.Evolve(params, hallOfFame)
 		if err != nil {
 			return nil, err

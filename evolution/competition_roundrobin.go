@@ -15,6 +15,7 @@ type RoundRobin struct {
 func (r RoundRobin) Topology(currentGeneration *Generation,
 	params EvolutionParams) (*Generation,
 	error) {
+
 	err := r.Compete(currentGeneration)
 	if err != nil {
 		return nil, err
@@ -23,7 +24,7 @@ func (r RoundRobin) Topology(currentGeneration *Generation,
 	antagonistSurvivors, protagonistSurvivors := currentGeneration.ApplySelection(currentGeneration.Antagonists, currentGeneration.Protagonists, params.ErrorChan)
 
 	newGeneration := &Generation{
-		GenerationID:                 GenerateGenerationID(currentGeneration.count + 1),
+		GenerationID:                 GenerateGenerationID(currentGeneration.count+1, TopologyRoundRobin),
 		Protagonists:                 protagonistSurvivors,
 		Antagonists:                  antagonistSurvivors,
 		engine:                       currentGeneration.engine,
@@ -227,7 +228,7 @@ func (r *RoundRobin) Compete(g *Generation) error {
 		g.Antagonists[i].HasAppliedStrategy = true
 		g.Antagonists[i].Age += 1
 		g.Antagonists[i].AverageDelta = deltaAntMean
-		g.AntagonistAvgFitness[i] = antMean
+		g.AntagonistAvgFitness = append(g.AntagonistAvgFitness, antMean)
 
 		deltaMean := stat.Mean(g.Protagonists[i].Deltas, nil)
 		mean, std := stat.MeanStdDev(g.Protagonists[i].Fitness, nil)
@@ -239,8 +240,23 @@ func (r *RoundRobin) Compete(g *Generation) error {
 		g.Protagonists[i].HasAppliedStrategy = true
 		g.Protagonists[i].Age += 1
 		g.Protagonists[i].AverageDelta = deltaMean
-		g.ProtagonistAvgFitness[i] = mean
+		g.ProtagonistAvgFitness = append(g.ProtagonistAvgFitness, mean)
 	}
 
 	return err
+}
+
+
+func CoalesceFitnessStatistics(individual *Individual) (fitnessToBeAppendedToGenerationAvgFitness float64) {
+	deltaMean := stat.Mean(individual.Deltas, nil)
+	mean, std := stat.MeanStdDev(individual.Fitness, nil)
+	variance := stat.Variance(individual.Fitness, nil)
+	individual.AverageFitness = mean
+	individual.FitnessStdDev = std
+	individual.FitnessVariance = variance
+	individual.HasCalculatedFitness = true
+	individual.HasAppliedStrategy = true
+	individual.Age += 1
+	individual.AverageDelta = deltaMean
+	return mean
 }

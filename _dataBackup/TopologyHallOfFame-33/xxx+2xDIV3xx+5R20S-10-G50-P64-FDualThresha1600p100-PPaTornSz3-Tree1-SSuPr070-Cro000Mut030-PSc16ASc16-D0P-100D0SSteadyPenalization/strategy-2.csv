@@ -1,0 +1,17 @@
+A,P,AFinal,PFinal,AGen,PGen,count,run
+AddToLeafR,AddTreeWithDiv,AddToLeafR,AddTreeWithDiv,0,0,0,2
+SubXD,AddRandomSubTreeR,SubXD,AddRandomSubTreeR,0,0,1,2
+AddTreeWithAdd,AddToLeafX,AddTreeWithAdd,AddToLeafX,0,0,2,2
+MultXD,AddTreeWithAdd,MultXD,AddTreeWithAdd,0,0,3,2
+DeleteNonTerminalR,ReplaceBranchR,DeleteNonTerminalR,ReplaceBranchR,0,0,4,2
+DeleteNonTerminalR,ReplaceBranchXR,DeleteNonTerminalR,ReplaceBranchXR,0,0,5,2
+DeleteNonTerminalR,ReplaceBranchXR,DeleteNonTerminalR,ReplaceBranchXR,0,0,6,2
+AddTreeWithAdd,FellTreeD,AddTreeWithAdd,FellTreeD,0,0,7,2
+AddXD,AddTreeWithSub,AddXD,AddTreeWithSub,0,0,8,2
+MutateTerminalR,FellTreeD,MutateTerminalR,FellTreeD,0,0,9,2
+DivXD,ReplaceBranchXR,DivXD,ReplaceBranchXR,0,0,10,2
+AddTreeWithDiv,MutateNonTerminalR,AddTreeWithDiv,MutateNonTerminalR,0,0,11,2
+ReplaceBranchR,FellTreeD,ReplaceBranchR,FellTreeD,0,0,12,2
+DeleteNonTerminalR,SubXD,DeleteNonTerminalR,SubXD,0,0,13,2
+MutateTerminalR,DeleteTerminalR,MutateTerminalR,DeleteTerminalR,0,0,14,2
+AddXD,AddTreeWithSub,AddXD,AddTreeWithSub,0,0,15,2

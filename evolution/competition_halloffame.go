@@ -2,6 +2,7 @@ package evolution
 
 import (
 	"github.com/martinomburajr/masters-go/utils"
+	"math"
 	"math/rand"
 	"time"
 )
@@ -12,38 +13,36 @@ type HallOfFame struct {
 	AntagonistArchive  []Individual
 	ProtagonistArchive []Individual
 
-	ReturnRounds int
+	GenerationIntervals int
 }
 
-func (s HallOfFame) Topology(currentGeneration *Generation,
+func (s *HallOfFame) Topology(currentGeneration *Generation,
 	params EvolutionParams) (*Generation,
 	error) {
-	topAntagonist, err := singleETCompeteAntagonists(currentGeneration.Antagonists, params)
+	roundRobin := RoundRobin{Engine: s.Engine}
+	nextGeneration, err := roundRobin.Topology(currentGeneration, params)
 	if err != nil {
 		return nil, err
 	}
 
-	topProtagonist, err := singleETCompeteProtagonists(currentGeneration.Protagonists, *topAntagonist.Program.T, params)
-	if err != nil {
-		return nil, err
+	bestAntagonist := &Individual{AverageFitness: math.MinInt16}
+	bestProtagonist := &Individual{AverageFitness: math.MinInt16}
+	for i := 0; i < len(currentGeneration.Antagonists); i++ {
+		if currentGeneration.Antagonists[i].AverageFitness >= bestAntagonist.AverageFitness {
+			bestAntagonist = currentGeneration.Antagonists[i]
+		}
+		if currentGeneration.Protagonists[i].AverageFitness >= bestProtagonist.AverageFitness {
+			bestProtagonist = currentGeneration.Protagonists[i]
+		}
 	}
 
-	antagonistSurvivors, protagonistSurvivors := currentGeneration.ApplySelection(currentGeneration.Antagonists, currentGeneration.Protagonists, params.ErrorChan)
-	currentGeneration.BestProtagonist, err = topProtagonist.Clone()
-	currentGeneration.BestAntagonist, err = topAntagonist.Clone()
+	currentGeneration.BestAntagonist, err = bestAntagonist.Clone()
+	currentGeneration.BestProtagonist, err = bestProtagonist.Clone()
 
-	newGeneration := &Generation{
-		GenerationID:                 GenerateGenerationID(currentGeneration.count + 1),
-		Protagonists:                 protagonistSurvivors,
-		Antagonists:                  antagonistSurvivors,
-		engine:                       currentGeneration.engine,
-		isComplete:                   true,
-		hasParentSelectionHappened:   true,
-		hasSurvivorSelectionHappened: true,
-		count:                        currentGeneration.count,
-	}
+	s.AntagonistArchive = append(s.AntagonistArchive, currentGeneration.BestAntagonist)
+	s.ProtagonistArchive = append(s.ProtagonistArchive, currentGeneration.BestProtagonist)
 
-	return newGeneration, nil
+	return nextGeneration, nil
 }
 
 func (s *HallOfFame) Evolve(params EvolutionParams, topology ITopology) (*EvolutionResult,
@@ -61,20 +60,44 @@ func (s *HallOfFame) Evolve(params EvolutionParams, topology ITopology) (*Evolut
 
 	genCount := CalculateGenerationSize(engine.Parameters)
 
+	s.GenerationIntervals = int(engine.Parameters.Topology.HoFGenerationInterval * float64(genCount))
+	if s.GenerationIntervals >= int(float64(params.EachPopulationSize)*0.1) {
+		for s.GenerationIntervals >= int(float64(params.EachPopulationSize)*0.1) {
+			if s.GenerationIntervals < MinAllowableGenerationsToTerminate {
+				s.GenerationIntervals = params.EachPopulationSize / 2
+				break
+			}
+			s.GenerationIntervals /= 2
+			if s.GenerationIntervals == 0 {
+				s.GenerationIntervals = 4
+			}
+		}
+	}
+
 	for i := 0; i < genCount; i++ {
 		started := time.Now()
 		// 1. CLEANSE
 		engine.Generations[i].CleansePopulations(engine.Parameters)
 
 		// REINSERT HALL OF FAME
-		if i%s.ReturnRounds == 0 && i != 0 {
-			//Reinsert
-			for j := 0; j < s.ReturnRounds; j++ {
-				perm := rand.Perm(s.ReturnRounds)
-				engine.Generations[i].Antagonists[perm[j]] = &s.AntagonistArchive[j]
 
-				permProtagonist := rand.Perm(s.ReturnRounds)
-				engine.Generations[i].Protagonists[permProtagonist[j]] = &s.ProtagonistArchive[j]
+		if i%s.GenerationIntervals == 0 && i != 0 {
+			//Reinsert
+			perm := rand.Perm(s.GenerationIntervals)
+			permProtagonist := rand.Perm(s.GenerationIntervals)
+			for j := 0; j < s.GenerationIntervals; j++ {
+				antagonistClone, err := s.AntagonistArchive[perm[j]].CloneCleanse()
+				if err != nil {
+					return nil, err
+				}
+
+				protagonistClone, err := s.ProtagonistArchive[perm[j]].CloneCleanse()
+				if err != nil {
+					return nil, err
+				}
+
+				engine.Generations[i].Antagonists[perm[j]] = &antagonistClone
+				engine.Generations[i].Protagonists[permProtagonist[j]] = &protagonistClone
 			}
 		}
 

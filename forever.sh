@@ -16,19 +16,10 @@ for j in {0..1000} ; do
   ##########################################################\n
   ${end}\n"
 
-
-  printf "${blu}Building Go Binary: ...\n${end}"
-  sleep 1
-  /usr/local/go/bin/go build -a -v -o masters-go
-  wait
-  sleep 2
-
   printf "${blu}\n\nInitializing Run: ...\n${end}"
   sleep 2
-  for i in {0..5} ; do
-    ./masters-go --params="_params" --numWorkers=10 --parallelism=true --dataDir="data" --logging=true --runstats=true &
-    sleep 5
+  for i in {0..0} ; do
+    ./masters --params="_params" --numWorkers=2 --parallelism=true --dataDir="data" --logging=true
     printf "${yel}##################################### RUN: ${i} COMPLETE########################################\n${end}"
   done
-  sleep
 done

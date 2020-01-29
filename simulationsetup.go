@@ -10,11 +10,12 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 )
 
 var SimulationArgs = simulation.Simulation{
-	NumberOfRunsPerState: 2,
+	NumberOfRunsPerState: 5,
 	Name:                 "",
 	StatsFiles: []string{
 		"best.R", "best-combined.R", "epochs.R",
@@ -86,6 +87,7 @@ func Scheduler(paramsFolder, dataDirName string, parallelism bool, numberOfSimul
 				runSimulation(sim, unstartedParams[0])
 			}
 			sim.doneChan <- true
+
 			completeParamFolder, unstartedParams, incompleteParams = GetParamFileStatus(sim.absolutePath,
 				sim.paramFolder, sim.dataDirName, repeatDelay)
 			log.Printf("\n\n\n################################### COMPLETED CYCLE %d"+
@@ -95,6 +97,14 @@ func Scheduler(paramsFolder, dataDirName string, parallelism bool, numberOfSimul
 	}
 
 	sim.doneChan <- true
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	go func(wg *sync.WaitGroup) {
+		defer wg.Done()
+		fmt.Println("GRACEFULLY STAYING UP FOR 12 Minutes")
+		time.Sleep(12 * time.Minute)
+	}(&wg)
+	wg.Wait()
 	close(sim.logChan)
 	close(sim.errChan)
 }
@@ -120,6 +130,7 @@ func SetupLogger(simulationParam simulationParams) {
 		case err := <-simulationParam.errChan:
 			msg := fmt.Sprintf("Error: %s" + err.Error())
 			fmt.Println(msg)
+			fmt.Fprintf(file, msg)
 			//return
 		case isDone, ok := <-simulationParam.doneChan:
 			if !ok {
@@ -144,8 +155,8 @@ func SetupLogger(simulationParam simulationParams) {
 				fmt.Println(msg)
 				close(simulationParam.doneChan)
 
-				fmt.Println("GRACEFULLY STAYING UP FOR 12 Minutes")
-				time.Sleep(12 * time.Minute)
+				fmt.Println("GRACEFULLY STAYING UP FOR 5 hours")
+				time.Sleep(5 * time.Hour)
 				os.Exit(0)
 			}
 		}
@@ -250,7 +261,7 @@ func setupLogFile(simulationParam simulationParams) *os.File {
 	os.Mkdir(logFolder, 0775)
 	file, err := os.Create(logFilePath)
 	if err != nil {
-		//simulationParam.errChan <- err
+		simulationParam.errChan <- err
 	}
 	return file
 }

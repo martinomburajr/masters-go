@@ -36,7 +36,8 @@ func GetParamFileStatus(absolutePath, paramDirName, dataDirName string, repeatDe
 	}
 
 	for _, dataFile := range dataFiles {
-		// Check if at least has reached 5% of generations
+		// Check if at least
+		// has reached 5% of generations
 		has25Txt := strings.Contains(dataFile, "1.txt")
 		if has25Txt {
 			split := strings.Split(dataFile, "/")

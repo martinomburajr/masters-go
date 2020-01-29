@@ -3,6 +3,8 @@ package evolution
 import (
 	"fmt"
 	"github.com/martinomburajr/masters-go/utils"
+	"math/rand"
+	"sync"
 	"time"
 )
 
@@ -13,22 +15,93 @@ type SingleEliminationTournamentTopology struct {
 func (s SingleEliminationTournamentTopology) Topology(currentGeneration *Generation,
 	params EvolutionParams) (*Generation,
 	error) {
-	topAntagonist, err := singleETCompeteAntagonists(currentGeneration.Antagonists, params)
-	if err != nil {
-		return nil, err
+
+	fittestAntagonists := make([]*Individual, 0)
+	fittestProtagonists := make([]*Individual, 0)
+
+	wgAntagonist := sync.WaitGroup{}
+
+	setNoOfTournaments := int(params.Topology.SETNoOfTournaments * float64(params.EachPopulationSize))
+	if params.Topology.SETNoOfTournaments == 0 {
+		setNoOfTournaments = int(0.1 * float64(params.EachPopulationSize))
+	}
+	if params.Topology.SETNoOfTournaments > 1 {
+		setNoOfTournaments = 1
 	}
 
-	topProtagonist, err := singleETCompeteProtagonists(currentGeneration.Protagonists, *topAntagonist.Program.T, params)
-	if err != nil {
-		return nil, err
+	for i := 0; i < setNoOfTournaments ; i++ {
+		wgAntagonist.Add(1)
+		go func(wgAntagonist *sync.WaitGroup, individuals []*Individual) {
+			defer wgAntagonist.Done()
+			clonedIndividuals, err := CloneIndividualsLinkParent(individuals)
+			if err != nil {
+				params.ErrorChan <- err
+			}
+			topAntagonist, err := singleETCompeteAntagonists(clonedIndividuals, params)
+			if err != nil {
+				params.ErrorChan <- err
+			}
+
+			currentGeneration.Mutex.Lock()
+				fittestAntagonists = append(fittestAntagonists, topAntagonist.Parent)
+			currentGeneration.Mutex.Unlock()
+		}(&wgAntagonist, currentGeneration.Antagonists)
 	}
+	wgAntagonist.Wait()
+
+	if len(fittestAntagonists) != params.EachPopulationSize {
+		diff := params.EachPopulationSize - len(fittestAntagonists)
+		perm := rand.Perm(diff)
+		for i := 0; i < diff; i++ {
+			fittestAntagonists = append(fittestAntagonists, currentGeneration.Antagonists[perm[i]])
+		}
+	}
+
+		wgProtagonist := sync.WaitGroup{}
+	for i := 0; i < setNoOfTournaments; i++ {
+		wgProtagonist.Add(1)
+		go func(wgAntagonist *sync.WaitGroup, individuals []*Individual, antagonists []*Individual, i int) {
+			defer wgProtagonist.Done()
+			clonedIndividuals, err := CloneIndividualsLinkParent(individuals)
+			if err != nil {
+				params.ErrorChan <- err
+			}
+			topProtagonist, err := singleETCompeteProtagonists(clonedIndividuals, *antagonists[i].Program.T,
+				params)
+			if err != nil {
+				params.ErrorChan <- err
+			}
+			currentGeneration.Mutex.Lock()
+			fittestProtagonists = append(fittestProtagonists, topProtagonist.Parent)
+			currentGeneration.Mutex.Unlock()
+		}(&wgProtagonist, currentGeneration.Protagonists, fittestAntagonists, i)
+	}
+	wgProtagonist.Wait()
+
+	if len(fittestProtagonists) != params.EachPopulationSize {
+		diff := params.EachPopulationSize - len(fittestProtagonists)
+		perm := rand.Perm(diff)
+		for i := 0; i < diff; i++ {
+			fittestProtagonists = append(fittestProtagonists, currentGeneration.Protagonists[perm[i]])
+		}
+	}
+
+	for i := 0; i < len(currentGeneration.Protagonists); i++ {
+		anttagAvgFitness := CoalesceFitnessStatistics(fittestAntagonists[i])
+		protagAvgFitness := CoalesceFitnessStatistics(fittestProtagonists[i])
+
+		currentGeneration.AntagonistAvgFitness = append(currentGeneration.AntagonistAvgFitness, anttagAvgFitness)
+		currentGeneration.ProtagonistAvgFitness = append(currentGeneration.ProtagonistAvgFitness, protagAvgFitness)
+	}
+
+	currentGeneration.Antagonists = fittestAntagonists
+	currentGeneration.Protagonists = fittestProtagonists
 
 	antagonistSurvivors, protagonistSurvivors := currentGeneration.ApplySelection(currentGeneration.Antagonists, currentGeneration.Protagonists, params.ErrorChan)
-	currentGeneration.BestProtagonist, err = topProtagonist.Clone()
-	currentGeneration.BestAntagonist, err = topAntagonist.Clone()
 
 	newGeneration := &Generation{
-		GenerationID:                 GenerateGenerationID(currentGeneration.count + 1),
+		GenerationID: GenerateGenerationID(currentGeneration.count+1,
+			TopologySingleEliminationTournament),
 		Protagonists:                 protagonistSurvivors,
 		Antagonists:                  antagonistSurvivors,
 		engine:                       currentGeneration.engine,
@@ -39,6 +112,21 @@ func (s SingleEliminationTournamentTopology) Topology(currentGeneration *Generat
 	}
 
 	return newGeneration, nil
+}
+
+func CloneIndividualsLinkParent(individuals []*Individual) (outgoing []*Individual, err error) {
+	outgoing = make([]*Individual, len(individuals))
+
+	perm := rand.Perm(len(individuals))
+	for i:= 0; i < len(individuals); i++ {
+		individual, err := individuals[perm[i]].Clone()
+		if err != nil {
+			return nil, err
+		}
+		individual.Parent = individuals[perm[i]]
+		outgoing[i] = &individual
+	}
+	return outgoing, nil
 }
 
 func (s *SingleEliminationTournamentTopology) Evolve(params EvolutionParams, topology ITopology) (*EvolutionResult,
@@ -124,19 +212,36 @@ func singleETCompeteAntagonists(individuals []*Individual, params EvolutionParam
 			if err != nil {
 				return nil, err
 			}
+			s, _ := brackets[i].individualA.Program.T.ToMathematicalString()
+			fmt.Println(s)
 			err = brackets[i].individualB.ApplyAntagonistStrategy(params)
 			if err != nil {
 				return nil, err
 			}
+			s2, _ := brackets[i].individualB.Program.T.ToMathematicalString()
+			fmt.Println(s2)
 
-			individualAFitness, _, err := brackets[i].individualA.CalculateAntagonistThresholdedFitness(params)
+			individualAFitness, individualADelta, err := brackets[i].individualA.CalculateAntagonistThresholdedFitness(
+				params)
 			if err != nil {
 				return nil, err
 			}
-			individualBFitness, _, err := brackets[i].individualB.CalculateAntagonistThresholdedFitness(params)
+
+			individualBFitness, individualBDelta, err := brackets[i].individualB.
+				CalculateAntagonistThresholdedFitness(params)
 			if err != nil {
 				return nil, err
 			}
+			brackets[i].individualA.Fitness = append(brackets[i].individualA.Fitness, individualAFitness)
+			brackets[i].individualA.Deltas = append(brackets[i].individualA.Deltas, individualADelta)
+			brackets[i].individualB.Fitness = append(brackets[i].individualB.Fitness, individualBFitness)
+			brackets[i].individualB.Deltas = append(brackets[i].individualB.Deltas, individualBDelta)
+
+			brackets[i].individualA.Parent.Fitness = append(brackets[i].individualA.Parent.Fitness, individualAFitness)
+			brackets[i].individualA.Parent.Deltas = append(brackets[i].individualA.Parent.Deltas, individualADelta)
+			brackets[i].individualB.Parent.Fitness = append(brackets[i].individualB.Parent.Fitness, individualBFitness)
+			brackets[i].individualB.Parent.Deltas = append(brackets[i].individualB.Parent.Deltas, individualBDelta)
+
 
 			if individualAFitness >= individualBFitness {
 				if len(brackets) == 1 {
@@ -152,10 +257,18 @@ func singleETCompeteAntagonists(individuals []*Individual, params EvolutionParam
 				winners = append(winners, brackets[i].individualB)
 			}
 		}
-		brackets, err = setCreateTournamentBrackets(winners)
-		if err != nil {
-			return nil, err
+		if len(brackets) > 1 {
+			brackets, err = setCreateTournamentBrackets(winners)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			break
 		}
+	}
+
+	for i := range individuals {
+		individuals[i] = nil
 	}
 
 	return winner, err
@@ -191,14 +304,24 @@ func singleETCompeteProtagonists(individuals []*Individual, bestAntagonistTree D
 				return nil, err
 			}
 
-			individualAFitness, _, err := brackets[i].individualA.CalculateProtagonistThresholdedFitness(params)
+			individualAFitness, individualADelta, err := brackets[i].individualA.CalculateProtagonistThresholdedFitness(params)
 			if err != nil {
 				return nil, err
 			}
-			individualBFitness, _, err := brackets[i].individualB.CalculateProtagonistThresholdedFitness(params)
+			individualBFitness, individualBDelta, err := brackets[i].individualB.CalculateProtagonistThresholdedFitness(params)
 			if err != nil {
 				return nil, err
 			}
+
+			brackets[i].individualA.Fitness = append(brackets[i].individualA.Fitness, individualAFitness)
+			brackets[i].individualA.Deltas = append(brackets[i].individualA.Deltas, individualADelta)
+			brackets[i].individualB.Fitness = append(brackets[i].individualB.Fitness, individualBFitness)
+			brackets[i].individualB.Deltas = append(brackets[i].individualB.Deltas, individualBDelta)
+
+			brackets[i].individualA.Parent.Fitness = append(brackets[i].individualA.Parent.Fitness, individualAFitness)
+			brackets[i].individualA.Parent.Deltas = append(brackets[i].individualA.Parent.Deltas, individualADelta)
+			brackets[i].individualB.Parent.Fitness = append(brackets[i].individualB.Parent.Fitness, individualBFitness)
+			brackets[i].individualB.Parent.Deltas = append(brackets[i].individualB.Parent.Deltas, individualBDelta)
 
 			if individualAFitness >= individualBFitness {
 				if len(brackets) == 1 {
@@ -214,10 +337,18 @@ func singleETCompeteProtagonists(individuals []*Individual, bestAntagonistTree D
 				winners = append(winners, brackets[i].individualB)
 			}
 		}
-		brackets, err = setCreateTournamentBrackets(winners)
-		if err != nil {
-			return nil, err
+		if len(brackets) > 1 {
+			brackets, err = setCreateTournamentBrackets(winners)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			break
 		}
+	}
+
+	for i := range individuals {
+		individuals[i] = nil
 	}
 
 	return winner, err
@@ -232,9 +363,11 @@ func setCreateTournamentBrackets(individuals []*Individual) ([]bracket, error) {
 		return nil, fmt.Errorf("setCreateTournamentBrackets | input individuals cannot be null")
 	}
 	brackets := make([]bracket, len(individuals)/2)
+	counter := 0
 	for i := 0; i < len(individuals); i += 2 {
-		brackets[i].individualA = individuals[i]
-		brackets[i].individualB = individuals[i+1]
+		brackets[counter].individualA = individuals[i]
+		brackets[counter].individualB = individuals[i+1]
+		counter++
 	}
 	return brackets, nil
 }

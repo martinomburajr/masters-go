@@ -109,6 +109,8 @@ func (s *Simulation) BestIndividualsInRun(params evolution.EvolutionParams) (run
 		ProtagonistAge:              run.TopProtagonist.Age,
 		AntagonistGeneration:        run.TopAntagonistGeneration,
 		ProtagonistGeneration:       run.TopProtagonistGeneration,
+		AntagonistNoOfCompetitions: run.TopAntagonist.NoOfCompetitions,
+		ProtagonistNoOfCompetitions: run.TopProtagonist.NoOfCompetitions,
 
 		MeanCorrelation: run.MeanCorrelation,
 		MeanCovariance:  run.MeanCovariance,
@@ -133,6 +135,8 @@ func (s *Simulation) BestIndividualsInRun(params evolution.EvolutionParams) (run
 		FinalProtagonistBirthGen:         run.FinalProtagonist.BirthGen,
 		FinalAntagonistAge:               run.FinalAntagonist.Age,
 		FinalProtagonistAge:              run.FinalProtagonist.Age,
+		FinalAntagonistNoOfCompetitions: run.FinalAntagonist.NoOfCompetitions,
+		FinalProtagonistNoOfCompetitions: run.FinalProtagonist.NoOfCompetitions,
 		Run:                              runIndex,
 	}
 
@@ -843,6 +847,8 @@ type RunBestIndividualStatistic struct {
 	ProtagonistBirthGen         int     `csv:"PBirthGen"`
 	AntagonistAge               int     `csv:"AAge"`
 	ProtagonistAge              int     `csv:"PAge"`
+	AntagonistNoOfCompetitions       int `csv:"ANoC"`
+	ProtagonistNoOfCompetitions      int `csv:"PNoC"`
 
 	FinalAntagonist                  float64 `csv:"finAAvg"`
 	FinalProtagonist                 float64 `csv:"finPAvg"`
@@ -864,8 +870,10 @@ type RunBestIndividualStatistic struct {
 	FinalProtagonistBirthGen         int     `csv:"finPBirthGen"`
 	FinalAntagonistAge               int     `csv:"finAAge"`
 	FinalProtagonistAge              int     `csv:"finPAge"`
+	FinalAntagonistNoOfCompetitions  int `csv:"finANoC"`
+	FinalProtagonistNoOfCompetitions int `csv:"finPNoC"`
 
-	Run int `csv:"run"`
+	Run                              int `csv:"run"`
 }
 
 type RunBestIndividualStatistics []RunBestIndividualStatistic

@@ -113,16 +113,18 @@ func (engine *EvolutionEngine) ValidateGenerationTerminationMinimums() (minimumT
 // It will embedd the antagonists and protagonists created into its Generations slice at index [0]
 func (engine *EvolutionEngine) InitializeGenerations(params EvolutionParams) (antagonists []*Individual, protagonists []*Individual, err error) {
 	engine.Generations = make([]*Generation, 1)
+	engine.Generations[0] = &Generation{}
+
 	antagonists, protagonists, err = engine.Generations[0].InitializePopulation(params)
 	if err != nil {
 		return nil, nil, err
 	}
-	engine.Generations[0].GenerationID = GenerateGenerationID(0)
+	engine.Generations[0].GenerationID = GenerateGenerationID(0, params.Topology.Type)
 	engine.Generations[0].Antagonists = antagonists
 	engine.Generations[0].Protagonists = protagonists
 	engine.Generations[0].engine = engine
-	engine.Generations[0].AntagonistAvgFitness = make([]float64, engine.Parameters.EachPopulationSize)
-	engine.Generations[0].ProtagonistAvgFitness = make([]float64, engine.Parameters.EachPopulationSize)
+	engine.Generations[0].AntagonistAvgFitness = make([]float64, 0)
+	engine.Generations[0].ProtagonistAvgFitness = make([]float64, 0)
 
 	engine.successfulGenerations = 0
 	engine.successfulGenerationsByAvg = 0

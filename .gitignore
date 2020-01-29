@@ -174,3 +174,7 @@ modules.xml
 # Sonarlint plugin
 
 # End of https://www.gitignore.io/api/go,intellij,jetbrains+all
+
+/_params
+/_paramsBackup
+/_paramsBackup2

@@ -5,26 +5,35 @@ import "github.com/martinomburajr/masters-go/evolution"
 var AllMaxGenerations = []int{500}
 var AllExpressions = []string{
 	"x",
-	"1/1*x*x",
-	"x*x*x*x*x*x*x*x*x",
+	"x*x*x*x*x*x*x*x",
 	"x*x*x+2*x/3*x*x+5",
 }
+var AllTopologies = []evolution.Topology{
+	{
+		Type:                  evolution.TopologyHallOfFame,
+		HoFGenerationInterval: 0.1,
+	},
+	{
+		Type: evolution.TopologySingleEliminationTournament,
+		SETNoOfTournaments: 0.2,
+	},
+	{
+		Type: evolution.TopologyRoundRobin,
+	},
+	{
+		Type:     evolution.TopologyKRandom,
+		KRandomK: 3,
+	},
+}
+
 var AllReproduction = []evolution.Reproduction{
 	{
 		CrossoverStrategy:     evolution.CrossoverSinglePoint,
-		ProbabilityOfMutation: 0.6,
+		ProbabilityOfMutation: 0.3,
 	},
 	{
 		CrossoverStrategy:     evolution.CrossoverUniform,
-		ProbabilityOfMutation: 0.6,
-	},
-	{
-		CrossoverStrategy:     evolution.CrossoverSinglePoint,
-		ProbabilityOfMutation: 0.1,
-	},
-	{
-		CrossoverStrategy:     evolution.CrossoverUniform,
-		ProbabilityOfMutation: 0.1,
+		ProbabilityOfMutation: 0.3,
 	},
 }
 var AllSurvivorSelection = []evolution.SurvivorSelection{
@@ -43,14 +52,14 @@ var AllProtagonistMinGenAvgFit = []float64{0.7}
 var AllRanges = []int{20}
 var AllSeed = []int{-10}
 var AllGenerationsCount = []int{50}
-var AllEachPopulationSize = []int{10}
+var AllEachPopulationSize = []int{64}
 
 var AllDepthOfRandomNewTree = []int{1}
-var AllAntagonistStrategyCount = []int{20}
-var AllProtagonistStrategyCount = []int{20}
+var AllAntagonistStrategyCount = []int{16}
+var AllProtagonistStrategyCount = []int{16}
 
 var AllFitnessStrategyType = []string{evolution.FitnessDualThresholdedRatio}
-var AllFitStratAntThreshMult = []float64{20}
+var AllFitStratAntThreshMult = []float64{16}
 var AllFitStratProThreshMult = []float64{1}
 
 var AllSelectionParentType = []evolution.ParentSelection{
@@ -90,153 +99,3 @@ var AllStrategies = []evolution.Strategy{
 	evolution.StrategyDivXD,
 	evolution.StrategyAddTreeWithDiv,
 }
-
-//var AllStrategiesDeterministic = []evolution.Strategy{
-//	evolution.StrategySkip,
-//	evolution.StrategyFellTree,
-//	evolution.StrategyMultXD,
-//	evolution.StrategyAddXD,
-//	evolution.StrategySubXD,
-//	evolution.StrategyDivXD,
-//	evolution.StrategyAddTreeWithDiv,
-//}
-//
-//var AllStrategiesRandom = []evolution.Strategy{
-//	evolution.StrategyDeleteMalicious,
-//	evolution.StrategyDeleteNonTerminal,
-//	evolution.StrategyDeleteTerminal,
-//	evolution.StrategyMutateNonTerminal,
-//	evolution.StrategyMutateTerminal,
-//	evolution.StrategyReplaceBranch,
-//	evolution.StrategyReplaceBranchX,
-//	evolution.StrategyAddRandomSubTree,
-//	evolution.StrategyAddToLeaf,
-//	evolution.StrategyAddTreeWithMult,
-//	evolution.StrategyAddTreeWithSub,
-//	evolution.StrategyAddTreeWithAdd,
-//}
-//var AllStrategiesNoDelete = []evolution.Strategy{
-//	evolution.StrategyMutateNonTerminal,
-//	evolution.StrategyMutateTerminal,
-//	evolution.StrategyReplaceBranch,
-//	evolution.StrategyReplaceBranchX,
-//	evolution.StrategyAddRandomSubTree,
-//	evolution.StrategyAddToLeaf,
-//	evolution.StrategyAddTreeWithMult,
-//	evolution.StrategyAddTreeWithSub,
-//	evolution.StrategyAddTreeWithAdd,
-//	evolution.StrategySkip,
-//	evolution.StrategyMultXD,
-//	evolution.StrategyAddXD,
-//	evolution.StrategySubXD,
-//	evolution.StrategyDivXD,
-//	evolution.StrategyAddTreeWithDiv,
-//}
-//var AllStrategiesNoX = []evolution.Strategy{
-//	evolution.StrategyDeleteMalicious,
-//	evolution.StrategyDeleteNonTerminal,
-//	evolution.StrategyDeleteTerminal,
-//	evolution.StrategyMutateNonTerminal,
-//	evolution.StrategyMutateTerminal,
-//	evolution.StrategyReplaceBranch,
-//	evolution.StrategyAddRandomSubTree,
-//	evolution.StrategyAddToLeaf,
-//	evolution.StrategyAddTreeWithMult,
-//	evolution.StrategyAddTreeWithSub,
-//	evolution.StrategyAddTreeWithAdd,
-//	evolution.StrategySkip,
-//	evolution.StrategyFellTree,
-//	evolution.StrategyAddTreeWithDiv,
-//}
-//var AllStrategiesX = []evolution.Strategy{
-//	evolution.StrategyDeleteMalicious,
-//	evolution.StrategyDeleteNonTerminal,
-//	evolution.StrategyDeleteTerminal,
-//	evolution.StrategyMutateNonTerminal,
-//	evolution.StrategyMutateTerminal,
-//	evolution.StrategyReplaceBranchX,
-//	evolution.StrategySkip,
-//	evolution.StrategyFellTree,
-//	evolution.StrategyMultXD,
-//	evolution.StrategyAddXD,
-//	evolution.StrategySubXD,
-//	evolution.StrategyDivXD,
-//}
-//var AllStrategiesNoSkip = []evolution.Strategy{
-//	evolution.StrategyDeleteMalicious,
-//	evolution.StrategyDeleteNonTerminal,
-//	evolution.StrategyDeleteTerminal,
-//	evolution.StrategyMutateNonTerminal,
-//	evolution.StrategyMutateTerminal,
-//	evolution.StrategyReplaceBranch,
-//	evolution.StrategyReplaceBranchX,
-//	evolution.StrategyAddRandomSubTree,
-//	evolution.StrategyAddToLeaf,
-//	evolution.StrategyAddTreeWithMult,
-//	evolution.StrategyAddTreeWithSub,
-//	evolution.StrategyAddTreeWithAdd,
-//	evolution.StrategyFellTree,
-//	evolution.StrategyMultXD,
-//	evolution.StrategyAddXD,
-//	evolution.StrategySubXD,
-//	evolution.StrategyDivXD,
-//	evolution.StrategyAddTreeWithDiv,
-//}
-//var AllStrategiesNoFell = []evolution.Strategy{
-//	evolution.StrategyDeleteMalicious,
-//	evolution.StrategyDeleteNonTerminal,
-//	evolution.StrategyDeleteTerminal,
-//	evolution.StrategyMutateNonTerminal,
-//	evolution.StrategyMutateTerminal,
-//	evolution.StrategyReplaceBranch,
-//	evolution.StrategyReplaceBranchX,
-//	evolution.StrategyAddRandomSubTree,
-//	evolution.StrategyAddToLeaf,
-//	evolution.StrategyAddTreeWithMult,
-//	evolution.StrategyAddTreeWithSub,
-//	evolution.StrategyAddTreeWithAdd,
-//	evolution.StrategySkip,
-//	evolution.StrategyMultXD,
-//	evolution.StrategyAddXD,
-//	evolution.StrategySubXD,
-//	evolution.StrategyDivXD,
-//	evolution.StrategyAddTreeWithDiv,
-//}
-//var AllStrategiesNoMutate = []evolution.Strategy{
-//	evolution.StrategyDeleteMalicious,
-//	evolution.StrategyDeleteNonTerminal,
-//	evolution.StrategyDeleteTerminal,
-//	evolution.StrategyReplaceBranch,
-//	evolution.StrategyReplaceBranchX,
-//	evolution.StrategyAddRandomSubTree,
-//	evolution.StrategyAddToLeaf,
-//	evolution.StrategyAddTreeWithMult,
-//	evolution.StrategyAddTreeWithSub,
-//	evolution.StrategyAddTreeWithAdd,
-//	evolution.StrategySkip,
-//	evolution.StrategyFellTree,
-//	evolution.StrategyMultXD,
-//	evolution.StrategyAddXD,
-//	evolution.StrategySubXD,
-//	evolution.StrategyDivXD,
-//	evolution.StrategyAddTreeWithDiv,
-//}
-//var AllStrategiesNoAddRandom = []evolution.Strategy{
-//	evolution.StrategyDeleteMalicious,
-//	evolution.StrategyDeleteNonTerminal,
-//	evolution.StrategyDeleteTerminal,
-//	evolution.StrategyMutateNonTerminal,
-//	evolution.StrategyMutateTerminal,
-//	evolution.StrategyReplaceBranch,
-//	evolution.StrategyReplaceBranchX,
-//	evolution.StrategyAddTreeWithMult,
-//	evolution.StrategyAddTreeWithSub,
-//	evolution.StrategyAddTreeWithAdd,
-//	evolution.StrategySkip,
-//	evolution.StrategyFellTree,
-//	evolution.StrategyMultXD,
-//	evolution.StrategyAddXD,
-//	evolution.StrategySubXD,
-//	evolution.StrategyDivXD,
-//	evolution.StrategyAddTreeWithDiv,
-//}

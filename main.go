@@ -176,7 +176,7 @@ func StealCompleted(abs string, paramsFolder string, dataDir, backupFolder, back
 			err = os.RemoveAll(parent2)
 
 			// Copy Param Files
-			err = filepath.Walk(oldParamPath, func(path string, info os.FileInfo, err error) error {
+			filepath.Walk(oldParamPath, func(path string, info os.FileInfo, err error) error {
 				if err != nil {
 					return err
 				}
@@ -195,7 +195,7 @@ func StealCompleted(abs string, paramsFolder string, dataDir, backupFolder, back
 			})
 			splitParam := strings.Split(oldParamPath, "/")
 			parentParam := strings.Join(splitParam[:len(splitParam)-1], "/")
-			err = os.RemoveAll(parentParam)
+			os.RemoveAll(parentParam)
 			mut.Unlock()
 		}
 		time.Sleep(time.Second * 10)
