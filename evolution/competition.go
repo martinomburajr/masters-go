@@ -30,21 +30,21 @@ func (engine *EvolutionEngine) Evolve(params EvolutionParams) (*EvolutionResult,
 		}
 		return evolutionResult, nil
 	case TopologyKRandom:
-		kRandom := KRandom{Engine: engine}
+		kRandom := &KRandom{Engine: engine}
 		evolutionResult, err := kRandom.Evolve(params, kRandom)
 		if err != nil {
 			return nil, err
 		}
 		return evolutionResult, nil
 	case TopologyRoundRobin:
-		roundRobin := RoundRobin{Engine: engine}
+		roundRobin := &RoundRobin{Engine: engine}
 		evolutionResult, err := roundRobin.Evolve(params, roundRobin)
 		if err != nil {
 			return nil, err
 		}
 		return evolutionResult, nil
 	case TopologySingleEliminationTournament:
-		singleEliminationTournament := SingleEliminationTournamentTopology{Engine: engine}
+		singleEliminationTournament := &SingleEliminationTournamentTopology{Engine: engine}
 		evolutionResult, err := singleEliminationTournament.Evolve(params, singleEliminationTournament)
 		if err != nil {
 			return nil, err

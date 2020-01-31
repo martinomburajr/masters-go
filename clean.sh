@@ -1,3 +1,3 @@
 #!/bin/bash
 
-rm -rf _params && ./masters --spew=1
+rm -rf nohup.out && sudo pkill -f forever.sh && sudo pkill -f masters && rm -rf data

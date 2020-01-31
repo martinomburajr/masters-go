@@ -67,16 +67,17 @@ func (s *Simulation) Begin(params evolution.EvolutionParams) (evolution.Evolutio
 				s *Simulation, mutex *sync.Mutex, wg *sync.WaitGroup, progCount int) {
 				defer wg.Done()
 
-				//s.Mutext.Lock()
+
 				var bar *uiprogress.Bar
 				bar = uiprogress.AddBar(progCount).AppendCompleted().PrependElapsed().PrependFunc(func(b *uiprogress.
 					Bar) string {
-
+					s.Mutext.Lock()
 					folderNumber := strings.Split(params.ParamFile, "/")[0]
 					sb := fmt.Sprintf("Folder: %s \t| Run: %d/%d \t| ==>", folderNumber, i+1, s.NumberOfRunsPerState)
+					s.Mutext.Unlock()
 					return sb
 				})
-				//s.Mutext.Unlock()
+
 				s.ProgressBar = bar
 
 				s.Mutext.Lock()
@@ -171,6 +172,8 @@ func (s *Simulation) Begin(params evolution.EvolutionParams) (evolution.Evolutio
 		s.RunRScript(s.RPath, abs, s.StatsFiles, params.LoggingChan, params.ErrorChan)
 	}
 
+	s.SimulationStats = nil
+	s.ProgressBar = nil
 
 	fmt.Printf("SIMUlATION COMPLETE: Number of Goroutines %d", runtime.NumGoroutine())
 	return params, nil
@@ -272,13 +275,17 @@ func (s *Simulation) StartEngine(engine *evolution.EvolutionEngine) error {
 		defer wg.Done()
 		mut := sync.Mutex{}
 		mut.Lock()
-		runEpochalStatistics, err := s.EpochalInRun(engine.Parameters)
-		if err != nil {
-			engine.Parameters.ErrorChan <- err
-		}
-		err = runEpochalStatistics.ToCSV(s.generateRunPathCSV("epochal", engine.Parameters.InternalCount))
-		if err != nil {
-			engine.Parameters.ErrorChan <- err
+		if engine.Parameters.Topology.Type != evolution.TopologyKRandom && engine.Parameters.Topology.
+			Type != evolution.TopologySingleEliminationTournament{
+
+			runEpochalStatistics, err := s.EpochalInRun(engine.Parameters)
+			if err != nil {
+				engine.Parameters.ErrorChan <- err
+			}
+			err = runEpochalStatistics.ToCSV(s.generateRunPathCSV("epochal", engine.Parameters.InternalCount))
+			if err != nil {
+				engine.Parameters.ErrorChan <- err
+			}
 		}
 		engine.ProgressBar.Incr()
 		mut.Unlock()

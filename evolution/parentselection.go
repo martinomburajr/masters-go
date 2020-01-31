@@ -86,7 +86,7 @@ func tournamentSelect(selectedIndividuals []*Individual) (*Individual, error) {
 // n) individuals based on eliteCount are selected based on their Fitness.
 // In essence it ranks the individuals based on Fitness, then returns the top (n)
 func Elitism(population []*Individual, isMoreFitnessBetter bool) ([]*Individual, error) {
-	return SortIndividuals(population, isMoreFitnessBetter)
+	return nil, nil
 }
 
 // Fitness Proportionate Selection is one of the most popular ways of parent selection.

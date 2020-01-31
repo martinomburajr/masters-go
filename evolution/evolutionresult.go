@@ -110,8 +110,10 @@ func (e *EvolutionResult) Analyze(evolutionEngine *EvolutionEngine, generations 
 		correlations := make([]float64, genCount)
 		covariances := make([]float64, genCount)
 
+		generations[i].Mutex.Lock()
 		correlations[i] = generations[i].Correlation
 		covariances[i] = generations[i].Covariance
+		generations[i].Mutex.Unlock()
 
 		corrMean, corrStd := stat.MeanStdDev(correlations, nil)
 		covMean, covStd := stat.MeanStdDev(covariances, nil)

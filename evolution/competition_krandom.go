@@ -10,7 +10,7 @@ type KRandom struct {
 	Engine *EvolutionEngine
 }
 
-func (s KRandom) Topology(currentGeneration *Generation,
+func (s *KRandom) Topology(currentGeneration *Generation,
 	params EvolutionParams) (*Generation,
 	error) {
 
@@ -34,7 +34,7 @@ func (s KRandom) Topology(currentGeneration *Generation,
 		isComplete:                   true,
 		hasParentSelectionHappened:   true,
 		hasSurvivorSelectionHappened: true,
-		count:                        currentGeneration.count,
+		count:                        currentGeneration.count+1 ,
 	}
 
 	return newGeneration, nil
@@ -65,26 +65,26 @@ func (s *KRandom) createTournamentLedger(antagonists []*Individual, protagonists
 	return tournamentLedger, nil
 }
 
-func (s *KRandom) contains(individual *Individual, individuals []*Individual) bool {
+func (s *KRandom) contains(individual *Individual, individuals []*Individual) (bool, int) {
 	for i := 0; i < len(individuals); i++ {
 		if individual.Id == individuals[i].Id {
-			return true
+			return true, i
 		}
 	}
-	return false
+	return false, -1
 }
 
 func (s *KRandom) startTournaments(currentGeneration *Generation, tournamentLedger map[*Individual][]*Individual,
 	params EvolutionParams) (err error) {
 	perfectFitnessMap := map[string]PerfectTree{}
 
-	antagonists := make([]*Individual, params.Topology.KRandomK)
+	antagonists := make([]*Individual, 0)
 	protagonists := make([]*Individual, 0)
 
 	for protagonist := range tournamentLedger {
 		tournament := tournamentLedger[protagonist]
-		for j, antagonist := range tournament {
-			antagonists[j] = antagonist
+		for _, antagonist := range tournament {
+			antagonists = append(antagonists, antagonist)
 			err := antagonist.ApplyAntagonistStrategy(params)
 			if err != nil {
 				return err
@@ -112,10 +112,14 @@ func (s *KRandom) startTournaments(currentGeneration *Generation, tournamentLedg
 	// Set individuals with the best representation of their tree
 	for i := 0; i < len(antagonists); i++ {
 		perfectAntagonistTree := perfectFitnessMap[antagonists[i].Id]
-		currentGeneration.Antagonists[i] = antagonists[i].Parent
-		currentGeneration.Antagonists[i].Program = perfectAntagonistTree.Program
-		currentGeneration.Antagonists[i].BestDelta = perfectAntagonistTree.BestFitnessDelta
-		currentGeneration.Antagonists[i].BestFitness = perfectAntagonistTree.BestFitnessValue
+		antagonists[i].Parent.Program = perfectAntagonistTree.Program
+		antagonists[i].Parent.BestDelta = perfectAntagonistTree.BestFitnessDelta
+		antagonists[i].Parent.BestFitness = perfectAntagonistTree.BestFitnessValue
+
+		contains, index := s.contains(antagonists[i], currentGeneration.Antagonists)
+		if contains {
+			currentGeneration.Antagonists[index] =antagonists[i].Parent
+		}
 	}
 	for i := 0; i < len(protagonists); i++ {
 		perfectProtagonistTree := perfectFitnessMap[protagonists[i].Id]
@@ -123,7 +127,15 @@ func (s *KRandom) startTournaments(currentGeneration *Generation, tournamentLedg
 		currentGeneration.Protagonists[i].Program = perfectProtagonistTree.Program
 		currentGeneration.Protagonists[i].BestDelta = perfectProtagonistTree.BestFitnessDelta
 		currentGeneration.Protagonists[i].BestFitness = perfectProtagonistTree.BestFitnessValue
+
+		fitnessToBeAppendedToGenerationAvgFitness := CoalesceFitnessStatistics(currentGeneration.Protagonists[i])
+		antfitnessToBeAppendedToGenerationAvgFitness := CoalesceFitnessStatistics(currentGeneration.Antagonists[i])
+
+		currentGeneration.AntagonistAvgFitness = append(currentGeneration.AntagonistAvgFitness, antfitnessToBeAppendedToGenerationAvgFitness)
+		currentGeneration.ProtagonistAvgFitness = append(currentGeneration.ProtagonistAvgFitness, fitnessToBeAppendedToGenerationAvgFitness)
 	}
+
+
 
 	return nil
 }
@@ -157,12 +169,14 @@ func (s *KRandom) Evolve(params EvolutionParams, topology ITopology) (*Evolution
 		if genCount == params.GenerationsCount && params.MaxGenerations < MinAllowableGenerationsToTerminate {
 			shouldTerminateEvolution := engine.EvaluateTerminationCriteria(engine.Generations[i], engine.Parameters)
 			if shouldTerminateEvolution {
+				engine.ProgressBar.Incr()
 				break
 			}
 		}
 		go engine.RunGenerationStatistics(engine.Generations[i])
 
 		if i == engine.Parameters.MaxGenerations-1 {
+			engine.ProgressBar.Incr()
 			break
 		}
 		engine.Generations = append(engine.Generations, nextGeneration)

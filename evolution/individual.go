@@ -5,6 +5,7 @@ import (
 	"math"
 	"math/rand"
 	"strings"
+	"sync"
 )
 
 const (
@@ -31,6 +32,7 @@ type Individual struct {
 	BestDelta                float64
 	AverageDelta             float64
 	NoOfCompetitions         int
+	Mutex sync.Mutex
 	// BirthGen represents the generation where this individual was spawned
 
 	Program *Program // The best program generated

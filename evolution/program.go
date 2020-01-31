@@ -16,7 +16,7 @@ type Program struct {
 
 func GenerateProgramID(count int) string {
 	randString := RandString(2)
-	return fmt.Sprintf("%s-%s-%d", "PROG", randString, count)
+	return fmt.Sprintf("%s-%s-%d", "XX", randString, count)
 }
 
 // ApplyStrategy takes a given Strategy and applies a transformation to the given program.

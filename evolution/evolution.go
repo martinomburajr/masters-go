@@ -164,6 +164,7 @@ func (engine *EvolutionEngine) RunGenerationStatistics(currentGeneration *Genera
 
 	if currentGeneration.BestAntagonist.Id == "" {
 		bestAnt := &Individual{AverageFitness: math.MinInt64}
+		currentGeneration.Mutex.Lock()
 		for _, currAnt := range currentGeneration.Antagonists {
 			if currAnt.AverageFitness > bestAnt.AverageFitness {
 				bestAnt = currAnt
@@ -174,10 +175,12 @@ func (engine *EvolutionEngine) RunGenerationStatistics(currentGeneration *Genera
 			engine.Parameters.ErrorChan <- err
 		}
 		currentGeneration.BestAntagonist = bestAntClone
+		currentGeneration.Mutex.Unlock()
 	}
 
 	if currentGeneration.BestProtagonist.Id == "" {
 		bestPro := &Individual{AverageFitness: math.MinInt64}
+		currentGeneration.Mutex.Lock()
 		for _, currPro := range currentGeneration.Protagonists {
 			if currPro.AverageFitness > bestPro.AverageFitness {
 				bestPro = currPro
@@ -188,6 +191,7 @@ func (engine *EvolutionEngine) RunGenerationStatistics(currentGeneration *Genera
 			engine.Parameters.ErrorChan <- err
 		}
 		currentGeneration.BestProtagonist = bestProClone
+		currentGeneration.Mutex.Unlock()
 	}
 
 	statsString := currentGeneration.ToString()

@@ -31,7 +31,7 @@ func (r RoundRobin) Topology(currentGeneration *Generation,
 		isComplete:                   true,
 		hasParentSelectionHappened:   true,
 		hasSurvivorSelectionHappened: true,
-		count:                        currentGeneration.count,
+		count:                        currentGeneration.count+1,
 	}
 
 	return newGeneration, nil
@@ -66,12 +66,14 @@ func (s *RoundRobin) Evolve(params EvolutionParams, topology ITopology) (*Evolut
 		if genCount == params.GenerationsCount && params.MaxGenerations < MinAllowableGenerationsToTerminate {
 			shouldTerminateEvolution := engine.EvaluateTerminationCriteria(engine.Generations[i], engine.Parameters)
 			if shouldTerminateEvolution {
+				engine.ProgressBar.Incr()
 				break
 			}
 		}
 		go engine.RunGenerationStatistics(engine.Generations[i])
 
 		if i == engine.Parameters.MaxGenerations-1 {
+			engine.ProgressBar.Incr()
 			break
 		}
 		engine.Generations = append(engine.Generations, nextGeneration)

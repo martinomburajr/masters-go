@@ -198,6 +198,84 @@ func StealCompleted(abs string, paramsFolder string, dataDir, backupFolder, back
 			os.RemoveAll(parentParam)
 			mut.Unlock()
 		}
-		time.Sleep(time.Second * 10)
+		time.Sleep(time.Second * 2)
 	}
+}
+
+func steal(paramToStealFolder, abs string, paramsFolder string, dataDir, backupFolder, backupParams string,
+	) error {
+	backupDataPath := fmt.Sprintf("%s/%s", abs, backupFolder)
+	backupParamsPath := fmt.Sprintf("%s/%s", abs, backupParams)
+	os.Mkdir(backupDataPath, 0775)
+	os.Mkdir(backupParamsPath, 0775)
+
+	newDataBackupPath := fmt.Sprintf("%s/%s", backupDataPath, paramToStealFolder)
+	newParamBackupPath := fmt.Sprintf("%s/%s.json", backupParamsPath, paramToStealFolder)
+	oldParamPath := fmt.Sprintf("%s/%s/%s.json", abs, paramsFolder, paramToStealFolder)
+	oldDataPath := fmt.Sprintf("%s/%s/%s", abs, dataDir, paramToStealFolder)
+
+	mut := sync.Mutex{}
+	mut.Lock()
+	err := filepath.Walk(oldDataPath, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() {
+			oldDataContent, err := ioutil.ReadFile(path)
+			if err != nil {
+				return err
+			}
+
+			dataFileNewPath := fmt.Sprintf("%s/%s", newDataBackupPath, info.Name())
+			os.MkdirAll(newDataBackupPath, 0777)
+
+			err = ioutil.WriteFile(dataFileNewPath, oldDataContent, 0777)
+			if err != nil {
+				return err
+			}
+		}
+		return err
+	})
+	if err != nil {
+		return err
+	}
+	split := strings.Split(oldDataPath, "/")
+	parent := split[:len(split)-1]
+	parent2 := strings.Join(parent, "/")
+	err = os.RemoveAll(parent2)
+	if err != nil {
+		return err
+	}
+
+	// Copy Param Files
+	err = filepath.Walk(oldParamPath, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() {
+			oldParamData, err := ioutil.ReadFile(path)
+			if err != nil {
+				return err
+			}
+			newParamBackupFolder := strings.ReplaceAll(newParamBackupPath, ".json", "")
+			os.MkdirAll(newParamBackupFolder, 0777)
+			err = ioutil.WriteFile(newParamBackupPath, oldParamData, 0777)
+			if err != nil {
+				return err
+			}
+		}
+		return err
+	})
+	if err != nil {
+		return err
+	}
+	splitParam := strings.Split(oldParamPath, "/")
+	parentParam := strings.Join(splitParam[:len(splitParam)-1], "/")
+	err = os.RemoveAll(parentParam)
+	if err != nil {
+		return err
+	}
+	mut.Unlock()
+
+	return nil
 }

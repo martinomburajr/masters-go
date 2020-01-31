@@ -10,7 +10,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
 	"time"
 )
 
@@ -58,7 +57,7 @@ func Scheduler(paramsFolder, dataDirName string, parallelism bool, numberOfSimul
 	go SetupLogger(sim)
 
 	if canSteal {
-		go StealCompleted(sim.absolutePath, paramsFolder, sim.dataDirName, "_dataBackup", "_paramsBackup", repeatDelay)
+		//go StealCompleted(sim.absolutePath, paramsFolder, sim.dataDirName, "_dataBackup", "_paramsBackup", repeatDelay)
 	}
 
 	completeParamFolder, unstartedParams, incompleteParams :=
@@ -81,30 +80,50 @@ func Scheduler(paramsFolder, dataDirName string, parallelism bool, numberOfSimul
 		return
 	} else {
 		count := 0
-		for len(completeParamFolder) <= fileCount && count < fileCount {
+		for  {
 			sim.doneChan <- false
 			if len(unstartedParams) != 0 && unstartedParams != nil {
-				runSimulation(sim, unstartedParams[0])
+				if count > len(unstartedParams) {
+					count = 0
+				}
+				runSimulation(sim, unstartedParams[count])
+
 			}
 			sim.doneChan <- true
+			completePath := unstartedParams[count]
+
+			err := steal(completePath, sim.absolutePath, paramsFolder, sim.dataDirName, "_dataBackup", "_paramsBackup")
+			if err != nil {
+				sim.errChan <- err
+			}
 
 			completeParamFolder, unstartedParams, incompleteParams = GetParamFileStatus(sim.absolutePath,
 				sim.paramFolder, sim.dataDirName, repeatDelay)
 			log.Printf("\n\n\n################################### COMPLETED CYCLE %d"+
 				"! ###################################\n\n\n", count)
-			count++
+
+			fileCount = len(completeParamFolder) + len(unstartedParams) + len(incompleteParams)
+			if len(unstartedParams) + len(incompleteParams) == 0 {
+				break
+			}
+
+			sim = simulationParams{
+				absolutePath:               absolutePath,
+				dataFiles:                  dataFiles,
+				dataDirName:                dataDirName,
+				numberOfSimultaneousParams: int(numberOfSimultaneousParams),
+				paramFolder:                paramsFolder,
+				errChan:                    make(chan error),
+				logChan:                    make(chan evolog.Logger),
+				doneChan:                   make(chan bool),
+				parallelism:                parallelism,
+				logging:                    logging,
+				runStats:                   runStats,
+			}
 		}
 	}
 
 	sim.doneChan <- true
-	wg := sync.WaitGroup{}
-	wg.Add(1)
-	go func(wg *sync.WaitGroup) {
-		defer wg.Done()
-		fmt.Println("GRACEFULLY STAYING UP FOR 12 Minutes")
-		time.Sleep(12 * time.Minute)
-	}(&wg)
-	wg.Wait()
 	close(sim.logChan)
 	close(sim.errChan)
 }

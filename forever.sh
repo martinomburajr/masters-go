@@ -9,7 +9,7 @@ mag=$'\e[1;35m' # Title
 cyn=$'\e[1;36m'
 end=$'\e[0m'
 
-for j in {0..1000} ; do
+for j in {0..1} ; do
   printf "${mag}\n\
   ##########################################################\n \
                   Starting Simulation ${j} \n\

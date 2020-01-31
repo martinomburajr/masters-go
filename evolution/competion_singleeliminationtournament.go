@@ -3,6 +3,7 @@ package evolution
 import (
 	"fmt"
 	"github.com/martinomburajr/masters-go/utils"
+	"math"
 	"math/rand"
 	"sync"
 	"time"
@@ -12,7 +13,7 @@ type SingleEliminationTournamentTopology struct {
 	Engine *EvolutionEngine
 }
 
-func (s SingleEliminationTournamentTopology) Topology(currentGeneration *Generation,
+func (s *SingleEliminationTournamentTopology) Topology(currentGeneration *Generation,
 	params EvolutionParams) (*Generation,
 	error) {
 
@@ -26,6 +27,9 @@ func (s SingleEliminationTournamentTopology) Topology(currentGeneration *Generat
 		setNoOfTournaments = int(0.1 * float64(params.EachPopulationSize))
 	}
 	if params.Topology.SETNoOfTournaments > 1 {
+		setNoOfTournaments = 1
+	}
+	if setNoOfTournaments == 0 {
 		setNoOfTournaments = 1
 	}
 
@@ -71,6 +75,7 @@ func (s SingleEliminationTournamentTopology) Topology(currentGeneration *Generat
 			if err != nil {
 				params.ErrorChan <- err
 			}
+
 			currentGeneration.Mutex.Lock()
 			fittestProtagonists = append(fittestProtagonists, topProtagonist.Parent)
 			currentGeneration.Mutex.Unlock()
@@ -90,6 +95,14 @@ func (s SingleEliminationTournamentTopology) Topology(currentGeneration *Generat
 		anttagAvgFitness := CoalesceFitnessStatistics(fittestAntagonists[i])
 		protagAvgFitness := CoalesceFitnessStatistics(fittestProtagonists[i])
 
+		antMaxFit, antMaxDelta := GetMaxFitnessAndDelta(fittestAntagonists[i])
+		proMaxFit, proMaxDelta := GetMaxFitnessAndDelta(fittestProtagonists[i])
+
+		fittestAntagonists[i].BestDelta = antMaxDelta
+		fittestAntagonists[i].BestFitness = antMaxFit
+		fittestProtagonists[i].BestDelta = proMaxDelta
+		fittestProtagonists[i].BestFitness = proMaxFit
+
 		currentGeneration.AntagonistAvgFitness = append(currentGeneration.AntagonistAvgFitness, anttagAvgFitness)
 		currentGeneration.ProtagonistAvgFitness = append(currentGeneration.ProtagonistAvgFitness, protagAvgFitness)
 	}
@@ -108,10 +121,26 @@ func (s SingleEliminationTournamentTopology) Topology(currentGeneration *Generat
 		isComplete:                   true,
 		hasParentSelectionHappened:   true,
 		hasSurvivorSelectionHappened: true,
-		count:                        currentGeneration.count,
+		count:                        currentGeneration.count+1,
 	}
 
 	return newGeneration, nil
+}
+
+func GetMaxFitnessAndDelta(individual *Individual) (maxFit float64, maxDelta float64) {
+	maxFit = math.MinInt16
+	maxDelta = math.MinInt16
+	for i := 0; i < len(individual.Fitness); i++ {
+		if individual.Fitness[i] > maxFit {
+			maxFit = individual.Fitness[i]
+		}
+	}
+	for i := 0; i < len(individual.Deltas); i++ {
+		if individual.Deltas[i] > maxDelta {
+			maxDelta = individual.Deltas[i]
+		}
+	}
+	return maxFit, maxDelta
 }
 
 func CloneIndividualsLinkParent(individuals []*Individual) (outgoing []*Individual, err error) {
@@ -158,12 +187,14 @@ func (s *SingleEliminationTournamentTopology) Evolve(params EvolutionParams, top
 		if genCount == params.GenerationsCount && params.MaxGenerations < MinAllowableGenerationsToTerminate {
 			shouldTerminateEvolution := engine.EvaluateTerminationCriteria(engine.Generations[i], engine.Parameters)
 			if shouldTerminateEvolution {
+				engine.ProgressBar.Incr()
 				break
 			}
 		}
 		go engine.RunGenerationStatistics(engine.Generations[i])
 
 		if i == engine.Parameters.MaxGenerations-1 {
+			engine.ProgressBar.Incr()
 			break
 		}
 		engine.Generations = append(engine.Generations, nextGeneration)
@@ -212,14 +243,11 @@ func singleETCompeteAntagonists(individuals []*Individual, params EvolutionParam
 			if err != nil {
 				return nil, err
 			}
-			s, _ := brackets[i].individualA.Program.T.ToMathematicalString()
-			fmt.Println(s)
+
 			err = brackets[i].individualB.ApplyAntagonistStrategy(params)
 			if err != nil {
 				return nil, err
 			}
-			s2, _ := brackets[i].individualB.Program.T.ToMathematicalString()
-			fmt.Println(s2)
 
 			individualAFitness, individualADelta, err := brackets[i].individualA.CalculateAntagonistThresholdedFitness(
 				params)
@@ -322,6 +350,12 @@ func singleETCompeteProtagonists(individuals []*Individual, bestAntagonistTree D
 			brackets[i].individualA.Parent.Deltas = append(brackets[i].individualA.Parent.Deltas, individualADelta)
 			brackets[i].individualB.Parent.Fitness = append(brackets[i].individualB.Parent.Fitness, individualBFitness)
 			brackets[i].individualB.Parent.Deltas = append(brackets[i].individualB.Parent.Deltas, individualBDelta)
+
+			programCloneA := brackets[i].individualA.Program.CloneWithTree(*brackets[i].individualA.Program.T)
+			programCloneB := brackets[i].individualB.Program.CloneWithTree(*brackets[i].individualB.Program.T)
+
+			brackets[i].individualA.Parent.Program = &programCloneA
+			brackets[i].individualB.Parent.Program = &programCloneB
 
 			if individualAFitness >= individualBFitness {
 				if len(brackets) == 1 {

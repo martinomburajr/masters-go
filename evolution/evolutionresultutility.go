@@ -75,6 +75,8 @@ func SortIndividuals(individuals []*Individual, isMoreFitnessBetter bool) ([]*In
 		return nil, fmt.Errorf("SortIndividuals | individuals cannot be empty")
 	}
 
+
+
 	switch isMoreFitnessBetter {
 	case true:
 		sort.Slice(individuals, func(i, j int) bool {
@@ -215,6 +217,7 @@ func SortGenerationsThoroughly(generations []*Generation, isMoreFitnessBetter bo
 	sortedGenerations := make([]*Generation, len(generations))
 	for i := 0; i < len(generations); i++ {
 		sortedGenerations[i] = generations[i]
+		generations[i].Mutex.Lock()
 		sortedAntagonists, err := SortIndividuals(generations[i].Antagonists, isMoreFitnessBetter)
 		if err != nil {
 			return nil, err
@@ -225,6 +228,7 @@ func SortGenerationsThoroughly(generations []*Generation, isMoreFitnessBetter bo
 		}
 		sortedGenerations[i].Protagonists = sortedProtagonists
 		sortedGenerations[i].Antagonists = sortedAntagonists
+		generations[i].Mutex.Unlock()
 	}
 	return sortedGenerations, nil
 }
