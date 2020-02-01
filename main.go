@@ -35,6 +35,8 @@ func main() {
 	stealPtr := flag.Bool("steal", true, "Should steal completed files and automatically back them up")
 	coalesceBestPath := flag.String("coalesceBest", "", "Feed in the _dataBackup directory to create a coalescedBest."+
 		"csv")
+	rIndependentParentDir := flag.String("runRIndependent", "", "run's are to a given set of directories. "+
+		"The value supplied must be the parent folder containing all the folders that require R to run in.")
 
 	flag.Parse()
 
@@ -55,6 +57,24 @@ func main() {
 			log.Fatal(err)
 		}
 		return
+	}
+	if  *rIndependentParentDir != "" {
+		dirs := make([]string, 0)
+		finalDires := make([]string, 0)
+		err := filepath.Walk(*rIndependentParentDir, func(path string, info os.FileInfo, err error) error {
+			if info.IsDir() {
+				dirs = append(dirs, path)
+			}
+			return err
+		})
+		dirs = dirs[1:]
+		for i := 1; i < len(dirs); i+=2 {
+			finalDires = append(finalDires, dirs[i])
+		}
+		if err != nil {
+			log.Fatalf("RunR: %s", err.Error())
+		}
+		RunR(finalDires)
 	}
 
 	//fmt.Printf(csvBestAll)
