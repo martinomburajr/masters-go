@@ -144,9 +144,7 @@ func CombineBest(baseFolder string) error {
 
 	finalCSV := make([]CSVBestAll, 0)
 	for i := range accCSV {
-		if i%2 == 0 {
-			finalCSV = append(finalCSV, accCSV[i])
-		}
+		finalCSV = append(finalCSV, accCSV[i])
 	}
 
 	outputFilePath := fmt.Sprintf("%s/%s", baseFolder, "coalescedBest.csv")
@@ -433,9 +431,7 @@ func CombineBestCombinedAll(baseFolder string) error {
 
 	finalCSV := make([]CSVBestAll, 0)
 	for i := range accCSV {
-		if i%2 == 0 {
-			finalCSV = append(finalCSV, accCSV[i])
-		}
+		finalCSV = append(finalCSV, accCSV[i])
 	}
 
 	outputFilePath := fmt.Sprintf("%s/%s", baseFolder, "coalescedBestCombined.csv")
@@ -587,9 +583,7 @@ func CombineBestCombinedAll2(baseFolder string) error {
 
 	finalCSV := make([]CSVBestAll, 0)
 	for i := range accCSV {
-		if i%2 == 0 {
-			finalCSV = append(finalCSV, accCSV[i])
-		}
+		finalCSV = append(finalCSV, accCSV[i])
 	}
 
 	outputFilePath := fmt.Sprintf("%s/%s", baseFolder, "coalescedBestCombined.csv")
