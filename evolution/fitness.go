@@ -52,7 +52,7 @@ func thresholdedRatioFitness(spec SpecMulti, antagonist, protagonist *Program,
 	protagonistFitness, antagonistFitnessError, protagonistFitnessError float64, err error) {
 
 	fitnessPenalization := spec[0].DivideByZeroPenalty
-	badDeltaValue := math.Inf(1)
+	badDeltaValue := math.NaN()
 
 	antagonistExpression, protagonistExpression, err := generateExpressions(antagonist, protagonist)
 	if err != nil {

@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/gocarina/gocsv"
 	"github.com/martinomburajr/masters-go/analysis"
 	"io/ioutil"
 	"log"
@@ -33,31 +32,15 @@ func main() {
 	folderPtr := flag.Int64("folder", 0, "Folder")
 	completedStatsPtr := flag.Bool("showProgress", false, "Shows the progress of completed/unstarted/incomplete files")
 	stealPtr := flag.Bool("steal", true, "Should steal completed files and automatically back them up")
-	coalesceBestPath := flag.String("coalesceBest", "", "Feed in the _dataBackup directory to create a coalescedBest."+
-		"csv")
 	rIndependentParentDir := flag.String("runRIndependent", "", "run's are to a given set of directories. "+
 		"The value supplied must be the parent folder containing all the folders that require R to run in.")
-
+	//--analysisBaseFolder="/home/martinomburajr/Desktop/Results"
+	analyisBaseFolder := flag.String("analysisBaseFolder", "", "pass the base folder containing all the different simulations. This will coalesce relevant files")
+	runFolder := flag.String("runFolder", "", "pass in the paramFolder to run, " +
+		"do not pass in the parent folder e.g. TopologySET-4")
 	flag.Parse()
 
-	if *coalesceBestPath != "" && len(*coalesceBestPath) > 3 {
-		finalCSV, err := analysis.ReadCSVFile(*coalesceBestPath)
-		if err != nil {
-			log.Fatal(err)
-		}
 
-		outputFilePath := fmt.Sprintf("%s/%s", *coalesceBestPath, "coalescedBest.csv")
-		outputFile, err := os.Create(outputFilePath)
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer outputFile.Close()
-		err = gocsv.MarshalFile(finalCSV, outputFile)
-		if err != nil {
-			log.Fatal(err)
-		}
-		return
-	}
 	if  *rIndependentParentDir != "" {
 		dirs := make([]string, 0)
 		finalDires := make([]string, 0)
@@ -75,6 +58,50 @@ func main() {
 			log.Fatalf("RunR: %s", err.Error())
 		}
 		RunR(finalDires)
+	}
+
+	//
+	if *analyisBaseFolder != "" {
+		wg := sync.WaitGroup{}
+		wg.Add(4)
+		//errChan := make(chan error)
+
+		go func(wg *sync.WaitGroup) {
+			defer wg.Done()
+			err := analysis.CombineGenerations(*analyisBaseFolder)
+			if err != nil {
+				fmt.Println(err.Error())
+				//errChan <- err
+			}
+		}(&wg)
+		go func(wg *sync.WaitGroup) {
+			defer wg.Done()
+			err := analysis.CombineBest(*analyisBaseFolder)
+			if err != nil {
+				fmt.Println(err.Error())
+				//errChan <- err
+			}
+		}(&wg)
+		go func(wg *sync.WaitGroup) {
+			defer wg.Done()
+		err := analysis.CombineBestCombinedAll(*analyisBaseFolder)
+		if err != nil {
+			fmt.Println(err.Error())
+			//errChan <- err
+		}
+		}(&wg)
+		go func(wg *sync.WaitGroup) {
+			defer wg.Done()
+		err := analysis.CombineBestCombinedAll2(*analyisBaseFolder)
+		if err != nil {
+			fmt.Println(err.Error())
+			//errChan <- err
+		}
+		}(&wg)
+
+		wg.Wait()
+		fmt.Println("F")
+		return
 	}
 
 	//fmt.Printf(csvBestAll)
@@ -113,9 +140,17 @@ func main() {
 	log.Printf("Parallelism Enabled: %t\n", *parallelismPtr)
 	log.Printf("Logging Enabled: %t\n", *loggingPtr)
 	log.Printf("RunStats Enabled: %t\n", *runStatsPtr)
+	log.Printf("Run Folder: %s\n", *runFolder)
 
 	if spew > 0 {
 		SPEWNoSplit(paramsFolder)
+		return
+	}
+	if *runFolder != "" {
+		err := SimpleScheduler(*runFolder, dataDir, logging, runStats)
+		if err != nil {
+			log.Fatal(err)
+		}
 		return
 	}
 
@@ -223,7 +258,7 @@ func StealCompleted(abs string, paramsFolder string, dataDir, backupFolder, back
 }
 
 func steal(paramToStealFolder, abs string, paramsFolder string, dataDir, backupFolder, backupParams string,
-	) error {
+) error {
 	backupDataPath := fmt.Sprintf("%s/%s", abs, backupFolder)
 	backupParamsPath := fmt.Sprintf("%s/%s", abs, backupParams)
 	os.Mkdir(backupDataPath, 0775)

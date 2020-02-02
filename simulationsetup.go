@@ -128,6 +128,72 @@ func Scheduler(paramsFolder, dataDirName string, parallelism bool, numberOfSimul
 	close(sim.errChan)
 }
 
+
+// SimpleScheduler is a simpler version. paramsFolder refers to the actual folder containing the dir of the params.
+// json file. Not the parent folder.
+func SimpleScheduler(paramsFolder, dataDirName string, logging, runStats bool) error {
+	absolutePath, err := filepath.Abs(".")
+	if err != nil {
+		log.Println(err)
+	}
+
+	pathToParamJson := ""
+	newParamFolder := ""
+	err = filepath.Walk(paramsFolder, func(path string, info os.FileInfo, err error) error {
+		if !info.IsDir() && strings.Contains(path, ".json") {
+			split := strings.Split(path, "/")
+			i := split[len(split)-2:]
+			j := split[len(split)-3:len(split)-2]
+			pathToParamJson = strings.Join(i,"/")
+			newParamFolder =  strings.Join(j,"/")
+			return err
+		}
+		return err
+	})
+	pathToParamJson = pathToParamJson[:len(pathToParamJson)-5]
+	if err != nil {
+		return err
+	}
+
+	dataFiles := getDataFiles(absolutePath, dataDirName)
+
+	if len(dataFiles) > 0 {
+		dataFiles = dataFiles[1:]
+	}
+
+	sim := simulationParams{
+		absolutePath:               absolutePath,
+		dataFiles:                  dataFiles,
+		dataDirName:                dataDirName,
+		numberOfSimultaneousParams: 1,
+		paramFolder:                newParamFolder,
+		errChan:                    make(chan error),
+		logChan:                    make(chan evolog.Logger),
+		doneChan:                   make(chan bool),
+		parallelism:                true,
+		logging:                    logging,
+		runStats:                   runStats,
+	}
+
+	// Listen to logs and errors
+	go SetupLogger(sim)
+
+	sim.doneChan <- false
+		runSimulation(sim, pathToParamJson)
+	sim.doneChan <- true
+
+	completePath := pathToParamJson
+	err = steal(completePath, sim.absolutePath, paramsFolder, sim.dataDirName, "_dataBackup", "_paramsBackup")
+	if err != nil {
+		sim.errChan <- err
+	}
+
+	sim.doneChan <- true
+	close(sim.logChan)
+	close(sim.errChan)
+	return nil
+}
+
 func SetupLogger(simulationParam simulationParams) {
 	file := setupLogFile(simulationParam)
 	defer file.Close()

@@ -80,7 +80,7 @@ func FitnessResolver(perfectTreeMap map[string]PerfectTree, antagonist, protagon
 	if perfectTreeAntagonist.BestFitnessValue < antagonistFitness {
 		perfectTreeAntagonist.Program = antagonist.Program
 		perfectTreeAntagonist.BestFitnessValue = antagonistFitness
-		if antagonistFitnessDelta != math.Inf(1) {
+		if antagonistFitnessDelta != math.NaN() {
 			perfectTreeAntagonist.BestFitnessDelta = antagonistFitnessDelta
 		}
 		perfectTreeMap[antagonist.Parent.Id] = perfectTreeAntagonist
@@ -93,19 +93,19 @@ func FitnessResolver(perfectTreeMap map[string]PerfectTree, antagonist, protagon
 	if perfectTreeProtagonist.BestFitnessValue < protagonistFitness {
 		perfectTreeProtagonist.Program = protagonist.Program
 		perfectTreeProtagonist.BestFitnessValue = protagonistFitness
-		if protagonistFitnessDelta != math.Inf(1) {
+		if protagonistFitnessDelta != math.NaN() {
 			perfectTreeProtagonist.BestFitnessDelta = protagonistFitnessDelta
 		} else {
 			perfectTreeProtagonist.BestFitnessDelta = math.MaxInt16
 		}
 		perfectTreeMap[protagonist.Parent.Id] = perfectTreeProtagonist
 	}
-	if antagonistFitnessDelta != math.Inf(1) {
+	if antagonistFitnessDelta != math.NaN() {
 		antagonist.Parent.Deltas = append(antagonist.Parent.Deltas, antagonistFitnessDelta)
 	} else {
 		antagonist.Parent.Deltas = append(antagonist.Parent.Deltas, 0)
 	}
-	if protagonistFitnessDelta != math.Inf(1) {
+	if protagonistFitnessDelta != math.NaN() {
 		protagonist.Parent.Deltas = append(protagonist.Parent.Deltas, protagonistFitnessDelta)
 	} else {
 		protagonist.Parent.Deltas = append(protagonist.Parent.Deltas, math.MaxInt16)
@@ -123,13 +123,13 @@ func AntagonistFitnessResolver(perfectTreeMap map[string]PerfectTree, antagonist
 	if perfectTreeAntagonist.BestFitnessValue < antagonistFitness {
 		perfectTreeAntagonist.Program = antagonist.Program
 		perfectTreeAntagonist.BestFitnessValue = antagonistFitness
-		if antagonistFitnessDelta != math.Inf(1) {
+		if antagonistFitnessDelta != math.NaN() {
 			perfectTreeAntagonist.BestFitnessDelta = antagonistFitnessDelta
 		}
 		perfectTreeMap[antagonist.Parent.Id] = perfectTreeAntagonist
 	}
 
-	if antagonistFitnessDelta != math.Inf(1) {
+	if antagonistFitnessDelta != math.NaN() {
 		antagonist.Parent.Deltas = append(antagonist.Parent.Deltas, antagonistFitnessDelta)
 	} else {
 		antagonist.Parent.Deltas = append(antagonist.Parent.Deltas, 0)
@@ -147,14 +147,14 @@ func ProtagonistFitnessResolver(perfectTreeMap map[string]PerfectTree,  protagon
 		if perfectTreeProtagonist.BestFitnessValue < protagonistFitness {
 			perfectTreeProtagonist.Program = protagonist.Program
 			perfectTreeProtagonist.BestFitnessValue = protagonistFitness
-			if protagonistFitnessDelta != math.Inf(1) {
+			if protagonistFitnessDelta != math.NaN() {
 				perfectTreeProtagonist.BestFitnessDelta = protagonistFitnessDelta
 			} else {
 				perfectTreeProtagonist.BestFitnessDelta = math.MaxInt16
 			}
 			perfectTreeMap[protagonist.Id] = perfectTreeProtagonist
 		}
-		if protagonistFitnessDelta != math.Inf(1) {
+		if protagonistFitnessDelta != math.NaN() {
 			protagonist.Deltas = append(protagonist.Deltas, protagonistFitnessDelta)
 		} else {
 			protagonist.Deltas = append(protagonist.Deltas, math.MaxInt16)
@@ -168,14 +168,14 @@ func ProtagonistFitnessResolver(perfectTreeMap map[string]PerfectTree,  protagon
 		if perfectTreeProtagonist.BestFitnessValue < protagonistFitness {
 			perfectTreeProtagonist.Program = protagonist.Program
 			perfectTreeProtagonist.BestFitnessValue = protagonistFitness
-			if protagonistFitnessDelta != math.Inf(1) {
+			if protagonistFitnessDelta != math.NaN() {
 				perfectTreeProtagonist.BestFitnessDelta = protagonistFitnessDelta
 			} else {
 				perfectTreeProtagonist.BestFitnessDelta = math.MaxInt16
 			}
 			perfectTreeMap[protagonist.Parent.Id] = perfectTreeProtagonist
 		}
-		if protagonistFitnessDelta != math.Inf(1) {
+		if protagonistFitnessDelta != math.NaN() {
 			protagonist.Parent.Deltas = append(protagonist.Parent.Deltas, protagonistFitnessDelta)
 		} else {
 			protagonist.Parent.Deltas = append(protagonist.Parent.Deltas, math.MaxInt16)

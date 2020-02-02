@@ -41,7 +41,7 @@ func (s *SingleEliminationTournamentTopology) Topology(currentGeneration *Genera
 			if err != nil {
 				params.ErrorChan <- err
 			}
-			topAntagonist, err := singleETCompeteAntagonists(clonedIndividuals, params)
+			topAntagonist, err := singleETCompete(clonedIndividuals, DualTree{}, params)
 			if err != nil {
 				params.ErrorChan <- err
 			}
@@ -70,7 +70,7 @@ func (s *SingleEliminationTournamentTopology) Topology(currentGeneration *Genera
 			if err != nil {
 				params.ErrorChan <- err
 			}
-			topProtagonist, err := singleETCompeteProtagonists(clonedIndividuals, *antagonists[i].Program.T,
+			topProtagonist, err := singleETCompete(clonedIndividuals, *antagonists[i].Program.T,
 				params)
 			if err != nil {
 				params.ErrorChan <- err
@@ -221,7 +221,7 @@ type bracket struct {
 	individualB *Individual
 }
 
-func singleETCompeteAntagonists(individuals []*Individual, params EvolutionParams) (topIndividual *Individual,
+func singleETCompete(individuals []*Individual, bestAntagonistTree DualTree, params EvolutionParams) (topIndividual *Individual,
 	err error) {
 	if len(individuals) < 1 {
 		return nil, fmt.Errorf("singleETCompeteAntagonists | input individuals cannot be empty")
@@ -230,6 +230,7 @@ func singleETCompeteAntagonists(individuals []*Individual, params EvolutionParam
 		return nil, fmt.Errorf("singleETCompeteAntagonists | input individuals cannot be null")
 	}
 
+	perfectFitnessMap := map[string]PerfectTree{}
 	brackets, err := setCreateTournamentBrackets(individuals)
 	if err != nil {
 		return nil, err
@@ -239,37 +240,87 @@ func singleETCompeteAntagonists(individuals []*Individual, params EvolutionParam
 	for len(brackets) >= 1 {
 		winners := make([]*Individual, 0)
 		for i := range brackets {
-			err := brackets[i].individualA.ApplyAntagonistStrategy(params)
-			if err != nil {
-				return nil, err
+			var individualAFitness, individualADelta, individualBFitness, individualBDelta = -1.0,-1.0,0.0,0.0
+			switch brackets[i].individualA.Kind {
+			case IndividualAntagonist:
+				err := brackets[i].individualA.ApplyAntagonistStrategy(params)
+				if err != nil {
+					return nil, err
+				}
+
+				err = brackets[i].individualB.ApplyAntagonistStrategy(params)
+				if err != nil {
+					return nil, err
+				}
+
+				individualAFitness, individualADelta, err = brackets[i].individualA.CalculateAntagonistThresholdedFitness(
+					params)
+				if err != nil {
+					return nil, err
+				}
+
+				individualBFitness, individualBDelta, err = brackets[i].individualB.
+					CalculateAntagonistThresholdedFitness(params)
+				if err != nil {
+					return nil, err
+				}
+
+				brackets[i].individualA.Fitness = append(brackets[i].individualA.Fitness, individualAFitness)
+				brackets[i].individualA.Deltas = append(brackets[i].individualA.Deltas, individualADelta)
+				brackets[i].individualA.Parent.Fitness = append(brackets[i].individualA.Parent.Fitness, individualAFitness)
+				brackets[i].individualA.Parent.Deltas = append(brackets[i].individualA.Parent.Deltas, individualADelta)
+
+				brackets[i].individualB.Fitness = append(brackets[i].individualB.Fitness, individualBFitness)
+				brackets[i].individualB.Deltas = append(brackets[i].individualB.Deltas, individualBDelta)
+				brackets[i].individualB.Parent.Fitness = append(brackets[i].individualB.Parent.Fitness, individualBFitness)
+				brackets[i].individualB.Parent.Deltas = append(brackets[i].individualB.Parent.Deltas, individualBDelta)
+
+				AntagonistFitnessResolver(perfectFitnessMap, brackets[i].individualA, individualAFitness, individualADelta)
+				AntagonistFitnessResolver(perfectFitnessMap, brackets[i].individualB, individualBFitness,
+					individualBDelta)
+
+				perfectTree := perfectFitnessMap[individuals[i].Id]
+				individuals[i].Parent.Program = perfectTree.Program
+				individuals[i].Parent.BestDelta = perfectTree.BestFitnessDelta
+				individuals[i].Parent.BestFitness = perfectTree.BestFitnessValue
+			case IndividualProtagonist:
+				err := brackets[i].individualA.ApplyProtagonistStrategy(bestAntagonistTree, params)
+				if err != nil {
+					return nil, err
+				}
+				err = brackets[i].individualB.ApplyProtagonistStrategy(bestAntagonistTree, params)
+				if err != nil {
+					return nil, err
+				}
+
+				individualAFitness, individualADelta, err = brackets[i].individualA.CalculateProtagonistThresholdedFitness(params)
+				if err != nil {
+					return nil, err
+				}
+				individualBFitness, individualBDelta, err = brackets[i].individualB.CalculateProtagonistThresholdedFitness(params)
+				if err != nil {
+					return nil, err
+				}
+
+				brackets[i].individualA.Fitness = append(brackets[i].individualA.Fitness, individualAFitness)
+				brackets[i].individualA.Deltas = append(brackets[i].individualA.Deltas, individualADelta)
+				brackets[i].individualA.Parent.Fitness = append(brackets[i].individualA.Parent.Fitness, individualAFitness)
+				brackets[i].individualA.Parent.Deltas = append(brackets[i].individualA.Parent.Deltas, individualADelta)
+
+				brackets[i].individualB.Fitness = append(brackets[i].individualB.Fitness, individualBFitness)
+				brackets[i].individualB.Deltas = append(brackets[i].individualB.Deltas, individualBDelta)
+				brackets[i].individualB.Parent.Fitness = append(brackets[i].individualB.Parent.Fitness, individualBFitness)
+				brackets[i].individualB.Parent.Deltas = append(brackets[i].individualB.Parent.Deltas, individualBDelta)
+
+				ProtagonistFitnessResolver(perfectFitnessMap, brackets[i].individualA, individualAFitness, individualADelta)
+				ProtagonistFitnessResolver(perfectFitnessMap, brackets[i].individualB, individualBFitness,
+					individualBDelta)
+
+				perfectTree := perfectFitnessMap[individuals[i].Id]
+				individuals[i].Parent.Program = perfectTree.Program
+				individuals[i].Parent.BestDelta = perfectTree.BestFitnessDelta
+				individuals[i].Parent.BestFitness = perfectTree.BestFitnessValue
 			}
-
-			err = brackets[i].individualB.ApplyAntagonistStrategy(params)
-			if err != nil {
-				return nil, err
-			}
-
-			individualAFitness, individualADelta, err := brackets[i].individualA.CalculateAntagonistThresholdedFitness(
-				params)
-			if err != nil {
-				return nil, err
-			}
-
-			individualBFitness, individualBDelta, err := brackets[i].individualB.
-				CalculateAntagonistThresholdedFitness(params)
-			if err != nil {
-				return nil, err
-			}
-			brackets[i].individualA.Fitness = append(brackets[i].individualA.Fitness, individualAFitness)
-			brackets[i].individualA.Deltas = append(brackets[i].individualA.Deltas, individualADelta)
-			brackets[i].individualB.Fitness = append(brackets[i].individualB.Fitness, individualBFitness)
-			brackets[i].individualB.Deltas = append(brackets[i].individualB.Deltas, individualBDelta)
-
-			brackets[i].individualA.Parent.Fitness = append(brackets[i].individualA.Parent.Fitness, individualAFitness)
-			brackets[i].individualA.Parent.Deltas = append(brackets[i].individualA.Parent.Deltas, individualADelta)
-			brackets[i].individualB.Parent.Fitness = append(brackets[i].individualB.Parent.Fitness, individualBFitness)
-			brackets[i].individualB.Parent.Deltas = append(brackets[i].individualB.Parent.Deltas, individualBDelta)
-
 
 			if individualAFitness >= individualBFitness {
 				if len(brackets) == 1 {
@@ -295,10 +346,12 @@ func singleETCompeteAntagonists(individuals []*Individual, params EvolutionParam
 		}
 	}
 
-	for i := range individuals {
-		individuals[i] = nil
+	for i := 0; i < len(individuals); i++ {
+		perfectTree := perfectFitnessMap[individuals[i].Id]
+		individuals[i].Parent.Program = perfectTree.Program
+		individuals[i].Parent.BestDelta = perfectTree.BestFitnessDelta
+		individuals[i].Parent.BestFitness = perfectTree.BestFitnessValue
 	}
-
 	return winner, err
 }
 

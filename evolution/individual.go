@@ -200,7 +200,7 @@ func (individual *Individual) CalculateProtagonistThresholdedFitness(params Evol
 	}
 
 	fitnessPenalization := params.Spec[0].DivideByZeroPenalty
-	badDeltaValue := math.Inf(1)
+	badDeltaValue := math.NaN()
 	divByZeroStrategy := params.SpecParam.DivideByZeroStrategy
 
 	protagonistExpression, err := individual.Program.T.ToMathematicalString()
@@ -295,7 +295,7 @@ func (individual *Individual) CalculateAntagonistThresholdedFitness(params Evolu
 	}
 
 	fitnessPenalization := params.Spec[0].DivideByZeroPenalty
-	badDeltaValue := math.Inf(1)
+	badDeltaValue := math.NaN()
 	divByZeroStrategy := params.SpecParam.DivideByZeroStrategy
 
 	antagonistExpression, err := individual.Program.T.ToMathematicalString()
@@ -480,6 +480,9 @@ func StrategiesToStringArr(strategies []string) string {
 	}
 
 	final := sb.String()
+	if len(final) < 1 {
+		return final
+	}
 	return final[:len(final)-1]
 }
 
