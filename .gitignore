@@ -2,6 +2,7 @@ masters
 _dataBackup
 _pshipped_params
 _paramsBackup
+logs
 # Binaries for programs and plugins
 *.exe
 *.exe~
