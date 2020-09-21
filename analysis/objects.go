@@ -5,6 +5,30 @@ import (
 	"github.com/martinomburajr/masters-go/simulation"
 )
 
+func ScaleCCAlgorithmToOrdinal(algorithm string) int {
+	switch algorithm {
+	case evolution.TopologyHallOfFame:
+		return 0
+	case evolution.TopologyRoundRobin:
+		return 1
+	case evolution.TopologyKRandom:
+		return 2
+	case evolution.TopologySingleEliminationTournament:
+		return 3
+	}
+	return -1
+}
+
+func ScaleCrosoverToOrdinal(crossover string) int {
+	switch crossover {
+	case evolution.CrossoverSinglePoint:
+		return 0
+	case evolution.CrossoverUniform:
+		return 1
+	}
+	return -1
+}
+
 type CSVBestAll struct {
 	FileID                  string                                `csv:"ID"`
 	bestIndividualStatistic simulation.RunBestIndividualStatistic `csv:"bestIndividualStatistic"`
@@ -88,40 +112,42 @@ type CSVBestAll struct {
 	SurvivorPercent    float64 `csv:"survivorPercent"`
 	DivByZero          string  `csv:"d0"`
 	DivByZeroPen       float64 `csv:"d0Pen"`
+
+	CrossoverType   string `csv:"crossoverType"`
+	CrossoverScale int `csv:"crossoverScale"`
+	TopologyScale int `csv:"topologyScale"`
 }
 
 
 type CSVCombinedGenerations struct {
-	FileID                  string                                `csv:"ID"`
-	params                  evolution.EvolutionParams             `csv:"evolutionaryParams"`
+	FileID string                    `csv:"ID"`
+	params evolution.EvolutionParams `csv:"evolutionaryParams"`
 
 	//BEST INDIVIDUAL
-	Generation int `csv:"gen"`
+	Generation   int    `csv:"gen"`
 	SpecEquation string `csv:"specEquation"`
 	SpecRange    int    `csv:"range"`
 	SpecSeed     int    `csv:"seed"`
 
-	TopAEquation string `csv:"topAEquation"`
-	TopPEquation string `csv:"topPEquation"`
-	Correlation float64 `csv:"correlation"`
-	Covariance float64 `csv:"covariance"`
+	TopAEquation string  `csv:"topAEquation"`
+	TopPEquation string  `csv:"topPEquation"`
+	Correlation  float64 `csv:"correlation"`
+	Covariance   float64 `csv:"covariance"`
 
-
-	Antagonist                  float64 `csv:"AMean"`
-	Protagonist                 float64 `csv:"PMean"`
-	TopAntagonistMean float64 `csv:"topAMean"`
-	TopProtagonistMean float64 `csv:"topPMean"`
-	TopAntagonistBestFitness       float64 `csv:"topABest"`
-	TopProtagonistBestFitness      float64 `csv:"topPBest"`
-	TopAntagonistStdDev            float64 `csv:"AStd"`
-	TopProtagonistStdDev           float64 `csv:"PStd"`
-	TopAntagonistVar float64 `csv:"AVar"`
-	TopProtagonistVar float64 `csv:"PVar"`
-	TopAntagonistSkew float64 `csv:"ASkew"`
-	TopProtagonistSkew float64 `csv:"PSkew"`
-	TopAntagonistKurtosis float64 `csv:"AExKur"`
-	TopProtagonistKurtosis float64 `csv:"PExKur"`
-
+	Antagonist                float64 `csv:"AMean"`
+	Protagonist               float64 `csv:"PMean"`
+	TopAntagonistMean         float64 `csv:"topAMean"`
+	TopProtagonistMean        float64 `csv:"topPMean"`
+	TopAntagonistBestFitness  float64 `csv:"topABest"`
+	TopProtagonistBestFitness float64 `csv:"topPBest"`
+	TopAntagonistStdDev       float64 `csv:"AStd"`
+	TopProtagonistStdDev      float64 `csv:"PStd"`
+	TopAntagonistVar          float64 `csv:"AVar"`
+	TopProtagonistVar         float64 `csv:"PVar"`
+	TopAntagonistSkew         float64 `csv:"ASkew"`
+	TopProtagonistSkew        float64 `csv:"PSkew"`
+	TopAntagonistKurtosis     float64 `csv:"AExKur"`
+	TopProtagonistKurtosis    float64 `csv:"PExKur"`
 
 	TopAntagonistAverageDelta      float64 `csv:"topAMeanDelta"`
 	TopProtagonistAverageDelta     float64 `csv:"topPMeanDelta"`
@@ -143,7 +169,7 @@ type CSVCombinedGenerations struct {
 	// PARAMS
 	GenerationCount    int     `csv:"genCount"`
 	EachPopulationSize int     `csv:"popCount"`
-	TopologyType string `csv:"topology"`
+	TopologyType       string  `csv:"topology"`
 	AntStratCount      int     `csv:"antStratCount"`
 	ProStratCount      int     `csv:"proStratCount"`
 	AntStrat           string  `csv:"antStrat"`
@@ -159,4 +185,7 @@ type CSVCombinedGenerations struct {
 	SurvivorPercent    float64 `csv:"survivorPercent"`
 	DivByZero          string  `csv:"d0"`
 	DivByZeroPen       float64 `csv:"d0Pen"`
+	TopologyScale      int `csv:"topologyScale"`
+	CrossoverScale int `csv:"crossoverScale"`
+	CrossoverType string `csv:"crossoverType"`
 }

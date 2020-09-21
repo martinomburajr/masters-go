@@ -23,10 +23,18 @@ func (r RoundRobin) Topology(currentGeneration *Generation,
 
 	antagonistSurvivors, protagonistSurvivors := currentGeneration.ApplySelection(currentGeneration.Antagonists, currentGeneration.Protagonists, params.ErrorChan)
 
+	var clonedAntagonistSurvivors, clonedProtagonistSurvivors = make([]*Individual, len(antagonistSurvivors)), make([]*Individual, len(antagonistSurvivors))
+	for i := 0; i < r.Engine.Parameters.EachPopulationSize; i++ {
+		antClone, _ := antagonistSurvivors[i].Clone()
+		protClone, _ := protagonistSurvivors[i].Clone()
+		clonedAntagonistSurvivors[i] = &antClone
+		clonedProtagonistSurvivors[i] = &protClone
+	}
+
 	newGeneration := &Generation{
 		GenerationID:                 GenerateGenerationID(currentGeneration.count+1, TopologyRoundRobin),
-		Protagonists:                 protagonistSurvivors,
-		Antagonists:                  antagonistSurvivors,
+		Protagonists:                 clonedProtagonistSurvivors,
+		Antagonists:                  clonedAntagonistSurvivors,
 		engine:                       currentGeneration.engine,
 		isComplete:                   true,
 		hasParentSelectionHappened:   true,

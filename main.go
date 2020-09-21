@@ -34,7 +34,7 @@ func main() {
 	stealPtr := flag.Bool("steal", true, "Should steal completed files and automatically back them up")
 	rIndependentParentDir := flag.String("runRIndependent", "", "run's are to a given set of directories. "+
 		"The value supplied must be the parent folder containing all the folders that require R to run in.")
-	//--analysisBaseFolder="/home/martinomburajr/Desktop/Results"
+	//--analysisBaseFolder="/home/martinomburajr/Desktop/Results20/data"
 	analyisBaseFolder := flag.String("analysisBaseFolder", "", "pass the base folder containing all the different simulations. This will coalesce relevant files")
 	runFolder := flag.String("runFolder", "", "pass in the paramFolder to run, " +
 		"do not pass in the parent folder e.g. TopologySET-4")

@@ -197,8 +197,11 @@ func CombineGenerations(baseFolder string) error {
 					if err != nil {
 						//return err
 					}
+					ordinal := ScaleCCAlgorithmToOrdinal(params.Topology.Type)
+					toOrdinal := ScaleCrosoverToOrdinal(params.Reproduction.CrossoverStrategy)
 
 					for _, gen := range generationalStatistics {
+
 						csvGen := CSVCombinedGenerations{
 							FileID: dataFolder,
 
@@ -214,6 +217,9 @@ func CombineGenerations(baseFolder string) error {
 							ParentSelect:       params.Selection.Parent.Type,
 
 							SurvivorSelect: params.Selection.Survivor.Type,
+							TournamentSize: params.Selection.Parent.TournamentSize,
+							SurvivorPercent: params.Selection.Survivor.SurvivorPercentage,
+
 
 							CrossPercent: params.Reproduction.CrossoverPercentage,
 							ProbMutation: params.Reproduction.ProbabilityOfMutation,
@@ -231,6 +237,9 @@ func CombineGenerations(baseFolder string) error {
 							RandTreeDepth: params.Strategies.DepthOfRandomNewTrees,
 							DivByZero:     params.SpecParam.DivideByZeroStrategy,
 							DivByZeroPen:  params.SpecParam.DivideByZeroPenalty,
+							TopologyScale:  ordinal,
+							CrossoverScale: toOrdinal,
+							CrossoverType:  params.Reproduction.CrossoverStrategy,
 
 							Correlation:  gen.Correlation,
 							Covariance:   gen.Covariance,
@@ -281,10 +290,10 @@ func CombineGenerations(baseFolder string) error {
 		}
 
 		print(totalDirs)
-		//err = writeToFolder(dataFolder, "coalescedGenerations.csv", csvGens)
-		//if err != nil {
-		//	//return err
-		//}
+		err = writeToFolder(dataFolder, "coalescedGenerations.csv", csvGens)
+		if err != nil {
+			//return err
+		}
 	}
 
 	err = writeToBaseFolder(baseFolder, "coalescedAllGenerations.csv", AllCSVGens)
@@ -334,6 +343,8 @@ func CombineBestCombinedAll(baseFolder string) error {
 							idSplit := strings.Split(dataFolder, "/")
 
 							// #### COMBINE
+							ordinal := ScaleCCAlgorithmToOrdinal(params.Topology.Type)
+							toOrdinal := ScaleCrosoverToOrdinal(params.Reproduction.CrossoverStrategy)
 							csvBest := CSVBestAll{
 								FileID:       idSplit[len(idSplit)-1],
 								SpecEquation: bst.SpecEquation,
@@ -415,6 +426,12 @@ func CombineBestCombinedAll(baseFolder string) error {
 								RandTreeDepth: params.Strategies.DepthOfRandomNewTrees,
 								DivByZero:     params.SpecParam.DivideByZeroStrategy,
 								DivByZeroPen:  params.SpecParam.DivideByZeroPenalty,
+
+								TournamentSize: params.Selection.Parent.TournamentSize,
+								SurvivorPercent: params.Selection.Survivor.SurvivorPercentage,
+								TopologyScale:  ordinal,
+								CrossoverScale: toOrdinal,
+								CrossoverType:  params.Reproduction.CrossoverStrategy,
 							}
 							(accCSV) = append(accCSV, csvBest)
 						}
@@ -434,7 +451,7 @@ func CombineBestCombinedAll(baseFolder string) error {
 		finalCSV = append(finalCSV, accCSV[i])
 	}
 
-	outputFilePath := fmt.Sprintf("%s/%s", baseFolder, "coalescedBestCombined.csv")
+	outputFilePath := fmt.Sprintf("%s/%s", baseFolder, "coalescedBestCombined1.csv")
 	outputFile, err := os.Create(outputFilePath)
 	if err != nil {
 		return err
@@ -467,8 +484,7 @@ func CombineBestCombinedAll2(baseFolder string) error {
 
 		err = filepath.Walk(dataFolder, func(path string, info os.FileInfo, err error) error {
 			if !info.IsDir() {
-				if strings.Contains(path, "best-") && !strings.Contains(path, ".png") && !strings.Contains(path,
-					"all") && !strings.Contains(path, "combined"){
+				if findBest_(path) {
 					bestAllFile, err := os.OpenFile(path, os.O_RDONLY, os.ModePerm)
 					if err != nil {
 						return err
@@ -486,6 +502,12 @@ func CombineBestCombinedAll2(baseFolder string) error {
 							idSplit := strings.Split(dataFolder, "/")
 
 							// #### COMBINE
+							ordinal := ScaleCCAlgorithmToOrdinal(params.Topology.Type)
+							toOrdinal := ScaleCrosoverToOrdinal(params.Reproduction.CrossoverStrategy)
+							arr := evolution.StrategiesToStringArr(evolution.ConvertStrategiesToString(params.Strategies.
+								ProtagonistAvailableStrategies))
+							stringArr := evolution.StrategiesToStringArr(evolution.ConvertStrategiesToString(params.Strategies.
+								AntagonistAvailableStrategies))
 							csvBest := CSVBestAll{
 								FileID:       idSplit[len(idSplit)-1],
 								SpecEquation: bst.SpecEquation,
@@ -551,22 +573,25 @@ func CombineBestCombinedAll2(baseFolder string) error {
 								GenerationCount:    params.GenerationsCount,
 								EachPopulationSize: params.EachPopulationSize,
 								ParentSelect:       params.Selection.Parent.Type,
-								SurvivorSelect: params.Selection.Survivor.Type,
-								CrossPercent: params.Reproduction.CrossoverPercentage,
-								ProbMutation: params.Reproduction.ProbabilityOfMutation,
-								AntStratCount: params.Strategies.AntagonistStrategyCount,
-								AntStrat: evolution.StrategiesToStringArr(evolution.ConvertStrategiesToString(params.Strategies.
-									AntagonistAvailableStrategies)),
-								AntThreshMult: params.FitnessStrategy.AntagonistThresholdMultiplier,
+								SurvivorSelect:     params.Selection.Survivor.Type,
+								CrossPercent:       params.Reproduction.CrossoverPercentage,
+								ProbMutation:       params.Reproduction.ProbabilityOfMutation,
+								AntStratCount:      params.Strategies.AntagonistStrategyCount,
+								AntStrat:           stringArr,
+								AntThreshMult:      params.FitnessStrategy.AntagonistThresholdMultiplier,
 
+								TournamentSize: params.Selection.Parent.TournamentSize,
+								SurvivorPercent: params.Selection.Survivor.SurvivorPercentage,
 								ProThresMult:  params.FitnessStrategy.ProtagonistThresholdMultiplier,
 								ProStratCount: params.Strategies.ProtagonistStrategyCount,
-								ProStrat: evolution.StrategiesToStringArr(evolution.ConvertStrategiesToString(params.Strategies.
-									ProtagonistAvailableStrategies)),
+								ProStrat:      arr,
 
-								RandTreeDepth: params.Strategies.DepthOfRandomNewTrees,
-								DivByZero:     params.SpecParam.DivideByZeroStrategy,
-								DivByZeroPen:  params.SpecParam.DivideByZeroPenalty,
+								RandTreeDepth:  params.Strategies.DepthOfRandomNewTrees,
+								DivByZero:      params.SpecParam.DivideByZeroStrategy,
+								DivByZeroPen:   params.SpecParam.DivideByZeroPenalty,
+								TopologyScale:  ordinal,
+								CrossoverScale: toOrdinal,
+								CrossoverType:  params.Reproduction.CrossoverStrategy,
 							}
 							(accCSV) = append(accCSV, csvBest)
 						}
@@ -586,7 +611,7 @@ func CombineBestCombinedAll2(baseFolder string) error {
 		finalCSV = append(finalCSV, accCSV[i])
 	}
 
-	outputFilePath := fmt.Sprintf("%s/%s", baseFolder, "coalescedBestCombined.csv")
+	outputFilePath := fmt.Sprintf("%s/%s", baseFolder, "coalescedBestCombined2.csv")
 	outputFile, err := os.Create(outputFilePath)
 	if err != nil {
 		return err
@@ -600,9 +625,22 @@ func CombineBestCombinedAll2(baseFolder string) error {
 	return nil
 }
 
+func findBest_(path string) bool {
+	if strings.Contains(path, "best-") {
+		if !strings.Contains(path, ".png") {
+			if !strings.Contains(path, "all") {
+				if !strings.Contains(path, "combined") {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
 func writeToFolder(folderpath, filename string, data []CSVCombinedGenerations) error {
 	split := strings.Split(folderpath, "/")
-	folderpath = fmt.Sprintf("%s/%s", "/home/martinomburajr/Desktop/Simulations", split[len(split)-1])
+	folderpath = fmt.Sprintf("%s/%s", "/home/martinomburajr/Desktop/Results", split[len(split)-1])
 	os.MkdirAll(folderpath, 0777)
 	outputFilePath := fmt.Sprintf("%s/%s", folderpath, filename)
 	outputFile, err := os.Create(outputFilePath)
